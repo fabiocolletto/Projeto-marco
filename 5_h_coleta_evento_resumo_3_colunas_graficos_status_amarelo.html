@@ -1,0 +1,505 @@
+<style>
+:root{--azul:#1a59a4;--laranja:#ff6a00;--ink:#202020;--muted:#5b6b7a;--line:#e6e9ef;--paper:#fff;--bg:#fff;--tint:rgba(26,89,164,.05);--amarelo:#ffd54a;--verde:#1a7f37;--vermelho:#c62828}
+#app-5h-evento{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:16px;max-width:960px;margin:auto;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+#app-5h-header{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:6px 0 14px;background:#fff}
+#app-5h-header .title{font-weight:800;color:var(--azul)}
+#app-5h-header .meta{display:flex;gap:16px;color:#3b4a5a;font-size:13px}
+#app-5h-header .meta span[contenteditable]{border-bottom:1px dashed #b9c3cf;min-width:60px;display:inline-block;padding:0 2px}
+#app-5h-evento section{border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0;background:var(--paper);transition:border-color .2s ease,box-shadow .2s ease}
+#app-5h-evento section.summary{background:var(--tint);border-color:rgba(26,89,164,.25)}
+#app-5h-evento .accordion{border:0;background:transparent;padding:0;margin:12px 0}
+#app-5h-evento .accordion .acc-head{display:flex;align-items:center;justify-content:space-between;width:100%;background:#fff;border:1px solid rgba(26,89,164,.25);border-radius:8px 8px 0 0;padding:10px 12px;cursor:pointer}
+#app-5h-evento .accordion .acc-head span{font-weight:700;color:var(--azul)}
+#app-5h-evento .accordion .acc-head .chev{width:16px;height:16px;transition:transform .2s ease}
+#app-5h-evento .accordion .acc-head[aria-expanded="true"] .chev{transform:rotate(90deg)}
+#app-5h-evento .accordion .acc-body{padding:12px;border:1px solid rgba(26,89,164,.25);border-top:none;border-radius:0 0 8px 8px;background:#fff}
+#app-5h-evento .accordion .acc-body[hidden]{display:none}
+#app-5h-evento h2{margin:0 0 10px;font-size:16px;color:var(--azul);border-left:4px solid var(--laranja);padding-left:8px}
+#app-5h-evento label{display:block;margin:8px 0 6px;color:var(--muted);font-weight:600}
+#app-5h-evento .help{color:var(--muted);font-size:12px;margin:6px 0}
+#app-5h-evento .field{margin-bottom:10px}
+#app-5h-evento .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#app-5h-evento .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){#app-5h-evento .grid-2{grid-template-columns:1fr}}
+#app-5h-evento input,#app-5h-evento textarea,#app-5h-evento select{width:100%;padding:12px;border:2px solid rgba(26,89,164,.35);border-radius:10px;outline:0;background:#fff;transition:border-color .15s ease,box-shadow .15s ease}
+#app-5h-evento textarea{min-height:120px;resize:vertical}
+#app-5h-evento input::placeholder,#app-5h-evento textarea::placeholder{color:#98a6b5}
+#app-5h-evento input:hover,#app-5h-evento textarea:hover,#app-5h-evento select:hover{border-color:var(--laranja);box-shadow:0 0 0 2px rgba(255,106,0,.15)}
+#app-5h-evento input:focus,#app-5h-evento textarea:focus,#app-5h-evento select:focus{border-color:var(--azul);box-shadow:0 0 0 3px rgba(26,89,164,.15)}
+#app-5h-evento .btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;font-weight:600;cursor:pointer}
+#app-5h-evento .btn:hover{border-color:var(--laranja);box-shadow:0 0 0 2px rgba(255,106,0,.12)}
+#app-5h-evento .btn.primary{background:var(--azul);color:#fff;border-color:var(--azul)}
+#app-5h-evento .btn.primary:hover{box-shadow:0 0 0 3px rgba(26,89,164,.18)}
+#app-5h-evento .btn.pdf{background:#fff}
+#app-5h-evento .export{margin-top:18px}
+#app-5h-evento .export h3{margin:0 0 6px;color:#3b4a5a}
+#app-5h-evento .export .descr{margin:0 0 8px;color:#6a7a89;font-size:13px}
+#cv-list{margin-top:12px}
+#app-5h-evento table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:13px;table-layout:fixed}
+#app-5h-evento col.c-idx{width:40px}
+#app-5h-evento col.c-phone{width:16ch}
+#app-5h-evento col.c-name{width:auto}
+#app-5h-evento col.c-acomp{width:auto}
+#app-5h-evento col.c-qty{width:7ch}
+#app-5h-evento col.c-conf{width:7ch}
+#app-5h-evento col.c-stat{width:12ch}
+#app-5h-evento col.c-act{width:8ch}
+#app-5h-evento th,#app-5h-evento td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+#app-5h-evento thead th{background:#f7f9fc;color:#3b4a5a;font-weight:700}
+#app-5h-evento tbody tr:last-child td{border-bottom:none}
+#app-5h-evento td.qty,#app-5h-evento th.qty,#app-5h-evento td.confirmados,#app-5h-evento th.confirmados{text-align:center}
+#app-5h-evento td.phone{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#app-5h-evento .muted{color:var(--muted)}
+#app-5h-evento .ok{color:var(--verde)}
+#app-5h-evento .bad{color:var(--vermelho)}
+#app-5h-evento .badge-intl{display:inline-block;font-size:11px;border:1px solid rgba(26,89,164,.25);color:var(--azul);background:var(--tint);padding:2px 6px;border-radius:999px;margin-left:6px;white-space:nowrap}
+#app-5h-evento .badge-status{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);margin-left:6px;white-space:nowrap;text-align:center}
+#app-5h-evento .s-nao{background:var(--amarelo);color:#5b4a00;border-color:#e6c33d}
+#app-5h-evento .s-env{background:rgba(26,89,164,.08);color:#1a59a4;border-color:rgba(26,89,164,.35)}
+#app-5h-evento .s-resp{background:rgba(26,155,84,.12);color:var(--verde);border-color:rgba(26,155,84,.35)}
+#app-5h-evento td.scol, #app-5h-evento th.scol{ text-align:center }
+#app-5h-evento tr.subrow td{font-size:12px;color:var(--muted);padding:2px 8px 4px;background:transparent;position:relative;top:-6px}
+#app-5h-evento .status-ico{font-weight:700;margin-right:6px}
+#app-5h-evento .actions{display:flex;gap:8px}
+#app-5h-evento .icon-btn{background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer}
+#app-5h-evento .icon-btn:hover{border-color:var(--laranja);box-shadow:0 0 0 2px rgba(255,106,0,.12)}
+#app-5h-evento .row-edit input[type="text"],
+#app-5h-evento .row-edit input[type="number"],
+#app-5h-evento .row-edit select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:6px}
+#app-5h-evento .totals-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0}
+#app-5h-evento .totals-card{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;min-height:100px}
+#app-5h-evento .totals-card h3{margin:0 0 8px;font-size:14px;color:var(--azul)}
+#app-5h-evento .totals-list{display:flex;flex-direction:column;gap:6px}
+#app-5h-evento .totals-item{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#app-5h-evento .totals-item .label{color:#3b4a5a}
+#app-5h-evento .totals-item .value{font-weight:800;min-width:36px;text-align:right}
+#app-5h-evento .meter{width:100%;height:6px;background:#eef2f7;border-radius:999px;overflow:hidden}
+#app-5h-evento .meter > span{display:block;height:100%;background:var(--azul);width:0%}
+#app-5h-evento .meter .bar-nao{background:#ffcc33}
+#app-5h-evento .meter .bar-env{background:#1a59a4}
+#app-5h-evento .meter .bar-resp{background:#1a7f37}
+#app-5h-evento .meter .bar-gconf{background:#1a7f37}
+#app-5h-evento .meter .bar-gpend{background:#7b8a99}
+#app-5h-evento .meter .bar-gerro{background:#c62828}
+#app-5h-evento .footer-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+#app-5h-evento .confirmados-screen{display:inline}
+#app-5h-evento .confirmados-print{display:none}
+@media print{
+  #app-5h-evento .acc-head,
+  #app-5h-evento #cv-raw,
+  #app-5h-evento #cv-add,
+  #app-5h-evento #cv-feedback,
+  #app-5h-evento .actions,
+  #app-5h-evento .btn,
+  #app-5h-evento .help,
+  #app-5h-evento .descr{display:none!important}
+  #app-5h-evento section:not(.summary):not(.export){display:none!important}
+  body{background:#fff}
+  #app-5h-evento{border:0;max-width:100%}
+  #app-5h-evento table{border-collapse:collapse}
+  #app-5h-evento th,#app-5h-evento td{border:1px solid #cfd6e1}
+  thead{display:table-header-group}
+  tr{page-break-inside:avoid}
+  #app-5h-evento .confirmados-screen{display:none!important}
+  #app-5h-evento .confirmados-print{display:inline!important}
+}
+</style>
+<div id="app-5h-evento">
+  <div id="app-5h-header">
+    <div class="title">5 Horas P&A — Lista de Convidados</div>
+    <div class="meta">
+      <div>Revisão: <span id="rev-tag" contenteditable>1.1</span></div>
+      <div>Doc: <span id="doc-id" contenteditable>—</span></div>
+    </div>
+  </div>
+
+  <section class="accordion" aria-label="Dados do evento">
+    <button class="acc-head" type="button" aria-controls="panel-evento" aria-expanded="true">
+      <span>Evento</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div id="panel-evento" class="acc-body">
+      <div class="field">
+        <label for="ev-name">Nome do evento</label>
+        <input id="ev-name" type="text" placeholder="Ex.: Aniversário da Marina">
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="ev-date">Data</label>
+          <input id="ev-date" type="date">
+        </div>
+        <div class="field">
+          <label for="ev-time">Horário</label>
+          <input id="ev-time" type="time" step="60" title="Horário do evento (24h)">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="ev-venue">Espaço/Local</label>
+          <input id="ev-venue" type="text" placeholder="Ex.: Espaço Jardim das Águas">
+        </div>
+        <div class="field">
+          <label for="ev-address">Endereço</label>
+          <input id="ev-address" type="text" placeholder="Rua Exemplo, 123 – Bairro – Cidade/UF">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="ev-ref">Ponto de referência</label>
+          <input id="ev-ref" type="text" placeholder="Ao lado do parque municipal">
+        </div>
+        <div class="field">
+          <label for="ev-type">Tipo do evento</label>
+          <select id="ev-type">
+            <option value="">Selecione…</option>
+            <option>Corporativo</option>
+            <option>Casamento</option>
+            <option>Aniversário</option>
+            <option>Formatura</option>
+            <option>Social</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label for="ev-dress">Traje</label>
+          <input id="ev-dress" type="text" placeholder="Esporte fino, gala, casual…">
+        </div>
+        <div class="field">
+          <label for="ev-org">Organizador</label>
+          <input id="ev-org" type="text" placeholder="Nome do responsável / cerimonial">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="accordion" aria-label="Convidados">
+    <button class="acc-head" type="button" aria-controls="panel-convidados" aria-expanded="false">
+      <span>Convidados</span>
+      <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div id="panel-convidados" class="acc-body" hidden>
+      <div class="field">
+        <label for="cv-raw">Lista de convites</label>
+        <p class="help">Um por linha. Ordem livre (nome, telefone ou telefone, nome). Acompanhantes após vírgulas. <strong>Regra:</strong> números do Brasil <u>não usam</u> código do país (+55). Se vier com +55/55, marcamos como erro. Celular BR com 8 dígitos recebe o 9 automaticamente. <br>Para internacional, comece com <strong>+</strong> seguido do código do país (ex.: +1, +351). Abaixo, a 1ª linha demonstra BR e a 2ª demonstra INTL.</p>
+        <textarea id="cv-raw" placeholder="Exemplo BR — João da Silva, 41 99999-9999, Maria Silva
+Exemplo INTL — +1 415 555 1234, Ana Souza"></textarea>
+      </div>
+      <div class="row">
+        <button id="cv-add" type="button" class="btn primary">Adicionar à lista</button>
+        <span class="muted" id="cv-feedback"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="export" aria-label="Lista para exportação e impressão">
+    <h2>Resumo</h2>
+    <div class="summary-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:10px">
+      <div class="summary-col">
+        <p><strong>Nome:</strong> <span id="s-name">—</span></p>
+        <p><strong>Data:</strong> <span id="s-date">—</span></p>
+        <p><strong>Horário:</strong> <span id="s-time">—</span></p>
+      </div>
+      <div class="summary-col">
+        <p><strong>Espaço:</strong> <span id="s-venue">—</span></p>
+        <p><strong>Endereço:</strong> <span id="s-address">—</span></p>
+        <p><strong>Referência:</strong> <span id="s-ref">—</span></p>
+      </div>
+      <div class="summary-col">
+        <p><strong>Tipo:</strong> <span id="s-type">—</span></p>
+        <p><strong>Traje:</strong> <span id="s-dress">—</span></p>
+        <p><strong>Organizador:</strong> <span id="s-org">—</span></p>
+      </div>
+    </div>
+
+    <h2 style="margin-top:6px">Indicadores</h2>
+    <div id="report-totals" class="totals-grid">
+      <div class="totals-card" id="totals-left">
+        <h3>Totais</h3>
+        <div class="totals-list">
+          <div class="totals-item"><span class="label">Convites</span><span class="value" id="t-convites">0</span></div>
+          <div class="meter" aria-hidden="true"><span id="t-convites-bar"></span></div>
+          <div class="totals-item"><span class="label">Convidados</span><span class="value" id="t-convidados">0</span></div>
+          <div class="meter" aria-hidden="true"><span id="t-convidados-bar"></span></div>
+          <div class="totals-item"><span class="label">Confirmados</span><span class="value" id="t-confirmados">0</span></div>
+          <div class="meter" aria-hidden="true"><span id="t-confirmados-bar"></span></div>
+        </div>
+      </div>
+      <div class="totals-card" id="totals-mid">
+        <h3>Status dos convites</h3>
+        <div class="totals-list">
+          <div class="totals-item"><span class="label">% Não iniciados</span><span class="value" id="p-nao">0%</span></div>
+          <div class="meter" aria-hidden="true"><span class="bar-nao" id="p-nao-bar"></span></div>
+          <div class="totals-item"><span class="label">% Enviados</span><span class="value" id="p-env">0%</span></div>
+          <div class="meter" aria-hidden="true"><span class="bar-env" id="p-env-bar"></span></div>
+          <div class="totals-item"><span class="label">% Respondidos</span><span class="value" id="p-resp">0%</span></div>
+          <div class="meter" aria-hidden="true"><span class="bar-resp" id="p-resp-bar"></span></div>
+        </div>
+      </div>
+      <div class="totals-card" id="totals-right">
+        <h3>Status dos convidados</h3>
+        <div class="totals-list">
+          <div class="totals-item"><span class="label">% Confirmados</span><span class="value" id="pg-conf">0%</span></div>
+          <div class="meter" aria-hidden="true"><span class="bar-gconf" id="pg-conf-bar"></span></div>
+          <div class="totals-item"><span class="label">% Pendentes</span><span class="value" id="pg-pend">0%</span></div>
+          <div class="meter" aria-hidden="true"><span class="bar-gpend" id="pg-pend-bar"></span></div>
+          <div class="totals-item"><span class="label">% Com erro</span><span class="value" id="pg-erro">0%</span></div>
+          <div class="meter" aria-hidden="true"><span class="bar-gerro" id="pg-erro-bar"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:14px">Lista de convidados</h2>
+    <p class="descr">Essa é a lista que será impressa no PDF. Edite usando o botão ✏️. Na impressão, os controles somem.</p>
+    <div id="cv-list" class="field"></div>
+  </section>
+
+  <div class="footer-actions">
+    <button id="btn-clear" type="button" class="btn">Limpar lista</button>
+    <button id="btn-pdf" type="button" class="btn pdf">Gerar PDF</button>
+  </div>
+</div>
+<script>
+(function(){
+  var root=document.getElementById('app-5h-evento');
+  var nameEl=root.querySelector('#ev-name');
+  var dateEl=root.querySelector('#ev-date');
+  var timeEl=root.querySelector('#ev-time');
+  var venueEl=root.querySelector('#ev-venue');
+  var addrEl=root.querySelector('#ev-address');
+  var refEl=root.querySelector('#ev-ref');
+  var typeEl=root.querySelector('#ev-type');
+  var dressEl=root.querySelector('#ev-dress');
+  var orgEl=root.querySelector('#ev-org');
+  var cvRaw=root.querySelector('#cv-raw');
+  var sName=root.querySelector('#s-name');
+  var sDate=root.querySelector('#s-date');
+  var sTime=root.querySelector('#s-time');
+  var sVenue=root.querySelector('#s-venue');
+  var sAddress=root.querySelector('#s-address');
+  var sRef=root.querySelector('#s-ref');
+  var sType=root.querySelector('#s-type');
+  var sDress=root.querySelector('#s-dress');
+  var sOrg=root.querySelector('#s-org');
+  var cvList=root.querySelector('#cv-list');
+  var cvAdd=root.querySelector('#cv-add');
+  var cvFeedback=root.querySelector('#cv-feedback');
+  var btnPdf=root.querySelector('#btn-pdf');
+  var btnClear=root.querySelector('#btn-clear');
+  var tConvites=root.querySelector('#t-convites');
+  var tConvidados=root.querySelector('#t-convidados');
+  var tConfirmados=root.querySelector('#t-confirmados');
+  var pNao=root.querySelector('#p-nao');
+  var pEnv=root.querySelector('#p-env');
+  var pResp=root.querySelector('#p-resp');
+  var pgConf=root.querySelector('#pg-conf');
+  var pgPend=root.querySelector('#pg-pend');
+  var pgErro=root.querySelector('#pg-erro');
+  var bars={
+    tConvites:root.querySelector('#t-convites-bar'),
+    tConvidados:root.querySelector('#t-convidados-bar'),
+    tConfirmados:root.querySelector('#t-confirmados-bar'),
+    pNao:root.querySelector('#p-nao-bar'),
+    pEnv:root.querySelector('#p-env-bar'),
+    pResp:root.querySelector('#p-resp-bar'),
+    pgConf:root.querySelector('#pg-conf-bar'),
+    pgPend:root.querySelector('#pg-pend-bar'),
+    pgErro:root.querySelector('#pg-erro-bar')
+  };
+
+  var STATUS=[
+    {key:'nao',label:'Não iniciado',cls:'s-nao'},
+    {key:'env',label:'Enviado',cls:'s-env'},
+    {key:'resp',label:'Respondido',cls:'s-resp'}
+  ];
+
+  var state={invites:[],seq:1};
+
+  if(btnPdf){btnPdf.addEventListener('click',function(){window.print();});}
+  if(btnClear){btnClear.addEventListener('click',function(){
+    if(confirm('Limpar a lista de convidados? Os dados do evento serão mantidos.')){
+      state.invites=[]; renderTable(); updateSummary(); if(cvRaw) cvRaw.value=''; if(cvFeedback) cvFeedback.textContent='Lista limpa.'; setTimeout(function(){ if(cvFeedback) cvFeedback.textContent=''; },1500);
+    }
+  });}
+
+  root.querySelectorAll('.acc-head').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var expanded=btn.getAttribute('aria-expanded')==='true';
+      btn.setAttribute('aria-expanded',String(!expanded));
+      var panel=root.querySelector('#'+btn.getAttribute('aria-controls'));
+      if(panel){ expanded?panel.setAttribute('hidden',''):panel.removeAttribute('hidden'); }
+    });
+  });
+
+  function formatDate(val){ if(!val) return ''; var p=val.split('-'); return p.length!==3? val : p[2]+'/'+p[1]+'/'+p[0]; }
+  function titleCase(s){ if(!s) return ''; var words=s.toLowerCase().split(' ').filter(function(w){return w!==''}); var preps={da:1,de:1,do:1,das:1,dos:1,e:1,di:1,du:1}; return words.map(function(w,i){ return (i>0 && preps[w])? w : w.charAt(0).toUpperCase()+w.slice(1); }).join(' '); }
+
+  function padronizaBR(digits){ if(!digits) return null; if(digits.slice(0,2)==='55') return null; if(digits.length!==10 && digits.length!==11) return null; var ddd=digits.slice(0,2), sub=digits.slice(2); if(sub.length===8 && /^[6-9]/.test(sub.charAt(0))){ sub='9'+sub; } return ddd+sub; }
+  function normalizeIntlE164(raw){ if(!raw) return null; var d=String(raw).replace(/\D+/g,''); if(d.length<8||d.length>15) return null; return '+'+d; }
+  function isLikelyPhone(part){ var digits=String(part||'').replace(/\D+/g,''); return digits.length>=8 || /^\+\d{1,15}$/.test(String(part||'')); }
+
+  function extractPhoneName(parts){ var phoneIdx=-1; for(var i=0;i<parts.length;i++){ if(isLikelyPhone(parts[i])){ phoneIdx=i; break; } } var nameIdx=-1; for(var j=0;j<parts.length;j++){ if(j===phoneIdx) continue; if(parts[j]){ nameIdx=j; break; } } var phoneRaw=phoneIdx>-1? parts[phoneIdx] : ''; var name=nameIdx>-1? titleCase(parts[nameIdx]):''; var acomp=[]; for(var k=0;k<parts.length;k++){ if(k!==phoneIdx && k!==nameIdx && parts[k]) acomp.push(titleCase(parts[k])); } return {phoneRaw:phoneRaw,name:name,acomp:acomp}; }
+
+  function validateInvite(it){
+    var issues=[]; var intl=false; var normalized=null; var raw=String(it.phone||'').trim();
+    var preferIntl=(typeof it.manualIntl==="boolean")? it.manualIntl : null;
+    if(preferIntl===true){
+      if(!/^\+/.test(raw)) { issues.push('telefone internacional deve iniciar com +'); }
+      else { var digits=raw.replace(/\D+/g,''); if(digits.slice(0,2)==='55'){ issues.push('número brasileiro não deve usar +55'); } else { normalized=normalizeIntlE164(raw); if(!normalized) issues.push('telefone internacional inválido'); else intl=true; } }
+    } else if(preferIntl===false){
+      if(/^\+/.test(raw)) { issues.push('número brasileiro não deve iniciar com +'); }
+      else { var digitsOnly=raw.replace(/\D+/g,''); if(digitsOnly.slice(0,2)==='55' && (digitsOnly.length===12 || digitsOnly.length===13)){ issues.push('número brasileiro não deve usar código 55'); } else { normalized=padronizaBR(digitsOnly); if(!normalized) issues.push('formato BR inválido'); } }
+    } else {
+      if(/^\+/.test(raw)){
+        var d=raw.replace(/\D+/g,''); if(d.slice(0,2)==='55'){ issues.push('número brasileiro não deve usar +55'); }
+        else { normalized=normalizeIntlE164(raw); if(!normalized) issues.push('telefone internacional inválido'); else intl=true; }
+      } else {
+        var digitsOnly2=raw.replace(/\D+/g,''); if(digitsOnly2.slice(0,2)==='55' && (digitsOnly2.length===12 || digitsOnly2.length===13)){ issues.push('número brasileiro não deve usar código 55'); }
+        else { normalized=padronizaBR(digitsOnly2); if(!normalized) issues.push('formato BR inválido'); }
+      }
+    }
+    if(issues.length===0){ it.phone = normalized; it.intl=intl; } else { it.intl=intl; }
+    if(!it.name || !String(it.name).trim()) issues.push('sem nome');
+    it.validPhone = issues.length===0;
+    it.issues = issues;
+    if(typeof it.qty!=="number" || !(it.qty>0)) it.qty = 1 + (it.acomp? it.acomp.length : 0);
+    if(!it.status){ it.status='nao'; }
+    return it;
+  }
+
+  function parseLines(raw){ if(!raw) return {items:[],bad:0}; var lines=raw.split(/\r?\n/); var out=[]; var bad=0; for(var i=0;i<lines.length;i++){ var t=lines[i].trim(); if(!t) continue; var parts=t.split(',').map(function(p){return p.trim();}).filter(function(x){return x!==''}); var ex=extractPhoneName(parts); var item={id:0, phone:ex.phoneRaw, name:ex.name, acomp:ex.acomp, intl:false, manualIntl:null, validPhone:false, issues:[], confirmed:0, qty:0, status:'nao'}; out.push(item); var tmp=JSON.parse(JSON.stringify(item)); validateInvite(tmp); if(!tmp.validPhone) bad++; } return {items:out,bad:bad}; }
+
+  function sumGuests(list){ var total=0; for(var i=0;i<list.length;i++){ var q=(typeof list[i].qty==="number" && list[i].qty>0)? list[i].qty : (1 + (list[i].acomp?list[i].acomp.length:0)); total+=q; } return total; }
+  function sumConfirmed(list){ var n=0; for(var i=0;i<list.length;i++){ var v=parseInt(list[i].confirmed,10); var cap=(typeof list[i].qty==="number"&&list[i].qty>0)?list[i].qty:(1+(list[i].acomp?list[i].acomp.length:0)); if(isNaN(v)) v=0; n+= Math.max(0, Math.min(v, cap)); } return n; }
+
+  function statusLabel(key){ var f=STATUS.find(function(s){return s.key===key}); return f? f.label : key; }
+  function statusClass(key){ var f=STATUS.find(function(s){return s.key===key}); return f? f.cls : 's-nao'; }
+
+  function calcInvitePercents(list){ var n=list.length||0; var counts={nao:0,env:0,resp:0}; for(var i=0;i<list.length;i++){ var k=list[i].status||'nao'; if(counts[k]===undefined) counts[k]=0; counts[k]++; } function pct(x){ return n? Math.round((x/n)*100) : 0; } return {nao:pct(counts.nao||0), env:pct(counts.env||0), resp:pct(counts.resp||0)}; }
+
+  function calcGuestPercents(list){ var total=sumGuests(list); if(!total) return {conf:0, pend:0, erro:0}; var confirmed=sumConfirmed(list); var erro=0; for(var i=0;i<list.length;i++){ var it=list[i]; var cap=(typeof it.qty==="number"&&it.qty>0)?it.qty:(1+(it.acomp?it.acomp.length:0)); if(it.issues && it.issues.length && (!it.confirmed || it.confirmed<=0)) erro+=cap; }
+    var pend=Math.max(total - confirmed - erro, 0);
+    function pct(x){ return Math.round((x/total)*100); }
+    return {conf:pct(confirmed), pend:pct(pend), erro:pct(erro)};
+  }
+
+  function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;'); }
+  function statusIcon(it){ return (it.issues&&it.issues.length)?'<span class="status-ico bad">✖</span>':'<span class="status-ico ok">✓</span>'; }
+
+  function renderTable(){
+    if(!cvList) return; if(state.invites.length===0){cvList.innerHTML='<p class="muted">Nenhum convite adicionado ainda.</p>';updateTotals();return;}
+    var rows='';
+    for(var i=0;i<state.invites.length;i++){
+      var it=state.invites[i]; var num=i+1; var acomp=(it.acomp&&it.acomp.length)?it.acomp.join(', '):'—'; var qtd=(typeof it.qty==="number"&&it.qty>0)? it.qty : (1+(it.acomp?it.acomp.length:0)); var confVal=(it.confirmed===0)?'0':(it.confirmed||''); var confScreen=(confVal!==''? escapeHtml(String(confVal)) : '—'); var confPrint=(confVal!==''? escapeHtml(String(confVal)) : '<span class="fill-line" style="min-width:60px"></span>'); var below=(it.issues&&it.issues.length)?'<tr class="subrow" data-id="'+it.id+'"><td colspan="8">'+escapeHtml(it.issues.join('; '))+'</td></tr>':''; rows+= '<tr data-id="'+it.id+'">' +'<td class="muted">'+num+'</td>' +'<td class="phone">'+statusIcon(it)+escapeHtml(it.phone||'')+(it.intl?'<span class="badge-intl">INTL</span>':'')+'</td>' +'<td>'+escapeHtml(it.name||'—')+'</td>' +'<td>'+escapeHtml(acomp)+'</td>' +'<td class="qty">'+qtd+'</td>' +'<td class="confirmados"><span class="confirmados-screen">'+confScreen+'</span><span class="confirmados-print">'+confPrint+'</span></td>' +'<td class="scol"><span class="badge-status '+statusClass(it.status)+'">'+escapeHtml(statusLabel(it.status))+'</span></td>' +'<td class="actions">' +'<button type="button" class="icon-btn edit" title="Editar">✏️</button>' +'<button type="button" class="icon-btn del" title="Excluir">🗑️</button>' +'</td>' +'</tr>'+below; }
+    cvList.innerHTML='<table><colgroup><col class="c-idx"><col class="c-phone"><col class="c-name"><col class="c-acomp"><col class="c-qty"><col class="c-conf"><col class="c-stat"><col class="c-act"></colgroup><thead><tr><th>#</th><th>Telefone</th><th>Nome</th><th>Acompanhantes</th><th class="qty">Qtd.</th><th class="confirmados">Conf.</th><th class="scol">Situação</th><th class="actions">Ações</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    bindRowActions();
+    updateTotals();
+  }
+
+  function beginRowEdit(tr,id){
+    var it=state.invites.find(function(x){return x.id===id}); if(!it) return; var origAcompLen=(it.acomp&&it.acomp.length)?it.acomp.length:0; var origQty=(typeof it.qty==="number"&&it.qty>0)? it.qty : (1+(it.acomp?it.acomp.length:0)); var acompStr=(it.acomp&&it.acomp.length)?it.acomp.join(', '):''; var qtd=origQty;
+    tr.classList.add('row-edit');
+    var statusOpts=STATUS.map(function(s){ return '<option value="'+s.key+'" '+(it.status===s.key?'selected':'')+'>'+s.label+'</option>'; }).join('');
+    tr.innerHTML= '<td class="muted">'+(state.invites.indexOf(it)+1)+'</td>' +'<td><div><input type="text" class="inp-phone" value="'+escapeHtml(it.phone||'')+'">' +'<label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px"><input type="checkbox" class="inp-intl" '+(it.intl?'checked':'')+'> Internacional (+CC)</label></div></td>' +'<td><input type="text" class="inp-name" value="'+escapeHtml(it.name||'')+'"></td>' +'<td><input type="text" class="inp-acomp" value="'+escapeHtml(acompStr)+'"></td>' +'<td class="qty"><input type="number" class="inp-qty" min="1" value="'+qtd+'"></td>' +'<td class="confirmados"><input type="number" class="inp-conf" min="0" value="'+(it.confirmed||0)+'"></td>' +'<td class="scol"><select class="inp-status">'+statusOpts+'</select></td>' +'<td class="actions">\n        <button type="button" class="icon-btn save" title="Salvar">✔️</button>\n        <button type="button" class="icon-btn cancel" title="Cancelar">↩️</button>\n      </td>';
+    tr.querySelector('.save').addEventListener('click',function(){ var phone=tr.querySelector('.inp-phone').value; var intl=tr.querySelector('.inp-intl').checked; var name=tr.querySelector('.inp-name').value; var acompRaw=tr.querySelector('.inp-acomp').value; var ac=acompRaw? acompRaw.split(',').map(function(s){return titleCase(s.trim());}).filter(Boolean):[]; var qtyInputVal=tr.querySelector('.inp-qty').value; var qty=parseInt(qtyInputVal,10); var conf=parseInt(tr.querySelector('.inp-conf').value,10); var status=tr.querySelector('.inp-status').value; it.phone=phone; it.name=titleCase(name); it.acomp=ac; var defQty=1 + ac.length; if(isNaN(qty) || qty<=0){ it.qty=defQty; } else if(qtyInputVal==String(origQty) && ac.length!==origAcompLen){ it.qty=defQty; } else { it.qty=qty; } it.confirmed=isNaN(conf)? 0 : conf; it.manualIntl=true; it.intl=!!intl; it.status=status; validateInvite(it); renderTable(); updateSummary(); });
+    tr.querySelector('.cancel').addEventListener('click',function(){ renderTable(); });
+  }
+
+  function bindRowActions(){ if(!cvList) return; cvList.querySelectorAll('button.edit').forEach(function(btn){ btn.addEventListener('click',function(){ var tr=btn.closest('tr'); var id=parseInt(tr.getAttribute('data-id'),10); beginRowEdit(tr,id); }); }); cvList.querySelectorAll('button.del').forEach(function(btn){ btn.addEventListener('click',function(){ var tr=btn.closest('tr'); var id=parseInt(tr.getAttribute('data-id'),10); state.invites=state.invites.filter(function(x){return x.id!==id}); renderTable(); updateSummary(); }); }); }
+
+  function calcInvitePercents(list){ var n=list.length||0; var counts={nao:0,env:0,resp:0}; for(var i=0;i<list.length;i++){ var k=list[i].status||'nao'; if(counts[k]===undefined) counts[k]=0; counts[k]++; } function pct(x){ return n? Math.round((x/n)*100) : 0; } return {nao:pct(counts.nao||0), env:pct(counts.env||0), resp:pct(counts.resp||0)}; }
+
+  function sumGuests(list){ var total=0; for(var i=0;i<list.length;i++){ var q=(typeof list[i].qty==="number" && list[i].qty>0)? list[i].qty : (1 + (list[i].acomp?list[i].acomp.length:0)); total+=q; } return total; }
+  function sumConfirmed(list){ var n=0; for(var i=0;i<list.length;i++){ var v=parseInt(list[i].confirmed,10); var cap=(typeof list[i].qty==="number"&&list[i].qty>0)?list[i].qty:(1+(list[i].acomp?list[i].acomp.length:0)); if(isNaN(v)) v=0; n+= Math.max(0, Math.min(v, cap)); } return n; }
+
+  function calcGuestPercents(list){ var total=sumGuests(list); if(!total) return {conf:0, pend:0, erro:0}; var confirmed=sumConfirmed(list); var erro=0; for(var i=0;i<list.length;i++){ var it=list[i]; var cap=(typeof it.qty==="number"&&it.qty>0)?it.qty:(1+(it.acomp?it.acomp.length:0)); if(it.issues && it.issues.length && (!it.confirmed || it.confirmed<=0)) erro+=cap; }
+    var pend=Math.max(total - confirmed - erro, 0);
+    function pct(x){ return Math.round((x/total)*100); }
+    return {conf:pct(confirmed), pend:pct(pend), erro:pct(erro)};
+  }
+
+  function updateMeters(values){
+    if(bars.pNao) bars.pNao.style.width = (values.perInv.nao||0)+'%';
+    if(bars.pEnv) bars.pEnv.style.width = (values.perInv.env||0)+'%';
+    if(bars.pResp) bars.pResp.style.width = (values.perInv.resp||0)+'%';
+    if(bars.pgConf) bars.pgConf.style.width = (values.perGuest.conf||0)+'%';
+    if(bars.pgPend) bars.pgPend.style.width = (values.perGuest.pend||0)+'%';
+    if(bars.pgErro) bars.pgErro.style.width = (values.perGuest.erro||0)+'%';
+    var m = Math.max(values.counts.convites, values.counts.convidados, values.counts.confirmados, 1);
+    if(bars.tConvites) bars.tConvites.style.width = Math.round(values.counts.convites/m*100)+'%';
+    if(bars.tConvidados) bars.tConvidados.style.width = Math.round(values.counts.convidados/m*100)+'%';
+    if(bars.tConfirmados) bars.tConfirmados.style.width = Math.round(values.counts.confirmados/m*100)+'%';
+  }
+
+  function updateTotals(){
+    var convites=state.invites.length;
+    var convidados=sumGuests(state.invites);
+    var confirmados=sumConfirmed(state.invites);
+    var perInv=calcInvitePercents(state.invites);
+    var perGuest=calcGuestPercents(state.invites);
+    if(tConvites) tConvites.textContent=String(convites);
+    if(tConvidados) tConvidados.textContent=String(convidados);
+    if(tConfirmados) tConfirmados.textContent=String(confirmados);
+    if(pNao) pNao.textContent=perInv.nao+'%';
+    if(pEnv) pEnv.textContent=perInv.env+'%';
+    if(pResp) pResp.textContent=perInv.resp+'%';
+    if(pgConf) pgConf.textContent=perGuest.conf+'%';
+    if(pgPend) pgPend.textContent=perGuest.pend+'%';
+    if(pgErro) pgErro.textContent=perGuest.erro+'%';
+    updateMeters({perInv:perInv, perGuest:perGuest, counts:{convites:convites, convidados:convidados, confirmados:confirmados}});
+  }
+
+  function updateSummary(){
+    var name=(nameEl&&nameEl.value||'').trim();
+    var date=(dateEl&&dateEl.value||'').trim();
+    var time=(timeEl&&timeEl.value||'').trim();
+    var venue=(venueEl&&venueEl.value||'').trim();
+    var addr=(addrEl&&addrEl.value||'').trim();
+    var ref=(refEl&&refEl.value||'').trim();
+    var type=(typeEl&&typeEl.value||'').trim();
+    var dress=(dressEl&&dressEl.value||'').trim();
+    var org=(orgEl&&orgEl.value||'').trim();
+    sName.textContent=name||'—';
+    sDate.textContent=date?formatDate(date):'—';
+    sTime.textContent=time||'—';
+    sVenue.textContent=venue||'—';
+    sAddress.textContent=addr||'—';
+    sRef.textContent=ref||'—';
+    sType.textContent=type||'—';
+    sDress.textContent=dress||'—';
+    sOrg.textContent=org||'—';
+    updateTotals();
+  }
+
+  if(cvAdd){ cvAdd.addEventListener('click',function(){ var res=parseLines(cvRaw?cvRaw.value:''); if(res.items.length){ for(var i=0;i<res.items.length;i++){ var it=res.items[i]; it.id=state.seq++; validateInvite(it); } state.invites=state.invites.concat(res.items); renderTable(); if(cvFeedback) cvFeedback.textContent=res.items.length+' convite(s) adicionados.'; if(cvRaw){cvRaw.value='';} } else { if(cvFeedback) cvFeedback.textContent='Nada para adicionar.'; } updateSummary(); setTimeout(function(){ if(cvFeedback) cvFeedback.textContent=''; },2000); }); }
+
+  ['input','change'].forEach(function(evt){ if(nameEl) nameEl.addEventListener(evt,updateSummary); if(dateEl) dateEl.addEventListener(evt,updateSummary); if(timeEl) timeEl.addEventListener(evt,updateSummary); if(venueEl) venueEl.addEventListener(evt,updateSummary); if(addrEl) addrEl.addEventListener(evt,updateSummary); if(refEl) refEl.addEventListener(evt,updateSummary); if(typeEl) typeEl.addEventListener(evt,updateSummary); if(dressEl) dressEl.addEventListener(evt,updateSummary); if(orgEl) orgEl.addEventListener(evt,updateSummary); });
+
+  function renderTablePlaceholder(){ cvList.innerHTML='<p class="muted">Nenhum convite adicionado ainda.</p>'; }
+
+  function renderTable(){
+    if(!cvList) return; if(state.invites.length===0){renderTablePlaceholder(); updateTotals(); return;}
+    var rows='';
+    for(var i=0;i<state.invites.length;i++){
+      var it=state.invites[i]; var num=i+1; var acomp=(it.acomp&&it.acomp.length)?it.acomp.join(', '):'—'; var qtd=(typeof it.qty==="number"&&it.qty>0)? it.qty : (1+(it.acomp?it.acomp.length:0)); var confVal=(it.confirmed===0)?'0':(it.confirmed||''); var confScreen=(confVal!==''? escapeHtml(String(confVal)) : '—'); var confPrint=(confVal!==''? escapeHtml(String(confVal)) : '<span class="fill-line" style="min-width:60px"></span>'); var below=(it.issues&&it.issues.length)?'<tr class="subrow" data-id="'+it.id+'"><td colspan="8">'+escapeHtml(it.issues.join('; '))+'</td></tr>':''; rows+= '<tr data-id="'+it.id+'">' +'<td class="muted">'+num+'</td>' +'<td class="phone">'+(it.issues&&it.issues.length?'<span class="status-ico bad">✖</span>':'<span class="status-ico ok">✓</span>')+escapeHtml(it.phone||'')+(it.intl?'<span class="badge-intl">INTL</span>':'')+'</td>' +'<td>'+escapeHtml(it.name||'—')+'</td>' +'<td>'+escapeHtml(acomp)+'</td>' +'<td class="qty">'+qtd+'</td>' +'<td class="confirmados"><span class="confirmados-screen">'+confScreen+'</span><span class="confirmados-print">'+confPrint+'</span></td>' +'<td class="scol"><span class="badge-status '+(it.status?STATUS.find(function(s){return s.key===it.status;}).cls:'s-nao')+'">'+escapeHtml(it.status?STATUS.find(function(s){return s.key===it.status;}).label:'Não iniciado')+'</span></td>' +'<td class="actions">' +'<button type="button" class="icon-btn edit" title="Editar">✏️</button>' +'<button type="button" class="icon-btn del" title="Excluir">🗑️</button>' +'</td>' +'</tr>'+below; }
+    cvList.innerHTML='<table><colgroup><col class="c-idx"><col class="c-phone"><col class="c-name"><col class="c-acomp"><col class="c-qty"><col class="c-conf"><col class="c-stat"><col class="c-act"></colgroup><thead><tr><th>#</th><th>Telefone</th><th>Nome</th><th>Acompanhantes</th><th class="qty">Qtd.</th><th class="confirmados">Conf.</th><th class="scol">Situação</th><th class="actions">Ações</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    bindRowActions();
+    updateTotals();
+  }
+
+  function beginRowEdit(tr,id){
+    var it=state.invites.find(function(x){return x.id===id}); if(!it) return; var origAcompLen=(it.acomp&&it.acomp.length)?it.acomp.length:0; var origQty=(typeof it.qty==="number"&&it.qty>0)? it.qty : (1+(it.acomp?it.acomp.length:0)); var acompStr=(it.acomp&&it.acomp.length)?it.acomp.join(', '):''; var qtd=origQty;
+    tr.classList.add('row-edit');
+    var statusOpts=STATUS.map(function(s){ return '<option value="'+s.key+'" '+(it.status===s.key?'selected':'')+'>'+s.label+'</option>'; }).join('');
+    tr.innerHTML= '<td class="muted">'+(state.invites.indexOf(it)+1)+'</td>' +'<td><div><input type="text" class="inp-phone" value="'+escapeHtml(it.phone||'')+'">' +'<label style="display:inline-flex;align-items:center;gap:6px;margin-top:6px"><input type="checkbox" class="inp-intl" '+(it.intl?'checked':'')+'> Internacional (+CC)</label></div></td>' +'<td><input type="text" class="inp-name" value="'+escapeHtml(it.name||'')+'"></td>' +'<td><input type="text" class="inp-acomp" value="'+escapeHtml(acompStr)+'"></td>' +'<td class="qty"><input type="number" class="inp-qty" min="1" value="'+qtd+'"></td>' +'<td class="confirmados"><input type="number" class="inp-conf" min="0" value="'+(it.confirmed||0)+'"></td>' +'<td class="scol"><select class="inp-status">'+statusOpts+'</select></td>' +'<td class="actions">\n        <button type="button" class="icon-btn save" title="Salvar">✔️</button>\n        <button type="button" class="icon-btn cancel" title="Cancelar">↩️</button>\n      </td>';
+    tr.querySelector('.save').addEventListener('click',function(){ var phone=tr.querySelector('.inp-phone').value; var intl=tr.querySelector('.inp-intl').checked; var name=tr.querySelector('.inp-name').value; var acompRaw=tr.querySelector('.inp-acomp').value; var ac=acompRaw? acompRaw.split(',').map(function(s){return titleCase(s.trim());}).filter(Boolean):[]; var qtyInputVal=tr.querySelector('.inp-qty').value; var qty=parseInt(qtyInputVal,10); var conf=parseInt(tr.querySelector('.inp-conf').value,10); var status=tr.querySelector('.inp-status').value; it.phone=phone; it.name=titleCase(name); it.acomp=ac; var defQty=1 + ac.length; if(isNaN(qty) || qty<=0){ it.qty=defQty; } else if(qtyInputVal==String(origQty) && ac.length!==origAcompLen){ it.qty=defQty; } else { it.qty=qty; } it.confirmed=isNaN(conf)? 0 : conf; it.manualIntl=true; it.intl=!!intl; it.status=status; validateInvite(it); renderTable(); updateSummary(); });
+    tr.querySelector('.cancel').addEventListener('click',function(){ renderTable(); });
+  }
+
+  function bindRowActions(){ if(!cvList) return; cvList.querySelectorAll('button.edit').forEach(function(btn){ btn.addEventListener('click',function(){ var tr=btn.closest('tr'); var id=parseInt(tr.getAttribute('data-id'),10); beginRowEdit(tr,id); }); }); cvList.querySelectorAll('button.del').forEach(function(btn){ btn.addEventListener('click',function(){ var tr=btn.closest('tr'); var id=parseInt(tr.getAttribute('data-id'),10); state.invites=state.invites.filter(function(x){return x.id!==id}); renderTable(); updateSummary(); }); }); }
+
+  function updateSummaryAndMaybeInit(){ renderTable(); updateSummary(); }
+
+  renderTable(); updateSummary();
+})();
+</script>
