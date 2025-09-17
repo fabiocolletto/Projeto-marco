@@ -1,0 +1,522 @@
+{
+  "version": "7.2",
+  "screens": [
+    {
+      "id": "TRIAGEM",
+      "title": "Cotação – Triagem",
+      "data": {},
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Assistente Cerimonial" },
+          { "type": "TextBody", "text": "Para começar: este evento é para você ou você trabalha com eventos?" },
+          {
+            "type": "Form",
+            "name": "form_triagem",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "cliente_tipo",
+                "label": "Você é",
+                "required": true,
+                "data-source": [
+                  { "id": "profissional", "title": "Trabalho com eventos" },
+                  { "id": "pessoal", "title": "É para mim" }
+                ]
+              },
+              {
+                "type": "Dropdown",
+                "name": "evento_tipo",
+                "label": "Tipo de evento",
+                "required": true,
+                "data-source": [
+                  { "id": "casamento", "title": "Casamento" },
+                  { "id": "corporativo", "title": "Corporativo" },
+                  { "id": "aniversario", "title": "Aniversário" },
+                  { "id": "outro", "title": "Outro" }
+                ]
+              },
+              {
+                "type": "Footer",
+                "label": "Escolher produtos",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "PRODUTO_1" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PRODUTO_1",
+      "title": "Produto 1",
+      "data": {
+        "usar_produto_1": { "type": "string", "__example__": "sim" },
+        "tipo_msg_1": { "type": "string", "__example__": "texto_simples" },
+        "modelo_texto_1": { "type": "string", "__example__": "modelo_a" },
+        "texto_1": { "type": "string", "__example__": "Mensagem de exemplo" },
+        "botoes_1": { "type": "string", "__example__": "Sim|Não" },
+        "imagem_url_1": { "type": "string", "__example__": "https://exemplo.com/img.jpg" },
+        "qtd_1": { "type": "string", "__example__": "100" },
+        "data_1": { "type": "string", "__example__": "2025-10-21" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextSubheading", "text": "Defina este produto/mensagem." },
+          {
+            "type": "Form",
+            "name": "form_p1",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "usar_produto_1",
+                "label": "Usar este?",
+                "required": true,
+                "data-source": [
+                  { "id": "sim", "title": "Sim" },
+                  { "id": "nao", "title": "Não" }
+                ]
+              },
+              {
+                "type": "Dropdown",
+                "name": "tipo_msg_1",
+                "label": "Tipo",
+                "data-source": [
+                  { "id": "texto_simples", "title": "Texto simples" },
+                  { "id": "texto_botao", "title": "Texto com botão" },
+                  { "id": "imagem_botao", "title": "Imagem c/ botão" },
+                  { "id": "texto_coleta_inter", "title": "Texto c/ coleta inter." },
+                  { "id": "texto_coleta_est", "title": "Texto c/ coleta estática" },
+                  { "id": "interativa_avanc", "title": "Interativa avançada" }
+                ]
+              },
+              { "type": "TextInput", "name": "modelo_texto_1", "label": "Modelo (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "texto_1", "label": "Texto (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "botoes_1", "label": "Botões (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "imagem_url_1", "label": "Imagem URL (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "qtd_1", "label": "Quantidade", "input-type": "text" },
+              { "type": "DatePicker", "name": "data_1", "label": "Data" },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "PRODUTO_2" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PRODUTO_2",
+      "title": "Produto 2",
+      "data": {
+        "usar_produto_2": { "type": "string", "__example__": "nao" },
+        "tipo_msg_2": { "type": "string", "__example__": "imagem_botao" },
+        "modelo_texto_2": { "type": "string", "__example__": "modelo_b" },
+        "texto_2": { "type": "string", "__example__": "Legenda de exemplo" },
+        "botoes_2": { "type": "string", "__example__": "Quero|Depois" },
+        "imagem_url_2": { "type": "string", "__example__": "https://exemplo.com/img2.jpg" },
+        "qtd_2": { "type": "string", "__example__": "50" },
+        "data_2": { "type": "string", "__example__": "2025-10-22" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextSubheading", "text": "Adicionar outro produto?" },
+          {
+            "type": "Form",
+            "name": "form_p2",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "usar_produto_2",
+                "label": "Usar este?",
+                "required": true,
+                "data-source": [
+                  { "id": "sim", "title": "Sim" },
+                  { "id": "nao", "title": "Não" }
+                ]
+              },
+              {
+                "type": "Dropdown",
+                "name": "tipo_msg_2",
+                "label": "Tipo",
+                "data-source": [
+                  { "id": "texto_simples", "title": "Texto simples" },
+                  { "id": "texto_botao", "title": "Texto com botão" },
+                  { "id": "imagem_botao", "title": "Imagem c/ botão" },
+                  { "id": "texto_coleta_inter", "title": "Texto c/ coleta inter." },
+                  { "id": "texto_coleta_est", "title": "Texto c/ coleta estática" },
+                  { "id": "interativa_avanc", "title": "Interativa avançada" }
+                ]
+              },
+              { "type": "TextInput", "name": "modelo_texto_2", "label": "Modelo (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "texto_2", "label": "Texto (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "botoes_2", "label": "Botões (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "imagem_url_2", "label": "Imagem URL (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "qtd_2", "label": "Quantidade", "input-type": "text" },
+              { "type": "DatePicker", "name": "data_2", "label": "Data" },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "PRODUTO_3" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PRODUTO_3",
+      "title": "Produto 3",
+      "data": {
+        "usar_produto_3": { "type": "string", "__example__": "nao" },
+        "tipo_msg_3": { "type": "string", "__example__": "texto_botao" },
+        "modelo_texto_3": { "type": "string", "__example__": "modelo_c" },
+        "texto_3": { "type": "string", "__example__": "Texto exemplo" },
+        "botoes_3": { "type": "string", "__example__": "Sim|Não" },
+        "imagem_url_3": { "type": "string", "__example__": "" },
+        "qtd_3": { "type": "string", "__example__": "30" },
+        "data_3": { "type": "string", "__example__": "2025-10-23" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextSubheading", "text": "Adicionar outro produto?" },
+          {
+            "type": "Form",
+            "name": "form_p3",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "usar_produto_3",
+                "label": "Usar este?",
+                "required": true,
+                "data-source": [
+                  { "id": "sim", "title": "Sim" },
+                  { "id": "nao", "title": "Não" }
+                ]
+              },
+              {
+                "type": "Dropdown",
+                "name": "tipo_msg_3",
+                "label": "Tipo",
+                "data-source": [
+                  { "id": "texto_simples", "title": "Texto simples" },
+                  { "id": "texto_botao", "title": "Texto com botão" },
+                  { "id": "imagem_botao", "title": "Imagem c/ botão" },
+                  { "id": "texto_coleta_inter", "title": "Texto c/ coleta inter." },
+                  { "id": "texto_coleta_est", "title": "Texto c/ coleta estática" },
+                  { "id": "interativa_avanc", "title": "Interativa avançada" }
+                ]
+              },
+              { "type": "TextInput", "name": "modelo_texto_3", "label": "Modelo (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "texto_3", "label": "Texto (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "botoes_3", "label": "Botões (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "imagem_url_3", "label": "Imagem URL (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "qtd_3", "label": "Quantidade", "input-type": "text" },
+              { "type": "DatePicker", "name": "data_3", "label": "Data" },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "PRODUTO_4" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PRODUTO_4",
+      "title": "Produto 4",
+      "data": {
+        "usar_produto_4": { "type": "string", "__example__": "nao" },
+        "tipo_msg_4": { "type": "string", "__example__": "texto_coleta_inter" },
+        "modelo_texto_4": { "type": "string", "__example__": "" },
+        "texto_4": { "type": "string", "__example__": "" },
+        "botoes_4": { "type": "string", "__example__": "" },
+        "imagem_url_4": { "type": "string", "__example__": "" },
+        "qtd_4": { "type": "string", "__example__": "20" },
+        "data_4": { "type": "string", "__example__": "2025-10-24" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextSubheading", "text": "Adicionar outro produto?" },
+          {
+            "type": "Form",
+            "name": "form_p4",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "usar_produto_4",
+                "label": "Usar este?",
+                "required": true,
+                "data-source": [
+                  { "id": "sim", "title": "Sim" },
+                  { "id": "nao", "title": "Não" }
+                ]
+              },
+              {
+                "type": "Dropdown",
+                "name": "tipo_msg_4",
+                "label": "Tipo",
+                "data-source": [
+                  { "id": "texto_simples", "title": "Texto simples" },
+                  { "id": "texto_botao", "title": "Texto com botão" },
+                  { "id": "imagem_botao", "title": "Imagem c/ botão" },
+                  { "id": "texto_coleta_inter", "title": "Texto c/ coleta inter." },
+                  { "id": "texto_coleta_est", "title": "Texto c/ coleta estática" },
+                  { "id": "interativa_avanc", "title": "Interativa avançada" }
+                ]
+              },
+              { "type": "TextInput", "name": "modelo_texto_4", "label": "Modelo (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "texto_4", "label": "Texto (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "botoes_4", "label": "Botões (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "imagem_url_4", "label": "Imagem URL (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "qtd_4", "label": "Quantidade", "input-type": "text" },
+              { "type": "DatePicker", "name": "data_4", "label": "Data" },
+              {
+                "type": "Footer",
+                "label": "Próximo",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "PRODUTO_5" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "PRODUTO_5",
+      "title": "Produto 5",
+      "data": {
+        "usar_produto_5": { "type": "string", "__example__": "nao" },
+        "tipo_msg_5": { "type": "string", "__example__": "texto_coleta_est" },
+        "modelo_texto_5": { "type": "string", "__example__": "" },
+        "texto_5": { "type": "string", "__example__": "" },
+        "botoes_5": { "type": "string", "__example__": "" },
+        "imagem_url_5": { "type": "string", "__example__": "" },
+        "qtd_5": { "type": "string", "__example__": "10" },
+        "data_5": { "type": "string", "__example__": "2025-10-25" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextSubheading", "text": "Último produto (opcional)" },
+          {
+            "type": "Form",
+            "name": "form_p5",
+            "children": [
+              {
+                "type": "RadioButtonsGroup",
+                "name": "usar_produto_5",
+                "label": "Usar este?",
+                "required": true,
+                "data-source": [
+                  { "id": "sim", "title": "Sim" },
+                  { "id": "nao", "title": "Não" }
+                ]
+              },
+              {
+                "type": "Dropdown",
+                "name": "tipo_msg_5",
+                "label": "Tipo",
+                "data-source": [
+                  { "id": "texto_simples", "title": "Texto simples" },
+                  { "id": "texto_botao", "title": "Texto com botão" },
+                  { "id": "imagem_botao", "title": "Imagem c/ botão" },
+                  { "id": "texto_coleta_inter", "title": "Texto c/ coleta inter." },
+                  { "id": "texto_coleta_est", "title": "Texto c/ coleta estática" },
+                  { "id": "interativa_avanc", "title": "Interativa avançada" }
+                ]
+              },
+              { "type": "TextInput", "name": "modelo_texto_5", "label": "Modelo (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "texto_5", "label": "Texto (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "botoes_5", "label": "Botões (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "imagem_url_5", "label": "Imagem URL (se apl.)", "input-type": "text" },
+              { "type": "TextInput", "name": "qtd_5", "label": "Quantidade", "input-type": "text" },
+              { "type": "DatePicker", "name": "data_5", "label": "Data" },
+              {
+                "type": "Footer",
+                "label": "Resumo",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "IDENTIFICACAO" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "IDENTIFICACAO",
+      "title": "Identificação",
+      "data": {
+        "cliente_nome": { "type": "string", "__example__": "Fabio" },
+        "evento_nome": { "type": "string", "__example__": "Lançamento" },
+        "evento_local": { "type": "string", "__example__": "Curitiba" },
+        "evento_data_ref": { "type": "string", "__example__": "2025-11-10" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Agora, os dados básicos do evento." },
+          {
+            "type": "Form",
+            "name": "form_ident",
+            "children": [
+              { "type": "TextInput", "name": "cliente_nome", "label": "Seu nome", "input-type": "text", "required": true },
+              { "type": "TextInput", "name": "evento_nome", "label": "Nome do evento", "input-type": "text", "required": true },
+              { "type": "TextInput", "name": "evento_local", "label": "Cidade/local", "input-type": "text" },
+              { "type": "DatePicker", "name": "evento_data_ref", "label": "Data do evento" },
+              {
+                "type": "Footer",
+                "label": "Condições",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "CONDICOES" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "CONDICOES",
+      "title": "Condições",
+      "data": {
+        "prazo_ativacao": { "type": "string", "__example__": "3 dias úteis" },
+        "forma_pagto": { "type": "string", "__example__": "Pix" },
+        "validade": { "type": "string", "__example__": "7 dias" },
+        "total_geral": { "type": "string", "__example__": "1100,00" }
+      },
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextBody", "text": "Defina as condições da proposta." },
+          {
+            "type": "Form",
+            "name": "form_cond",
+            "children": [
+              { "type": "TextInput", "name": "prazo_ativacao", "label": "Prazo ativação", "input-type": "text" },
+              { "type": "Dropdown", "name": "forma_pagto", "label": "Pagamento", "data-source": [
+                { "id": "pix", "title": "Pix" },
+                { "id": "cartao", "title": "Cartão" },
+                { "id": "boleto", "title": "Boleto" }
+              ]},
+              { "type": "TextInput", "name": "validade", "label": "Validade", "input-type": "text" },
+              { "type": "TextInput", "name": "total_geral", "label": "Total (R$)", "input-type": "text" },
+              {
+                "type": "Footer",
+                "label": "Revisão",
+                "on-click-action": { "name": "navigate", "next": { "type": "screen", "name": "REVISAO" } }
+              }
+            ]
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "REVISAO",
+      "title": "Revisão e envio",
+      "data": {
+        "cliente_tipo": { "type": "string", "__example__": "profissional" },
+        "evento_tipo": { "type": "string", "__example__": "corporativo" },
+        "cliente_nome": { "type": "string", "__example__": "Fabio" },
+        "evento_nome": { "type": "string", "__example__": "Lançamento" },
+        "evento_local": { "type": "string", "__example__": "Curitiba" },
+        "evento_data_ref": { "type": "string", "__example__": "2025-11-10" },
+
+        "usar_produto_1": { "type": "string" }, "tipo_msg_1": { "type": "string" }, "modelo_texto_1": { "type": "string" },
+        "texto_1": { "type": "string" }, "botoes_1": { "type": "string" }, "imagem_url_1": { "type": "string" },
+        "qtd_1": { "type": "string" }, "data_1": { "type": "string" },
+
+        "usar_produto_2": { "type": "string" }, "tipo_msg_2": { "type": "string" }, "modelo_texto_2": { "type": "string" },
+        "texto_2": { "type": "string" }, "botoes_2": { "type": "string" }, "imagem_url_2": { "type": "string" },
+        "qtd_2": { "type": "string" }, "data_2": { "type": "string" },
+
+        "usar_produto_3": { "type": "string" }, "tipo_msg_3": { "type": "string" }, "modelo_texto_3": { "type": "string" },
+        "texto_3": { "type": "string" }, "botoes_3": { "type": "string" }, "imagem_url_3": { "type": "string" },
+        "qtd_3": { "type": "string" }, "data_3": { "type": "string" },
+
+        "usar_produto_4": { "type": "string" }, "tipo_msg_4": { "type": "string" }, "modelo_texto_4": { "type": "string" },
+        "texto_4": { "type": "string" }, "botoes_4": { "type": "string" }, "imagem_url_4": { "type": "string" },
+        "qtd_4": { "type": "string" }, "data_4": { "type": "string" },
+
+        "usar_produto_5": { "type": "string" }, "tipo_msg_5": { "type": "string" }, "modelo_texto_5": { "type": "string" },
+        "texto_5": { "type": "string" }, "botoes_5": { "type": "string" }, "imagem_url_5": { "type": "string" },
+        "qtd_5": { "type": "string" }, "data_5": { "type": "string" },
+
+        "prazo_ativacao": { "type": "string" },
+        "forma_pagto": { "type": "string" },
+        "validade": { "type": "string" },
+        "total_geral": { "type": "string" }
+      },
+      "terminal": true,
+      "success": true,
+      "layout": {
+        "type": "SingleColumnLayout",
+        "children": [
+          { "type": "TextHeading", "text": "Resumo da cotação" },
+          { "type": "TextBody", "text": "Perfil: ${data.cliente_tipo} | Evento: ${data.evento_tipo}" },
+          { "type": "TextSubheading", "text": "Produtos" },
+          { "type": "TextBody", "text": "P1: ${data.usar_produto_1} | ${data.tipo_msg_1} | qtd ${data.qtd_1} | ${data.data_1}" },
+          { "type": "TextBody", "text": "P2: ${data.usar_produto_2} | ${data.tipo_msg_2} | qtd ${data.qtd_2} | ${data.data_2}" },
+          { "type": "TextBody", "text": "P3: ${data.usar_produto_3} | ${data.tipo_msg_3} | qtd ${data.qtd_3} | ${data.data_3}" },
+          { "type": "TextBody", "text": "P4: ${data.usar_produto_4} | ${data.tipo_msg_4} | qtd ${data.qtd_4} | ${data.data_4}" },
+          { "type": "TextBody", "text": "P5: ${data.usar_produto_5} | ${data.tipo_msg_5} | qtd ${data.qtd_5} | ${data.data_5}" },
+          { "type": "TextSubheading", "text": "Evento" },
+          { "type": "TextBody", "text": "Cliente: ${data.cliente_nome} | Evento: ${data.evento_nome}" },
+          { "type": "TextBody", "text": "Local: ${data.evento_local} | Data: ${data.evento_data_ref}" },
+          { "type": "TextSubheading", "text": "Condições" },
+          { "type": "TextBody", "text": "Prazo: ${data.prazo_ativacao} | Pagamento: ${data.forma_pagto} | Validade: ${data.validade}" },
+          { "type": "TextHeading", "text": "Total: R$ ${data.total_geral}" },
+          {
+            "type": "Footer",
+            "label": "Gerar cotação",
+            "on-click-action": {
+              "name": "complete",
+              "payload": {
+                "cliente_tipo": "${data.cliente_tipo}",
+                "evento_tipo": "${data.evento_tipo}",
+                "cliente_nome": "${data.cliente_nome}",
+                "evento_nome": "${data.evento_nome}",
+                "evento_local": "${data.evento_local}",
+                "evento_data_ref": "${data.evento_data_ref}",
+
+                "usar_produto_1": "${data.usar_produto_1}", "tipo_msg_1": "${data.tipo_msg_1}", "modelo_texto_1": "${data.modelo_texto_1}",
+                "texto_1": "${data.texto_1}", "botoes_1": "${data.botoes_1}", "imagem_url_1": "${data.imagem_url_1}",
+                "qtd_1": "${data.qtd_1}", "data_1": "${data.data_1}",
+
+                "usar_produto_2": "${data.usar_produto_2}", "tipo_msg_2": "${data.tipo_msg_2}", "modelo_texto_2": "${data.modelo_texto_2}",
+                "texto_2": "${data.texto_2}", "botoes_2": "${data.botoes_2}", "imagem_url_2": "${data.imagem_url_2}",
+                "qtd_2": "${data.qtd_2}", "data_2": "${data.data_2}",
+
+                "usar_produto_3": "${data.usar_produto_3}", "tipo_msg_3": "${data.tipo_msg_3}", "modelo_texto_3": "${data.modelo_texto_3}",
+                "texto_3": "${data.texto_3}", "botoes_3": "${data.botoes_3}", "imagem_url_3": "${data.imagem_url_3}",
+                "qtd_3": "${data.qtd_3}", "data_3": "${data.data_3}",
+
+                "usar_produto_4": "${data.usar_produto_4}", "tipo_msg_4": "${data.tipo_msg_4}", "modelo_texto_4": "${data.modelo_texto_4}",
+                "texto_4": "${data.texto_4}", "botoes_4": "${data.botoes_4}", "imagem_url_4": "${data.imagem_url_4}",
+                "qtd_4": "${data.qtd_4}", "data_4": "${data.data_4}",
+
+                "usar_produto_5": "${data.usar_produto_5}", "tipo_msg_5": "${data.tipo_msg_5}", "modelo_texto_5": "${data.modelo_texto_5}",
+                "texto_5": "${data.texto_5}", "botoes_5": "${data.botoes_5}", "imagem_url_5": "${data.imagem_url_5}",
+                "qtd_5": "${data.qtd_5}", "data_5": "${data.data_5}",
+
+                "prazo_ativacao": "${data.prazo_ativacao}",
+                "forma_pagto": "${data.forma_pagto}",
+                "validade": "${data.validade}",
+                "total_geral": "${data.total_geral}"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
