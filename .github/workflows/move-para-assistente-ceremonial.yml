@@ -1,0 +1,37 @@
+name: Organizar arquivos antigos no Assistente Ceremonial
+
+on:
+  workflow_dispatch:
+
+jobs:
+  move:
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure target dirs
+        run: mkdir -p marco/assistente-ceremonial/legacy
+
+      - name: Move known patterns (safe)
+        shell: bash
+        run: |
+          shopt -s nullglob
+          moved=0
+          for f in marco/*.html marco/*.htm marco/*.js marco/*.css; do
+            base="$(basename "$f")"
+            if [ ! -e "marco/assistente-ceremonial/$base" ]; then
+              git mv "$f" "marco/assistente-ceremonial/legacy/$base"
+              echo "moved: $f -> marco/assistente-ceremonial/legacy/$base"
+              moved=1
+            fi
+          done
+          if [ "$moved" -eq 0 ]; then echo "No files matched or all already organized."; fi
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Organiza arquivos antigos no projeto Assistente Ceremonial (legacy)" || echo "Nada a commitar"
+          git push
