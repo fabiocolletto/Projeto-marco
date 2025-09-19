@@ -1,0 +1,253 @@
+name: Wipe & Scaffold (Assistente Ceremonial)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "ATENÇÃO: isso APAGA TUDO e recria só a estrutura do Assistente Ceremonial. Digite: QUERO-ZERAR"
+        required: true
+        default: "NÃO"
+
+jobs:
+  wipe_scaffold:
+    if: ${{ github.event.inputs.confirm == 'QUERO-ZERAR' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Criar branch de backup
+        run: |
+          TS=$(date -u +"%Y%m%d-%H%M%S")
+          git branch "backup-$TS"
+          git push origin "backup-$TS"
+          echo "Backup criado: backup-$TS"
+
+      - name: Apagar TODOS os arquivos versionados
+        run: |
+          # remove tudo do índice (inclusive .github/)
+          git rm -r -q . || true
+          # recria a pasta de workflows para conseguirmos versionar este próprio arquivo novamente
+          mkdir -p .github/workflows
+
+      - name: Recriar este workflow (autopersistência)
+        run: |
+          cat > .github/workflows/wipe-and-scaffold-ceremonial.yml << 'EOF'
+          name: Wipe & Scaffold (Assistente Ceremonial)
+          on:
+            workflow_dispatch:
+              inputs:
+                confirm:
+                  description: "ATENÇÃO: isso APAGA TUDO e recria só a estrutura do Assistente Ceremonial. Digite: QUERO-ZERAR"
+                  required: true
+                  default: "NÃO"
+          jobs:
+            wipe_scaffold:
+              if: ${{ github.event.inputs.confirm == 'QUERO-ZERAR' }}
+              runs-on: ubuntu-latest
+              permissions: { contents: write }
+              steps:
+                - uses: actions/checkout@v4
+                - name: Criar branch de backup
+                  run: |
+                    TS=$(date -u +"%Y%m%d-%H%M%S")
+                    git branch "backup-$TS"
+                    git push origin "backup-$TS"
+                - name: Apagar TODOS os arquivos
+                  run: |
+                    git rm -r -q . || true
+                    mkdir -p .github/workflows
+                    echo "ok" > .github/workflows/.keep
+                - name: Recriar estrutura mínima do Assistente Ceremonial
+                  run: |
+                    mkdir -p assistente-ceremonial/tools/passo1
+                    mkdir -p assistente-ceremonial/tools/passo2
+                    mkdir -p assistente-ceremonial/tools/passo3
+                    # marcadores vazios para manter pastas
+                    touch assistente-ceremonial/tools/passo1/.gitkeep
+                    touch assistente-ceremonial/tools/passo2/.gitkeep
+                    touch assistente-ceremonial/tools/passo3/.gitkeep
+
+                    # README raiz
+                    cat > README.md << 'MD'
+                    # Projeto Marco — Assistente Ceremonial (estrutural)
+
+                    Este repositório guarda **apenas as ferramentas** (JS, automações, utilitários) do Assistente Ceremonial.
+                    O **HTML/CSS** fica no Elementor do site 5h.
+
+                    ## Estrutura
+                    ```
+                    assistente-ceremonial/
+                      tools/
+                        passo1/   # scripts/utis para a tela 1 (dados do evento)
+                        passo2/   # scripts/utis para a tela 2 (lista)
+                        passo3/   # scripts/utis para a tela 3 (mensagens/agendamento)
+                    ```
+
+                    > Dica: salve aqui apenas **código de apoio** (ex.: validações, geradores de mensagem, integração, helpers).
+                    MD
+
+                    # README específico
+                    cat > assistente-ceremonial/README.md << 'MD'
+                    # Assistente Ceremonial — Ferramentas
+
+                    Use estas pastas para guardar **somente os arquivos de lógica** usados pelas 3 janelas:
+                    - `tools/passo1/` – validações, formatação, persistência de dados do evento
+                    - `tools/passo2/` – parsing/normalização da lista, saneamento, deduplicação
+                    - `tools/passo3/` – modelos de mensagem, monta variáveis, agendas, cópia/exports
+
+                    **HTML e CSS** ficam no Elementor.  
+                    Aqui vão apenas os **JS/JSON** (e eventualmente YAML/MD) necessários para processar dados.
+                    MD
+
+                    # .gitignore mínimo
+                    cat > .gitignore << 'GIT'
+                    node_modules/
+                    dist/
+                    *.log
+                    .DS_Store
+                    GIT
+
+                    # .editorconfig opcional
+                    cat > .editorconfig << 'EC'
+                    root = true
+                    [*]
+                    charset = utf-8
+                    end_of_line = lf
+                    insert_final_newline = true
+                    indent_style = space
+                    indent_size = 2
+                    trim_trailing_whitespace = true
+                    EC
+                - name: Recriar o próprio workflow (para futuras execuções)
+                  run: |
+                    cat > .github/workflows/wipe-and-scaffold-ceremonial.yml << 'SELF'
+                    # (este arquivo é idêntico ao que você rodou agora)
+                    # mantemos aqui para poder rodar de novo no futuro
+                    name: Wipe & Scaffold (Assistente Ceremonial)
+                    on:
+                      workflow_dispatch:
+                        inputs:
+                          confirm:
+                            description: "ATENÇÃO: isso APAGA TUDO e recria só a estrutura do Assistente Ceremonial. Digite: QUERO-ZERAR"
+                            required: true
+                            default: "NÃO"
+                    jobs:
+                      wipe_scaffold:
+                        if: ${{ github.event.inputs.confirm == 'QUERO-ZERAR' }}
+                        runs-on: ubuntu-latest
+                        permissions: { contents: write }
+                        steps:
+                          - uses: actions/checkout@v4
+                          - name: Criar branch de backup
+                            run: |
+                              TS=$(date -u +"%Y%m%d-%H%M%S")
+                              git branch "backup-$TS"
+                              git push origin "backup-$TS"
+                          - name: Apagar TODOS os arquivos
+                            run: |
+                              git rm -r -q . || true
+                              mkdir -p .github/workflows
+                              echo "ok" > .github/workflows/.keep
+                          - name: Recriar estrutura mínima do Assistente Ceremonial
+                            run: |
+                              mkdir -p assistente-ceremonial/tools/passo1
+                              mkdir -p assistente-ceremonial/tools/passo2
+                              mkdir -p assistente-ceremonial/tools/passo3
+                              touch assistente-ceremonial/tools/passo1/.gitkeep
+                              touch assistente-ceremonial/tools/passo2/.gitkeep
+                              touch assistente-ceremonial/tools/passo3/.gitkeep
+                              cat > README.md << 'MD'
+                              # Projeto Marco — Assistente Ceremonial (estrutural)
+                              Este repositório guarda **apenas as ferramentas** (JS, automações, utilitários) do Assistente Ceremonial.
+                              O **HTML/CSS** fica no Elementor do site 5h.
+                              MD
+                              cat > assistente-ceremonial/README.md << 'MD'
+                              # Assistente Ceremonial — Ferramentas
+                              Use estas pastas para guardar **somente os arquivos de lógica** das 3 janelas.
+                              MD
+                              cat > .gitignore << 'GIT'
+                              node_modules/
+                              dist/
+                              *.log
+                              .DS_Store
+                              GIT
+                              cat > .editorconfig << 'EC'
+                              root = true
+                              [*]
+                              charset = utf-8
+                              end_of_line = lf
+                              insert_final_newline = true
+                              indent_style = space
+                              indent_size = 2
+                              trim_trailing_whitespace = true
+                              EC
+                    SELF
+          EOF
+
+      - name: Criar estrutura mínima do Assistente Ceremonial
+        run: |
+          mkdir -p assistente-ceremonial/tools/passo1
+          mkdir -p assistente-ceremonial/tools/passo2
+          mkdir -p assistente-ceremonial/tools/passo3
+          touch assistente-ceremonial/tools/passo1/.gitkeep
+          touch assistente-ceremonial/tools/passo2/.gitkeep
+          touch assistente-ceremonial/tools/passo3/.gitkeep
+
+          cat > README.md << 'MD'
+          # Projeto Marco — Assistente Ceremonial (estrutural)
+
+          Este repositório guarda **apenas as ferramentas** (JS, automações, utilitários) do Assistente Ceremonial.
+          O **HTML/CSS** fica no Elementor do site 5h.
+
+          ## Onde salvar meus arquivos?
+          - `assistente-ceremonial/tools/passo1/` → lógicas da Tela 1 (dados do evento)
+          - `assistente-ceremonial/tools/passo2/` → lógicas da Tela 2 (lista)
+          - `assistente-ceremonial/tools/passo3/` → lógicas da Tela 3 (mensagens/agendamento)
+
+          > Próximo passo: me peça os arquivos das ferramentas e eu te entrego os JS para você colar nessas pastas.
+          MD
+
+          cat > assistente-ceremonial/README.md << 'MD'
+          # Assistente Ceremonial — Ferramentas
+          Somente **lógica** das 3 janelas (sem HTML/CSS).
+          Estrutura:
+          - `tools/passo1/`
+          - `tools/passo2/`
+          - `tools/passo3/`
+          MD
+
+          cat > .gitignore << 'GIT'
+          node_modules/
+          dist/
+          *.log
+          .DS_Store
+          GIT
+
+          cat > .editorconfig << 'EC'
+          root = true
+          [*]
+          charset = utf-8
+          end_of_line = lf
+          insert_final_newline = true
+          indent_style = space
+          indent_size = 2
+          trim_trailing_whitespace = true
+          EC
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Zera repositório e cria estrutura mínima do Assistente Ceremonial"
+          git push
+
+  safety_note:
+    if: ${{ github.event.inputs.confirm != 'QUERO-ZERAR' }}
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Execução abortada: confirme com QUERO-ZERAR para prosseguir."
