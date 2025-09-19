@@ -1,0 +1,33 @@
+name: Publicar demo (GitHub Pages)
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "assistentes/assistente-ceremonial/**"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Montar artifact
+        run: |
+          mkdir -p _site/assistente-ceremonial
+          cp -R assistentes/assistente-ceremonial/* _site/assistente-ceremonial/
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: _site }
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
