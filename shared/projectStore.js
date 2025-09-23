@@ -1,156 +1,131 @@
-// projectStore.js
-// Persistência local (IndexedDB) para múltiplos eventos do Assistente Ceremonial.
-// Zero dependências externas. Usar com <script type="module"> no navegador.
+// projectStore.js (v1)
+// IndexedDB para múltiplos eventos. Sem migração (ainda).
 
-// ===== Config e util =====
-const DB_NAME = "marco_db";                         // nome do banco IndexedDB
-const DB_VER  = 1;                                  // versão do schema do DB
-const STORE   = "kv";                               // um único objectStore "kv"
-const INDEX_KEY = "ac:index:v1";                    // chave do índice de projetos
-const KEY = id => `ac:project:${id}:v1`;            // chave por projeto
-const CURRENT_SCHEMA = 1;                           // versão do payload salvo
+const DB_NAME = "marco_db";                  // banco
+const DB_VER  = 1;                           // versão do IndexedDB (não confundir com schema do payload)
+const STORE   = "kv";                        // objectStore único
+const INDEX_KEY = "ac:index:v1";             // índice de projetos
+const KEY = id => `ac:project:${id}:v1`;     // chave de cada projeto
+const SCHEMA_VERSION = 1;                    // << nosso schema inicial
 
-const now = () => Date.now();                       // timestamp simples
-const uid = () => crypto.randomUUID();              // id único por projeto
-const deep = o => JSON.parse(JSON.stringify(o));    // cópia segura (serializa)
+const now  = () => Date.now();
+const uid  = () => crypto.randomUUID();
+const deep = o => JSON.parse(JSON.stringify(o));
 
-// ===== Abertura do IndexedDB =====
-function openDB() {                                  // abre (ou cria) a base
+// ---------- IndexedDB minimal ----------
+function openDB(){
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VER);     // abre DB (com upgrade se preciso)
-    req.onupgradeneeded = () => {                    // roda quando a versão sobe
-      const db = req.result;                         // instância IDBDatabase
-      if (!db.objectStoreNames.contains(STORE)) {    // se não existir o store
-        db.createObjectStore(STORE);                 // cria objectStore "kv"
-      }
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
     };
-    req.onsuccess = () => resolve(req.result);       // ok: devolve db
-    req.onerror   = () => reject(req.error);         // erro: rejeita
+    req.onsuccess = () => resolve(req.result);
+    req.onerror   = () => reject(req.error);
   });
 }
-
-function withStore(mode, cb) {                        // helper p/ transações
+function withStore(mode, cb){
   return openDB().then(db => new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, mode);          // inicia transação
-    const store = tx.objectStore(STORE);             // pega objectStore
-    const res = cb(store);                           // executa callback
-    tx.oncomplete = () => resolve(res);              // resolve ao concluir
-    tx.onerror = () => reject(tx.error);             // erro na tx
+    const tx = db.transaction(STORE, mode);
+    const store = tx.objectStore(STORE);
+    const out = cb(store);
+    tx.oncomplete = () => resolve(out);
+    tx.onerror = () => reject(tx.error);
   }));
 }
-
-// ===== Operações KV (get/set/del) =====
-function kvGet(key) {                                 // lê por chave
+function kvGet(key){
   return withStore("readonly", s => new Promise((res, rej) => {
-    const r = s.get(key);                             // GET
-    r.onsuccess = () => res(r.result);                // devolve valor (ou undefined)
-    r.onerror   = () => rej(r.error);                 // erro
+    const r = s.get(key); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
   }));
 }
-function kvSet(key, value) {                          // grava por chave
+function kvSet(key, val){
   return withStore("readwrite", s => new Promise((res, rej) => {
-    const r = s.put(value, key);                      // PUT/UPSERT
-    r.onsuccess = () => res();                        // ok
-    r.onerror   = () => rej(r.error);                 // erro
+    const r = s.put(val, key); r.onsuccess = () => res(); r.onerror = () => rej(r.error);
   }));
 }
-function kvDel(key) {                                 // remove por chave
+function kvDel(key){
   return withStore("readwrite", s => new Promise((res, rej) => {
-    const r = s.delete(key);                          // DELETE
-    r.onsuccess = () => res();                        // ok
-    r.onerror   = () => rej(r.error);                 // erro
+    const r = s.delete(key); r.onsuccess = () => res(); r.onerror = () => rej(r.error);
   }));
 }
 
-// ===== Migração de schema do payload =====
-function migrate(p) {                                  // garante formato atual
-  if (!p || typeof p !== "object") return p;           // sanidade
-  if (typeof p.schemaVersion !== "number") p.schemaVersion = 0; // legado
-
-  while (p.schemaVersion < CURRENT_SCHEMA) {           // sobe versões aos poucos
-    const to = p.schemaVersion + 1;                    // próxima versão
-    if (to === 1) {                                    // → v1: shape mínimo
-      p.evento ||= { nome:"", data:"", hora:"", local:"", endereco:"", anfitriao:"" }; // campos base
-      p.lista ||= []; p.tipos ||= []; p.modelos ||= {}; p.vars ||= {};                 // coleções base
-    }
-    p.schemaVersion = to;                              // avança carimbo de versão
-  }
-  return p;                                            // retorna migrado
+// ---------- Shape inicial (v1) ----------
+function ensureShape(p){
+  // Garante que o objeto tenha o "formato v1" — útil para robustez, mas não faz migração incremental.
+  p ||= {};
+  p.schemaVersion = SCHEMA_VERSION; // fixa v1
+  p.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" };
+  p.evento ||= { nome:"", data:"", hora:"", local:"", endereco:"", anfitriao:"" };
+  p.lista ||= [];
+  p.tipos ||= [];
+  p.modelos ||= {};
+  p.vars ||= {};
+  return p;
+}
+function toMeta(p){
+  return { id: p.id, nome: p.evento?.nome || "Sem nome", updatedAt: now() };
 }
 
-function toMeta(p) {                                   // extrai metadados p/ índice
-  return { id: p.id, nome: p.evento?.nome || "Sem nome", updatedAt: now() }; // meta mínima
+// ---------- Cache do índice ----------
+let indexCache = null;
+
+// ---------- API ----------
+export async function init(){
+  indexCache = (await kvGet(INDEX_KEY)) || [];
+  return listProjects();
 }
-
-// ===== Cache em memória do índice =====
-let indexCache = null;                                 // guarda índice na RAM
-
-// ===== API pública =====
-export async function init() {                          // inicializa store (carrega índice)
-  indexCache = (await kvGet(INDEX_KEY)) || [];          // lê índice salvo (ou cria vazio)
-  return listProjects();                                // devolve lista ordenada
+export function listProjects(){
+  const idx = indexCache || [];
+  return [...idx].sort((a,b)=>b.updatedAt - a.updatedAt);
 }
-
-export function listProjects() {                        // lista metadados (ordenados)
-  const idx = indexCache || [];                         // usa cache se existir
-  return [...idx].sort((a,b)=>b.updatedAt - a.updatedAt); // ordena por updatedAt desc
-}
-
-export async function createProject(data = {}) {        // cria novo projeto
-  const id = uid();                                     // gera id
-  const payload = migrate({                             // monta payload v1
-    schemaVersion: CURRENT_SCHEMA, id,
+export async function createProject(data = {}){
+  const id = uid();
+  const payload = ensureShape({
+    id,
+    cerimonialista: data.cerimonialista || { nomeCompleto:"", telefone:"", redeSocial:"" },
     evento: data.evento || { nome:"", data:"", hora:"", local:"", endereco:"", anfitriao:"" },
-    lista: data.lista || [], tipos: data.tipos || [], modelos: data.modelos || {}, vars: data.vars || {}
+    lista: data.lista || [],
+    tipos: data.tipos || [],
+    modelos: data.modelos || {},
+    vars: data.vars || {}
   });
-  await kvSet(KEY(id), payload);                        // grava payload
-  const meta = toMeta(payload);                         // cria metadado
-  const idx = indexCache || (await kvGet(INDEX_KEY)) || []; // lê índice atual
-  idx.push(meta);                                       // adiciona novo item
-  indexCache = idx;                                     // atualiza cache
-  await kvSet(INDEX_KEY, idx);                          // persiste índice
-  return { meta, payload: deep(payload) };              // retorna cópia
+  await kvSet(KEY(id), payload);
+  const meta = toMeta(payload);
+  const idx = indexCache || (await kvGet(INDEX_KEY)) || [];
+  idx.push(meta); indexCache = idx; await kvSet(INDEX_KEY, idx);
+  return { meta, payload: deep(payload) };
 }
-
-export async function getProject(id) {                  // lê projeto pelo id
-  const raw = await kvGet(KEY(id));                     // pega do IndexedDB
-  if (!raw) return null;                                // se não existir
-  const m = migrate(raw);                               // migra se necessário
-  if (m !== raw) await kvSet(KEY(id), m);               // persiste migração
-  return deep(m);                                       // devolve cópia segura
+export async function getProject(id){
+  const raw = await kvGet(KEY(id));
+  if (!raw) return null;
+  const shaped = ensureShape(raw);               // segura contra campos faltando
+  if (JSON.stringify(shaped) !== JSON.stringify(raw)) await kvSet(KEY(id), shaped);
+  return deep(shaped);
 }
+export async function updateProject(id, partial){
+  const curr = await kvGet(KEY(id));
+  if (!curr) throw new Error("Projeto não encontrado");
+  const next = ensureShape({ ...curr, ...deep(partial) });
+  await kvSet(KEY(id), next);
 
-export async function updateProject(id, partial) {      // atualiza projeto parcialmente
-  const curr = await kvGet(KEY(id));                    // lê atual
-  if (!curr) throw new Error("Projeto não encontrado"); // valida id
-  const next = migrate({ ...curr, ...deep(partial) });  // mescla + migra
-  await kvSet(KEY(id), next);                           // salva payload
+  const idx = indexCache || (await kvGet(INDEX_KEY)) || [];
+  const i = idx.findIndex(x => x.id === id);
+  if (i >= 0) idx[i] = { ...idx[i], nome: next.evento?.nome || idx[i].nome, updatedAt: now() };
+  indexCache = idx; await kvSet(INDEX_KEY, idx);
 
-  // atualiza índice (nome + updatedAt)
-  const idx = indexCache || (await kvGet(INDEX_KEY)) || []; // lê índice
-  const i = idx.findIndex(x => x.id === id);            // acha posição
-  if (i >= 0) idx[i] = { ...idx[i], nome: next.evento?.nome || idx[i].nome, updatedAt: now() }; // atualiza meta
-  indexCache = idx;                                     // atualiza cache
-  await kvSet(INDEX_KEY, idx);                          // persiste índice
-
-  return deep(next);                                    // retorna cópia do novo estado
+  return deep(next);
 }
-
-export async function deleteProject(id) {               // exclui projeto
-  await kvDel(KEY(id));                                 // remove payload
-  const idx = indexCache || (await kvGet(INDEX_KEY)) || []; // lê índice
-  indexCache = idx.filter(x => x.id !== id);            // filtra removendo meta
-  await kvSet(INDEX_KEY, indexCache);                   // persiste índice
+export async function deleteProject(id){
+  await kvDel(KEY(id));
+  const idx = indexCache || (await kvGet(INDEX_KEY)) || [];
+  indexCache = idx.filter(x => x.id !== id); await kvSet(INDEX_KEY, indexCache);
 }
-
-export async function exportProject(id) {               // exporta JSON string
-  const p = await getProject(id);                       // lê projeto
-  if (!p) throw new Error("Projeto não encontrado");    // valida
-  return JSON.stringify(p, null, 2);                    // pretty JSON p/ download
+export async function exportProject(id){
+  const p = await getProject(id); if (!p) throw new Error("Projeto não encontrado");
+  return JSON.stringify(p, null, 2);
 }
-
-export async function importProject(jsonOrObj) {        // importa projeto (gera novo id)
-  const o = typeof jsonOrObj === "string" ? JSON.parse(jsonOrObj) : jsonOrObj; // aceita string/obj
-  const { evento, lista, tipos, modelos, vars } = o || {}; // extrai campos conhecidos
-  return createProject({ evento, lista, tipos, modelos, vars });               // cria novo projeto
+export async function importProject(jsonOrObj){
+  const o = typeof jsonOrObj === "string" ? JSON.parse(jsonOrObj) : jsonOrObj;
+  const { cerimonialista, evento, lista, tipos, modelos, vars } = o || {};
+  return createProject({ cerimonialista, evento, lista, tipos, modelos, vars });
 }
