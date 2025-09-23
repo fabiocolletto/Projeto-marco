@@ -3,83 +3,75 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Assistente Cerimonial – App v3 (HTML Único)</title>
+  <title>Assistente Cerimonial – v3.7 (HTML Único)</title>
   <style>
-    /* =====================
-       CSS RESPONSIVO (INLINE)
-       ===================== */
-    :root{
-      --bg:#fff; --fg:#111; --muted:#666; --line:#000; --accent:#111;
-      --radius-lg:16px; --radius-md:12px; --radius-sm:10px;
-      --tab-bg:#fff; --tab-active:#111; --tab-muted:#aaa;
-    }
-    *,*::before,*::after{ box-sizing:border-box; }
-    html{ font-size:16px; }
-    body{ margin:0; background:var(--bg); color:var(--fg); font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial; }
+    #ac-app{ font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial; color:#111; background:#fff; }
+    #ac-app .navwrap{ background:#efefef; padding:16px 0; }
+    #ac-app .tabs{ max-width:960px; margin:0 auto; display:flex; gap:8px; align-items:center; padding:0 16px; flex-wrap:wrap; }
+    #ac-app .tab{ appearance:none; border:1px solid #000; background:#fff; color:#000; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; }
+    #ac-app .tab[aria-current="page"], #ac-app .tab.active{ background:#111; color:#fff; }
+    #ac-app .tab:focus{ outline:2px dashed #000; outline-offset:2px; }
+    #ac-app .toolbar{ max-width:960px; margin:10px auto 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:8px 16px; border-bottom:2px solid #000; background:#fff; }
+    #ac-app .btn{ appearance:none; border:1px solid #000; background:#fff; color:#000; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:700; line-height:1; display:inline-flex; align-items:center; gap:6px; }
+    #ac-app .btn:active{ transform:translateY(1px); }
+    #ac-app .btn:focus{ outline:2px dashed #000; outline-offset:2px; }
+    #ac-app .muted{ color:#666; margin-left:auto; white-space:nowrap; }
+    #ac-app .wrap{ max-width:960px; margin:0 auto; padding:16px; }
+    #ac-app .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    #ac-app .grid-1{ display:grid; grid-template-columns:1fr; gap:12px; }
+    #ac-app .card{ background:#fff; border:1px solid #000; border-radius:16px; padding:16px; box-shadow:4px 4px 0 #000; }
+    #ac-app label{ display:block; font-weight:700; margin:8px 0 4px; }
+    #ac-app input[type="text"],
+    #ac-app input[type="date"],
+    #ac-app input[type="time"],
+    #ac-app input[type="tel"],
+    #ac-app input[type="number"],
+    #ac-app input[type="email"],
+    #ac-app textarea,
+    #ac-app select{ width:100%; padding:10px 12px; border:1px solid #000; border-radius:10px; background:#fff; color:#000; line-height:1.2; min-height:42px; box-sizing:border-box; }
+    #ac-app textarea{ resize:vertical; }
+    #ac-app .help{ font-size:12px; color:#333; margin-top:4px; }
+    #ac-app .etiqueta{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px 12px; border:1px solid #000; border-radius:12px; background:#fff; box-shadow:3px 3px 0 #000; margin:12px 0 16px; }
+    #ac-app .placeholder{ border:1px dashed #000; border-radius:12px; padding:16px; color:#333; background:#fff; }
+    #ac-app .table{ width:100%; border-collapse:separate; border-spacing:0; }
+    #ac-app .table th,#ac-app .table td{ border:1px solid #000; padding:8px; vertical-align:top; }
+    #ac-app .table th{ background:#fafafa; text-align:left; }
+    #ac-app .table tfoot td{ font-weight:800; }
+    #ac-app details.card{ padding:0; overflow:hidden; }
+    #ac-app details.card > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:12px; padding:14px 16px; border-bottom:1px solid #000; }
+    #ac-app details.card > summary::-webkit-details-marker{ display:none; }
+    #ac-app .sum-title{ font-weight:800; font-size:1.05rem; }
+    #ac-app .sum-meta{ margin-left:auto; display:flex; align-items:center; gap:10px; }
+    #ac-app .chip{ border:1px solid #000; border-radius:999px; padding:2px 8px; font-weight:700; font-size:.85rem; background:#fff; }
+    #ac-app .progress{ width:120px; height:8px; border:1px solid #000; border-radius:999px; background:#fff; position:relative; overflow:hidden; }
+    #ac-app .progress i{ display:block; height:100%; background:#000; width:0; transition:width .2s ease; }
+    #ac-app .badge{ display:inline-block; border:1px solid #000; border-radius:6px; padding:2px 6px; font-size:12px; margin-left:6px; background:#fff; }
+    #ac-app [data-screen]{ display:none !important; }
+    #ac-app [data-screen].active{ display:block !important; }
+    #ac-app .templates-grid{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+    #ac-app .template{ border:1px solid #000; border-radius:12px; padding:12px; background:#fff; display:flex; flex-direction:column; gap:8px; }
+    #ac-app .template.selected{ outline:3px solid rgba(0,0,0,.25); }
+    #ac-app .preview{ border:1px dashed #000; border-radius:8px; padding:10px; background:#f9f9f9; white-space:pre-wrap; }
 
-    /* NAV DE TELAS */
-    .navwrap{ background:#efefef; padding:16px 0; }
-    .tabs{ max-width:960px; margin:0 auto; display:flex; gap:8px; align-items:center; justify-content:flex-start; padding:0 16px; flex-wrap:wrap; }
-    .tab{ appearance:none; border:1px solid #000; background:var(--tab-bg); color:#000; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:700; }
-    .tab[aria-current="page"], .tab.active{ background:var(--tab-active); color:#fff; }
-    .tab:focus{ outline:2px dashed #000; outline-offset:2px; }
-
-    /* TOOLBAR */
-    .toolbar{ max-width:960px; margin:10px auto 0; display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:8px 16px; border-bottom:2px solid var(--line); background:#fff; }
-    .btn{ appearance:none; border:1px solid #000; background:#fff; color:#000; padding:8px 12px; border-radius:var(--radius-sm); cursor:pointer; font-weight:700; line-height:1; display:inline-flex; align-items:center; gap:6px; }
-    .btn:active{ transform:translateY(1px); }
-    .btn:focus{ outline:2px dashed #000; outline-offset:2px; }
-    .muted{ color:var(--muted); margin-left:auto; white-space:nowrap; }
-
-    /* CONTEÚDO */
-    .wrap{ max-width:960px; margin:0 auto; padding:16px; }
-    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .card{ background:#fff; border:1px solid #000; border-radius:var(--radius-lg); padding:16px; box-shadow:4px 4px 0 #000; }
-    label{ display:block; font-weight:700; margin:8px 0 4px; }
-    input[type="text"], input[type="date"], input[type="time"], textarea{ width:100%; padding:10px 12px; border:1px solid #000; border-radius:var(--radius-sm); background:#fff; color:#000; line-height:1.2; min-height:42px; }
-    textarea{ resize:vertical; }
-    .help{ font-size:12px; color:#333; margin-top:4px; }
-
-    /* ETIQUETA/RESUMO */
-    .etiqueta{ display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px 12px; border:1px solid #000; border-radius:var(--radius-md); background:#fff; box-shadow:3px 3px 0 #000; margin:12px 0 16px; }
-    .etq-item b{ font-weight:800; }
-
-    /* LISTA */
-    .placeholder{ border:1px dashed #000; border-radius:var(--radius-md); padding:16px; color:#333; background:#fff; }
-    #listaUl{ padding-left:18px; margin:8px 0; }
-    #listaUl li{ margin:4px 0; display:flex; align-items:center; gap:8px; }
-    #listaUl li > button{ border:1px solid #000; background:#fff; border-radius:8px; cursor:pointer; padding:0 8px; }
-
-    /* SCREENS */
-    [data-screen]{ display:none; }
-    [data-screen].active{ display:block; }
-
-    /* RESPONSIVO */
-    @media (max-width: 820px){ .grid{ grid-template-columns:1fr; } }
-    @media (max-width: 600px){
-      .toolbar{ gap:6px; }
-      .btn{ padding:8px 10px; }
-      .muted{ width:100%; order:99; margin-left:0; }
-      .etiqueta{ gap:8px; }
-    }
-    @media (max-width: 420px){ .btn{ width:100%; justify-content:center; } .tabs{ justify-content:space-between; } }
-
-    /* IMPRESSÃO */
-    @media print{ .navwrap, .toolbar{ display:none; } .card{ box-shadow:none; } .wrap{ max-width:100%; padding:0; } }
+    @media (max-width: 960px){ #ac-app .templates-grid{ grid-template-columns:1fr 1fr; } }
+    @media (max-width: 700px){ #ac-app .templates-grid{ grid-template-columns:1fr; } }
+    @media (max-width: 820px){ #ac-app .grid{ grid-template-columns:1fr; } }
+    @media (max-width: 600px){ #ac-app .toolbar{ gap:6px; } #ac-app .btn{ padding:8px 10px; } #ac-app .muted{ width:100%; order:99; margin-left:0; } #ac-app .table{ display:block; overflow:auto; } }
+    @media (max-width: 420px){ #ac-app .btn{ width:100%; justify-content:center; } #ac-app .tabs{ justify-content:space-between; } }
+    @media print{ #ac-app .navwrap, #ac-app .toolbar{ display:none; } #ac-app .card{ box-shadow:none; } #ac-app .wrap{ max-width:100%; padding:0; } }
   </style>
 </head>
 <body>
-  <!-- Navegação entre telas -->
+<div id="ac-app">
   <div class="navwrap">
     <div class="tabs" role="tablist">
-      <button class="tab" data-goto="#dados" aria-controls="dados" aria-current="page">Dados do evento</button>
-      <button class="tab" data-goto="#lista" aria-controls="lista">Lista</button>
-      <button class="tab" data-goto="#mensagens" aria-controls="mensagens">Mensagens</button>
-      <button class="tab" data-goto="#relatorio" aria-controls="relatorio">Relatório</button>
+      <button class="tab" data-goto="#dados" aria-current="page">Dados</button>
+      <button class="tab" data-goto="#lista">Lista</button>
+      <button class="tab" data-goto="#mensagens">Mensagens</button>
+      <button class="tab" data-goto="#relatorio">Relatório</button>
     </div>
   </div>
 
-  <!-- Toolbar global -->
   <div class="toolbar">
     <button class="btn" id="btnIniciar">Iniciar</button>
     <button class="btn" id="btnAbrir">Abrir</button>
@@ -87,251 +79,344 @@
     <button class="btn" id="btnExportarPDF">Imprimir/Salvar PDF</button>
     <button class="btn" id="btnCopiaEtiqueta">Copiar etiqueta</button>
     <button class="btn" id="btnBaixaEtiqueta">Baixar etiqueta .txt</button>
-    <button class="btn" id="btnExportaCSV">Exportar convidados .csv</button>
-    <span class="muted" id="listaStats">Andamento: 0% • Convidados: 0</span>
+    <button class="btn" id="btnExportaCSV">Exportar .csv</button>
+    <span class="muted" id="listaStats">Andamento: 0% • Total de convites: 0 • Total de convidados: 0</span>
   </div>
 
   <div class="wrap">
-    <!-- Etiqueta/resumo -->
     <div class="etiqueta" id="etiquetaBar" aria-live="polite">
-      <span class="etq-item"><b data-bind="nome">—</b></span>
-      <span class="etq-item">• <span data-bind="datahora">—</span></span>
-      <span class="etq-item">• <span data-bind="local">—</span></span>
-      <span class="etq-item">• <span data-bind="endereco">—</span></span>
-      <span class="etq-item">• <span data-bind="fone">—</span></span>
+      <span><b data-bind="nome">—</b></span>
+      <span>• <span data-bind="datahora">—</span></span>
+      <span>• <span data-bind="local">—</span></span>
+      <span>• <span data-bind="endereco">—</span></span>
+      <span>• <span data-bind="fone">—</span></span>
     </div>
 
-    <!-- ===== Tela: Dados ===== -->
     <section id="dados" data-screen class="active">
-      <div class="grid">
-        <section class="card">
-          <h2 style="margin:0 0 8px">Dados do evento</h2>
-          <div class="grid" style="grid-template-columns:1fr 1fr">
-            <div style="grid-column:1 / -1">
-              <label for="s1_evt_nome">Nome do evento</label>
-              <input id="s1_evt_nome" type="text" placeholder="Ex.: Casamento Ana & Marco"/>
-            </div>
-            <div>
-              <label for="s1_evt_data">Data</label>
-              <input id="s1_evt_data" type="date"/>
-            </div>
-            <div>
-              <label for="s1_evt_hora">Hora</label>
-              <input id="s1_evt_hora" type="time"/>
-            </div>
-            <div style="grid-column:1 / -1">
-              <label for="s1_evt_local">Local</label>
-              <input id="s1_evt_local" type="text" placeholder="Ex.: Espaço Jardins"/>
-            </div>
-            <div style="grid-column:1 / -1">
-              <label for="s1_evt_endereco">Endereço</label>
-              <input id="s1_evt_endereco" type="text" placeholder="Rua, nº – Bairro – Cidade/UF"/>
-            </div>
-            <div style="grid-column:1 / -1">
-              <label for="s1_evt_anfitriao">Contato do anfitrião</label>
-              <input id="s1_evt_anfitriao" type="text" placeholder="Nome e telefone (41) 99999-0000"/>
-              <div class="help">O telefone é auto-formatado na etiqueta.</div>
-            </div>
-          </div>
-        </section>
-        <section class="card">
-          <h2 style="margin:0 0 8px">Atalhos</h2>
+      <div class="grid-1">
+        <details class="card" id="cardEvento" open>
+          <summary><span class="sum-title">Dados do evento</span><span class="sum-meta"><span class="chip" id="evtCount">0/5</span><span class="progress"><i id="evtBar"></i></span></span></summary>
           <div class="placeholder">
-            <button class="btn" id="btnExemplo">Preencher exemplo</button>
-            <div class="help" style="margin-top:8px">Use para testar rapidamente a UI e exportações.</div>
+            <div class="grid" style="grid-template-columns:1fr 1fr">
+              <div style="grid-column:1 / -1"><label for="evt_nome">Nome do evento</label><input id="evt_nome"/></div>
+              <div><label for="evt_data">Data</label><input id="evt_data" type="date"/></div>
+              <div><label for="evt_hora">Hora</label><input id="evt_hora" type="time"/></div>
+              <div style="grid-column:1 / -1"><label for="evt_local">Local</label><input id="evt_local"/></div>
+              <div style="grid-column:1 / -1"><label for="evt_endereco">Endereço</label><input id="evt_endereco"/></div>
+            </div>
           </div>
-        </section>
+        </details>
+        <details class="card" id="cardHost">
+          <summary><span class="sum-title">Dados do anfitrião</span><span class="sum-meta"><span class="chip" id="hostCount">0/2</span><span class="progress"><i id="hostBar"></i></span></span></summary>
+          <div class="placeholder">
+            <label for="evt_anfitrioes">Nome no convite</label><input id="evt_anfitrioes" placeholder="Ex.: Ana e Marco Silva"/>
+            <label for="evt_contato" style="margin-top:8px">Contato principal</label><input id="evt_contato" placeholder="(41) 9XXXX-XXXX"/>
+          </div>
+        </details>
+        <details class="card" id="cardCer">
+          <summary><span class="sum-title">Dados da cerimonialista</span><span class="sum-meta"><span class="chip" id="cerCount">0/4</span><span class="progress"><i id="cerBar"></i></span></span></summary>
+          <div class="placeholder">
+            <div class="grid" style="grid-template-columns:1fr 1fr">
+              <div style="grid-column:1 / -1"><label for="cer_nome">Nome completo</label><input id="cer_nome"/></div>
+              <div><label for="cer_tel">Telefone</label><input id="cer_tel"/></div>
+              <div><label for="cer_email">E-mail</label><input id="cer_email"/></div>
+              <div style="grid-column:1 / -1"><label for="cer_insta">@ Instagram</label><input id="cer_insta"/></div>
+            </div>
+          </div>
+        </details>
       </div>
     </section>
 
-    <!-- ===== Tela: Lista ===== -->
     <section id="lista" data-screen>
-      <div class="grid">
-        <section class="card">
-          <h2 style="margin:0 0 8px">Convidados</h2>
-          <div class="placeholder">
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-              <input id="guestInput" placeholder="Digite um nome e pressione Enter" style="flex:1 1 260px"/>
-              <button class="btn" id="btnAddGuest">+ Adicionar</button>
+      <section class="card" style="margin-bottom:12px">
+        <h2 style="margin:0 0 8px">Convites</h2>
+        <div class="placeholder" style="margin-bottom:12px">
+          <label for="quickAdd">Adicionar convites (um por linha)</label>
+          <textarea id="quickAdd" rows="5"></textarea>
+          <div class="help" id="quickHelp"></div>
+          <div style="display:flex; gap:8px; margin-top:8px; flex-wrap:wrap">
+            <button class="btn" id="btnProcessLines">Adicionar convidados</button>
+            <button class="btn" id="btnSampleLines">Exemplo</button>
+            <div style="margin-left:auto; display:flex; gap:6px; align-items:end">
+              <label for="sortMode" style="font-weight:700">Ordenação</label>
+              <select id="sortMode"><option value="seq">Número do convite (inserção)</option><option value="nome">Nome do convidado</option></select>
+              <button class="btn" id="btnApplySort">Aplicar</button>
             </div>
-            <ul id="listaUl"></ul>
           </div>
-        </section>
-        <section class="card">
-          <h2 style="margin:0 0 8px">Colagem em massa</h2>
-          <div class="placeholder">
-            <textarea id="listaBulk" rows="8" placeholder="Cole nomes aqui (um por linha, vírgulas ou tabs)"></textarea>
-            <div class="help">O texto é normalizado e deduplicado (case-insensitive). Clique duas vezes no bloco processado para enviar à lista.</div>
-            <pre id="outLista" style="display:block; white-space:pre-wrap; background:#f7f7f7; border:1px solid #000; border-radius:8px; padding:10px; margin-top:10px; min-height:60px"></pre>
-          </div>
-        </section>
-      </div>
+        </div>
+        <div class="placeholder">
+          <table class="table" id="tblInvites">
+            <thead><tr><th style="width:6%">Nº</th><th style="width:40%">Convidado(s)</th><th style="width:26%">Telefone</th><th style="width:10%">Total</th><th style="width:10%">Ações</th></tr></thead>
+            <tbody></tbody>
+            <tfoot><tr><td colspan="2"><b id="totConvites">Total de convites: 0</b></td><td colspan="3" style="text-align:right"><b id="totPessoas">Total de convidados: 0</b></td></tr></tfoot>
+          </table>
+        </div>
+      </section>
     </section>
 
-    <!-- ===== Tela: Mensagens ===== -->
     <section id="mensagens" data-screen>
-      <div class="grid">
-        <section class="card">
-          <h2 style="margin:0 0 8px">Mensagens padrão</h2>
-          <div class="placeholder">
-            <label for="msg_convite">Convite</label>
-            <textarea id="msg_convite" rows="4"></textarea>
-            <button class="btn" data-copy="#msg_convite">Copiar convite</button>
-
-            <label for="msg_confirm" style="margin-top:12px">Confirmação</label>
-            <textarea id="msg_confirm" rows="3"></textarea>
-            <button class="btn" data-copy="#msg_confirm">Copiar confirmação</button>
-
-            <label for="msg_lembrete" style="margin-top:12px">Lembrete</label>
-            <textarea id="msg_lembrete" rows="3"></textarea>
-            <button class="btn" data-copy="#msg_lembrete">Copiar lembrete</button>
+      <section class="card">
+        <h2 style="margin:0 0 8px">Modelos de mensagens</h2>
+        <div class="placeholder">
+          <div class="grid" style="grid-template-columns:1fr 1fr 1fr; align-items:end;">
+            <div>
+              <label for="msgTipo">Tipo</label>
+              <select id="msgTipo">
+                <option value="save">Save the date</option>
+                <option value="convite">Convite</option>
+                <option value="confirm">Confirmação de presença</option>
+                <option value="lembrete">Lembrete</option>
+                <option value="agradecimento">Agradecimento</option>
+                <option value="logistica">Informações/Logística</option>
+              </select>
+            </div>
+            <div>
+              <label for="msgSource">Fonte do modelo</label>
+              <select id="msgSource">
+                <option value="fixed">Modelos fixos</option>
+                <option value="generated">Modelos gerados (com variáveis)</option>
+              </select>
+            </div>
+            <div>
+              <button class="btn" id="btnCopyPreview">Copiar prévia</button>
+            </div>
           </div>
-        </section>
-        <section class="card">
-          <h2 style="margin:0 0 8px">Dicas</h2>
-          <div class="placeholder">
-            <div class="help">As mensagens são geradas a partir dos dados do evento e podem ser personalizadas livremente.</div>
+
+          <div id="varsPanel" style="margin-top:10px">
+            <label>Variáveis deste tipo</label>
+            <div class="placeholder" style="border-style:solid; padding:10px">
+              <label style="margin-right:8px"><input type="checkbox" class="var" value="guest" checked> Convidado</label>
+              <label style="margin-right:8px"><input type="checkbox" class="var" value="evento" checked> Nome do evento</label>
+              <label style="margin-right:8px"><input type="checkbox" class="var" value="data" checked> Data</label>
+              <label style="margin-right:8px"><input type="checkbox" class="var" value="hora" checked> Hora</label>
+              <label style="margin-right:8px"><input type="checkbox" class="var" value="local" checked> Local</label>
+              <label style="margin-right:8px"><input type="checkbox" class="var" value="endereco"> Endereço</label>
+            </div>
           </div>
-        </section>
-      </div>
+
+          <div id="modelsFixed" style="margin-top:12px">
+            <label for="msgModelo">Modelo fixo</label>
+            <select id="msgModelo"></select>
+          </div>
+
+          <div id="modelsGenerated" style="display:none; margin-top:12px">
+            <label>Modelos gerados</label>
+            <div class="templates-grid" id="genGrid"></div>
+          </div>
+
+          <label for="msgPreview" style="margin-top:12px">Prévia</label>
+          <textarea id="msgPreview" rows="4"></textarea>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 style="margin:0 0 8px">Mensagens por convite</h2>
+        <div class="placeholder">
+          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:end">
+            <div><label>Usar tipo/modelo selecionado acima</label></div>
+            <button class="btn" id="btnCopyAllMsgs">Copiar tudo</button>
+          </div>
+          <table class="table" id="tblMsgs"><thead><tr><th>Nº</th><th>Convidado(s)</th><th>Telefone</th><th>Mensagem (preview)</th><th style="width:120px">Ações</th></tr></thead><tbody></tbody></table>
+        </div>
+      </section>
     </section>
 
-    <!-- ===== Tela: Relatório ===== -->
     <section id="relatorio" data-screen>
-      <div class="grid">
-        <section class="card">
-          <h2 style="margin:0 0 8px">Resumo</h2>
-          <div class="placeholder">
-            <p><b>Andamento</b>: <span id="rep_andamento">0%</span></p>
-            <p><b>Total de convidados</b>: <span id="rep_total">0</span></p>
-            <p><b>Etiqueta</b>:</p>
-            <pre id="rep_etiqueta" style="white-space:pre-wrap; background:#f7f7f7; border:1px solid #000; border-radius:8px; padding:10px"></pre>
-          </div>
-        </section>
-        <section class="card">
-          <h2 style="margin:0 0 8px">JSON do projeto</h2>
-          <div class="placeholder">
-            <pre id="rep_json" style="white-space:pre-wrap; background:#f7f7f7; border:1px solid #000; border-radius:8px; padding:10px; max-height:360px; overflow:auto"></pre>
-          </div>
-        </section>
-      </div>
+      <section class="card"><h2 style="margin:0 0 8px">Resumo</h2><div class="placeholder"><p><b>Andamento</b>: <span id="rep_andamento">0%</span></p><p><b>Total de convites</b>: <span id="rep_convites">0</span> • <b>Total de convidados</b>: <span id="rep_total">0</span></p><p><b>Etiqueta</b>:</p><pre id="rep_etiqueta" style="white-space:pre-wrap; background:#f7f7f7; border:1px solid #000; border-radius:8px; padding:10px"></pre></div></section>
+      <section class="card"><h2 style="margin:0 0 8px">Lista final</h2><div class="placeholder"><table class="table" id="tblFinal"><thead><tr><th>Nº</th><th>Convidado(s)</th><th>Telefone</th><th>Total</th><th style="width:120px">Ações</th></tr></thead><tbody></tbody></table></div></section>
     </section>
   </div>
+</div>
 
   <script>
   (function(){
     'use strict';
+    const root = document.getElementById('ac-app');
+    const $  =(s,el=root)=>el.querySelector(s);
+    const $$ =(s,el=root)=>Array.from(el.querySelectorAll(s));
+    const KEY='ac_evt_v3_7_templates_vars';
 
-    const $  =(s,el=document)=>el.querySelector(s);
-    const $$ =(s,el=document)=>Array.from(el.querySelectorAll(s));
-    const KEY='ac_evt_v3';
-
-    const fmt={
-      dateBR(iso){ if(!iso) return ''; const p=String(iso).split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}`: String(iso); },
-      dataHora(e){ const d=this.dateBR(e.data); return [d, e.hora].filter(Boolean).join(' '); }
-    };
-    const mask={ fone(s){ const str=String(s||''); const m=str.match(/(\(?\d{2}\)?\s*\d{4,5}[- ]?\d{4})/); return m?m[0]:str; } };
     const canonical=s=>String(s||'').trim().replace(/\s+/g,' ');
-    const keyCI=s=>canonical(s).toLowerCase();
+    const fmt={ dateBR(iso){ if(!iso) return ''; const p=String(iso).split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}`: String(iso); }, dataHora(e){ const d=this.dateBR(e.data); return [d, e.hora].filter(Boolean).join(' '); } };
+    const mask={ fone(s){ const str=String(s||''); const m=str.match(/(\(?\d{2}\)?\s*\d{4,5}[- ]?\d{4})/); return m?m[0]:str; } };
 
-    const state={ evento:{nome:'',data:'',hora:'',local:'',endereco:'',anfitriao:''}, convidados:[], meta:{version:3} };
-    try{ const raw=JSON.parse(localStorage.getItem(KEY)||'{}'); if(raw?.evento) Object.assign(state.evento, raw.evento); if(Array.isArray(raw?.convidados)) state.convidados=raw.convidados.map(canonical); }catch(_){ }
+    const state={ evento:{nome:'',data:'',hora:'',local:'',endereco:'',anfitrioes:'',contato:'', cer:{nome:'',tel:'',email:'',insta:''}}, convites:[], meta:{version:'3.7', sort:'seq', msg:{tipo:'save', source:'fixed', modelo:'0', vars:{ save:{guest:true,evento:true,data:true,hora:true,local:true,endereco:false}, convite:{guest:true,evento:true,data:true,hora:true,local:true,endereco:true}, confirm:{guest:true,evento:true,data:true,hora:true,local:true,endereco:false}, lembrete:{guest:true,evento:true,data:true,hora:true,local:true,endereco:false}, agradecimento:{guest:true,evento:true,data:false,hora:false,local:false,endereco:false}, logistica:{guest:false,evento:true,data:false,hora:true,local:true,endereco:true} } } } };
 
+    try{ const raw=JSON.parse(localStorage.getItem(KEY)||'{}'); if(raw.evento) state.evento=raw.evento; if(Array.isArray(raw.convites)) state.convites=raw.convites; if(raw.meta) state.meta=Object.assign(state.meta, raw.meta);}catch(_){ }
     function persist(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(_){ } }
 
-    // ===== Navegação entre telas =====
-    function showScreen(id){
-      const hash = id.startsWith('#')? id : ('#'+id);
-      $$('[data-screen]').forEach(el=>el.classList.remove('active'));
-      const el = $(hash);
-      if(el){ el.classList.add('active'); }
-      $$('.tab').forEach(t=>{ const to=t.getAttribute('data-goto'); t.classList.toggle('active', to===hash); t.setAttribute('aria-current', to===hash? 'page':'false'); });
-      if(location.hash!==hash){ history.replaceState(null,'',hash); }
-      // Atualiza relatórios quando entra
-      if (hash==='#relatorio'){ paintReport(); }
-      if (hash==='#mensagens'){ paintMessages(); }
-    }
-    $$('.tab').forEach(btn=> btn.addEventListener('click', ()=> showScreen(btn.dataset.goto)) );
-    window.addEventListener('hashchange', ()=> showScreen(location.hash||'#dados'));
+    function syncEtiqueta(){ const e=state.evento; $$('#etiquetaBar [data-bind]').forEach(el=>{ const k=el.dataset.bind; el.textContent = k==='datahora'? (fmt.dataHora(e)||'—') : k==='fone'? (mask.fone(e.contato)||'—') : (e[k]||'—'); }); paintStatsTop(); }
+    ;['evt_nome','evt_data','evt_hora','evt_local','evt_endereco','evt_anfitrioes','evt_contato','cer_nome','cer_tel','cer_email','cer_insta'].forEach(id=> $("#"+id)?.addEventListener('input',()=>{ const e=state.evento; e.nome=$('#evt_nome')?.value||e.nome; e.data=$('#evt_data')?.value||e.data; e.hora=$('#evt_hora')?.value||e.hora; e.local=$('#evt_local')?.value||e.local; e.endereco=$('#evt_endereco')?.value||e.endereco; e.anfitrioes=$('#evt_anfitrioes')?.value||e.anfitrioes; e.contato=$('#evt_contato')?.value||e.contato; e.cer.nome=$('#cer_nome')?.value||e.cer.nome; e.cer.tel=$('#cer_tel')?.value||e.cer.tel; e.cer.email=$('#cer_email')?.value||e.cer.email; e.cer.insta=$('#cer_insta')?.value||e.cer.insta; persist(); syncEtiqueta(); paintReport(); paintMsgList(); paintFinal(); }));
 
-    // ===== Inputs / etiqueta =====
-    const fields = {
-      nome:      '#s1_evt_nome',
-      data:      '#s1_evt_data',
-      hora:      '#s1_evt_hora',
-      local:     '#s1_evt_local',
-      endereco:  '#s1_evt_endereco',
-      anfitriao: '#s1_evt_anfitriao',
-    };
-    const fieldEntries = Object.entries(fields).map(([k,sel])=>[k,$(sel)]).filter(([,el])=>!!el);
+    const RX_BR  = /(\(?\d{2}\)?\s*\d{4,5}[- ]?\d{4})/;
+    const onlyDigits=s=>String(s||'').replace(/\D+/g,'');
+    function normalizeBRPhone(raw){ let d=onlyDigits(raw); if(d.startsWith('55')) d=d.slice(2); if(d.length===10){ const ddd=d.slice(0,2), sub=d.slice(2); if(/^[6-9]\d{7}$/.test(sub)) d=ddd+'9'+sub; } if(d.length===11){ const ddd=d.slice(0,2), a=d.slice(2,7), b=d.slice(7); return `(${ddd}) ${a}-${b}`; } if(d.length===10){ const ddd=d.slice(0,2), a=d.slice(2,6), b=d.slice(6); return `(${ddd}) ${a}-${b}`; } return raw; }
+    function detectPhone(line){ const s=String(line); const intl=s.match(/\+\d[\d()\s.-]{5,}/); if(intl){ const raw=intl[0]; return {phone:canonical(raw), warn:/^\+55/.test(raw.replace(/\s+/g,''))?'+55 não recomendado para BR':''}; } const br=s.match(RX_BR); if(br){ return { phone: normalizeBRPhone(br[0]), warn:''}; } return { phone:'', warn:'sem telefone' } }
+    function splitCombinedNames(s){ let str=String(s||''); str=str.replace(/\s+e\s+/gi, ','); return str.split(/[;,]+/).map(canonical).filter(Boolean); }
+    function parseLine(line){ let txt=String(line||'').trim(); if(!txt) return null; const {phone,warn}=detectPhone(txt); let rest=txt; if(phone){ rest=rest.replace(phone,' '); const dg=onlyDigits(phone); if(dg) rest=rest.replace(new RegExp(dg.replace(/([.*+?^${}()|\[\]\\])/g,'\\$1'),'g'),' '); }
+      const names=splitCombinedNames(rest); const primary=names[0] || txt.replace(/[,;]+/g,' ').trim(); const companions=names.slice(1); return { id: Date.now()+Math.random(), seq: Date.now(), nome: primary, telefone: phone, companions, acompanhantes: companions.length, warn: warn || (!phone? 'sem telefone':'') }; }
+    function compCount(c){ return Array.isArray(c.companions)? c.companions.filter(Boolean).length : (Number(c.acompanhantes)||0); }
+    function totalPessoas(){ return state.convites.reduce((s,c)=> s + 1 + compCount(c), 0); }
+    function totalConvites(){ return state.convites.length; }
+    function groupName(c){ const names=[c.nome].concat(c.companions||[]).filter(Boolean); if(names.length<=1) return names[0]||''; if(names.length===2) return `${names[0]} e ${names[1]}`; return names.slice(0,-1).join(', ') + ' e ' + names[names.length-1]; }
 
-    function paintInputs(){ fieldEntries.forEach(([k,el])=>{ const v=state.evento[k]??''; if(el.value!==v) el.value=v; }); }
-    function etiquetaTexto(){ const e=state.evento; return [`Evento: ${e.nome||'-'}`, `Data: ${fmt.dateBR(e.data)||'-'}${e.hora?` às ${e.hora}`:''}`, `Local: ${e.local||'-'}`, `Endereço: ${e.endereco||'-'}`, `Contato: ${e.anfitriao||'-'}`].join('\n'); }
-    function syncEtiqueta(){ const e=state.evento; $$('#etiquetaBar [data-bind]').forEach(el=>{ const k=el.dataset.bind; el.textContent = k==='datahora'? (fmt.dataHora(e)||'—') : k==='fone'? (mask.fone(e.anfitriao)||'—') : (e[k]||'—'); }); paintListaStats(); }
-    function syncFromInputs(){ fieldEntries.forEach(([k,el])=>{ state.evento[k]=canonical(el.value); }); persist(); syncEtiqueta(); paintMessages(); paintReport(); }
-    fieldEntries.forEach(([k,el])=> el.addEventListener('input', syncFromInputs));
+    const refs={ quick:$('#quickAdd'), help:$('#quickHelp'), tbody:$('#tblInvites tbody'), sortMode:$('#sortMode'), btnApplySort:$('#btnApplySort'), btnProcess:$('#btnProcessLines'), btnSample:$('#btnSampleLines') };
+    refs.help.textContent=['• Digite um convite por linha.','• A ordem é livre: Nome, Telefone ou Telefone, Nome.','• Para acompanhantes: escreva os nomes junto do convidado, separados por vírgula.','• O total é calculado automaticamente (1 + acompanhantes).'].join('\n');
+    $('#quickAdd').setAttribute('placeholder',['João Silva, (41) 98888-0000, Paula, Lucas','(41) 98888-0000 Maria Souza','Ana Gomes, +351 912 345 678','+55 41 98888-0000, Pedro'].join('\n'));
 
-    // ===== Lista =====
-    const refs={ listaUl:$('#listaUl'), inputAdd:$('#guestInput'), btnAdd:$('#btnAddGuest'), bulkTa:$('#listaBulk'), outLista:$('#outLista'), listaStats:$('#listaStats') };
+    function getConvitesForView(){ const m=state.meta.sort; const arr=[...state.convites]; if(m==='nome'){ return arr.sort((a,b)=> (a.nome||'').localeCompare(b.nome||'', 'pt-BR')); } return arr.sort((a,b)=> (a.seq||0) - (b.seq||0)); }
+    function renderRow(c, idx){ const tr=document.createElement('tr'); const tot=1+compCount(c); const names=[c.nome].concat(c.companions||[]).filter(Boolean); const pretty = names.length<=1? (names[0]||'') : names.slice(0,-1).join(', ')+ ' e ' + names[names.length-1]; const warnTxt=c.warn || (!c.telefone? 'sem telefone':''); const warnHtml= warnTxt? `<span class="badge" title="${warnTxt}">!</span>` : ''; tr.innerHTML=`<td style="text-align:center">${idx+1}</td><td>${pretty} ${warnHtml}</td><td>${c.telefone || '<span class=badge title="sem telefone">—</span>'}</td><td>${tot}</td><td style="white-space:nowrap"><button class="btn btn-sm" data-edit>Editar</button> <button class="btn btn-sm" data-del>×</button></td>`;
+      tr.querySelector('[data-edit]').addEventListener('click',()=>{ if(tr.classList.contains('editing')) return; tr.classList.add('editing'); const tds=tr.querySelectorAll('td'); const nomeTD=tds[1]; const foneTD=tds[2]; const actions=tds[4]; const nomeIn=document.createElement('input'); nomeIn.value=names.join(', '); nomeTD.textContent=''; nomeTD.appendChild(nomeIn); const foneIn=document.createElement('input'); foneIn.value=c.telefone||''; foneTD.textContent=''; foneTD.appendChild(foneIn); const save=document.createElement('button'); save.className='btn btn-sm'; save.textContent='Salvar'; const cancel=document.createElement('button'); cancel.className='btn btn-sm'; cancel.textContent='Cancelar'; actions.innerHTML=''; actions.appendChild(save); actions.appendChild(cancel); save.addEventListener('click',()=>{ const split=splitCombinedNames(nomeIn.value); c.nome=split[0]||''; c.companions=split.slice(1); c.acompanhantes=c.companions.length; c.telefone=canonical(foneIn.value); c.warn = c.telefone? '':'sem telefone'; persist(); paintTable(); paintMsgList(); paintFinal(); }); cancel.addEventListener('click',()=> paintTable()); });
+      tr.querySelector('[data-del]').addEventListener('click',()=>{ const i=state.convites.findIndex(x=>x.id===c.id); if(i>=0){ state.convites.splice(i,1); persist(); paintTable(); paintMsgList(); paintFinal(); } });
+      return tr; }
+    function paintTable(){ refs.tbody.innerHTML=''; getConvitesForView().forEach((c,i)=> refs.tbody.appendChild(renderRow(c,i))); $('#totConvites').textContent=`Total de convites: ${totalConvites()}`; $('#totPessoas').textContent=`Total de convidados: ${totalPessoas()}`; paintStatsTop(); paintReport(); paintMsgList(); paintFinal(); }
 
-    function addGuest(name){ const c=canonical(name); if(!c) return false; const key=keyCI(c); if(!state.convidados.some(n=>keyCI(n)===key)){ state.convidados.push(c); state.convidados.sort((a,b)=>a.localeCompare(b,'pt-BR')); persist(); paintLista(); return true; } return false; }
-    function removeGuest(name){ const key=keyCI(name); const i=state.convidados.findIndex(n=>keyCI(n)===key); if(i>=0){ state.convidados.splice(i,1); persist(); paintLista(); } }
-    function paintLista(){ if(!refs.listaUl) return; refs.listaUl.innerHTML=''; state.convidados.forEach(n=>{ const li=document.createElement('li'); li.textContent=n; const rm=document.createElement('button'); rm.type='button'; rm.textContent='×'; rm.setAttribute('aria-label','Remover'); rm.addEventListener('click', ()=>removeGuest(n)); li.appendChild(rm); refs.listaUl.appendChild(li); }); if(refs.outLista) refs.outLista.textContent = state.convidados.join('\n'); paintListaStats(); paintReport(); }
-    function paintListaStats(){ if(!refs.listaStats) return; const filled=Object.values(state.evento).filter(v=>canonical(v)).length; const pct=Math.round((filled/6)*100); refs.listaStats.textContent=`Andamento: ${isFinite(pct)?pct:0}% • Convidados: ${state.convidados.length}`; $('#rep_andamento').textContent = `${isFinite(pct)?pct:0}%`; $('#rep_total').textContent = String(state.convidados.length); }
+    function titleCaseName(str){ const lowers=new Set(['da','de','do','das','dos','e']); return String(str||'').toLowerCase().split(' ').map((w,idx)=>{ if(!w) return w; return w.split('-').map((p,i)=>{ if(!p) return p; return (lowers.has(p) && idx!==0 && i===0) ? p : p.charAt(0).toUpperCase()+p.slice(1); }).join('-'); }).join(' '); }
 
-    refs.btnAdd?.addEventListener('click', ()=>{ if(addGuest(refs.inputAdd?.value||'')){ if(refs.inputAdd) refs.inputAdd.value=''; } refs.inputAdd?.focus(); });
-    refs.inputAdd?.addEventListener('keydown', ev=>{ if(ev.key==='Enter'){ ev.preventDefault(); refs.btnAdd?.click(); } });
-
-    refs.bulkTa?.addEventListener('input', e=>{ const tokens=String(e.target.value).replace(/\r\n?/g,'\n').split(/\n|,|;|\t/g).map(canonical).filter(Boolean); const seen=new Set(); const uniq=[]; for(const t of tokens){ const k=keyCI(t); if(!seen.has(k)){ seen.add(k); uniq.push(t); } } if(refs.outLista) refs.outLista.textContent=uniq.join('\n'); });
-    refs.outLista?.addEventListener('dblclick', ()=>{ const lines=String(refs.outLista.textContent||'').split('\n').map(canonical).filter(Boolean); lines.forEach(addGuest); });
-
-    // ===== Mensagens =====
-    function genMsgs(){ const e=state.evento; const data = fmt.dateBR(e.data)||'data a definir'; const hora = e.hora||'horário a definir'; return {
-      convite: `Olá! Você está convidado(a) para ${e.nome||'nosso evento'} no ${e.local||'local a definir'} (${e.endereco||'endereço a definir'}), em ${data} às ${hora}. Confirme presença respondendo esta mensagem. ${e.anfitriao?`Contato: ${mask.fone(e.anfitriao)}`:''}`.trim(),
-      confirm: `Confirmamos sua presença em ${e.nome||'nosso evento'} no dia ${data} às ${hora}. Qualquer dúvida, ${e.anfitriao?`fale com ${e.anfitriao}`:'estamos à disposição'}.`.trim(),
-      lembrete: `Lembrete: ${e.nome||'o evento'} acontece em ${data} às ${hora}, no ${e.local||'local informado'}. Te esperamos!`.trim()
-    }; }
-    function paintMessages(){ const m=genMsgs(); const set=(id,txt)=>{ const el=$(id); if(el && el.value!==txt) el.value=txt; }; set('#msg_convite',m.convite); set('#msg_confirm',m.confirm); set('#msg_lembrete',m.lembrete); }
-
-    $$('[data-copy]').forEach(btn=> btn.addEventListener('click', async ()=>{ const sel = btn.getAttribute('data-copy'); const ta=$(sel); if(!ta) return; try{ await navigator.clipboard.writeText(ta.value); btn.textContent='Copiado!'; setTimeout(()=>btn.textContent = btn.textContent.replace('Copiado!','Copiar').trim()||'Copiar', 800); }catch(_){ const t=document.createElement('textarea'); t.value=ta.value; t.style.position='fixed'; t.style.top='-1000px'; document.body.appendChild(t); t.select(); document.execCommand('copy'); t.remove(); }
-    }));
-
-    // ===== Relatório =====
-    function paintReport(){ $('#rep_etiqueta').textContent = etiquetaTexto(); $('#rep_json').textContent = JSON.stringify({evento:state.evento, convidados:state.convidados, meta:state.meta}, null, 2); }
-
-    // ===== Arquivo (Abrir/Salvar/Exportações) =====
-    let fileHandle=null;
-    async function salvarArquivo(handle=fileHandle){ const payload=new Blob([JSON.stringify({evento:state.evento, convidados:state.convidados, meta:state.meta}, null, 2)], {type:'application/json'}); const nomeSug=(state.evento.nome||'evento').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'-').replace(/-+/g,'-').replace(/^-|-$|^$/g,'')||'evento'; try{ if(handle?.createWritable){ const w=await handle.createWritable(); await w.write(payload); await w.close(); return true; } if('showSaveFilePicker' in window){ const h=await window.showSaveFilePicker({ suggestedName:`${nomeSug}.json`, types:[{description:'Projeto do Assistente Cerimonial', accept:{'application/json':['.json']}}]}); fileHandle=h; return salvarArquivo(h); } }catch(_){ } const url=URL.createObjectURL(payload); const a=document.createElement('a'); a.href=url; a.download=`${nomeSug}.json`; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},0); return true; }
-    async function abrirArquivo(){ if('showOpenFilePicker' in window){ try{ const [h]=await window.showOpenFilePicker({ types:[{description:'Projeto do Assistente Cerimonial', accept:{'application/json':['.json']}}]}); fileHandle=h; const f=await h.getFile(); const json=JSON.parse(await f.text()); carregarEstado(json); return true; }catch(_){ return false; } } return new Promise(resolve=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.addEventListener('change', async ()=>{ const f=inp.files?.[0]; if(!f) return resolve(false); try{ const json=JSON.parse(await f.text()); carregarEstado(json); resolve(true); }catch(_){ resolve(false);} }, {once:true}); inp.click(); }); }
-    function carregarEstado(json){ try{ if(json?.evento && typeof json.evento==='object') Object.assign(state.evento, json.evento); if(Array.isArray(json?.convidados)) state.convidados = Array.from(new Set(json.convidados.map(canonical).filter(Boolean))); state.convidados.sort((a,b)=>a.localeCompare(b,'pt-BR')); persist(); paintInputs(); syncEtiqueta(); paintLista(); paintMessages(); paintReport(); }catch(_){ } }
-
-    async function copyEtiqueta(){ const txt=etiquetaTexto(); try{ await navigator.clipboard.writeText(txt); }catch(_){ const ta=document.createElement('textarea'); ta.value=txt; ta.style.position='fixed'; ta.style.top='-1000px'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); } }
-    function downloadEtiqueta(){ const blob=new Blob([etiquetaTexto()],{type:'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='etiqueta.txt'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},0); }
-    function exportCSV(){ const rows=[['nome']].concat(state.convidados.map(n=>[n])); const csv=rows.map(r=>r.map(v=>{ const s=String(v??''); return /[",;\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; }).join(';')).join('\n'); const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='convidados.csv'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},0); }
-    function imprimirPDF(){ window.print(); }
-
-    // ===== Botões toolbar =====
-    $('#btnIniciar')?.addEventListener('click', ()=>{ syncFromInputs(); if('showSaveFilePicker' in window){ salvarArquivo(); } });
-    $('#btnAbrir')?.addEventListener('click', abrirArquivo);
-    $('#btnSalvar')?.addEventListener('click', ()=>salvarArquivo());
-    $('#btnExportarPDF')?.addEventListener('click', imprimirPDF);
-    $('#btnCopiaEtiqueta')?.addEventListener('click', copyEtiqueta);
-    $('#btnBaixaEtiqueta')?.addEventListener('click', downloadEtiqueta);
-    $('#btnExportaCSV')?.addEventListener('click', exportCSV);
-
-    // ===== Exemplo rápido =====
-    $('#btnExemplo')?.addEventListener('click', ()=>{
-      Object.assign(state.evento, { nome:'Casamento Ana & Marco', data:'2025-12-20', hora:'19:30', local:'Espaço Jardins', endereco:'Rua das Palmeiras, 123 – Curitiba', anfitriao:'Ana (41) 99999-0000' });
-      state.convidados = ['João Silva','Maria Souza','Pedro Santos','Clara Lima'];
-      persist(); paintInputs(); syncEtiqueta(); paintLista(); paintMessages(); paintReport();
+    refs.btnProcess?.addEventListener('click',()=>{
+      const lines=String(refs.quick.value||'').replace(/\r\n?/g,'\n').split('\n').map(s=>s.trim()).filter(Boolean);
+      let added=0;
+      lines.forEach(ln=>{
+        const obj=parseLine(ln);
+        if(obj){
+          obj.nome=titleCaseName(obj.nome);
+          obj.companions=(obj.companions||[]).map(titleCaseName);
+          obj.acompanhantes=obj.companions.length;
+          state.convites.push(obj);
+          added++;
+        }
+      });
+      if(added>0) refs.quick.value='';
+      persist();
+      paintTable();
     });
 
-    // ===== Inicialização =====
-    paintInputs(); syncEtiqueta(); paintLista(); paintMessages(); paintReport();
-    showScreen(location.hash||'#dados');
+    refs.btnSample?.addEventListener('click',()=>{ refs.quick.value=['João Silva, (41) 98888-0000, Paula, Lucas','(41) 98888-0000 Maria Souza','Ana Gomes, +351 912 345 678','+55 41 98888-0000, Pedro'].join('\n'); refs.quick.focus(); });
+    $('#sortMode').value = state.meta.sort||'seq'; $('#btnApplySort').addEventListener('click',()=>{ state.meta.sort=$('#sortMode').value; persist(); paintTable(); });
 
-    // Expor API (útil para testes) – opcional
-    window.appCerimonialV3 = { state, addGuest, removeGuest, abrirArquivo, salvarArquivo };
+    function paintStatsTop(){ const e=state.evento; const filled=[e.nome,e.data,e.hora,e.local,e.endereco,e.anfitrioes,e.contato,e.cer?.nome,e.cer?.tel,e.cer?.email,e.cer?.insta].filter(v=>canonical(v)).length; const pct=Math.round((filled/11)*100)||0; $('#listaStats').textContent=`Andamento: ${pct}% • Total de convites: ${totalConvites()} • Total de convidados: ${totalPessoas()}`; $('#rep_andamento').textContent=`${pct}%`; $('#rep_convites').textContent=String(totalConvites()); $('#rep_total').textContent=String(totalPessoas()); }
+    function etiquetaTexto(){ const e=state.evento; return [`Evento: ${e.nome||'-'}`, `Data: ${fmt.dateBR(e.data)||'-'}${e.hora?` às ${e.hora}`:''}`, `Local: ${e.local||'-'}`, `Endereço: ${e.endereco||'-'}`, `Contato: ${e.contato||'-'}`].join('\n'); }
+    function paintReport(){ $('#rep_etiqueta').textContent=etiquetaTexto(); }
+
+    async function copyText(txt){ try{ if(navigator.clipboard?.writeText){ await navigator.clipboard.writeText(txt); return true; } throw 0; }catch(_){ try{ const ta=document.createElement('textarea'); ta.value=txt; ta.setAttribute('readonly',''); ta.style.position='fixed'; ta.style.top='-1000px'; root.appendChild(ta); ta.focus(); ta.select(); const ok=document.execCommand('copy'); ta.remove(); if(ok) return true; }catch(__){} alert('Não foi possível acessar a área de transferência. Selecione e copie manualmente.'); return false; } }
+
+    const TEMPLATES={
+      save:[
+        'Save the date! {EVENTO}{ANFITRIAO? de {ANFITRIAO}} em {DATA}{HORA? às {HORA}} no {LOCAL}. Endereço: {ENDERECO}.',
+        'Reserva a data: {DATA}{HORA? às {HORA}} – {EVENTO} no {LOCAL}. Detalhes em breve.'
+      ],
+      convite:[
+        'Você está convidado(a) para {EVENTO}{ANFITRIAO? de {ANFITRIAO}} em {DATA} às {HORA}, no {LOCAL} ({ENDERECO}). {CONTATO? Contato: {CONTATO}}',
+        '{ANFITRIAO?{ANFITRIAO} convidam para }{EVENTO} – {DATA} {HORA?às {HORA}} – {LOCAL}.'
+      ],
+      confirm:[
+        'Confirmação: presença registrada para {EVENTO} em {DATA}{HORA? às {HORA}}. {CER_NOME?{CER_NOME}}{CER_TEL? – {CER_TEL}}{CER_INSTA? – {CER_INSTA}}.',
+        'Sua confirmação para {EVENTO} foi recebida. Nos vemos {DATA}{HORA? às {HORA}} no {LOCAL}.'
+      ],
+      lembrete:[
+        'Lembrete: {EVENTO} acontece {DATA}{HORA? às {HORA}} no {LOCAL}.',
+        'Nos vemos em breve! {EVENTO} – {DATA}{HORA? às {HORA}} – {LOCAL}.'
+      ],
+      agradecimento:[
+        'Obrigado por celebrar {EVENTO} conosco! {ANFITRIAO?{ANFITRIAO}} agradecem a presença.',
+        'Gratidão pela presença em {EVENTO}. Foi especial ter você.'
+      ],
+      logistica:[
+        '{EVENTO}: {LOCAL} ({ENDERECO}). {HORA?Chegada às {HORA}}. {CONTATO?Dúvidas: {CONTATO}}',
+        'Informações: {LOCAL} – {ENDERECO}. {HORA?Início às {HORA}}.'
+      ]
+    };
+
+    function gerarModelos(tipo, vars){
+      const e=state.evento;
+      const nomeEvento = vars.evento? (e.nome||''): '';
+      const data = vars.data? (fmt.dateBR(e.data)||''): '';
+      const hora = vars.hora? (e.hora||''): '';
+      const local = vars.local? (e.local||''): '';
+      const endereco = vars.endereco? (e.endereco||''): '';
+      const when1 = (data&&hora)? `${data} às ${hora}` : (data||hora||'');
+      const when2 = (data&&hora)? `no dia ${data}, às ${hora}` : when1;
+      const loc = local && endereco ? `No ${local} (${endereco}).` : (local? `No ${local}.` : (endereco? `${endereco}.` : ''));
+      const CTA={ save:['Guarde a data!','Marque na agenda!','Reserve este dia!'], convite:['Esperamos você!','Contamos com sua presença!','Vai ser incrível!'], confirm:['Pode confirmar presença por aqui?','Clique para confirmar presença.','Responda com “SIM” para confirmar.'], lembrete:['Até amanhã!','Nos vemos lá!','Qualquer dúvida, fale com a gente.'], agradecimento:['Obrigado por fazer parte!','Foi especial ter você com a gente.','Até a próxima!'], logistica:['Chegada tranquila 🙂','Qualquer dúvida, nos chame.','Até breve!'] };
+      function S(){ return Array.from(arguments).filter(Boolean).join(' ').replace(/\s{2,}/g,' ').trim(); }
+      const base = {
+        save:[ S('Olá!', nomeEvento?`${nomeEvento} está chegando!`:'' , when1?`Será ${when1}.`:'' , loc, CTA.save[0]), S('Temos novidades!', nomeEvento?`Você é nosso convidado para ${nomeEvento}.`:'' , when2||when1||'Detalhes em breve.', loc, CTA.save[1]), S(nomeEvento?`Convite: ${nomeEvento}.`:'Convite especial.', when1||when2||'Em breve.', loc, CTA.save[2]), S('Lembrete:', when1||when2, loc) ],
+        convite:[ S('Olá!', nomeEvento?`Você está convidado(a) para ${nomeEvento}.`:'Você está convidado(a)!', when1, loc, CTA.convite[0]), S('Temos um convite:', nomeEvento||'evento', when2||when1, loc, CTA.convite[1]), S(nomeEvento?`${nomeEvento} –`:'Evento –', when1, local?`no ${local}.`:'' , CTA.convite[2]) ],
+        confirm:[ S('Confirmação registrada para', nomeEvento||'o evento', when1?`(${when1})`:'' , CTA.confirm[0]), S('Sua confirmação para', nomeEvento||'o evento', 'foi recebida.', when2||when1, CTA.confirm[1]), S('Obrigado!', 'Nos vemos', when2||when1, loc) ],
+        lembrete:[ S('Lembrete:', nomeEvento||'evento', when1, loc), S('Falta pouco para', nomeEvento||'o evento', when2||when1, CTA.lembrete[1]), S('Prepare-se!', when1||when2, CTA.lembrete[2]) ],
+        agradecimento:[ S('Obrigado por celebrar', nomeEvento||'conosco!'), S('Gratidão pela presença em', nomeEvento||'nosso evento.'), S('Foi especial ter você. Até a próxima!') ],
+        logistica:[ S(nomeEvento?`${nomeEvento}:`:'Informações:', local?`${local}.`:'' , endereco?`(${endereco})`:'' , hora?`Início às ${hora}.`:''), S('Dicas:', hora?`chegue até ${hora}.`:'' , local?`Local: ${local}.`:'' , endereco?`Endereço: ${endereco}.`:'') ]
+      };
+      const arr = (base[tipo]||[]).slice(0,6);
+      while(arr.length<6) arr.push('');
+      return arr;
+    }
+
+    function fillVarsFixed(str, c){
+      const e=state.evento; const nome=groupName(c); const map={
+        '{NOME}':nome,
+        '{TELEFONE}':c.telefone||'',
+        '{EVENTO}':e.nome||'',
+        '{DATA}':fmt.dateBR(e.data)||'',
+        '{HORA}':e.hora||'',
+        '{LOCAL}':e.local||'',
+        '{ENDERECO}':e.endereco||'',
+        '{ANFITRIAO}':e.anfitriaos||e.anfitrioes||'',
+        '{CONTATO}':mask.fone(e.contato||''),
+        '{CER_NOME}':e.cer.nome||'',
+        '{CER_TEL}':mask.fone(e.cer.tel||''),
+        '{CER_INSTA}':e.cer.insta||''
+      };
+      let out=str.replace(/\{([A-Z_]+)\?([^{}]*\{\1\}[^{}]*)\}/g,(m, key, block)=>{
+        const token='{'+key+'}'; const val=map[token]||''; return val? block.replace(token,val) : '';
+      });
+      Object.entries(map).forEach(([k,v])=>{ out=out.replace(new RegExp(k,'g'), v); });
+      return canonical(out.replace(/\s+/g,' ').replace(/\s+([,.;:])/g,'$1'));
+    }
+
+    const msgUI={ tipo:$('#msgTipo'), source:$('#msgSource'), modelo:$('#msgModelo'), preview:$('#msgPreview'), btnCopyPreview:$('#btnCopyPreview'), tblBody:$('#tblMsgs tbody'), btnCopyAll:$('#btnCopyAllMsgs'), vars: $$('#varsPanel .var'), genGrid:$('#genGrid'), modelsFixedWrap:$('#modelsFixed'), modelsGenWrap:$('#modelsGenerated') };
+
+    function loadFixedModelos(){ const t=state.meta.msg.tipo; const list=TEMPLATES[t]||[]; msgUI.modelo.innerHTML=''; list.forEach((_,i)=>{ const opt=document.createElement('option'); opt.value=String(i); opt.textContent=`Modelo ${i+1}`; msgUI.modelo.appendChild(opt); }); msgUI.modelo.value=state.meta.msg.modelo || '0'; }
+
+    function loadGeneratedGrid(){ const t=state.meta.msg.tipo; const vars = state.meta.msg.vars[t] || {}; const list = gerarModelos(t, vars); msgUI.genGrid.innerHTML=''; list.forEach((texto,idx)=>{ const card=document.createElement('div'); card.className='template'; card.innerHTML=`<label><input type="radio" name="gen-${t}" value="${idx}"> Escolher</label><div class="preview">${texto||'<i>Complete as variáveis…</i>'}</div>`; const radio=card.querySelector('input'); radio.checked = state.meta.msg.source==='generated' && String(idx)===String(state.meta.msg.modelo);
+        radio.addEventListener('change',()=>{ $$('.template', msgUI.genGrid).forEach(x=>x.classList.remove('selected')); card.classList.add('selected'); state.meta.msg.source='generated'; state.meta.msg.modelo=String(idx); persist(); renderPreview(); paintMsgList(); paintFinal(); });
+        if(radio.checked) card.classList.add('selected');
+        msgUI.genGrid.appendChild(card);
+      });
+    }
+
+    function renderPreview(){ const t=state.meta.msg.tipo; if(state.meta.msg.source==='generated'){ const vars=state.meta.msg.vars[t]||{}; const list=gerarModelos(t,vars); const idx=parseInt(state.meta.msg.modelo||'0',10)||0; msgUI.preview.value = canonical(list[idx]||''); }
+      else { const i=parseInt(state.meta.msg.modelo||'0',10)||0; const tpl=(TEMPLATES[t]||[])[i]||''; msgUI.preview.value = fillVarsFixed(tpl,{nome:'Convidado(a)',companions:[],telefone:''}); }
+    }
+
+    function syncVarsPanel(){ const t=state.meta.msg.tipo; const stored = state.meta.msg.vars[t] || {}; msgUI.vars.forEach(chk=>{ chk.checked = !!stored[chk.value]; }); }
+
+    msgUI.tipo.addEventListener('change',()=>{ state.meta.msg.tipo=msgUI.tipo.value; persist(); loadFixedModelos(); loadGeneratedGrid(); syncVarsPanel(); renderPreview(); paintMsgList(); paintFinal(); });
+    msgUI.source.addEventListener('change',()=>{ state.meta.msg.source=msgUI.source.value; persist(); renderPreview(); paintMsgList(); paintFinal(); msgUI.modelsFixedWrap.style.display = state.meta.msg.source==='fixed'? 'block':'none'; msgUI.modelsGenWrap.style.display = state.meta.msg.source==='generated'? 'block':'none'; });
+    msgUI.modelo.addEventListener('change',()=>{ state.meta.msg.modelo=msgUI.modelo.value; persist(); renderPreview(); paintMsgList(); paintFinal(); });
+    msgUI.vars.forEach(chk=> chk.addEventListener('change',()=>{ const t=state.meta.msg.tipo; state.meta.msg.vars[t] = state.meta.msg.vars[t] || {}; state.meta.msg.vars[t][chk.value] = chk.checked; persist(); loadGeneratedGrid(); renderPreview(); paintMsgList(); paintFinal(); }));
+
+    msgUI.btnCopyPreview.addEventListener('click', async ()=>{ const ok=await copyText(msgUI.preview.value); msgUI.btnCopyPreview.textContent= ok? 'Copiado!' : 'Copiar prévia'; setTimeout(()=> msgUI.btnCopyPreview.textContent='Copiar prévia',1200); });
+
+    function buildMessageForInvite(c){ const t=state.meta.msg.tipo; if(state.meta.msg.source==='generated'){ const vars=state.meta.msg.vars[t]||{}; const list=gerarModelos(t,vars); const idx=parseInt(state.meta.msg.modelo||'0',10)||0; return canonical(list[idx]||''); } else { const i=parseInt(state.meta.msg.modelo||'0',10)||0; const tpl=(TEMPLATES[t]||[])[i]||''; return fillVarsFixed(tpl,c); } }
+
+    function paintMsgList(){ msgUI.tblBody.innerHTML=''; getConvitesForView().forEach((c,idx)=>{ const tr=document.createElement('tr'); const msg=buildMessageForInvite(c); tr.innerHTML=`<td>${idx+1}</td><td>${groupName(c)}</td><td>${c.telefone||'—'}</td><td>${msg}</td><td><button class="btn btn-sm" data-copy>Copiar</button></td>`; tr.querySelector('[data-copy]').addEventListener('click',()=> copyText(msg)); msgUI.tblBody.appendChild(tr); }); }
+    $('#btnCopyAllMsgs').addEventListener('click', async ()=>{ const lines=getConvitesForView().map(c=>buildMessageForInvite(c)); const ok=await copyText(lines.join('\n')); const btn=$('#btnCopyAllMsgs'); btn.textContent = ok? 'Copiado!' : 'Copiar tudo'; setTimeout(()=> btn.textContent='Copiar tudo',1200); });
+
+    function paintFinal(){ const tb=$('#tblFinal tbody'); if(!tb) return; tb.innerHTML=''; getConvitesForView().forEach((c,idx)=>{ const tr=document.createElement('tr'); const tot=1+compCount(c); tr.innerHTML=`<td>${idx+1}</td><td>${groupName(c)}</td><td>${c.telefone||'—'}</td><td>${tot}</td><td><button class="btn btn-sm" data-copy>Copiar</button></td>`; tr.querySelector('[data-copy]').addEventListener('click',()=> copyText(buildMessageForInvite(c))); tb.appendChild(tr); }); }
+
+    function exportCSV(){ const rows=[["nome","telefone","companions","total"]].concat(state.convites.map(c=>[groupName(c),c.telefone,(c.companions||[]).join(' | '),1+compCount(c)])); const csv=rows.map(r=>r.map(v=>{ const s=String(v??''); return /[",;\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; }).join(';')).join('\n'); const blob=new Blob(["\uFEFF"+csv],{type:'text/csv;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='convites.csv'; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(url); a.remove();},0); }
+    $('#btnExportaCSV')?.addEventListener('click', exportCSV);
+    $('#btnCopiaEtiqueta')?.addEventListener('click', ()=>copyText(etiquetaTexto()));
+    $('#btnExportarPDF')?.addEventListener('click', ()=>window.print());
+
+    function paintReportInit(){ $('#rep_etiqueta').textContent=etiquetaTexto(); }
+    syncEtiqueta(); paintTable(); paintMsgList(); paintFinal(); paintReportInit();
+
+    function showScreen(id){ const hash=id.startsWith('#')?id:('#'+id); $$('[data-screen]').forEach(el=>el.classList.remove('active')); const el=$(hash); if(el) el.classList.add('active'); $$('.tab').forEach(t=>{ const to=t.dataset.goto; t.classList.toggle('active', to===hash); t.setAttribute('aria-current', to===hash? 'page':'false'); }); if(location.hash!==hash){ history.replaceState(null,'',hash); } if(hash==='#mensagens'){ paintMsgList(); } if(hash==='#relatorio'){ paintReport(); paintFinal(); } }
+    $$('.tab').forEach(btn=> btn.addEventListener('click', ()=> showScreen(btn.dataset.goto)) );
+    window.addEventListener('hashchange', ()=> showScreen(location.hash||'#dados'));
+    showScreen(location.hash||'#dados');
   })();
   </script>
 </body>
