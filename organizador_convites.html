@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organizador de Convites</title>
+</head>
+<body>
+  <main>
+    <h1>Organizador de convites</h1>
+
+    <section aria-labelledby="bulk-title">
+      <h2 id="bulk-title">Adicionar convites</h2>
+      <p>Informe um convidado por linha. Utilize ponto e vírgula, vírgula ou tabulação para separar nome e telefone. Os acompanhantes podem ser separados por barra vertical (|), vírgula ou quebra de linha.</p>
+      <label for="bulk-input">Lista de nomes e telefones</label>
+      <textarea id="bulk-input" rows="8" placeholder="Ex.: Maria Silva; (11) 98888-7766&#10;João Pereira, 21 99999-8888&#10;Carla Dias; 11988776655; Ana | Bruno"></textarea>
+      <div>
+        <button type="button" id="btn-bulk-process">Adicionar automaticamente</button>
+        <button type="button" id="btn-bulk-clear">Limpar texto</button>
+      </div>
+      <p id="bulk-status" role="status" aria-live="polite"></p>
+    </section>
+
+    <section aria-labelledby="list-title">
+      <h2 id="list-title">Convites cadastrados</h2>
+      <p>Total de convites: <span id="total-invites">0</span></p>
+      <p>Total de pessoas: <span id="total-guests">0</span></p>
+      <table aria-describedby="list-title">
+        <thead>
+          <tr>
+            <th scope="col">Convidado</th>
+            <th scope="col">Telefone</th>
+            <th scope="col">Acompanhantes</th>
+            <th scope="col">Total</th>
+            <th scope="col">Atualizado</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="invite-body"></tbody>
+        <tfoot>
+          <tr>
+            <td>
+              <label for="manual-name">Nome</label>
+              <input type="text" id="manual-name" autocomplete="name" />
+            </td>
+            <td>
+              <label for="manual-phone">Telefone</label>
+              <input type="tel" id="manual-phone" autocomplete="tel" />
+            </td>
+            <td>
+              <label for="manual-companions">Acompanhantes</label>
+              <textarea id="manual-companions" rows="2" placeholder="Separe por vírgula, ponto e vírgula, barra vertical ou quebra de linha"></textarea>
+            </td>
+            <td>
+              <span id="manual-total-preview">1</span>
+            </td>
+            <td>—</td>
+            <td>
+              <button type="button" id="btn-manual-add">Adicionar</button>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+      <p id="empty-state">Nenhum convite cadastrado ainda.</p>
+      <button type="button" id="btn-clear-all">Remover todos os convites</button>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const storageKey = 'convite-lista-v1';
+      const bulkInput = document.getElementById('bulk-input');
+      const btnBulkProcess = document.getElementById('btn-bulk-process');
+      const btnBulkClear = document.getElementById('btn-bulk-clear');
+      const btnClearAll = document.getElementById('btn-clear-all');
+      const manualName = document.getElementById('manual-name');
+      const manualPhone = document.getElementById('manual-phone');
+      const manualCompanions = document.getElementById('manual-companions');
+      const manualTotalPreview = document.getElementById('manual-total-preview');
+      const btnManualAdd = document.getElementById('btn-manual-add');
+      const bulkStatus = document.getElementById('bulk-status');
+      const inviteBody = document.getElementById('invite-body');
+      const emptyState = document.getElementById('empty-state');
+      const totalInvites = document.getElementById('total-invites');
+      const totalGuests = document.getElementById('total-guests');
+
+      let invites = [];
+      let statusTimeout;
+      let editingId = null;
+
+      function createId() {
+        if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+          return window.crypto.randomUUID();
+        }
+        return String(Date.now()) + Math.random().toString(16).slice(2);
+      }
+
+      function parseCompanions(text) {
+        if (!text) return [];
+        return text
+          .split(/[\n,;|]+/)
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+      }
+
+      function normalizeDigits(value) {
+        return value ? value.replace(/\D/g, '') : '';
+      }
+
+      function formatPhone(phone) {
+        const digits = normalizeDigits(phone);
+        if (digits.length === 10) {
+          return digits.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+        }
+        if (digits.length === 11) {
+          return digits.replace(/(\d{2})(\d)(\d{4})(\d{4})/, '($1) $2 $3-$4');
+        }
+        return phone ? phone.trim() : '';
+      }
+
+      function computeGuestCount(companions) {
+        const length = Array.isArray(companions) ? companions.length : 0;
+        return Math.max(1, 1 + length);
+      }
+
+      function formatUpdatedAt(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+      }
+
+      function updateStatus(message, duration = 5000) {
+        if (!bulkStatus) return;
+        bulkStatus.textContent = message;
+        if (statusTimeout) {
+          clearTimeout(statusTimeout);
+        }
+        if (duration) {
+          statusTimeout = window.setTimeout(() => {
+            bulkStatus.textContent = '';
+          }, duration);
+        }
+      }
+
+      function saveToStorage() {
+        try {
+          window.localStorage.setItem(storageKey, JSON.stringify(invites));
+        } catch (error) {
+          console.error('Erro ao salvar convites', error);
+        }
+      }
+
+      function loadFromStorage() {
+        try {
+          const stored = window.localStorage.getItem(storageKey);
+          if (!stored) return;
+          const parsed = JSON.parse(stored);
+          if (!Array.isArray(parsed)) return;
+          invites = parsed
+            .map((invite) => {
+              const companions = Array.isArray(invite.companions)
+                ? invite.companions.map((name) => String(name).trim()).filter((name) => name.length > 0)
+                : [];
+              const guestName = String(invite.guestName ?? '').trim();
+              if (!guestName) return null;
+              return {
+                id: invite.id || createId(),
+                guestName,
+                phone: typeof invite.phone === 'string' ? invite.phone : '',
+                companions,
+                guestCount: computeGuestCount(companions),
+                notes: typeof invite.notes === 'string' ? invite.notes : '',
+                updatedAt: invite.updatedAt || null,
+              };
+            })
+            .filter(Boolean);
+          invites.sort((a, b) => a.guestName.localeCompare(b.guestName, 'pt-BR', { sensitivity: 'base' }));
+        } catch (error) {
+          console.error('Erro ao carregar convites', error);
+          invites = [];
+        }
+      }
+
+      function computeTotalGuests() {
+        return invites.reduce((sum, invite) => {
+          const companions = Array.isArray(invite.companions) ? invite.companions : [];
+          const total = Number.isFinite(invite.guestCount) ? invite.guestCount : computeGuestCount(companions);
+          return sum + Math.max(1, total);
+        }, 0);
+      }
+
+      function updateSummary() {
+        totalInvites.textContent = invites.length.toString();
+        totalGuests.textContent = computeTotalGuests().toString();
+      }
+
+      function renderInvites() {
+        inviteBody.innerHTML = '';
+        if (!invites.length) {
+          emptyState.hidden = false;
+          updateSummary();
+          return;
+        }
+
+        emptyState.hidden = true;
+        invites.forEach((invite) => {
+          const row = document.createElement('tr');
+          if (editingId === invite.id) {
+            const companionsText = invite.companions && invite.companions.length ? invite.companions.join(', ') : '';
+            const total = Number.isFinite(invite.guestCount)
+              ? Math.max(1, invite.guestCount)
+              : computeGuestCount(invite.companions);
+            row.dataset.editing = 'true';
+            row.innerHTML = `
+              <td><input type="text" name="edit-name" value="${invite.guestName}" aria-label="Nome do convidado" /></td>
+              <td><input type="tel" name="edit-phone" value="${invite.phone ?? ''}" aria-label="Telefone" /></td>
+              <td><textarea name="edit-companions" data-edit-companions rows="2" aria-label="Acompanhantes">${companionsText}</textarea></td>
+              <td><span data-edit-total>${total}</span></td>
+              <td>Editando</td>
+              <td>
+                <button type="button" data-action="save-edit" data-id="${invite.id}">Salvar</button>
+                <button type="button" data-action="cancel-edit" data-id="${invite.id}">Cancelar</button>
+              </td>
+            `;
+          } else {
+            const total = Number.isFinite(invite.guestCount)
+              ? Math.max(1, invite.guestCount)
+              : computeGuestCount(invite.companions);
+            const companionsText = invite.companions && invite.companions.length
+              ? invite.companions.join(', ')
+              : 'Sem acompanhantes';
+            const phoneText = invite.phone ? formatPhone(invite.phone) : '—';
+            const updatedText = formatUpdatedAt(invite.updatedAt) || '—';
+
+            row.innerHTML = `
+              <td>${invite.guestName}</td>
+              <td>${phoneText}</td>
+              <td>${companionsText}</td>
+              <td>${total}</td>
+              <td>${updatedText}</td>
+              <td>
+                <button type="button" data-action="edit" data-id="${invite.id}">Editar</button>
+                <button type="button" data-action="delete" data-id="${invite.id}">Excluir</button>
+              </td>
+            `;
+          }
+          inviteBody.appendChild(row);
+        });
+
+        updateSummary();
+
+        if (editingId) {
+          const editingRow = inviteBody.querySelector('tr[data-editing="true"]');
+          if (editingRow) {
+            const nameInput = editingRow.querySelector('input[name="edit-name"]');
+            if (nameInput) {
+              nameInput.focus();
+              nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
+            }
+          }
+        }
+      }
+
+      function deleteInvite(id) {
+        invites = invites.filter((invite) => invite.id !== id);
+        saveToStorage();
+        renderInvites();
+      }
+
+      function parseBulkEntries(text) {
+        const entries = [];
+        const errors = [];
+        if (!text) return { entries, errors };
+
+        const lines = text.split(/\r?\n/);
+        lines.forEach((line, index) => {
+          const raw = line.trim();
+          if (!raw) return;
+
+          let guestName = '';
+          let phone = '';
+          let companions = [];
+
+          const columns = raw.split(/\s*[,;\t]\s*/);
+          const trimmedColumns = columns.map((column) => column.trim());
+          const nonEmptyColumns = trimmedColumns.filter((column) => column.length > 0);
+
+          if (!nonEmptyColumns.length) {
+            errors.push({ line: index + 1, content: line });
+            return;
+          }
+
+          if (nonEmptyColumns.length === 1 && trimmedColumns.length === 1) {
+            const guess = raw.match(/^(.*?)(\+?\d[\d\s().-]{7,})$/);
+            if (guess) {
+              guestName = guess[1].trim();
+              phone = guess[2].trim();
+            } else {
+              guestName = raw;
+            }
+          } else {
+            guestName = trimmedColumns[0];
+            phone = trimmedColumns[1] ?? '';
+            const looksLikePhone = /\d{7,}/.test(normalizeDigits(phone)) || /^\+/.test(phone);
+            const rest = trimmedColumns.slice(looksLikePhone ? 2 : 1);
+
+            if (!looksLikePhone) {
+              phone = '';
+            }
+
+            if (rest.length) {
+              const companionsSource = rest.join(';').trim();
+              if (companionsSource) {
+                companions = parseCompanions(companionsSource).filter((name) => !/^\d+$/.test(name));
+              }
+            }
+          }
+
+          guestName = guestName.replace(/^["']+|["']+$/g, '').trim();
+          phone = (phone ?? '').replace(/^["']+|["']+$/g, '').trim();
+
+          if (!guestName) {
+            errors.push({ line: index + 1, content: line });
+            return;
+          }
+
+          if (!phone) {
+            const fallback = raw.match(/(\+?\d[\d\s().-]{7,})$/);
+            if (fallback) {
+              phone = fallback[1].trim();
+            }
+          }
+
+          entries.push({
+            guestName,
+            phone,
+            companions,
+          });
+        });
+
+        return { entries, errors };
+      }
+
+      function bulkUpsertInvites(entries) {
+        const now = new Date().toISOString();
+        let created = 0;
+
+        entries.forEach((entry) => {
+          const guestCount = computeGuestCount(entry.companions);
+          invites.push({
+            id: createId(),
+            guestName: entry.guestName,
+            phone: entry.phone ? entry.phone.trim() : '',
+            companions: entry.companions,
+            guestCount,
+            notes: '',
+            updatedAt: now,
+          });
+          created += 1;
+        });
+
+        invites = invites.filter((invite) => invite.guestName);
+        invites.sort((a, b) => a.guestName.localeCompare(b.guestName, 'pt-BR', { sensitivity: 'base' }));
+        saveToStorage();
+        renderInvites();
+
+        return { created };
+      }
+
+      btnBulkProcess.addEventListener('click', () => {
+        const rawText = bulkInput.value.trim();
+        if (!rawText) {
+          updateStatus('Cole ao menos uma linha com o nome do convidado.', 4000);
+          bulkInput.focus();
+          return;
+        }
+
+        const { entries, errors } = parseBulkEntries(rawText);
+        if (!entries.length) {
+          updateStatus('Não foi possível identificar convites válidos. Revise o formato das linhas.', 6000);
+          return;
+        }
+
+        const result = bulkUpsertInvites(entries);
+        const parts = [];
+        if (result.created) {
+          parts.push(`${result.created} convite(s) adicionado(s)`);
+        }
+        if (!result.created) {
+          parts.push('Nenhuma alteração necessária');
+        }
+        if (errors.length) {
+          const lineNumbers = errors.map((error) => error.line).join(', ');
+          parts.push(`Não foi possível interpretar ${errors.length} linha(s): ${lineNumbers}`);
+        }
+
+        updateStatus(parts.join('. ') + '.', 8000);
+        bulkInput.value = '';
+        bulkInput.focus();
+      });
+
+      btnBulkClear.addEventListener('click', () => {
+        if (!bulkInput.value.trim()) {
+          updateStatus('O campo já está vazio.', 3000);
+          bulkInput.focus();
+          return;
+        }
+        bulkInput.value = '';
+        updateStatus('Lista apagada. Cole novos dados quando estiver pronto.', 3000);
+        bulkInput.focus();
+      });
+
+      btnClearAll.addEventListener('click', () => {
+        if (!invites.length) {
+          updateStatus('Não há convites cadastrados.', 4000);
+          return;
+        }
+        const confirmed = window.confirm('Deseja remover todos os convites? Esta ação não pode ser desfeita.');
+        if (!confirmed) return;
+        invites = [];
+        saveToStorage();
+        renderInvites();
+        updateStatus('Todos os convites foram removidos.', 4000);
+      });
+
+      inviteBody.addEventListener('click', (event) => {
+        const button = event.target.closest('button');
+        if (!button) return;
+        const action = button.getAttribute('data-action');
+        if (!action) return;
+        const id = button.getAttribute('data-id');
+
+        if (action === 'delete') {
+          const invite = invites.find((item) => item.id === id);
+          if (!invite) return;
+          const confirmed = window.confirm(`Deseja remover o convite de ${invite.guestName}?`);
+          if (!confirmed) return;
+          deleteInvite(id);
+          if (editingId === id) {
+            editingId = null;
+          }
+          updateStatus(`Convite de ${invite.guestName} removido.`, 4000);
+          return;
+        }
+
+        if (action === 'edit') {
+          editingId = id;
+          renderInvites();
+          updateStatus('Editando convite selecionado.', 3000);
+          return;
+        }
+
+        if (action === 'cancel-edit') {
+          editingId = null;
+          renderInvites();
+          updateStatus('Edição cancelada.', 3000);
+          return;
+        }
+
+        if (action === 'save-edit') {
+          const row = button.closest('tr');
+          if (!row) return;
+          const nameInput = row.querySelector('input[name="edit-name"]');
+          const phoneInput = row.querySelector('input[name="edit-phone"]');
+          const companionsInput = row.querySelector('textarea[name="edit-companions"]');
+          const guestName = nameInput ? nameInput.value.trim() : '';
+          const phone = phoneInput ? phoneInput.value.trim() : '';
+          const companions = companionsInput ? parseCompanions(companionsInput.value) : [];
+
+          if (!guestName) {
+            updateStatus('Informe o nome do convidado antes de salvar.', 5000);
+            if (nameInput) {
+              nameInput.focus();
+            }
+            return;
+          }
+
+          const index = invites.findIndex((invite) => invite.id === id);
+          if (index < 0) {
+            updateStatus('Não foi possível localizar o convite para salvar.', 5000);
+            editingId = null;
+            renderInvites();
+            return;
+          }
+
+          const guestCount = computeGuestCount(companions);
+          invites[index] = {
+            ...invites[index],
+            guestName,
+            phone,
+            companions,
+            guestCount,
+            updatedAt: new Date().toISOString(),
+          };
+
+          invites.sort((a, b) => a.guestName.localeCompare(b.guestName, 'pt-BR', { sensitivity: 'base' }));
+          saveToStorage();
+          editingId = null;
+          renderInvites();
+          updateStatus('Convite atualizado com sucesso.', 4000);
+        }
+      });
+
+      inviteBody.addEventListener('input', (event) => {
+        const target = event.target;
+        if (target && target.matches('textarea[data-edit-companions]')) {
+          const companions = parseCompanions(target.value);
+          const row = target.closest('tr');
+          if (!row) return;
+          const totalSpan = row.querySelector('[data-edit-total]');
+          if (totalSpan) {
+            totalSpan.textContent = computeGuestCount(companions).toString();
+          }
+        }
+      });
+
+      manualCompanions.addEventListener('input', () => {
+        const companions = parseCompanions(manualCompanions.value);
+        manualTotalPreview.textContent = computeGuestCount(companions).toString();
+      });
+
+      btnManualAdd.addEventListener('click', () => {
+        const guestName = manualName.value.trim();
+        const phone = manualPhone.value.trim();
+        const companions = parseCompanions(manualCompanions.value);
+
+        if (!guestName) {
+          updateStatus('Informe o nome do convidado para adicionar manualmente.', 5000);
+          manualName.focus();
+          return;
+        }
+
+        const now = new Date().toISOString();
+        invites.push({
+          id: createId(),
+          guestName,
+          phone,
+          companions,
+          guestCount: computeGuestCount(companions),
+          notes: '',
+          updatedAt: now,
+        });
+
+        invites = invites.filter((invite) => invite.guestName);
+        invites.sort((a, b) => a.guestName.localeCompare(b.guestName, 'pt-BR', { sensitivity: 'base' }));
+        saveToStorage();
+        renderInvites();
+
+        manualName.value = '';
+        manualPhone.value = '';
+        manualCompanions.value = '';
+        manualTotalPreview.textContent = '1';
+        manualName.focus();
+        updateStatus('Convite adicionado manualmente.', 4000);
+      });
+
+      loadFromStorage();
+      renderInvites();
+    })();
+  </script>
+</body>
+</html>
