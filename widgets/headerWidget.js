@@ -25,7 +25,7 @@ export async function mountHeader(el){                  // ← exporta uma funç
       <div class="row">
         <strong>Assistente Cerimonial</strong>
         <span class="mut">·</span>
-        <span class="mut">Evento(s) ativo:</span>
+        <span class="mut">Evento ativo:</span>
         <select id="sel"></select>
         <button id="abrir"  class="ghost">Abrir</button>
         <button id="novo"   class="ghost">Novo</button>
