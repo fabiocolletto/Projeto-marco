@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistente Cerimonial V4 Lite</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      .ac-app,
+      .ac-app * {
+        box-sizing: border-box;
+      }
+
+      .ac-app {
+        font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+        color: #111111;
+        background: #f5f5f5;
+        padding: 24px 16px 48px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .ac-header {
+        background: #111;
+        color: #fff;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .ac-header::before,
+      .ac-header::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 10px;
+        background-image: repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.32) 0,
+          rgba(255, 255, 255, 0.32) 6px,
+          transparent 6px,
+          transparent 12px
+        );
+      }
+
+      .ac-header::before {
+        left: 0;
+      }
+
+      .ac-header::after {
+        right: 0;
+      }
+
+      .ac-header__inner {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      .ac-title {
+        margin: 0;
+        font-size: clamp(1.6rem, 2.4vw + 1rem, 2.4rem);
+        letter-spacing: -0.01em;
+      }
+
+      .ac-subtitle {
+        margin: 4px 0 0;
+        font-size: 0.95rem;
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      .ac-menu {
+        margin-left: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .ac-menu__btn {
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-weight: 600;
+        padding: 10px 18px;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+      }
+
+      .ac-menu__btn:hover,
+      .ac-menu__btn:focus-visible {
+        background: rgba(255, 255, 255, 0.3);
+        outline: none;
+      }
+
+      .ac-menu__btn:active {
+        transform: translateY(1px);
+      }
+
+      .ac-menu__btn[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .ac-main {
+        display: grid;
+        gap: 20px;
+      }
+
+      .ac-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 28px;
+        position: relative;
+        box-shadow: 0 16px 45px rgba(17, 17, 17, 0.08);
+        overflow: hidden;
+      }
+
+      .ac-card::before,
+      .ac-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 12px;
+        background-image: repeating-linear-gradient(
+          180deg,
+          rgba(17, 17, 17, 0.18) 0,
+          rgba(17, 17, 17, 0.18) 6px,
+          transparent 6px,
+          transparent 12px
+        );
+        pointer-events: none;
+      }
+
+      .ac-card::before {
+        left: 0;
+      }
+
+      .ac-card::after {
+        right: 0;
+      }
+
+      .ac-card__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .ac-card__title {
+        margin: 0;
+        font-size: 1.35rem;
+        letter-spacing: -0.01em;
+      }
+
+      .ac-card__subtitle {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #4d4d4d;
+      }
+
+      .ac-resumo__grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .ac-resumo__item {
+        border: 1px solid rgba(17, 17, 17, 0.12);
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: rgba(17, 17, 17, 0.03);
+      }
+
+      .ac-resumo__label {
+        display: block;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #5a5a5a;
+        margin-bottom: 6px;
+      }
+
+      .ac-resumo__value {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #111;
+        word-break: break-word;
+      }
+
+      .ac-field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 18px;
+      }
+
+      .ac-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #303030;
+      }
+
+      .ac-input,
+      .ac-textarea {
+        border-radius: 14px;
+        border: 1px solid rgba(17, 17, 17, 0.2);
+        padding: 12px 14px;
+        font: inherit;
+        color: inherit;
+        background: #fff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .ac-input:focus-visible,
+      .ac-textarea:focus-visible {
+        outline: none;
+        border-color: #111;
+        box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.12);
+      }
+
+      .ac-textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      .ac-inline {
+        display: grid;
+        gap: 14px;
+      }
+
+      .ac-inline.two {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .ac-convidados__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .ac-button {
+        appearance: none;
+        border-radius: 12px;
+        border: 1px solid #111;
+        background: #111;
+        color: #fff;
+        font-weight: 600;
+        padding: 10px 18px;
+        cursor: pointer;
+        transition: transform 0.1s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .ac-button.secondary {
+        background: #fff;
+        color: #111;
+      }
+
+      .ac-button:hover,
+      .ac-button:focus-visible {
+        box-shadow: 0 10px 24px rgba(17, 17, 17, 0.16);
+        outline: none;
+      }
+
+      .ac-button:active {
+        transform: translateY(1px);
+      }
+
+      .ac-button[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        box-shadow: none;
+      }
+
+      .ac-convidados__list {
+        margin: 24px 0 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 12px;
+      }
+
+      .ac-convidado {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border: 1px solid rgba(17, 17, 17, 0.1);
+        background: rgba(17, 17, 17, 0.03);
+      }
+
+      .ac-convidado__index {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        background: #111;
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .ac-convidado__input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        background: transparent;
+        font: inherit;
+        padding: 6px 4px;
+        border-bottom: 1px solid transparent;
+        transition: border-color 0.2s ease;
+      }
+
+      .ac-convidado__input:focus-visible {
+        outline: none;
+        border-color: #111;
+      }
+
+      .ac-convidado__remove {
+        appearance: none;
+        background: none;
+        border: 0;
+        color: #b42323;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: grid;
+        place-items: center;
+      }
+
+      .ac-convidados__stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 16px;
+        font-size: 0.9rem;
+        color: #4d4d4d;
+      }
+
+      .ac-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 6px 12px;
+        background: rgba(17, 17, 17, 0.06);
+      }
+
+      .ac-modal {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(17, 17, 17, 0.45);
+        padding: 24px;
+        z-index: 999;
+      }
+
+      .ac-modal[hidden] {
+        display: none;
+      }
+
+      .ac-modal__dialog {
+        width: min(520px, 100%);
+        background: #fff;
+        border-radius: 20px;
+        padding: 24px;
+        position: relative;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      }
+
+      .ac-modal__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+
+      .ac-modal__title {
+        margin: 0;
+        font-size: 1.2rem;
+      }
+
+      .ac-modal__close {
+        background: none;
+        border: 0;
+        font-size: 1.4rem;
+        cursor: pointer;
+        line-height: 1;
+        padding: 4px 8px;
+      }
+
+      .ac-event-list {
+        display: grid;
+        gap: 12px;
+        max-height: min(420px, 60vh);
+        overflow-y: auto;
+      }
+
+      .ac-event-card {
+        border: 1px solid rgba(17, 17, 17, 0.12);
+        border-radius: 16px;
+        padding: 14px 16px;
+        background: rgba(17, 17, 17, 0.02);
+        display: grid;
+        gap: 8px;
+      }
+
+      .ac-event-card__meta {
+        font-size: 0.85rem;
+        color: #4d4d4d;
+      }
+
+      .ac-event-card__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .ac-toast {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        padding: 14px 18px;
+        border-radius: 14px;
+        background: #111;
+        color: #fff;
+        font-weight: 600;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        z-index: 1000;
+      }
+
+      .ac-toast[data-visible="true"] {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .ac-toast[data-variant="error"] {
+        background: #b42323;
+      }
+
+      .ac-toast[data-variant="success"] {
+        background: #0b8a3b;
+      }
+
+      .ac-toast[data-variant="info"] {
+        background: #111;
+      }
+
+      .ac-footer {
+        margin-top: 36px;
+        text-align: center;
+        font-size: 0.85rem;
+        color: #4d4d4d;
+      }
+
+      .ac-warning {
+        margin-top: 12px;
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(180, 35, 35, 0.08);
+        color: #7a1414;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 720px) {
+        .ac-app {
+          padding: 20px 12px 36px;
+        }
+
+        .ac-header {
+          padding: 20px;
+        }
+
+        .ac-card {
+          padding: 22px;
+        }
+
+        .ac-menu {
+          width: 100%;
+        }
+
+        .ac-menu__btn {
+          flex: 1;
+          text-align: center;
+        }
+
+        .ac-menu {
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="ac-app">
+      <header class="ac-header">
+        <div class="ac-header__inner">
+          <div>
+            <h1 class="ac-title">Assistente Cerimonial V4 Lite</h1>
+            <p class="ac-subtitle">Gestão rápida de convites e RSVP diretamente no seu navegador.</p>
+          </div>
+          <nav class="ac-menu" aria-label="Menu de controle">
+            <button type="button" class="ac-menu__btn" data-action="novo">Novo</button>
+            <button type="button" class="ac-menu__btn" data-action="salvar">Salvar</button>
+            <button type="button" class="ac-menu__btn" data-action="carregar">Carregar</button>
+            <button type="button" class="ac-menu__btn" data-action="excluir">Excluir</button>
+            <button type="button" class="ac-menu__btn" data-action="exportar">Exportar</button>
+          </nav>
+        </div>
+      </header>
+      <main class="ac-main" aria-live="polite">
+        <section class="ac-card" id="ac-resumo" aria-labelledby="ac-resumo-title">
+          <div class="ac-card__header">
+            <div>
+              <h2 class="ac-card__title" id="ac-resumo-title">Resumo do evento</h2>
+              <p class="ac-card__subtitle">Atualize as informações abaixo e acompanhe os totais em tempo real.</p>
+            </div>
+          </div>
+          <div class="ac-resumo__grid" data-role="resumo-grid"></div>
+        </section>
+        <section class="ac-card" id="ac-dados-evento" aria-labelledby="ac-dados-title">
+          <div class="ac-card__header">
+            <div>
+              <h2 class="ac-card__title" id="ac-dados-title">Dados do evento</h2>
+              <p class="ac-card__subtitle">Informe título, data, local e mensagem padrão que será utilizada nos convites.</p>
+            </div>
+          </div>
+          <div class="ac-inline">
+            <div class="ac-field">
+              <label class="ac-label" for="ac-evento-nome">Título do evento *</label>
+              <input class="ac-input" type="text" id="ac-evento-nome" name="ac-evento-nome" maxlength="120" autocomplete="off" required />
+            </div>
+            <div class="ac-inline two">
+              <div class="ac-field">
+                <label class="ac-label" for="ac-evento-data">Data (ISO)</label>
+                <input class="ac-input" type="date" id="ac-evento-data" name="ac-evento-data" />
+              </div>
+              <div class="ac-field">
+                <label class="ac-label" for="ac-evento-local">Local</label>
+                <input class="ac-input" type="text" id="ac-evento-local" name="ac-evento-local" maxlength="140" autocomplete="off" />
+              </div>
+            </div>
+            <div class="ac-field">
+              <label class="ac-label" for="ac-evento-msg">Mensagem padrão do convite</label>
+              <textarea class="ac-textarea" id="ac-evento-msg" name="ac-evento-msg" rows="4" placeholder="É com alegria que convidamos você..."></textarea>
+            </div>
+          </div>
+          <div class="ac-warning" data-role="warning" hidden></div>
+        </section>
+        <section class="ac-card" id="ac-convidados" aria-labelledby="ac-convidados-title">
+          <div class="ac-card__header">
+            <div>
+              <h2 class="ac-card__title" id="ac-convidados-title">Convidados</h2>
+              <p class="ac-card__subtitle">Cole nomes (um por linha) e clique em “Adicionar Convidados”. Duplicidades são ignoradas automaticamente.</p>
+            </div>
+          </div>
+          <div class="ac-field">
+            <label class="ac-label" for="ac-convidados-input">Nomes dos convidados</label>
+            <textarea class="ac-textarea" id="ac-convidados-input" name="ac-convidados-input" rows="6" placeholder="Maria de Souza\nJoão dos Santos\n..." aria-describedby="ac-convidados-ajuda"></textarea>
+            <span id="ac-convidados-ajuda" class="ac-card__subtitle">As preposições comuns são mantidas em minúsculas automaticamente.</span>
+          </div>
+          <div class="ac-convidados__actions">
+            <button type="button" class="ac-button" data-action="adicionar-convidados">Adicionar Convidados</button>
+            <button type="button" class="ac-button secondary" data-action="limpar-lista">Limpar lista</button>
+          </div>
+          <div class="ac-convidados__stats" data-role="convidados-stats"></div>
+          <ul class="ac-convidados__list" data-role="lista-convidados"></ul>
+        </section>
+      </main>
+      <footer class="ac-footer">Os dados ficam somente no seu navegador. Você pode excluir a qualquer momento.</footer>
+      <div class="ac-modal" id="ac-modal-carregar" role="dialog" aria-modal="true" aria-labelledby="ac-modal-title" hidden>
+        <div class="ac-modal__dialog">
+          <header class="ac-modal__header">
+            <h2 class="ac-modal__title" id="ac-modal-title">Eventos salvos</h2>
+            <button type="button" class="ac-modal__close" data-action="fechar-modal" aria-label="Fechar modal">×</button>
+          </header>
+          <div class="ac-event-list" data-role="event-list"></div>
+        </div>
+      </div>
+      <div class="ac-toast" id="ac-toast" role="status" aria-live="polite" hidden></div>
+    </div>
+    <script>
+      (function () {
+        "use strict";
+
+        // [constants]
+        const DB_NAME = "marco_db";
+        const DB_VER = 1;
+        const STORE = "kv";
+        const INDEX_KEY = "ac:index:v1";
+        const PREPOSITIONS = new Set(["de", "da", "das", "do", "dos", "e", "ou"]);
+
+        // [state]
+        const appState = {
+          evento: createEmptyEvent(),
+          eventosIndex: [],
+          lastAction: "Pronto para começar.",
+          hasIndexedDB: typeof indexedDB !== "undefined",
+          loadingIndex: false,
+        };
+
+        let toastTimer = null;
+        let modalPreviouslyFocused = null;
+
+        const dom = {
+          resumoGrid: document.querySelector('[data-role="resumo-grid"]'),
+          nomeInput: document.getElementById("ac-evento-nome"),
+          dataInput: document.getElementById("ac-evento-data"),
+          localInput: document.getElementById("ac-evento-local"),
+          mensagemInput: document.getElementById("ac-evento-msg"),
+          convidadosTextarea: document.getElementById("ac-convidados-input"),
+          convidadosList: document.querySelector('[data-role="lista-convidados"]'),
+          convidadosStats: document.querySelector('[data-role="convidados-stats"]'),
+          toast: document.getElementById("ac-toast"),
+          modal: document.getElementById("ac-modal-carregar"),
+          modalList: document.querySelector('[data-role="event-list"]'),
+          warning: document.querySelector('[data-role="warning"]'),
+          menuButtons: document.querySelectorAll(".ac-menu__btn"),
+          menu: document.querySelector(".ac-menu"),
+          convidadosActions: document.querySelector(".ac-convidados__actions"),
+        };
+
+        // [db]
+        const db = {
+          async open() {
+            return new Promise((resolve, reject) => {
+              const request = indexedDB.open(DB_NAME, DB_VER);
+              request.onupgradeneeded = () => {
+                const database = request.result;
+                if (!database.objectStoreNames.contains(STORE)) {
+                  database.createObjectStore(STORE);
+                }
+              };
+              request.onsuccess = () => resolve(request.result);
+              request.onerror = () => reject(request.error);
+            });
+          },
+          async put(value, key) {
+            const database = await db.open();
+            return new Promise((resolve, reject) => {
+              const tx = database.transaction(STORE, "readwrite");
+              tx.oncomplete = () => resolve();
+              tx.onerror = () => reject(tx.error);
+              tx.objectStore(STORE).put(value, key);
+            });
+          },
+          async get(key) {
+            const database = await db.open();
+            return new Promise((resolve, reject) => {
+              const tx = database.transaction(STORE, "readonly");
+              const store = tx.objectStore(STORE);
+              const request = store.get(key);
+              request.onsuccess = () => resolve(request.result);
+              request.onerror = () => reject(request.error);
+            });
+          },
+          async delete(key) {
+            const database = await db.open();
+            return new Promise((resolve, reject) => {
+              const tx = database.transaction(STORE, "readwrite");
+              tx.oncomplete = () => resolve();
+              tx.onerror = () => reject(tx.error);
+              tx.objectStore(STORE).delete(key);
+            });
+          },
+          async keys() {
+            const database = await db.open();
+            return new Promise((resolve, reject) => {
+              const tx = database.transaction(STORE, "readonly");
+              const request = tx.objectStore(STORE).getAllKeys();
+              request.onsuccess = () => resolve(request.result || []);
+              request.onerror = () => reject(request.error);
+            });
+          },
+        };
+
+        // [utils]
+        function createEmptyEvent() {
+          const now = Date.now();
+          return {
+            id: "",
+            nome: "",
+            dataISO: "",
+            local: "",
+            mensagem: "",
+            convidados: [],
+            createdAt: now,
+            updatedAt: now,
+            version: "1",
+          };
+        }
+
+        function cloneEvento(evento) {
+          return JSON.parse(JSON.stringify(evento));
+        }
+
+        function setLastAction(message) {
+          appState.lastAction = message;
+          renderResumo();
+        }
+
+        function formatDate(iso) {
+          if (!iso) return "—";
+          try {
+            const date = new Date(iso);
+            if (Number.isNaN(date.getTime())) return "—";
+            return date.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+          } catch (err) {
+            return "—";
+          }
+        }
+
+        function formatDateTime(ms) {
+          if (!ms) return "—";
+          try {
+            const date = new Date(ms);
+            return (
+              date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" }) +
+              " às " +
+              date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+            );
+          } catch (err) {
+            return "—";
+          }
+        }
+
+        function escapeHtml(value) {
+          const text = value == null ? "" : String(value);
+          return text.replace(/[&<>"']/g, (char) => {
+            switch (char) {
+              case "&":
+                return "&amp;";
+              case "<":
+                return "&lt;";
+              case ">":
+                return "&gt;";
+              case '"':
+                return "&quot;";
+              case "'":
+                return "&#39;";
+              default:
+                return char;
+            }
+          });
+        }
+
+        function toTitleCase(nome) {
+          if (!nome) return "";
+          const palavras = nome.trim().split(/\s+/);
+          const resultado = palavras.map((palavra, indexPalavra) => {
+            const partes = palavra.split(/([-'])/).filter(Boolean);
+            return partes
+              .map((parte) => {
+                if (parte === "-" || parte === "'") return parte;
+                const lower = parte.toLocaleLowerCase("pt-BR");
+                const shouldKeepLower = indexPalavra > 0 && PREPOSITIONS.has(lower);
+                if (shouldKeepLower) return lower;
+                return lower.charAt(0).toLocaleUpperCase("pt-BR") + lower.slice(1);
+              })
+              .join("");
+          });
+          return resultado.join(" ");
+        }
+
+        function normalizeLista(rawInput, existentes) {
+          const existingSet = new Set((existentes || []).map((nome) => nome.toLocaleLowerCase("pt-BR")));
+          const novos = [];
+          const linhas = rawInput.split(/\r?\n/);
+          for (const linha of linhas) {
+            const trimmed = linha.trim();
+            if (!trimmed) continue;
+            const nomeFormatado = toTitleCase(trimmed);
+            if (!nomeFormatado) continue;
+            const key = nomeFormatado.toLocaleLowerCase("pt-BR");
+            if (existingSet.has(key)) continue;
+            existingSet.add(key);
+            novos.push(nomeFormatado);
+          }
+          return novos;
+        }
+
+        function showToast(message, variant = "info") {
+          if (!dom.toast) return;
+          dom.toast.textContent = message;
+          dom.toast.dataset.variant = variant;
+          dom.toast.dataset.visible = "true";
+          dom.toast.hidden = false;
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(() => {
+            dom.toast.dataset.visible = "false";
+            toastTimer = setTimeout(() => {
+              dom.toast.hidden = true;
+            }, 320);
+          }, 3200);
+        }
+
+        function updateMenuState() {
+          dom.menuButtons.forEach((button) => {
+            const action = button.dataset.action;
+            if (["salvar", "carregar", "excluir"].includes(action) && !appState.hasIndexedDB) {
+              button.disabled = true;
+              button.title = "IndexedDB indisponível neste navegador.";
+              return;
+            }
+            if (action === "salvar") {
+              button.disabled = !appState.evento.nome.trim();
+              button.title = button.disabled ? "Informe o título do evento para salvar." : "Salvar evento";
+              return;
+            }
+            if (action === "excluir") {
+              button.disabled = !appState.evento.id;
+              button.title = button.disabled ? "Nenhum evento salvo selecionado." : "Excluir evento atual";
+              return;
+            }
+            button.disabled = false;
+            button.removeAttribute("title");
+          });
+        }
+
+        // [ui]
+        function renderResumo() {
+          if (!dom.resumoGrid) return;
+          const { evento, lastAction } = appState;
+          const itens = [
+            { label: "Título", value: evento.nome ? escapeHtml(evento.nome) : "—" },
+            { label: "Data", value: evento.dataISO ? formatDate(evento.dataISO) : "—" },
+            { label: "Local", value: evento.local ? escapeHtml(evento.local) : "—" },
+            { label: "Total de convidados", value: String(evento.convidados.length) },
+            { label: "Última ação", value: escapeHtml(lastAction) },
+          ];
+          dom.resumoGrid.innerHTML = itens
+            .map(
+              (item) => `
+                <div class="ac-resumo__item">
+                  <span class="ac-resumo__label">${item.label}</span>
+                  <span class="ac-resumo__value">${item.value || "—"}</span>
+                </div>
+              `
+            )
+            .join("");
+        }
+
+        function renderDadosEvento() {
+          const { evento, hasIndexedDB } = appState;
+          if (dom.nomeInput && dom.nomeInput.value !== evento.nome) dom.nomeInput.value = evento.nome;
+          if (dom.dataInput && dom.dataInput.value !== evento.dataISO) dom.dataInput.value = evento.dataISO;
+          if (dom.localInput && dom.localInput.value !== evento.local) dom.localInput.value = evento.local;
+          if (dom.mensagemInput && dom.mensagemInput.value !== evento.mensagem) dom.mensagemInput.value = evento.mensagem;
+
+          if (!hasIndexedDB && dom.warning) {
+            dom.warning.hidden = false;
+            dom.warning.textContent = "IndexedDB indisponível. Salvar e carregar eventos não estarão ativos.";
+          } else if (dom.warning) {
+            dom.warning.hidden = true;
+          }
+        }
+
+        function renderConvidados() {
+          const { evento } = appState;
+          if (!dom.convidadosList) return;
+          if (!evento.convidados.length) {
+            dom.convidadosList.innerHTML = `<li class="ac-card__subtitle">Adicione convidados para começar a organizar sua lista.</li>`;
+          } else {
+            dom.convidadosList.innerHTML = evento.convidados
+              .map(
+                (nome, index) => `
+                  <li class="ac-convidado" data-index="${index}">
+                    <span class="ac-convidado__index" aria-hidden="true">${index + 1}</span>
+                    <input type="text" class="ac-convidado__input" data-guest-index="${index}" value="${escapeHtml(nome)}" aria-label="Editar nome do convidado ${index + 1}" />
+                    <button type="button" class="ac-convidado__remove" data-action="remover-convidado" data-guest-index="${index}" aria-label="Remover convidado ${escapeHtml(nome)}">×</button>
+                  </li>
+                `
+              )
+              .join("");
+          }
+
+          if (dom.convidadosStats) {
+            dom.convidadosStats.innerHTML = `
+              <span class="ac-tag"><strong>Total:</strong> ${evento.convidados.length}</span>
+              <span class="ac-tag"><strong>Confirmados:</strong> —</span>
+              <span class="ac-tag"><strong>Pendentes:</strong> —</span>
+            `;
+          }
+        }
+
+        function renderModal() {
+          if (!dom.modalList) return;
+          const { eventosIndex } = appState;
+          if (!eventosIndex.length) {
+            dom.modalList.innerHTML = `<p class="ac-card__subtitle">Nenhum evento salvo encontrado. Salve um evento para aparecer aqui.</p>`;
+            return;
+          }
+
+          dom.modalList.innerHTML = eventosIndex
+            .map((item) => {
+              const dataAtualizacao = formatDateTime(item.updatedAt);
+              const dataEvento = item.dataISO ? formatDate(item.dataISO) : "—";
+              return `
+                <article class="ac-event-card" data-event-id="${item.id}">
+                  <div>
+                    <strong>${escapeHtml(item.nome || "Sem título")}</strong>
+                  </div>
+                  <div class="ac-event-card__meta">Data do evento: ${dataEvento}</div>
+                  <div class="ac-event-card__meta">Atualizado em: ${dataAtualizacao}</div>
+                  <div class="ac-event-card__actions">
+                    <button type="button" class="ac-button" data-action="carregar-evento" data-event-id="${item.id}">Carregar</button>
+                    <button type="button" class="ac-button secondary" data-action="excluir-evento" data-event-id="${item.id}">Excluir</button>
+                  </div>
+                </article>
+              `;
+            })
+            .join("");
+        }
+
+        function renderAll() {
+          renderResumo();
+          renderDadosEvento();
+          renderConvidados();
+          updateMenuState();
+        }
+
+        function updateIndexList(list) {
+          appState.eventosIndex = [...(list || [])].sort((a, b) => b.updatedAt - a.updatedAt);
+        }
+
+        // [logic]
+        async function carregarIndice() {
+          if (!appState.hasIndexedDB) return;
+          appState.loadingIndex = true;
+          try {
+            const indice = (await db.get(INDEX_KEY)) || [];
+            updateIndexList(indice);
+          } catch (error) {
+            console.warn("Erro ao carregar índice", error);
+            appState.hasIndexedDB = false;
+            showToast("IndexedDB indisponível. Alguns recursos foram desativados.", "error");
+          } finally {
+            appState.loadingIndex = false;
+            renderAll();
+          }
+        }
+
+        async function salvarEvento() {
+          if (!appState.hasIndexedDB) {
+            showToast("IndexedDB indisponível neste navegador.", "error");
+            return;
+          }
+          const nomeTrim = appState.evento.nome.trim();
+          if (!nomeTrim) {
+            showToast("Informe o título do evento antes de salvar.", "error");
+            if (dom.nomeInput) dom.nomeInput.focus();
+            return;
+          }
+          const now = Date.now();
+          const isNovo = !appState.evento.id;
+          const eventoParaSalvar = cloneEvento(appState.evento);
+          eventoParaSalvar.nome = nomeTrim;
+          if (!eventoParaSalvar.id) {
+            eventoParaSalvar.id = `ac-${now}-${Math.random().toString(36).slice(2, 8)}`;
+            eventoParaSalvar.createdAt = now;
+          }
+          eventoParaSalvar.updatedAt = now;
+
+          try {
+            await db.put(eventoParaSalvar, eventoParaSalvar.id);
+            const indice = (await db.get(INDEX_KEY)) || [];
+            const meta = {
+              id: eventoParaSalvar.id,
+              nome: eventoParaSalvar.nome,
+              updatedAt: eventoParaSalvar.updatedAt,
+              dataISO: eventoParaSalvar.dataISO,
+              local: eventoParaSalvar.local,
+            };
+            const semAtual = indice.filter((item) => item.id !== eventoParaSalvar.id);
+            semAtual.push(meta);
+            await db.put(semAtual, INDEX_KEY);
+            updateIndexList(semAtual);
+            appState.evento = eventoParaSalvar;
+            setLastAction(isNovo ? "Evento criado e salvo." : "Evento salvo com sucesso.");
+            renderAll();
+            showToast("Evento salvo no navegador!", "success");
+          } catch (error) {
+            console.error("Erro ao salvar evento", error);
+            showToast("Não foi possível salvar o evento.", "error");
+          }
+        }
+
+        async function abrirModalCarregar() {
+          if (!appState.hasIndexedDB) {
+            showToast("IndexedDB indisponível.", "error");
+            return;
+          }
+          await carregarIndice();
+          renderModal();
+          if (!dom.modal) return;
+          modalPreviouslyFocused = document.activeElement;
+          dom.modal.hidden = false;
+          dom.modal.addEventListener("click", onModalClick);
+          document.addEventListener("keydown", onModalKeydown);
+          const primeiroBotao = dom.modal.querySelector("button");
+          if (primeiroBotao) primeiroBotao.focus();
+        }
+
+        function fecharModal() {
+          if (!dom.modal || dom.modal.hidden) return;
+          dom.modal.hidden = true;
+          dom.modal.removeEventListener("click", onModalClick);
+          document.removeEventListener("keydown", onModalKeydown);
+          if (modalPreviouslyFocused && typeof modalPreviouslyFocused.focus === "function") {
+            modalPreviouslyFocused.focus();
+          }
+        }
+
+        function onModalClick(event) {
+          const target = event.target;
+          if (!(target instanceof HTMLElement)) return;
+          const action = target.dataset.action;
+          if (action === "fechar-modal") {
+            fecharModal();
+            return;
+          }
+          if (action === "carregar-evento") {
+            const id = target.dataset.eventId;
+            if (id) carregarEvento(id);
+            return;
+          }
+          if (action === "excluir-evento") {
+            const id = target.dataset.eventId;
+            if (id) excluirEvento(id, { fecharApos: false });
+            return;
+          }
+        }
+
+        function onModalKeydown(event) {
+          if (event.key === "Escape") {
+            event.preventDefault();
+            fecharModal();
+          }
+        }
+
+        async function carregarEvento(id) {
+          if (!appState.hasIndexedDB) return;
+          try {
+            const evento = await db.get(id);
+            if (!evento) {
+              showToast("Evento não encontrado.", "error");
+              return;
+            }
+            appState.evento = cloneEvento(evento);
+            setLastAction("Evento carregado.");
+            renderAll();
+            showToast("Evento carregado!", "success");
+            fecharModal();
+          } catch (error) {
+            console.error("Erro ao carregar", error);
+            showToast("Não foi possível carregar o evento.", "error");
+          }
+        }
+
+        async function excluirEvento(id, options = { fecharApos: true }) {
+          if (!appState.hasIndexedDB) return;
+          const confirmar = window.confirm("Deseja realmente excluir este evento? Esta ação não pode ser desfeita.");
+          if (!confirmar) return;
+          try {
+            await db.delete(id);
+            const indice = (await db.get(INDEX_KEY)) || [];
+            const atualizado = indice.filter((item) => item.id !== id);
+            await db.put(atualizado, INDEX_KEY);
+            updateIndexList(atualizado);
+            if (appState.evento.id === id) {
+              appState.evento = createEmptyEvent();
+              setLastAction("Evento removido. Você está com um evento em branco.");
+            }
+            renderAll();
+            renderModal();
+            showToast("Evento excluído.", "info");
+            if (options.fecharApos) fecharModal();
+          } catch (error) {
+            console.error("Erro ao excluir", error);
+            showToast("Não foi possível excluir o evento.", "error");
+          }
+        }
+
+        function novoEvento() {
+          const possuiDados =
+            appState.evento.nome.trim() ||
+            appState.evento.local.trim() ||
+            appState.evento.mensagem.trim() ||
+            appState.evento.convidados.length;
+          if (possuiDados) {
+            const confirmar = window.confirm("Limpar o evento atual e começar um novo?");
+            if (!confirmar) return;
+          }
+          appState.evento = createEmptyEvent();
+          appState.lastAction = "Novo evento iniciado.";
+          renderAll();
+          showToast("Novo evento pronto para edição.", "info");
+          if (dom.nomeInput) dom.nomeInput.focus();
+        }
+
+        function exportarJSON() {
+          const data = JSON.stringify(appState.evento, null, 2);
+          const blob = new Blob([data], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const nomeArquivo = (appState.evento.nome || "evento").replace(/[^a-z0-9\-]/gi, "-").toLowerCase() || "evento";
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `${nomeArquivo}.json`;
+          document.body.appendChild(link);
+          link.click();
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 0);
+          showToast("JSON exportado com sucesso!", "success");
+        }
+
+        function limparLista() {
+          if (!appState.evento.convidados.length) return;
+          const confirmar = window.confirm("Deseja limpar todos os convidados deste evento?");
+          if (!confirmar) return;
+          appState.evento.convidados = [];
+          setLastAction("Lista de convidados limpa.");
+          renderConvidados();
+          renderResumo();
+        }
+
+        function removerConvidado(index) {
+          const removidos = appState.evento.convidados.splice(index, 1);
+          setLastAction(removidos.length ? `${removidos[0]} removido.` : "Convidado removido.");
+          renderConvidados();
+          renderResumo();
+        }
+
+        function adicionarConvidados() {
+          const texto = dom.convidadosTextarea ? dom.convidadosTextarea.value : "";
+          if (!texto.trim()) {
+            showToast("Digite ou cole pelo menos um nome para adicionar.", "error");
+            return;
+          }
+          const novos = normalizeLista(texto, appState.evento.convidados);
+          if (!novos.length) {
+            showToast("Nenhum novo convidado para adicionar.", "info");
+            return;
+          }
+          appState.evento.convidados = [...appState.evento.convidados, ...novos];
+          if (dom.convidadosTextarea) dom.convidadosTextarea.value = "";
+          setLastAction(`${novos.length} convidado(s) adicionados.`);
+          renderConvidados();
+          renderResumo();
+        }
+
+        function atualizarCampoEvento(campo, valor) {
+          appState.evento = { ...appState.evento, [campo]: valor };
+          renderResumo();
+          updateMenuState();
+        }
+
+        function atualizarConvidado(index, valor, input) {
+          const atual = appState.evento.convidados[index];
+          const nome = toTitleCase(valor.trim());
+          if (!nome) {
+            const confirmar = window.confirm("Remover este convidado vazio?");
+            if (confirmar) {
+              removerConvidado(index);
+            } else if (input) {
+              input.value = atual;
+            }
+            return;
+          }
+          const lower = nome.toLocaleLowerCase("pt-BR");
+          const existe = appState.evento.convidados.some((item, idx) => idx !== index && item.toLocaleLowerCase("pt-BR") === lower);
+          if (existe) {
+            showToast("Este nome já está na lista.", "error");
+            if (input) input.value = atual;
+            return;
+          }
+          if (nome !== atual) {
+            appState.evento.convidados[index] = nome;
+            setLastAction(`Convidado ${index + 1} atualizado.`);
+            renderConvidados();
+            renderResumo();
+          } else if (input) {
+            input.value = atual;
+          }
+        }
+
+        function onMenuClick(event) {
+          const target = event.target.closest("button[data-action]");
+          if (!target) return;
+          const action = target.dataset.action;
+          switch (action) {
+            case "novo":
+              novoEvento();
+              break;
+            case "salvar":
+              salvarEvento();
+              break;
+            case "carregar":
+              abrirModalCarregar();
+              break;
+            case "excluir":
+              if (appState.evento.id) excluirEvento(appState.evento.id);
+              break;
+            case "exportar":
+              exportarJSON();
+              break;
+            default:
+              break;
+          }
+        }
+
+        function onConvidadosActionClick(event) {
+          const target = event.target.closest("button[data-action]");
+          if (!target) return;
+          const action = target.dataset.action;
+          if (action === "adicionar-convidados") {
+            adicionarConvidados();
+          } else if (action === "limpar-lista") {
+            limparLista();
+          }
+        }
+
+        function onGuestListClick(event) {
+          const target = event.target.closest("button[data-action='remover-convidado']");
+          if (!target) return;
+          const index = Number.parseInt(target.dataset.guestIndex || "", 10);
+          if (Number.isNaN(index)) return;
+          removerConvidado(index);
+        }
+
+        function onGuestListKeydown(event) {
+          if (event.key === "Enter" && event.target instanceof HTMLInputElement) {
+            event.preventDefault();
+            event.target.blur();
+          }
+        }
+
+        function onGuestListFocusOut(event) {
+          if (!(event.target instanceof HTMLInputElement)) return;
+          if (!event.target.dataset.guestIndex) return;
+          const index = Number.parseInt(event.target.dataset.guestIndex, 10);
+          if (Number.isNaN(index)) return;
+          atualizarConvidado(index, event.target.value, event.target);
+        }
+
+        function bindInputs() {
+          if (dom.nomeInput) dom.nomeInput.addEventListener("input", (event) => atualizarCampoEvento("nome", event.target.value));
+          if (dom.dataInput) dom.dataInput.addEventListener("input", (event) => atualizarCampoEvento("dataISO", event.target.value));
+          if (dom.localInput) dom.localInput.addEventListener("input", (event) => atualizarCampoEvento("local", event.target.value));
+          if (dom.mensagemInput)
+            dom.mensagemInput.addEventListener("input", (event) => atualizarCampoEvento("mensagem", event.target.value));
+        }
+
+        function bindUI() {
+          if (dom.menu) dom.menu.addEventListener("click", onMenuClick);
+          if (dom.convidadosActions) dom.convidadosActions.addEventListener("click", onConvidadosActionClick);
+          if (dom.convidadosList) {
+            dom.convidadosList.addEventListener("click", onGuestListClick);
+            dom.convidadosList.addEventListener("keydown", onGuestListKeydown);
+            dom.convidadosList.addEventListener("focusout", onGuestListFocusOut);
+          }
+          if (dom.convidadosTextarea) {
+            dom.convidadosTextarea.addEventListener("keydown", (event) => {
+              if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                event.preventDefault();
+                adicionarConvidados();
+              }
+            });
+          }
+          bindInputs();
+        }
+
+        // [init]
+        async function init() {
+          bindUI();
+          renderAll();
+          if (appState.hasIndexedDB) {
+            await carregarIndice();
+          } else {
+            renderDadosEvento();
+            showToast("IndexedDB indisponível. Recursos de salvar/carregar estão desativados.", "error");
+          }
+        }
+
+        init();
+      })();
+    </script>
+  </body>
+</html>
