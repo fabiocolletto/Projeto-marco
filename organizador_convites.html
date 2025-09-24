@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizador de Convites</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --shadow: 0 15px 35px rgba(15, 23, 42, 0.07);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.5;
+    }
+
+    header {
+      background: radial-gradient(circle at 20% 20%, rgba(37, 99, 235, 0.18), transparent 55%),
+        radial-gradient(circle at 80% 0%, rgba(56, 189, 248, 0.25), transparent 50%),
+        var(--surface);
+      padding: 48px 20px 36px;
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    header h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.75rem, 2.4vw + 1rem, 2.8rem);
+    }
+
+    header p {
+      margin: 0;
+      max-width: 720px;
+      color: var(--muted);
+    }
+
+    .wrapper {
+      max-width: 1100px;
+      margin: -40px auto 60px;
+      padding: 0 20px 40px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 28px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.4rem;
+    }
+
+    form {
+      display: grid;
+      gap: 16px;
+    }
+
+    label {
+      font-weight: 600;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 1rem;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: rgba(37, 99, 235, 0.75);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    textarea {
+      min-height: 70px;
+      resize: vertical;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button.primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+    }
+
+    button.primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    button.secondary:hover {
+      background: #cbd5f5;
+    }
+
+    button.ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+
+    button.danger {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 18px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.85rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    tbody tr:hover {
+      background: #f1f5f9;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+      border: 1px dashed var(--border);
+      border-radius: 14px;
+      margin-top: 16px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--primary-dark);
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      gap: 4px;
+      margin-left: 8px;
+    }
+
+    .companions-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #e0f2fe;
+      color: #075985;
+      font-size: 0.85rem;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-top: 12px;
+    }
+
+    .toolbar input {
+      max-width: 260px;
+    }
+
+    .summary {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      margin-top: 16px;
+    }
+
+    .summary-card {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(59, 130, 246, 0.12));
+      border-radius: 16px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      border: 1px solid rgba(37, 99, 235, 0.18);
+    }
+
+    .quick-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: minmax(260px, 2fr) minmax(180px, 1fr);
+      align-items: stretch;
+    }
+
+    .quick-grid textarea {
+      min-height: 180px;
+    }
+
+    .quick-options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .helper-text {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    .example-block {
+      background: #f1f5f9;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: 'Fira Code', 'SFMono-Regular', Consolas, monospace;
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 8px 0 16px;
+    }
+
+    .summary-card span {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      color: rgba(15, 23, 42, 0.65);
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .summary-card strong {
+      font-size: 1.6rem;
+      font-weight: 700;
+    }
+
+    .status {
+      font-weight: 600;
+      min-height: 1.2em;
+    }
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .status.info {
+      color: var(--muted);
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .table-actions button {
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      border-radius: 8px;
+      box-shadow: none;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 16px 20px 40px;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 900px) {
+      .quick-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 600px) {
+      header {
+        padding: 32px 16px;
+      }
+
+      .wrapper {
+        margin-top: -24px;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Organizador de Convites</h1>
+    <p>Cadastre os convidados do seu evento, acompanhe o número total de pessoas por convite, faça ajustes e exporte a lista sempre que precisar.</p>
+  </header>
+
+  <main class="wrapper">
+    <section class="card" aria-labelledby="form-title">
+      <h2 id="form-title">Adicionar convidado</h2>
+      <form id="invite-form">
+        <div class="grid">
+          <label>
+            Nome do convidado principal
+            <input id="guestName" name="guestName" placeholder="Ex.: Ana Silva" required />
+          </label>
+
+          <label>
+            Telefone para contato
+            <input id="phone" name="phone" type="tel" inputmode="tel" placeholder="(41) 99999-0000" />
+          </label>
+
+          <label>
+            Quantidade de convidados no convite
+            <input id="guestCount" name="guestCount" type="number" min="1" max="12" value="1" required />
+          </label>
+        </div>
+
+        <label>
+          Nome dos acompanhantes <span class="badge">Separe por vírgula ou quebra de linha</span>
+          <textarea id="companions" name="companions" placeholder="Ex.: João, Maria"></textarea>
+        </label>
+
+        <label>
+          Observações
+          <textarea id="notes" name="notes" placeholder="Detalhes relevantes sobre este convite"></textarea>
+        </label>
+
+        <div class="actions">
+          <button type="button" class="ghost" id="btn-cancel" hidden>Cancelar edição</button>
+          <span class="status info" id="form-status" aria-live="polite"></span>
+          <button type="reset" class="secondary">Limpar</button>
+          <button type="submit" class="primary">Salvar convite</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card" aria-labelledby="bulk-title">
+      <h2 id="bulk-title">Adicionar convites a partir de uma lista</h2>
+      <p class="helper-text">
+        Cole uma lista com um convidado por linha. Separe nome, telefone e opcionalmente a quantidade e acompanhantes com ponto
+        e vírgula (;), vírgula ou tabulação. Use o caractere <strong>|</strong> para separar acompanhantes.
+      </p>
+      <div class="quick-grid">
+        <label>
+          Lista de nomes e telefones <span class="badge">um convite por linha</span>
+          <textarea
+            id="bulk-input"
+            placeholder="Ex.: Maria Silva; (11) 98888-7766&#10;João Pereira, 21 99999-8888&#10;Carla Dias; 11988776655; 3; Ana | Bruno"
+          ></textarea>
+        </label>
+        <div class="quick-options">
+          <label>
+            Quantidade padrão por convite
+            <input type="number" id="bulk-default-count" min="1" value="1" />
+          </label>
+          <p class="helper-text">Usada apenas quando a linha não informar a quantidade de pessoas.</p>
+          <p class="helper-text">Linhas sem telefone também são aceitas e podem ser completadas depois.</p>
+        </div>
+      </div>
+      <div class="example-block" aria-hidden="true">
+        Maria Silva; (11) 98888-7766<br />
+        João Pereira, 21 99999-8888<br />
+        Carla Dias; 11988776655; 3; Ana | Bruno
+      </div>
+      <div class="actions" style="justify-content: flex-end;">
+        <button type="button" class="ghost" id="btn-bulk-clear">Limpar lista</button>
+        <button type="button" class="primary" id="btn-bulk-process">Adicionar automaticamente</button>
+      </div>
+      <span class="status info" id="bulk-status" aria-live="polite"></span>
+    </section>
+
+    <section class="card" aria-labelledby="list-title">
+      <div class="header-list" style="display:flex;flex-direction:column;gap:4px;">
+        <h2 id="list-title">Convites cadastrados</h2>
+        <p style="margin:0;color:var(--muted);">Use a busca para localizar rapidamente um convidado ou exporte a lista completa em CSV.</p>
+      </div>
+
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Buscar por nome, acompanhante ou telefone" aria-label="Buscar convites" />
+        <button id="btn-export" class="secondary" type="button">Exportar CSV</button>
+        <label class="secondary" style="padding:10px 16px; border-radius:12px; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+          Importar JSON
+          <input type="file" id="import-file" accept="application/json" hidden />
+        </label>
+        <button id="btn-clear" class="ghost" type="button">Limpar tudo</button>
+      </div>
+
+      <div class="summary" id="summary">
+        <div class="summary-card">
+          <span>Convites</span>
+          <strong id="total-invites">0</strong>
+        </div>
+        <div class="summary-card">
+          <span>Pessoas confirmadas</span>
+          <strong id="total-guests">0</strong>
+        </div>
+        <div class="summary-card">
+          <span>Acompanhantes</span>
+          <strong id="total-companions">0</strong>
+        </div>
+      </div>
+
+      <div id="table-container">
+        <table aria-describedby="list-title">
+          <thead>
+            <tr>
+              <th>Convidado</th>
+              <th>Telefone</th>
+              <th>Acompanhantes</th>
+              <th>Total</th>
+              <th>Notas</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="invite-body"></tbody>
+        </table>
+        <div class="empty" id="empty-state">Nenhum convite cadastrado ainda. Adicione o primeiro utilizando o formulário acima.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Seu progresso é salvo automaticamente no seu navegador. Você pode exportar ou importar a lista sempre que desejar.
+  </footer>
+
+  <script>
+    (function () {
+      const form = document.getElementById('invite-form');
+      const guestNameInput = document.getElementById('guestName');
+      const phoneInput = document.getElementById('phone');
+      const guestCountInput = document.getElementById('guestCount');
+      const companionsInput = document.getElementById('companions');
+      const notesInput = document.getElementById('notes');
+      const inviteBody = document.getElementById('invite-body');
+      const emptyState = document.getElementById('empty-state');
+      const totalInvites = document.getElementById('total-invites');
+      const totalGuests = document.getElementById('total-guests');
+      const totalCompanions = document.getElementById('total-companions');
+      const searchInput = document.getElementById('search');
+      const btnClear = document.getElementById('btn-clear');
+      const btnExport = document.getElementById('btn-export');
+      const importFile = document.getElementById('import-file');
+      const formStatus = document.getElementById('form-status');
+      const btnCancel = document.getElementById('btn-cancel');
+      const formTitle = document.getElementById('form-title');
+      const bulkInput = document.getElementById('bulk-input');
+      const bulkDefaultCount = document.getElementById('bulk-default-count');
+      const bulkStatus = document.getElementById('bulk-status');
+      const btnBulkProcess = document.getElementById('btn-bulk-process');
+      const btnBulkClear = document.getElementById('btn-bulk-clear');
+
+      const storageKey = 'convite-lista-v1';
+      const baseEmptyMessage = 'Nenhum convite cadastrado ainda. Adicione o primeiro utilizando o formulário acima.';
+      let invites = [];
+      let editingId = null;
+      let currentFilter = '';
+
+      function parseCompanions(text) {
+        if (!text) return [];
+        return text
+          .split(/[\n,;|]+/)
+          .map((name) => name.trim())
+          .filter((name) => name.length > 0);
+      }
+
+      function normalizeDigits(value) {
+        return value ? value.replace(/\D/g, '') : '';
+      }
+
+      function formatPhone(phone) {
+        const digits = phone.replace(/\D/g, '');
+        if (digits.length === 10) {
+          return digits.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+        }
+        if (digits.length === 11) {
+          return digits.replace(/(\d{2})(\d)(\d{4})(\d{4})/, '($1) $2 $3-$4');
+        }
+        return phone.trim();
+      }
+
+      function countTotal(invite) {
+        return Number(invite.guestCount) || 0;
+      }
+
+      function updateSummary() {
+        const filtered = getFilteredInvites();
+        const totalInviteCount = filtered.length;
+        const totalGuestsCount = filtered.reduce((sum, invite) => sum + countTotal(invite), 0);
+        const totalCompanionCount = filtered.reduce((sum, invite) => sum + invite.companions.length, 0);
+
+        totalInvites.textContent = totalInviteCount;
+        totalGuests.textContent = totalGuestsCount;
+        totalCompanions.textContent = totalCompanionCount;
+      }
+
+      function formatUpdatedAt(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleString('pt-BR', {
+          dateStyle: 'short',
+          timeStyle: 'short',
+        });
+      }
+
+      function renderInvites() {
+        const filtered = getFilteredInvites();
+        inviteBody.innerHTML = '';
+        updateSummary();
+
+        if (!filtered.length) {
+          emptyState.hidden = false;
+          if (invites.length && currentFilter) {
+            const term = searchInput.value.trim();
+            emptyState.textContent = term
+              ? `Nenhum convite encontrado para “${term}”.`
+              : 'Nenhum convite corresponde à sua busca.';
+          } else {
+            emptyState.textContent = baseEmptyMessage;
+          }
+          return;
+        }
+
+        emptyState.hidden = true;
+        emptyState.textContent = baseEmptyMessage;
+
+        const fragment = document.createDocumentFragment();
+
+        filtered.forEach((invite) => {
+          const updatedInfo = formatUpdatedAt(invite.updatedAt);
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>
+              <strong>${invite.guestName}</strong>
+              ${updatedInfo ? `<div class="badge">Atualizado em ${updatedInfo}</div>` : ''}
+            </td>
+            <td>${invite.phone ? formatPhone(invite.phone) : '<span style="color: var(--muted)">—</span>'}</td>
+            <td>
+              ${invite.companions.length ? `<div class="companions-list">${invite.companions
+                .map((name) => `<span class="tag">${name}</span>`)
+                .join('')}</div>` : '<span style="color: var(--muted)">Sem acompanhantes</span>'}
+            </td>
+            <td><strong>${countTotal(invite)}</strong></td>
+            <td>${invite.notes ? invite.notes : '<span style="color: var(--muted)">—</span>'}</td>
+            <td>
+              <div class="table-actions">
+                <button type="button" data-action="edit" data-id="${invite.id}" class="secondary">Editar</button>
+                <button type="button" data-action="delete" data-id="${invite.id}" class="danger">Excluir</button>
+              </div>
+            </td>`;
+          fragment.appendChild(row);
+        });
+
+        inviteBody.appendChild(fragment);
+      }
+
+      function getFilteredInvites() {
+        if (!currentFilter) return [...invites];
+        const normalized = currentFilter.toLowerCase();
+        return invites.filter((invite) => {
+          return (
+            invite.guestName.toLowerCase().includes(normalized) ||
+            invite.phone.toLowerCase().includes(normalized) ||
+            invite.companions.some((name) => name.toLowerCase().includes(normalized)) ||
+            invite.notes.toLowerCase().includes(normalized)
+          );
+        });
+      }
+
+      function updateStatus(element, message, type = 'success', timeout = 0) {
+        if (!element) return;
+        element.textContent = message;
+        element.className = `status ${type}`;
+        if (timeout) {
+          setTimeout(() => {
+            if (element.textContent === message) {
+              element.textContent = '';
+              element.className = 'status info';
+            }
+          }, timeout);
+        }
+      }
+
+      function resetForm() {
+        form.reset();
+        guestCountInput.value = 1;
+        editingId = null;
+        btnCancel.hidden = true;
+        updateStatus(formStatus, '', 'info');
+        form.querySelector('button[type="submit"]').textContent = 'Salvar convite';
+        formTitle.textContent = 'Adicionar convidado';
+      }
+
+      function showStatus(message, timeout = 2500, type = 'success') {
+        updateStatus(formStatus, message, type, timeout);
+      }
+
+      function saveToStorage() {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(invites));
+        } catch (error) {
+          console.error('Erro ao salvar no armazenamento local', error);
+        }
+      }
+
+      function loadFromStorage() {
+        try {
+          const saved = localStorage.getItem(storageKey);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              invites = parsed;
+            }
+          }
+        } catch (error) {
+          console.error('Erro ao carregar dados salvos', error);
+        }
+      }
+
+      function parseBulkEntries(text) {
+        const entries = [];
+        const errors = [];
+        if (!text) return { entries, errors };
+
+        const lines = text.split(/\r?\n/);
+        lines.forEach((line, index) => {
+          const raw = line.trim();
+          if (!raw) return;
+
+          let guestName = '';
+          let phone = '';
+          let explicitCount;
+          let companions = [];
+
+          const columns = raw.split(/\s*[,;\t]\s*/);
+          const trimmedColumns = columns.map((column) => column.trim());
+          const nonEmptyColumns = trimmedColumns.filter((column) => column.length > 0);
+
+          if (!nonEmptyColumns.length) {
+            errors.push({ line: index + 1, content: line });
+            return;
+          }
+
+          if (!trimmedColumns[0]) {
+            errors.push({ line: index + 1, content: line });
+            return;
+          }
+
+          if (nonEmptyColumns.length === 1 && trimmedColumns.length === 1) {
+            const guess = raw.match(/^(.*?)(\+?\d[\d\s().-]{7,})$/);
+            if (guess) {
+              guestName = guess[1].trim();
+              phone = guess[2].trim();
+            } else {
+              guestName = raw;
+            }
+          } else {
+            guestName = trimmedColumns[0];
+            phone = trimmedColumns[1] ?? '';
+
+            const rest = trimmedColumns.slice(2);
+            if (rest.length) {
+              const candidate = rest[0];
+              const numeric = Number.parseInt(candidate.replace(/[^0-9]/g, ''), 10);
+              const containsDigits = /\d/.test(candidate);
+              const containsLetters = /[a-zA-ZÀ-ÿ]/.test(candidate);
+              if (
+                containsDigits &&
+                !containsLetters &&
+                Number.isFinite(numeric) &&
+                numeric > 0 &&
+                nonEmptyColumns.length >= 3
+              ) {
+                explicitCount = numeric;
+                rest.shift();
+              }
+
+              if (rest.length) {
+                const companionsSource = rest.join(';').trim();
+                if (companionsSource) {
+                  companions = parseCompanions(companionsSource).filter((name) => !/^\d+$/.test(name));
+                }
+              }
+            }
+          }
+
+          guestName = guestName.replace(/^["']+|["']+$/g, '').trim();
+          phone = (phone ?? '').replace(/^["']+|["']+$/g, '').trim();
+
+          if (!guestName) {
+            errors.push({ line: index + 1, content: line });
+            return;
+          }
+
+          if (!phone) {
+            const fallback = raw.match(/(\+?\d[\d\s().-]{7,})$/);
+            if (fallback) {
+              phone = fallback[1].trim();
+            }
+          }
+
+          entries.push({
+            guestName,
+            phone,
+            explicitCount,
+            companions,
+          });
+        });
+
+        return { entries, errors };
+      }
+
+      function bulkUpsertInvites(entries, defaultCount) {
+        const now = new Date().toISOString();
+        let created = 0;
+        let updated = 0;
+
+        entries.forEach((entry) => {
+          const hasExplicitCount = Number.isFinite(entry.explicitCount) && entry.explicitCount > 0;
+          const normalizedName = entry.guestName.toLowerCase();
+          const normalizedPhone = normalizeDigits(entry.phone);
+
+          const index = invites.findIndex((item) => {
+            if (item.guestName.toLowerCase() === normalizedName) return true;
+            const inviteDigits = normalizeDigits(item.phone);
+            return normalizedPhone && inviteDigits && inviteDigits === normalizedPhone;
+          });
+
+          if (index >= 0) {
+            const current = invites[index];
+            const updatedInvite = { ...current };
+            updatedInvite.guestName = entry.guestName;
+
+            if (entry.phone && entry.phone.trim()) {
+              const digits = normalizeDigits(entry.phone);
+              if (digits || !normalizeDigits(updatedInvite.phone)) {
+                updatedInvite.phone = entry.phone.trim();
+              }
+            }
+
+            if (entry.companions && entry.companions.length) {
+              updatedInvite.companions = entry.companions;
+            }
+
+            if (hasExplicitCount) {
+              updatedInvite.guestCount = entry.explicitCount;
+            }
+
+            updatedInvite.updatedAt = now;
+            invites[index] = updatedInvite;
+            updated += 1;
+          } else {
+            invites.push({
+              id: crypto.randomUUID(),
+              guestName: entry.guestName,
+              phone: entry.phone ? entry.phone.trim() : '',
+              guestCount: hasExplicitCount ? entry.explicitCount : defaultCount,
+              companions: entry.companions?.length ? entry.companions : [],
+              notes: '',
+              updatedAt: now,
+            });
+            created += 1;
+          }
+        });
+
+        if (created || updated) {
+          invites.sort((a, b) => a.guestName.localeCompare(b.guestName, 'pt-BR', { sensitivity: 'base' }));
+          saveToStorage();
+          renderInvites();
+        }
+
+        return { created, updated };
+      }
+
+      function upsertInvite(invite) {
+        const index = invites.findIndex((item) => item.id === invite.id);
+        if (index >= 0) {
+          invites[index] = invite;
+        } else {
+          invites.push(invite);
+        }
+        invites.sort((a, b) => a.guestName.localeCompare(b.guestName, 'pt-BR', { sensitivity: 'base' }));
+        saveToStorage();
+        renderInvites();
+      }
+
+      function deleteInvite(id) {
+        invites = invites.filter((invite) => invite.id !== id);
+        saveToStorage();
+        renderInvites();
+      }
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const guestName = guestNameInput.value.trim();
+        const phone = phoneInput.value.trim();
+        const guestCount = Number(guestCountInput.value) || 1;
+        const companions = parseCompanions(companionsInput.value);
+        const notes = notesInput.value.trim();
+
+        if (!guestName) {
+          guestNameInput.focus();
+          showStatus('Informe o nome do convidado.', 2500, 'error');
+          return;
+        }
+
+        if (guestCount < 1) {
+          guestCountInput.focus();
+          showStatus('Quantidade mínima é 1.', 2500, 'error');
+          return;
+        }
+
+        const now = new Date().toISOString();
+
+        const invite = {
+          id: editingId ?? crypto.randomUUID(),
+          guestName,
+          phone,
+          guestCount,
+          companions,
+          notes,
+          updatedAt: now,
+        };
+
+        upsertInvite(invite);
+
+        if (editingId) {
+          showStatus('Convite atualizado com sucesso.');
+        } else {
+          showStatus('Convite adicionado!');
+        }
+
+        resetForm();
+        guestNameInput.focus();
+      });
+
+      inviteBody.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+
+        const id = button.getAttribute('data-id');
+        const action = button.getAttribute('data-action');
+        const invite = invites.find((item) => item.id === id);
+
+        if (!invite) return;
+
+        if (action === 'edit') {
+          editingId = id;
+          guestNameInput.value = invite.guestName;
+          phoneInput.value = invite.phone;
+          guestCountInput.value = invite.guestCount;
+          companionsInput.value = invite.companions.join(', ');
+          notesInput.value = invite.notes;
+          btnCancel.hidden = false;
+          form.querySelector('button[type="submit"]').textContent = 'Atualizar convite';
+          formTitle.textContent = 'Editar convidado';
+          showStatus('Editando convite…', 1200, 'info');
+          guestNameInput.focus();
+        }
+
+        if (action === 'delete') {
+          const confirmed = confirm(`Deseja excluir o convite de ${invite.guestName}?`);
+          if (!confirmed) return;
+          deleteInvite(id);
+          showStatus('Convite excluído.', 2500, 'info');
+        }
+      });
+
+      searchInput.addEventListener('input', (event) => {
+        currentFilter = event.target.value.trim().toLowerCase();
+        renderInvites();
+      });
+
+      btnClear.addEventListener('click', () => {
+        if (!invites.length) return;
+        const confirmed = confirm('Deseja remover todos os convites? Esta ação não pode ser desfeita.');
+        if (!confirmed) return;
+        invites = [];
+        saveToStorage();
+        renderInvites();
+        showStatus('Lista limpa.', 2500, 'info');
+      });
+
+      btnExport.addEventListener('click', () => {
+        if (!invites.length) {
+          showStatus('Não há convites para exportar.', 2500, 'info');
+          return;
+        }
+
+        const header = ['Convidado', 'Telefone', 'Acompanhantes', 'Quantidade', 'Notas'];
+        const lines = invites.map((invite) => {
+          const companions = invite.companions.join(' | ');
+          return [
+            `"${invite.guestName.replace(/"/g, '""')}"`,
+            `"${invite.phone.replace(/"/g, '""')}"`,
+            `"${companions.replace(/"/g, '""')}"`,
+            invite.guestCount,
+            `"${invite.notes.replace(/"/g, '""')}"`,
+          ].join(',');
+        });
+
+        const csv = [header.join(','), ...lines].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        const date = new Date().toISOString().slice(0, 10);
+        link.download = `convites-${date}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        showStatus('Exportado com sucesso!');
+      });
+
+      if (bulkDefaultCount) {
+        bulkDefaultCount.addEventListener('blur', () => {
+          const value = Number.parseInt(bulkDefaultCount.value, 10);
+          if (!Number.isFinite(value) || value < 1) {
+            bulkDefaultCount.value = 1;
+          }
+        });
+      }
+
+      if (btnBulkProcess && bulkInput) {
+        btnBulkProcess.addEventListener('click', () => {
+          const rawText = bulkInput.value.trim();
+          if (!rawText) {
+            updateStatus(bulkStatus, 'Cole ao menos uma linha com o nome do convidado.', 'error', 3500);
+            bulkInput.focus();
+            return;
+          }
+
+          const parsedDefault = Number.parseInt(bulkDefaultCount?.value ?? '1', 10);
+          const defaultCount = Number.isFinite(parsedDefault) && parsedDefault > 0 ? parsedDefault : 1;
+          if (bulkDefaultCount) {
+            bulkDefaultCount.value = defaultCount;
+          }
+
+          const { entries, errors } = parseBulkEntries(rawText);
+          if (!entries.length) {
+            const message =
+              errors.length > 0
+                ? `Nenhuma linha válida encontrada. Revise o formato nas linhas: ${errors
+                    .map((err) => err.line)
+                    .join(', ')}.`
+                : 'Nenhuma linha válida encontrada. Informe ao menos o nome em cada linha.';
+            updateStatus(bulkStatus, message, 'error', 6000);
+            return;
+          }
+
+          const result = bulkUpsertInvites(entries, defaultCount);
+          const summary = [];
+          if (result.created) summary.push(`${result.created} novo(s)`);
+          if (result.updated) summary.push(`${result.updated} atualizado(s)`);
+          if (errors.length) summary.push(`${errors.length} linha(s) ignorada(s)`);
+
+          const hasChanges = Boolean(result.created || result.updated);
+          const statusType = hasChanges ? (errors.length ? 'info' : 'success') : 'error';
+          const detail =
+            errors.length && (!hasChanges || errors.length <= 5)
+              ? ` Linhas com problema: ${errors.map((err) => err.line).join(', ')}.`
+              : errors.length
+              ? ' Algumas linhas foram ignoradas; revise o formato informado.'
+              : '';
+          const message = summary.length
+            ? `Processamento concluído: ${summary.join(', ')}.${detail}`
+            : `Nenhuma alteração realizada.${detail}`;
+
+          updateStatus(bulkStatus, message, statusType, 7000);
+
+          if (hasChanges && !errors.length) {
+            bulkInput.value = '';
+          }
+        });
+      }
+
+      if (btnBulkClear && bulkInput) {
+        btnBulkClear.addEventListener('click', () => {
+          if (!bulkInput.value.trim()) {
+            updateStatus(bulkStatus, 'O campo já está vazio.', 'info', 2000);
+            bulkInput.focus();
+            return;
+          }
+
+          bulkInput.value = '';
+          updateStatus(bulkStatus, 'Lista apagada. Cole novos dados quando estiver pronto.', 'info', 2500);
+          bulkInput.focus();
+        });
+      }
+
+      importFile.addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (loadEvent) => {
+          try {
+            const content = JSON.parse(loadEvent.target.result);
+            if (!Array.isArray(content)) throw new Error('Formato inválido');
+            const sanitized = content
+              .filter((item) => item && typeof item === 'object')
+              .map((item) => ({
+                id: item.id ?? crypto.randomUUID(),
+                guestName: String(item.guestName ?? '').trim(),
+                phone: String(item.phone ?? ''),
+                guestCount: Number(item.guestCount) || 1,
+                companions: Array.isArray(item.companions)
+                  ? item.companions.map((name) => String(name).trim()).filter(Boolean)
+                  : parseCompanions(String(item.companions ?? '')),
+                notes: String(item.notes ?? ''),
+                updatedAt: item.updatedAt ?? new Date().toISOString(),
+              }))
+              .filter((item) => item.guestName);
+
+            if (!sanitized.length) throw new Error('Nenhum convite válido encontrado.');
+
+            invites = sanitized;
+            saveToStorage();
+            renderInvites();
+            showStatus('Importação concluída.');
+          } catch (error) {
+            console.error('Erro ao importar arquivo', error);
+            alert('Não foi possível importar o arquivo selecionado. Verifique o formato.');
+          } finally {
+            importFile.value = '';
+          }
+        };
+        reader.readAsText(file, 'utf-8');
+      });
+
+      btnCancel.addEventListener('click', () => {
+        resetForm();
+        showStatus('Edição cancelada.', 1500, 'info');
+      });
+
+      form.addEventListener('reset', () => {
+        setTimeout(() => {
+          guestCountInput.value = 1;
+          if (editingId) {
+            editingId = null;
+            btnCancel.hidden = true;
+            form.querySelector('button[type="submit"]').textContent = 'Salvar convite';
+            formTitle.textContent = 'Adicionar convidado';
+          }
+        });
+      });
+
+      loadFromStorage();
+      renderInvites();
+    })();
+  </script>
+</body>
+</html>
