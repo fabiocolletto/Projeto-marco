@@ -235,3 +235,82 @@ input[disabled], select[disabled], textarea[disabled]{ background: #f1f5f9; colo
 .mt-1{ margin-top: var(--space-1) } .mt-2{ margin-top: var(--space-2) } .mt-3{ margin-top: var(--space-3) }
 .mb-1{ margin-bottom: var(--space-1) } .mb-2{ margin-bottom: var(--space-2) } .mb-3{ margin-bottom: var(--space-3) }
 .p-2{ padding: var(--space-2) } .p-3{ padding: var(--space-3) } .p-4{ padding: var(--space-4) }
+
+/* ====== Refinos visuais (patch de teste) ====== */
+
+/* 1) Tokens mais suaves */
+:root{
+  --radius: 14px;              /* cantos mais arredondados */
+  --line: #e9eef5;             /* borda mais clara */
+  --shadow: 0 8px 24px rgba(2,6,23,.06); /* sombra discreta */
+}
+
+/* 2) Cards mais leves */
+.card{
+  border-color: var(--line);
+  box-shadow: var(--shadow);
+}
+
+/* 3) Títulos maiores (use <h2> nas seções novas) */
+.card > h2{                    /* quando você trocar para h2 */
+  font-size: clamp(18px, 2.2vw, 22px);
+  font-weight: 800;
+  letter-spacing: .2px;
+  margin: 4px 0 12px;
+}
+.card > h3{                    /* compat: títulos atuais continuam bons */
+  font-size: clamp(16px, 2vw, 20px);
+  font-weight: 700;
+  margin: 4px 0 10px;
+}
+
+/* 4) Inputs “soft rounded” */
+input, select, textarea{
+  border-radius: var(--radius);
+  border-color: var(--line);
+  background: #fff;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s;
+}
+input:focus, select:focus, textarea:focus{
+  border-color: var(--pri);
+  box-shadow: 0 0 0 4px var(--pri-ring);
+}
+
+/* 5) Placeholders menores e mais fracos */
+::placeholder{
+  color: var(--mut);
+  opacity: .75;
+  font-size: var(--fs-sm);
+}
+
+/* 6) Labels mais compactos, coerentes em linha vertical */
+label{
+  margin: 4px 0;              /* menos espaço */
+  font-weight: 600;
+}
+
+/* 7) Botões: visual sólido + versões “fantasma” bem discretas */
+.btn{ border-radius: var(--radius); }
+.btn.ghost{ border-color: var(--line); color: #0f172a; }
+.btn.danger{ filter: saturate(.95); }
+
+/* 8) Ações sticky com sombra de separação sutil */
+.actions-sticky{
+  box-shadow: 0 -6px 18px rgba(2,6,23,.05);
+}
+
+/* 9) Variante opcional “flat” (sem bordas nos campos) — aplique na seção inteira */
+.form--flat input,
+.form--flat select,
+.form--flat textarea{
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+}
+.form--flat input:focus,
+.form--flat select:focus,
+.form--flat textarea:focus{
+  border-bottom-color: var(--pri);
+  box-shadow: none;
+}
