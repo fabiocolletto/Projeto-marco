@@ -1,147 +1,90 @@
-// shared/listUtils.js
-// Utilitários para a etapa "Convidados": parsing, normalização, dedupe e CSV.
-// Sem dependências externas. Mantém tudo simples para o estudo.
+// shared/inviteUtils.js
+// Converte UMA linha de texto num "convite" estruturado.
+// Regras simples e previsíveis para o estudo:
+//
+// - Cada LINHA representa UM convite.
+// - Dentro da linha, o NOME DO TITULAR vem primeiro.
+// - Acompanhantes vêm após , (vírgula) ou ; (ponto e vírgula).
+//   Ex.: "Fabio, Ludi" -> titular "Fabio", acompanhantes ["Ludi"]
+// - Se for "Fabio Ludi" (sem vírgula), é UM NOME composto (apenas titular).
+// - Telefone pode aparecer em QUALQUER lugar na linha; é detectado e removido dos nomes.
+// - Sequências com 2+ dígitos são ignoradas nos nomes.
+// - Saída: { id, titular, acompanhantes[], telefone|null, total }.
 
-// Palavrinhas que ficam minúsculas no meio do nome próprio
-const SMALL_WORDS = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
+import { normalizeName, stripNumbersFromName } from "./listUtils.js";
 
-// Padrão de telefone "solto" (aceita +DD, DDD, espaços, hífens e parênteses)
-const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g; // Ex.: "+55 (41) 99999-0000", "41 9999-0000"
+const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g; // +55 (41) 99999-0000, 41 9999-0000 etc.
 
-// -------------------- Helpers de texto --------------------
-
-// Divide o texto em tokens por linhas, vírgulas, ponto e vírgula ou tab
-export function tokenize(text = '') {
-  return String(text)
-    .replace(/\r\n?/g, '\n')
-    .split(/\n|,|;|\t/g)
-    .map(s => s.trim())
-    .filter(Boolean);
+export function uid() {
+  return (crypto?.randomUUID?.() ?? `id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`);
 }
 
-// Normaliza nome próprio simples: colapsa espaços e capitaliza,
-// mantendo preposições comuns em minúsculo.
-export function normalizeName(s = '') {
-  const words = s
-    .normalize('NFKC')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
-    .split(' ');
-
-  return words
-    .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
-    .join(' ');
-}
-
-// Telefone BR leve (opcional): mantém dígitos; formata 10/11 dígitos;
-// retorna null se não parecer um telefone.
-export function normalizePhoneBR(s = '') {
+// Normaliza um telefone BR de maneira leve (10/11 dígitos)
+export function normalizePhone(s = '') {
   const d = String(s).replace(/\D/g, '');
   if (d.length < 10) return null;
   if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
   return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7,11)}`;
 }
 
-// Remove telefones e QUALQUER sequência numérica de 2+ dígitos do texto de nome.
-// Também limpa pontuação solta e espaços duplicados.
-export function stripNumbersFromName(s = '') {
-  let t = String(s);
-  t = t.replace(PHONE_RE, ' ');     // remove blocos que parecem telefone
-  t = t.replace(/\d{2,}/g, ' ');    // remove sequências numéricas com 2+ dígitos
-  t = t.replace(/[()\-._]+/g, ' '); // limpa pontuação comum que sobra
-  t = t.replace(/\s{2,}/g, ' ').trim();
-  return t;
+// Extrai e retorna { semTelefone, telefone|null }
+function extractPhone(line = '') {
+  let tel = null;
+  const phones = String(line).match(PHONE_RE);
+  if (phones && phones.length) {
+    // pega o primeiro "melhor" candidato
+    tel = normalizePhone(phones[0]);
+  }
+  const semTel = String(line).replace(PHONE_RE, ' ');
+  return { semTelefone: semTel, telefone: tel };
 }
 
-// Dedupe case-insensitive preservando a primeira ocorrência
-export function uniqueCaseInsensitive(arr = []) {
-  const seen = new Set();
+// Divide uma linha em um convite
+export function parseInviteLine(line = '') {
+  const { semTelefone, telefone } = extractPhone(line);
+
+  // separa por vírgula ou ; — isso define titulares + acompanhantes
+  const parts = semTelefone
+    .replace(/\r\n?/g, '\n')
+    .split(/[,;]+/g)
+    .map(s => stripNumbersFromName(s))  // remove sequências numéricas 2+ e ruído
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  if (!parts.length) return null;
+
+  const titular = normalizeName(parts[0]);
+  const acompanhantes = parts.slice(1).map(normalizeName).filter(Boolean);
+  const total = 1 + acompanhantes.length;
+
+  return {
+    id: uid(),
+    titular,
+    acompanhantes,
+    telefone: telefone ?? null,
+    total
+  };
+}
+
+// Converte várias linhas em convites (ignora linhas vazias)
+export function parseInvites(text = '') {
+  const lines = String(text).replace(/\r\n?/g, '\n').split('\n').map(s => s.trim());
   const out = [];
-  for (const s of arr) {
-    const k = String(s).toLocaleLowerCase();
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(s);
+  for (const ln of lines) {
+    if (!ln) continue;
+    const inv = parseInviteLine(ln);
+    if (inv) out.push(inv);
   }
   return out;
 }
 
-// -------------------- Parser principal --------------------
-
-// Converte um texto (textarea) numa lista de nomes normalizados, sem duplicados.
-// Agora também retorna "filtered" com tokens descartados por conter números/telefones.
-export function parsePlainList(text = '') {
-  const tokens = tokenize(text);
-  const rawCount = tokens.length;
-
-  const items = [];
-  const duplicates = [];
-  const filtered = []; // tokens descartados (por virarem vazios após limpeza)
-  const seen = new Set();
-
-  for (const t of tokens) {
-    // 1) limpa números/telefones ANTES de normalizar
-    const cleaned = stripNumbersFromName(t);
-
-    // 2) se sobrou quase nada, descarta (ex.: token era só número)
-    // remove caracteres não "palavra" e checa tamanho mínimo 2
-    if (!cleaned || cleaned.replace(/\W/g, '').length < 2) {
-      filtered.push(t);
-      continue;
-    }
-
-    // 3) normaliza e deduplica
-    const name = normalizeName(cleaned);
-    const key  = name.toLocaleLowerCase();
-    if (seen.has(key)) { duplicates.push(name); continue; }
-    seen.add(key);
-    items.push(name);
-  }
-
-  return { items, duplicates, rawCount, filtered };
-}
-
-// -------------------- CSV simples --------------------
-
-// Gera CSV com uma coluna "nome". Escapa aspas duplas.
-export function toCSV(names = []) {
-  const esc = s => `"${String(s).replace(/"/g, '""')}"`;
-  return ['nome', ...names.map(esc)].join('\n');
-}
-
-// Lê CSV. Usa coluna "nome" se existir; caso contrário, a primeira coluna.
-export function fromCSV(csv = '') {
-  const lines = String(csv).replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim().length);
-  if (!lines.length) return [];
-
-  const parseLine = (line) => {
-    const out = [];
-    let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (inQ) {
-        if (ch === '"') {
-          if (line[i+1] === '"') { cur += '"'; i++; } else { inQ = false; }
-        } else cur += ch;
-      } else {
-        if (ch === ',') { out.push(cur); cur = ''; }
-        else if (ch === '"') inQ = true;
-        else cur += ch;
-      }
-    }
-    out.push(cur);
-    return out.map(v => v.trim());
-  };
-
-  const header = parseLine(lines[0]).map(h => h.toLowerCase());
-  const idx = header.includes('nome') ? header.indexOf('nome') : 0;
-
-  const names = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseLine(lines[i]);
-    const cell = cols[idx] || '';
-    if (cell) names.push(cell);
-  }
-  return names;
+// CSV: seq,titular,acompanhantes,telefone,total
+export function invitesToCSV(invites = []) {
+  const esc = s => `"${String(s ?? '').replace(/"/g, '""')}"`;
+  const header = 'seq,titular,acompanhantes,telefone,total';
+  const rows = invites.map((it, i) => {
+    const acomp = it.acompanhantes?.length ? it.acompanhantes.join(' + ') : '';
+    return [i+1, it.titular, acomp, it.telefone ?? '', it.total].map(esc).join(',');
+  });
+  return [header, ...rows].join('\n');
 }
