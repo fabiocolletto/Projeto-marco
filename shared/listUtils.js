@@ -1,28 +1,34 @@
 // shared/listUtils.js
-// Utilitários base para a etapa Convidados.
+// Base para a etapa Convidados:
 // - normalização de nomes
 // - limpeza de números/telefones (2+ dígitos) fora dos nomes
-// - tokenização, dedupe, estatísticas
-// - CSV simples (uma coluna "nome")
-// Sem dependências externas. Comentários curtos ao lado.
+// - estatísticas do textarea (AGORA só por LINHA)
+// - CSV simples (1 coluna "nome")
 
-// Palavrinhas mantidas minúsculas no meio do nome próprio
-const SMALL_WORDS = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
-
-// Telefone "solto" (aceita +DD, DDD, espaços, hífens e parênteses)
-const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g;
+const SMALL_WORDS = new Set(['da','de','do','das','dos','e']);
+const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g; // telefones "soltos"
 
 // -------------------- Helpers gerais --------------------
 
-export function tokenize(text = '') {                         // quebra por \n , ; \t
+// Tokenização "geral" (mantida para outros usos)
+export function tokenize(text = '') {
   return String(text)
     .replace(/\r\n?/g, '\n')
-    .split(/\n|,|;|\t/g)
+    .split(/\n|,|;|\t/g)                      // <— geral (mantida)
     .map(s => s.trim())
     .filter(Boolean);
 }
 
-export function normalizeName(s = '') {                       // Nome Próprio simples
+// Tokenização por LINHA (nova): para estatística do textarea
+function tokenizeLines(text = '') {
+  return String(text)
+    .replace(/\r\n?/g, '\n')
+    .split('\n')                               // <— apenas por linha
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+export function normalizeName(s = '') {
   const words = String(s)
     .normalize('NFKC')
     .replace(/\s+/g, ' ')
@@ -36,52 +42,49 @@ export function normalizeName(s = '') {                       // Nome Próprio s
 
 export function digits(s = '') { return String(s).replace(/\D/g, ''); }
 
-export function normalizePhone(s = '') {                      // BR leve (10/11 dígitos)
+export function normalizePhone(s = '') {
   let d = digits(s);
-  if (d.length > 11) d = d.slice(-11);                        // ignora +55 etc (mantém 11 finais)
+  if (d.length > 11) d = d.slice(-11);        // remove +55 etc: mantém 11 finais
   if (d.length < 10) return null;
   return d.length === 10
     ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
     : `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
 }
 
-// Remove telefones e QUALQUER sequência numérica de 2+ dígitos do texto destinado a nome.
-// Também limpa pontuação solta e espaços duplicados.
+// Remove telefones e sequências numéricas 2+ do texto de NOME
 export function stripNumbersFromName(s = '') {
   let t = String(s);
-  t = t.replace(PHONE_RE, ' ');        // remove blocos que parecem telefone
-  t = t.replace(/\d{2,}/g, ' ');       // remove sequências numéricas com 2+ dígitos
-  t = t.replace(/[()\-._]+/g, ' ');    // limpa pontuação comum
+  t = t.replace(PHONE_RE, ' ');
+  t = t.replace(/\d{2,}/g, ' ');
+  t = t.replace(/[()\-._]+/g, ' ');
   t = t.replace(/\s{2,}/g, ' ').trim();
   return t;
 }
 
-export function uniqueCaseInsensitive(arr = []) {             // dedupe preservando 1ª ocorrência
-  const seen = new Set();
-  const out = [];
+export function uniqueCaseInsensitive(arr = []) {
+  const seen = new Set(); const out = [];
   for (const s of arr) {
     const k = String(s).toLocaleLowerCase();
     if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(s);
+    seen.add(k); out.push(s);
   }
   return out;
 }
 
-// -------------------- Parser "nomes soltos" (para textarea/estatística) --------------------
-
+// -------------------- Parser "nomes soltos" (estatística do textarea) --------------------
+// IMPORTANTE: agora conta por LINHA (não divide por vírgula/;).
 export function parsePlainList(text = '') {
-  const tokens = tokenize(text);
+  const tokens = tokenizeLines(text);          // <— mudou de tokenize(...) para tokenizeLines(...)
   const rawCount = tokens.length;
 
   const items = [];
   const duplicates = [];
-  const filtered = [];                    // tokens descartados por virarem vazios após limpeza
+  const filtered = [];
   const seen = new Set();
 
   for (const t of tokens) {
-    const cleaned = stripNumbersFromName(t);                 // limpa números/telefones antes
-    if (!cleaned || cleaned.replace(/\W/g, '').length < 2) { // sobrou quase nada? descarta
+    const cleaned = stripNumbersFromName(t);
+    if (!cleaned || cleaned.replace(/\W/g, '').length < 2) {
       filtered.push(t);
       continue;
     }
@@ -106,15 +109,13 @@ export function fromCSV(csv = '') {
   const lines = String(csv).replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim().length);
   if (!lines.length) return [];
 
-  const parseLine = (line) => {                                // CSV minimalista com aspas
-    const out = [];
-    let cur = '', inQ = false;
+  const parseLine = (line) => {
+    const out = []; let cur = '', inQ = false;
     for (let i = 0; i < line.length; i++) {
       const ch = line[i];
       if (inQ) {
-        if (ch === '"') {
-          if (line[i+1] === '"') { cur += '"'; i++; } else { inQ = false; }
-        } else cur += ch;
+        if (ch === '"') { if (line[i+1] === '"') { cur += '"'; i++; } else { inQ = false; } }
+        else cur += ch;
       } else {
         if (ch === ',') { out.push(cur); cur = ''; }
         else if (ch === '"') inQ = true;
