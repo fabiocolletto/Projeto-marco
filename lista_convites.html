@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Organizador de Convites</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #d9dce3;
+      --text: #0f172a;
+      --muted: #64748b;
+      --accent: #2563eb;
+      --accent-dark: #1d4ed8;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font: 15px/1.6 var(--font, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 16px 48px;
+    }
+
+    header h1 {
+      margin: 0 0 4px;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header p {
+      margin: 0 0 24px;
+      color: var(--muted);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+
+    form label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="search"],
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      background: #fff;
+      color: inherit;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .field {
+      margin-bottom: 18px;
+    }
+
+    .hint {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-weight: 600;
+      cursor: pointer;
+      font: inherit;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.primary:hover {
+      background: var(--accent-dark);
+    }
+
+    button.ghost {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: inherit;
+    }
+
+    button.ghost:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    button.danger {
+      background: rgba(220, 38, 38, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .list-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .control-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .control-group input[type="search"] {
+      min-width: 240px;
+    }
+
+    .summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin: 20px 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .summary strong {
+      color: var(--text);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    td .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      background: rgba(37, 99, 235, 0.08);
+      color: var(--accent-dark);
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    td.number {
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 32px 12px;
+    }
+
+    .status {
+      margin: 8px 0 0;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
+    .status.info {
+      color: var(--accent-dark);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+
+      .card {
+        background: #0b1220;
+        border-color: rgba(148, 163, 184, 0.2);
+        box-shadow: none;
+      }
+
+      input,
+      textarea {
+        background: rgba(15, 23, 42, 0.6);
+        border-color: rgba(148, 163, 184, 0.3);
+        color: inherit;
+      }
+
+      .chip {
+        background: rgba(37, 99, 235, 0.2);
+        color: #bfdbfe;
+      }
+
+      table {
+        min-width: 640px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Organizador de Convites</h1>
+      <p>Centralize a lista de convites, acompanhe acompanhantes e controle rapidamente a quantidade de convidados por convite.</p>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="form-title">
+        <h2 id="form-title">Adicionar novo convite</h2>
+        <form id="invite-form" autocomplete="off">
+          <div class="grid two">
+            <div class="field">
+              <label for="guest-name">Nome do convidado principal<span aria-hidden="true"> *</span></label>
+              <input type="text" id="guest-name" placeholder="Ex.: Ana Oliveira" required />
+            </div>
+            <div class="field">
+              <label for="guest-phone">Telefone</label>
+              <input type="tel" id="guest-phone" placeholder="(41) 99999-0000" />
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="guest-companions">Nome dos acompanhantes (separe por vírgula ou quebra de linha)</label>
+            <textarea id="guest-companions" placeholder="Ex.: João, Maria, Pedro"></textarea>
+            <div class="hint">Estimativa automática de convidados para este convite: <strong id="count-suggestion">1</strong></div>
+          </div>
+
+          <div class="grid two">
+            <div class="field">
+              <label for="guest-total">Quantos convidados constam neste convite?</label>
+              <input type="number" id="guest-total" min="1" step="1" value="1" />
+            </div>
+            <div class="field">
+              <label for="guest-notes">Observações (opcional)</label>
+              <input type="text" id="guest-notes" placeholder="Ex.: Mesa especial ou restrições" />
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="primary" id="submit-button">Adicionar convite</button>
+            <button type="button" class="ghost" id="cancel-edit" hidden>Cancelar edição</button>
+            <button type="button" class="ghost" id="reset-form">Limpar campos</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" aria-live="polite">
+        <div class="list-controls">
+          <div>
+            <h2>Lista de convites</h2>
+            <p class="muted">Os dados ficam salvos automaticamente neste navegador.</p>
+          </div>
+          <div class="control-group">
+            <label class="sr-only" for="search">Buscar convidados</label>
+            <input type="search" id="search" placeholder="Buscar por nome, acompanhante ou telefone" />
+            <button type="button" id="export-csv" class="ghost">Exportar CSV</button>
+            <button type="button" id="clear-all" class="ghost">Limpar lista</button>
+          </div>
+        </div>
+
+        <div class="summary">
+          <div>Convites cadastrados: <strong id="total-invites">0</strong></div>
+          <div>Total de convidados: <strong id="total-guests">0</strong></div>
+          <div>Acompanhantes cadastrados: <strong id="total-companions">0</strong></div>
+          <div id="filter-info"></div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Convidado principal</th>
+                <th scope="col">Acompanhantes</th>
+                <th scope="col">Telefone</th>
+                <th scope="col">Qtd. convidados</th>
+                <th scope="col">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="invite-table"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const STORAGE_KEY = 'convite-organizer-v1';
+      const state = {
+        entries: [],
+        editingId: null,
+        guestCountManual: false
+      };
+
+      const $ = (id) => document.getElementById(id);
+      const form = $('invite-form');
+      const nameInput = $('guest-name');
+      const phoneInput = $('guest-phone');
+      const companionsInput = $('guest-companions');
+      const totalInput = $('guest-total');
+      const notesInput = $('guest-notes');
+      const submitButton = $('submit-button');
+      const cancelButton = $('cancel-edit');
+      const suggestionEl = $('count-suggestion');
+      const statusEl = $('status');
+      const tableBody = $('invite-table');
+      const searchInput = $('search');
+      const totalInvitesEl = $('total-invites');
+      const totalGuestsEl = $('total-guests');
+      const totalCompanionsEl = $('total-companions');
+      const filterInfoEl = $('filter-info');
+      const formTitle = $('form-title');
+      const clearAllButton = $('clear-all');
+      const exportButton = $('export-csv');
+      const resetButton = $('reset-form');
+
+      function parseCompanions(text) {
+        return text
+          .split(/[\n,;]+/)
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+
+      function updateSuggestion() {
+        const companions = parseCompanions(companionsInput.value);
+        const base = nameInput.value.trim() ? 1 : 0;
+        const suggested = Math.max(1, base + companions.length);
+        suggestionEl.textContent = suggested;
+        if (!state.guestCountManual) {
+          totalInput.value = suggested;
+        }
+      }
+
+      function setStatus(message, type = 'info', timeout = 3200) {
+        statusEl.textContent = message;
+        statusEl.className = `status ${type}`;
+        if (timeout) {
+          window.clearTimeout(setStatus._timer);
+          setStatus._timer = window.setTimeout(() => {
+            statusEl.textContent = '';
+            statusEl.className = 'status';
+          }, timeout);
+        }
+      }
+
+      function saveToStorage() {
+        try {
+          const payload = JSON.stringify(state.entries);
+          window.localStorage.setItem(STORAGE_KEY, payload);
+        } catch (err) {
+          console.error('Erro ao salvar convites', err);
+          setStatus('Não foi possível salvar automaticamente.', 'error');
+        }
+      }
+
+      function loadFromStorage() {
+        try {
+          const raw = window.localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            state.entries = parsed.map((entry) => ({
+              ...entry,
+              companions: Array.isArray(entry.companions) ? entry.companions : parseCompanions(entry.companionsText || '')
+            }));
+          }
+        } catch (err) {
+          console.warn('Não foi possível carregar dados salvos:', err);
+        }
+      }
+
+      function formatPhone(phone) {
+        return phone ? phone : '—';
+      }
+
+      function renderList() {
+        const term = searchInput.value.trim().toLowerCase();
+        const filtered = term
+          ? state.entries.filter((entry) => {
+              const pool = [entry.mainName, entry.phone, entry.companionsText, entry.notes]
+                .filter(Boolean)
+                .join(' ')
+                .toLowerCase();
+              return pool.includes(term);
+            })
+          : state.entries;
+
+        const sorted = filtered.slice().sort((a, b) => a.mainName.localeCompare(b.mainName, 'pt-BR', { sensitivity: 'base' }));
+
+        const fragment = document.createDocumentFragment();
+        if (sorted.length === 0) {
+          const emptyRow = document.createElement('tr');
+          const emptyCell = document.createElement('td');
+          emptyCell.colSpan = 5;
+          emptyCell.className = 'empty';
+          emptyCell.textContent = term ? 'Nenhum convite encontrado para esta busca.' : 'Nenhum convite cadastrado até o momento.';
+          emptyRow.appendChild(emptyCell);
+          fragment.appendChild(emptyRow);
+        } else {
+          sorted.forEach((entry) => {
+            const row = document.createElement('tr');
+            row.dataset.id = entry.id;
+
+            const companionsChips = entry.companions.length
+              ? `<div class="chips">${entry.companions.map((name) => `<span class="chip">${name}</span>`).join('')}</div>`
+              : '<span class="muted">Sem acompanhantes</span>';
+
+            const notesMarkup = entry.notes ? `<div class="muted">${entry.notes}</div>` : '';
+
+            row.innerHTML = `
+              <td>
+                <div><strong>${entry.mainName}</strong></div>
+                ${notesMarkup}
+              </td>
+              <td>${companionsChips}</td>
+              <td>${formatPhone(entry.phone)}</td>
+              <td class="number">${entry.guestCount}</td>
+              <td>
+                <div class="actions">
+                  <button type="button" class="ghost" data-action="edit">Editar</button>
+                  <button type="button" class="danger" data-action="remove">Excluir</button>
+                </div>
+              </td>
+            `;
+
+            fragment.appendChild(row);
+          });
+        }
+
+        tableBody.innerHTML = '';
+        tableBody.appendChild(fragment);
+
+        const totalGuests = state.entries.reduce((acc, entry) => acc + Number(entry.guestCount || 0), 0);
+        const totalCompanions = state.entries.reduce((acc, entry) => acc + entry.companions.length, 0);
+
+        totalInvitesEl.textContent = state.entries.length;
+        totalGuestsEl.textContent = totalGuests;
+        totalCompanionsEl.textContent = totalCompanions;
+
+        if (term) {
+          filterInfoEl.textContent = `Mostrando ${sorted.length} de ${state.entries.length} convites.`;
+        } else {
+          filterInfoEl.textContent = '';
+        }
+      }
+
+      function updateFormMode() {
+        if (state.editingId) {
+          submitButton.textContent = 'Salvar alterações';
+          formTitle.textContent = 'Editar convite';
+          cancelButton.hidden = false;
+        } else {
+          submitButton.textContent = 'Adicionar convite';
+          formTitle.textContent = 'Adicionar novo convite';
+          cancelButton.hidden = true;
+        }
+      }
+
+      function resetForm() {
+        state.editingId = null;
+        state.guestCountManual = false;
+        form.reset();
+        totalInput.value = Math.max(1, Number(totalInput.value) || 1);
+        updateSuggestion();
+        updateFormMode();
+      }
+
+      function handleEdit(id) {
+        const entry = state.entries.find((item) => item.id === id);
+        if (!entry) return;
+        state.editingId = id;
+        state.guestCountManual = true;
+        nameInput.value = entry.mainName;
+        phoneInput.value = entry.phone || '';
+        companionsInput.value = entry.companionsText || '';
+        totalInput.value = entry.guestCount;
+        notesInput.value = entry.notes || '';
+        updateSuggestion();
+        updateFormMode();
+        nameInput.focus();
+        setStatus(`Editando o convite de ${entry.mainName}.`, 'info');
+      }
+
+      function handleRemove(id) {
+        const entry = state.entries.find((item) => item.id === id);
+        if (!entry) return;
+        const confirmation = window.confirm(`Deseja realmente remover o convite de "${entry.mainName}"?`);
+        if (!confirmation) return;
+        state.entries = state.entries.filter((item) => item.id !== id);
+        saveToStorage();
+        renderList();
+        setStatus('Convite removido.', 'success');
+        if (state.editingId === id) {
+          resetForm();
+        }
+      }
+
+      function makeEntry(data) {
+        return {
+          id: data.id || `cv-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+          mainName: data.mainName,
+          phone: data.phone,
+          companions: data.companions,
+          companionsText: data.companionsText,
+          guestCount: data.guestCount,
+          notes: data.notes,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const mainName = nameInput.value.trim();
+        if (!mainName) {
+          setStatus('Informe o nome do convidado principal.', 'error');
+          nameInput.focus();
+          return;
+        }
+
+        const companionsText = companionsInput.value.trim();
+        const companions = parseCompanions(companionsText);
+        const guestCount = Number.parseInt(totalInput.value, 10);
+
+        if (!Number.isFinite(guestCount) || guestCount < 1) {
+          setStatus('Defina ao menos 1 convidado para o convite.', 'error');
+          totalInput.focus();
+          return;
+        }
+
+        const payload = makeEntry({
+          id: state.editingId,
+          mainName,
+          phone: phoneInput.value.trim(),
+          companions,
+          companionsText,
+          guestCount,
+          notes: notesInput.value.trim(),
+          createdAt: state.editingId ? state.entries.find((entry) => entry.id === state.editingId)?.createdAt : undefined
+        });
+
+        if (state.editingId) {
+          const index = state.entries.findIndex((entry) => entry.id === state.editingId);
+          if (index !== -1) {
+            state.entries.splice(index, 1, payload);
+            setStatus('Convite atualizado com sucesso!', 'success');
+          }
+        } else {
+          state.entries.push(payload);
+          setStatus('Convite adicionado com sucesso!', 'success');
+        }
+
+        saveToStorage();
+        renderList();
+        resetForm();
+      });
+
+      cancelButton.addEventListener('click', () => {
+        resetForm();
+        setStatus('Edição cancelada.', 'info', 2000);
+      });
+
+      resetButton.addEventListener('click', () => {
+        resetForm();
+        setStatus('Formulário limpo.', 'info', 2000);
+      });
+
+      companionsInput.addEventListener('input', updateSuggestion);
+      nameInput.addEventListener('input', updateSuggestion);
+      totalInput.addEventListener('input', () => {
+        state.guestCountManual = true;
+      });
+
+      tableBody.addEventListener('click', (event) => {
+        const actionButton = event.target.closest('button[data-action]');
+        if (!actionButton) return;
+        const row = actionButton.closest('tr');
+        if (!row) return;
+        const { id } = row.dataset;
+        if (!id) return;
+        if (actionButton.dataset.action === 'edit') {
+          handleEdit(id);
+        }
+        if (actionButton.dataset.action === 'remove') {
+          handleRemove(id);
+        }
+      });
+
+      searchInput.addEventListener('input', () => {
+        renderList();
+      });
+
+      clearAllButton.addEventListener('click', () => {
+        if (!state.entries.length) {
+          setStatus('Nenhum convite para limpar.', 'info', 2000);
+          return;
+        }
+        const confirmation = window.confirm('Tem certeza de que deseja remover todos os convites?');
+        if (!confirmation) return;
+        state.entries = [];
+        saveToStorage();
+        renderList();
+        resetForm();
+        setStatus('Lista de convites limpa.', 'success');
+      });
+
+      exportButton.addEventListener('click', () => {
+        if (!state.entries.length) {
+          setStatus('Cadastre ao menos um convite antes de exportar.', 'error', 2400);
+          return;
+        }
+
+        const header = ['Convidado principal', 'Acompanhantes', 'Telefone', 'Qtd convidados', 'Qtd acompanhantes', 'Observações'];
+        const rows = state.entries.map((entry) => [
+          entry.mainName,
+          entry.companions.join('; '),
+          entry.phone,
+          entry.guestCount,
+          entry.companions.length,
+          entry.notes || ''
+        ]);
+
+        const csvContent = [header, ...rows]
+          .map((line) => line
+            .map((value) => {
+              const text = value ?? '';
+              const needsQuotes = /[";,\n]/.test(String(text));
+              const safeText = String(text).replace(/"/g, '""');
+              return needsQuotes ? `"${safeText}"` : safeText;
+            })
+            .join(';'))
+          .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        const now = new Date();
+        const stamp = now.toISOString().slice(0, 10);
+        link.href = url;
+        link.download = `lista-convites-${stamp}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setStatus('Arquivo CSV exportado com sucesso.', 'success');
+      });
+
+      loadFromStorage();
+      renderList();
+      updateSuggestion();
+    })();
+  </script>
+</body>
+</html>
