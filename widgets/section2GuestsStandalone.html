@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Convidados — Section 2</title>
+  <!-- CSS global do app (a mesma tag do release) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@v3.0.3/shared/ui.css">
+  <style>
+    body { background: var(--bg,#0b0c0f); margin: 0; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="marco-section2"></div>
+  </div>
+
+  <script type="module">
+    const base = "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@v3.0.3";
+    const el = document.getElementById("marco-section2");
+
+    const store = await import(`${base}/shared/projectStore.js`);
+    const bus   = await import(`${base}/shared/marcoBus.js`);
+    const inv   = await import(`${base}/shared/inviteUtils.js`);
+
+    await store.init();
+
+    el.innerHTML = `
+      <div class="card">
+        <h2>Convidados</h2>
+        <p class="mut">Cada linha representa um <b>convite</b>. Vírgulas/; separam <b>acompanhantes</b>. Telefones são detectados e padronizados.</p>
+
+        <div class="row">
+          <div class="col-6">
+            <label>Lista (entrada bruta)</label>
+            <textarea id="ta" rows="10" placeholder="Ex.:&#10;Fabio, Ludi  +55 (41) 98432-2222&#10;Fabio Colletto 41833333333&#10;Ana Souza"></textarea>
+
+            <div id="live" class="card" style="margin-top:8px; padding:10px; box-shadow:none">
+              <div class="mut" id="liveStats"></div>
+              <div id="liveList" style="margin-top:6px"></div>
+            </div>
+
+            <div class="actions" style="margin-top:8px">
+              <button id="btnAdd" class="btn">Adicionar linha(s) à tabela</button>
+              <button id="btnClear" class="btn ghost">Limpar campo</button>
+            </div>
+          </div>
+
+          <div class="col-6">
+            <div class="actions" style="justify-content:space-between">
+              <div class="mut"><strong id="kpiConvites">0 convites</strong> · <span id="kpiPessoas">0 pessoas</span></div>
+              <div>
+                <button id="btnExport" class="btn ghost">Exportar CSV</button>
+                <button id="btnSalvar" class="btn" disabled>Salvar</button>
+              </div>
+            </div>
+
+            <div class="card" style="padding:0; margin-top:8px;">
+              <table class="table" id="tbl">
+                <thead>
+                  <tr>
+                    <th style="width:56px">#</th>
+                    <th>Titular</th>
+                    <th>Acompanhantes</th>
+                    <th style="width:160px">Telefone</th>
+                    <th style="width:90px">Total</th>
+                    <th style="width:120px">Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions-sticky">
+        <span class="mut">Dica: você pode adicionar aos poucos — edite/exclua na tabela e salve quando quiser.</span>
+      </div>
+    `;
+
+    // ---- estado ----
+    const $ = (s) => el.querySelector(s);
+    const LAST = "ac:lastProjectId";
+    let activeId = localStorage.getItem(LAST);
+    let active   = activeId ? await store.getProject(activeId) : null;
+    let convites = Array.isArray(active?.convites) ? active.convites.map(x => ({ ...x })) : [];
+    let dirty = false;
+
+    const esc = (s='') => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    const totalPessoas = (list) => list.reduce((acc,it)=> acc + (1 + (it.acompanhantes?.length || 0)), 0);
+    const setDirty = (v=true)=>{ dirty = !!v; $("#btnSalvar").disabled = !activeId || !dirty; if (dirty) bus.publish("marco:segment-dirty",{name:"invites"}); };
+
+    function renderKPIs(){
+      $("#kpiConvites").textContent = `${convites.length} convite(s)`;
+      $("#kpiPessoas").textContent  = `${totalPessoas(convites)} pessoa(s)`;
+    }
+    function renderTable(){
+      const tbody = $("#tbody"); tbody.innerHTML = "";
+      convites.forEach((c, idx) => {
+        const acomp = c.acompanhantes?.length ? c.acompanhantes.join(' + ') : '';
+        const tr = document.createElement("tr");
+        tr.dataset.id = c.id;
+        tr.innerHTML = `
+          <td>${idx+1}</td>
+          <td>${esc(c.titular)}</td>
+          <td>${esc(acomp)}</td>
+          <td>${esc(c.telefone || "")}</td>
+          <td>${c.total ?? (1 + (c.acompanhantes?.length || 0))}</td>
+          <td>
+            <button class="btn ghost btnEdit">Editar</button>
+            <button class="btn danger btnDel">Excluir</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      renderKPIs();
+      $("#btnSalvar").disabled = !activeId || !dirty;
+    }
+    function renderLive(){
+      const txt = $("#ta").value.replace(/\r\n?/g, "\n");
+      const lines = txt.split("\n").map(s => s.trim()).filter(Boolean);
+      const listEl = $("#liveList"); const statsEl = $("#liveStats");
+      listEl.innerHTML = "";
+      let valid = 0, filtered = 0;
+      lines.forEach((ln, i) => {
+        const item = inv.parseInviteLine(ln);
+        if (!item) { filtered++; return; }
+        valid++;
+        const acomp = item.acompanhantes?.length ? item.acompanhantes.join(" + ") : "—";
+        const tel   = item.telefone || "—";
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <div class="col-12">
+            <div class="pill" style="margin-bottom:6px">Linha ${i+1}</div>
+            <div><b>Titular:</b> ${esc(item.titular)}</div>
+            <div><b>Acompanhantes:</b> ${esc(acomp)}</div>
+            <div><b>Telefone:</b> ${esc(tel)}</div>
+            <div class="mut">Total: ${item.total}</div>
+            <div class="divider" style="margin:10px 0"></div>
+          </div>`;
+        listEl.appendChild(row);
+      });
+      statsEl.textContent = `Prévia: ${valid} linha(s) válida(s) • ${filtered} ignorada(s)`;
+    }
+    function hydrate(project){
+      convites = Array.isArray(project?.convites) ? project.convites.map(x => ({ ...x })) : [];
+      renderTable(); renderLive(); setDirty(false);
+    }
+
+    if (active) hydrate(active); else hydrate(null);
+
+    // esquerda
+    $("#ta").addEventListener("input", renderLive);
+    $("#btnAdd").addEventListener("click", () => {
+      const novos = inv.parseInvites($("#ta").value);
+      if (!novos.length) { alert("Nada para adicionar."); return; }
+      convites.push(...novos);
+      $("#ta").value = ""; renderLive(); renderTable(); setDirty(true);
+    });
+    $("#btnClear").addEventListener("click", ()=>{ $("#ta").value = ""; renderLive(); });
+
+    // tabela
+    $("#tbody").addEventListener("click", (e) => {
+      const btn = e.target.closest("button"); if (!btn) return;
+      const tr  = e.target.closest("tr"); const id = tr?.dataset.id;
+      const idx = convites.findIndex(c => c.id === id); if (idx === -1) return;
+
+      if (btn.classList.contains("btnDel")) {
+        if (!confirm("Excluir este convite?")) return;
+        convites.splice(idx, 1); renderTable(); setDirty(true);
+      }
+      if (btn.classList.contains("btnEdit")) {
+        const c = convites[idx];
+        const novoTit = prompt("Titular:", c.titular) ?? c.titular;
+        const novoAco = prompt("Acompanhantes (separe por +):", (c.acompanhantes||[]).join(" + "));
+        const novoTel = prompt("Telefone:", c.telefone ?? "") ?? c.telefone;
+        c.titular = novoTit.trim() ? novoTit.trim() : c.titular;
+        c.acompanhantes = (novoAco || "").split("+").map(s => s.trim()).filter(Boolean);
+        c.telefone = (novoTel || "").trim() || null;
+        c.total = 1 + (c.acompanhantes?.length || 0);
+        renderTable(); setDirty(true);
+      }
+    });
+
+    // salvar / exportar
+    $("#btnSalvar").addEventListener("click", async () => {
+      if (!activeId) { alert("Nenhum evento ativo. Use o header para abrir/criar."); return; }
+      active = await store.updateProject(activeId, { convites });
+      hydrate(active);
+      bus.publish("marco:project-saved", { id: activeId });
+      alert("Convites salvos!");
+    });
+    $("#btnExport").addEventListener("click", () => {
+      const csv = inv.invitesToCSV(convites);
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url  = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), { href: url, download: "convites.csv" });
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    });
+
+    // integração header
+    bus.subscribe("marco:project-opened", async ({ id }) => {
+      activeId = id || null;
+      active   = activeId ? await store.getProject(activeId) : null;
+      hydrate(active);
+    });
+    bus.subscribe("marco:save-request", async () => {
+      if (dirty && activeId) { await store.updateProject(activeId, { convites }); setDirty(false); }
+      window.dispatchEvent(new CustomEvent("marco:segment-saved", { detail: { name: "invites" } }));
+      if (activeId) bus.publish("marco:project-saved", { id: activeId });
+    });
+  </script>
+</body>
+</html>
