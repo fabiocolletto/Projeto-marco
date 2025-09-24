@@ -16,7 +16,7 @@ export async function mountSection2(el) {
     <div class="card">
       <h2>Convidados</h2>
       <p class="mut">Cada linha representa um convite. Use vírgulas para acompanhantes.<br>
-      Ex.: <code>Fabio, Ludi 41 99999-0000</code> → Titular "Fabio", acompanhante "Ludi", telefone reconhecido e padronizado.</p>
+      Ex.: <code>Fabio, Lud 41 99999-0000</code> → Titular "Fabio", acompanhante "Lud", telefone reconhecido e padronizado.</p>
 
       <div class="row">
         <!-- Coluna esquerda: entrada -->
