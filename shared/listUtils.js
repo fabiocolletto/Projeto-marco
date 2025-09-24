@@ -1,90 +1,138 @@
-// shared/inviteUtils.js
-// Converte UMA linha de texto num "convite" estruturado.
-// Regras simples e previsíveis para o estudo:
-//
-// - Cada LINHA representa UM convite.
-// - Dentro da linha, o NOME DO TITULAR vem primeiro.
-// - Acompanhantes vêm após , (vírgula) ou ; (ponto e vírgula).
-//   Ex.: "Fabio, Ludi" -> titular "Fabio", acompanhantes ["Ludi"]
-// - Se for "Fabio Ludi" (sem vírgula), é UM NOME composto (apenas titular).
-// - Telefone pode aparecer em QUALQUER lugar na linha; é detectado e removido dos nomes.
-// - Sequências com 2+ dígitos são ignoradas nos nomes.
-// - Saída: { id, titular, acompanhantes[], telefone|null, total }.
+// shared/listUtils.js
+// Utilitários base para a etapa Convidados.
+// - normalização de nomes
+// - limpeza de números/telefones (2+ dígitos) fora dos nomes
+// - tokenização, dedupe, estatísticas
+// - CSV simples (uma coluna "nome")
+// Sem dependências externas. Comentários curtos ao lado.
 
-import { normalizeName, stripNumbersFromName } from "./listUtils.js";
+// Palavrinhas mantidas minúsculas no meio do nome próprio
+const SMALL_WORDS = new Set(['da', 'de', 'do', 'das', 'dos', 'e']);
 
-const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g; // +55 (41) 99999-0000, 41 9999-0000 etc.
+// Telefone "solto" (aceita +DD, DDD, espaços, hífens e parênteses)
+const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g;
 
-export function uid() {
-  return (crypto?.randomUUID?.() ?? `id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`);
-}
+// -------------------- Helpers gerais --------------------
 
-// Normaliza um telefone BR de maneira leve (10/11 dígitos)
-export function normalizePhone(s = '') {
-  const d = String(s).replace(/\D/g, '');
-  if (d.length < 10) return null;
-  if (d.length === 10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
-  return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7,11)}`;
-}
-
-// Extrai e retorna { semTelefone, telefone|null }
-function extractPhone(line = '') {
-  let tel = null;
-  const phones = String(line).match(PHONE_RE);
-  if (phones && phones.length) {
-    // pega o primeiro "melhor" candidato
-    tel = normalizePhone(phones[0]);
-  }
-  const semTel = String(line).replace(PHONE_RE, ' ');
-  return { semTelefone: semTel, telefone: tel };
-}
-
-// Divide uma linha em um convite
-export function parseInviteLine(line = '') {
-  const { semTelefone, telefone } = extractPhone(line);
-
-  // separa por vírgula ou ; — isso define titulares + acompanhantes
-  const parts = semTelefone
+export function tokenize(text = '') {                         // quebra por \n , ; \t
+  return String(text)
     .replace(/\r\n?/g, '\n')
-    .split(/[,;]+/g)
-    .map(s => stripNumbersFromName(s))  // remove sequências numéricas 2+ e ruído
+    .split(/\n|,|;|\t/g)
     .map(s => s.trim())
     .filter(Boolean);
-
-  if (!parts.length) return null;
-
-  const titular = normalizeName(parts[0]);
-  const acompanhantes = parts.slice(1).map(normalizeName).filter(Boolean);
-  const total = 1 + acompanhantes.length;
-
-  return {
-    id: uid(),
-    titular,
-    acompanhantes,
-    telefone: telefone ?? null,
-    total
-  };
 }
 
-// Converte várias linhas em convites (ignora linhas vazias)
-export function parseInvites(text = '') {
-  const lines = String(text).replace(/\r\n?/g, '\n').split('\n').map(s => s.trim());
+export function normalizeName(s = '') {                       // Nome Próprio simples
+  const words = String(s)
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+    .split(' ');
+  return words
+    .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(' ');
+}
+
+export function digits(s = '') { return String(s).replace(/\D/g, ''); }
+
+export function normalizePhone(s = '') {                      // BR leve (10/11 dígitos)
+  let d = digits(s);
+  if (d.length > 11) d = d.slice(-11);                        // ignora +55 etc (mantém 11 finais)
+  if (d.length < 10) return null;
+  return d.length === 10
+    ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
+    : `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+}
+
+// Remove telefones e QUALQUER sequência numérica de 2+ dígitos do texto destinado a nome.
+// Também limpa pontuação solta e espaços duplicados.
+export function stripNumbersFromName(s = '') {
+  let t = String(s);
+  t = t.replace(PHONE_RE, ' ');        // remove blocos que parecem telefone
+  t = t.replace(/\d{2,}/g, ' ');       // remove sequências numéricas com 2+ dígitos
+  t = t.replace(/[()\-._]+/g, ' ');    // limpa pontuação comum
+  t = t.replace(/\s{2,}/g, ' ').trim();
+  return t;
+}
+
+export function uniqueCaseInsensitive(arr = []) {             // dedupe preservando 1ª ocorrência
+  const seen = new Set();
   const out = [];
-  for (const ln of lines) {
-    if (!ln) continue;
-    const inv = parseInviteLine(ln);
-    if (inv) out.push(inv);
+  for (const s of arr) {
+    const k = String(s).toLocaleLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(s);
   }
   return out;
 }
 
-// CSV: seq,titular,acompanhantes,telefone,total
-export function invitesToCSV(invites = []) {
-  const esc = s => `"${String(s ?? '').replace(/"/g, '""')}"`;
-  const header = 'seq,titular,acompanhantes,telefone,total';
-  const rows = invites.map((it, i) => {
-    const acomp = it.acompanhantes?.length ? it.acompanhantes.join(' + ') : '';
-    return [i+1, it.titular, acomp, it.telefone ?? '', it.total].map(esc).join(',');
-  });
-  return [header, ...rows].join('\n');
+// -------------------- Parser "nomes soltos" (para textarea/estatística) --------------------
+
+export function parsePlainList(text = '') {
+  const tokens = tokenize(text);
+  const rawCount = tokens.length;
+
+  const items = [];
+  const duplicates = [];
+  const filtered = [];                    // tokens descartados por virarem vazios após limpeza
+  const seen = new Set();
+
+  for (const t of tokens) {
+    const cleaned = stripNumbersFromName(t);                 // limpa números/telefones antes
+    if (!cleaned || cleaned.replace(/\W/g, '').length < 2) { // sobrou quase nada? descarta
+      filtered.push(t);
+      continue;
+    }
+    const name = normalizeName(cleaned);
+    const key  = name.toLocaleLowerCase();
+    if (seen.has(key)) { duplicates.push(name); continue; }
+    seen.add(key);
+    items.push(name);
+  }
+
+  return { items, duplicates, rawCount, filtered };
+}
+
+// -------------------- CSV simples (uma coluna "nome") --------------------
+
+export function toCSV(names = []) {
+  const esc = s => `"${String(s).replace(/"/g, '""')}"`;
+  return ['nome', ...names.map(esc)].join('\n');
+}
+
+export function fromCSV(csv = '') {
+  const lines = String(csv).replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim().length);
+  if (!lines.length) return [];
+
+  const parseLine = (line) => {                                // CSV minimalista com aspas
+    const out = [];
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (inQ) {
+        if (ch === '"') {
+          if (line[i+1] === '"') { cur += '"'; i++; } else { inQ = false; }
+        } else cur += ch;
+      } else {
+        if (ch === ',') { out.push(cur); cur = ''; }
+        else if (ch === '"') inQ = true;
+        else cur += ch;
+      }
+    }
+    out.push(cur);
+    return out.map(v => v.trim());
+  };
+
+  const header = parseLine(lines[0]).map(h => h.toLowerCase());
+  const idx = header.includes('nome') ? header.indexOf('nome') : 0;
+
+  const names = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseLine(lines[i]);
+    const cell = cols[idx] || '';
+    if (cell) names.push(cell);
+  }
+  return names;
 }
