@@ -1,143 +1,226 @@
 // widgets/section2GuestsWidget.js
-// Etapa 2 — Convidados: textarea -> normalização/dedupe -> salvar/importar/exportar.
-// Depende de: shared/projectStore.js, shared/marcoBus.js, shared/listUtils.js
-// Visual: usa shared/ui.css (sem injetar CSS aqui).
+// Etapa 2 — Convidados com duas colunas:
+//  esquerda: textarea (linhas -> convites) + "Adicionar" (incremental)
+//  direita: tabela de convites com seq, titular, acompanhantes, telefone, total, editar/excluir
+//
+// Depende de: shared/ui.css, shared/projectStore.js, shared/marcoBus.js,
+//             shared/listUtils.js (normalização) e shared/inviteUtils.js (parser de linha)
 
-import * as store from "../shared/projectStore.js";  // IndexedDB CRUD
-import * as bus   from "../shared/marcoBus.js";      // publish/subscribe entre widgets
-import * as list  from "../shared/listUtils.js";     // tokenize/normalize/dedupe/CSV
+import * as store from "../shared/projectStore.js";
+import * as bus   from "../shared/marcoBus.js";
+import { parsePlainList } from "../shared/listUtils.js"; // para estatística básica do textarea
+import { parseInvites, parseInviteLine, invitesToCSV, uid } from "../shared/inviteUtils.js";
 
 export async function mountSection2(el) {
-  // Opcional: modo "flat" (campos com linha inferior). Remova se preferir rounded.
-  el.classList.add('form--flat');
-
   el.innerHTML = `
     <div class="card">
       <h2>Convidados</h2>
-      <p class="mut">Cole nomes separados por linha, vírgula, ponto e vírgula ou tab. Números/telefones serão ignorados nos nomes e a lista será normalizada e deduplicada.</p>
+      <p class="mut">Cada linha representa um convite. Use vírgulas para acompanhantes.<br>
+      Ex.: <code>Fabio, Ludi 41 99999-0000</code> → Titular "Fabio", acompanhante "Ludi", telefone reconhecido e padronizado.</p>
+
       <div class="row">
-        <div class="col-12">
+        <!-- Coluna esquerda: entrada -->
+        <div class="col-6 md-col-12">
           <label>Lista (entrada bruta)
-            <textarea id="taLista" placeholder="Ex.: Ana Souza&#10;Bruno Lima, Carlos Prado; Daniela Alves&#10;Fábio 41 99999-0000"></textarea>
+            <textarea id="taLista" rows="10" placeholder="Ex.:&#10;Fabio, Ludi 41 99999-0000&#10;Fabio Ludi 41 99999-0000&#10;Ana Souza"></textarea>
           </label>
           <div id="stats" class="mut" style="margin-top:6px"></div>
+          <div class="actions mt-2">
+            <button id="btnAddLines" class="btn">Adicionar linha(s) à lista</button>
+            <button id="btnClearTA" class="btn ghost">Limpar campo</button>
+          </div>
         </div>
-        <div class="col-12">
-          <label>Prévia normalizada
-            <pre id="preview" class="card" style="white-space:pre-wrap; padding:10px; margin:6px 0 0 0; box-shadow:none"></pre>
-          </label>
+
+        <!-- Coluna direita: lista de convites -->
+        <div class="col-6 md-col-12">
+          <div class="row">
+            <div class="col-12">
+              <div class="actions" style="justify-content:space-between">
+                <div class="mut"><strong id="kpiConvites">0 convites</strong> · <span id="kpiPessoas">0 pessoas</span></div>
+                <div>
+                  <button id="btnExport" class="btn ghost">Exportar CSV</button>
+                  <button id="btnSalvar" class="btn">Salvar</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="card" style="padding:0">
+                <table class="table" id="tbl">
+                  <thead>
+                    <tr>
+                      <th style="width:56px">#</th>
+                      <th>Titular</th>
+                      <th>Acompanhantes</th>
+                      <th style="width:160px">Telefone</th>
+                      <th style="width:90px">Total</th>
+                      <th style="width:120px">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      </div> <!-- row -->
     </div>
 
     <div class="actions-sticky">
-      <input id="csvFile" type="file" accept=".csv,text/csv" style="display:none">
-      <button id="btnImport"  class="btn ghost">Importar CSV</button>
-      <button id="btnExport"  class="btn ghost">Exportar CSV</button>
-      <span style="flex:1"></span>
-      <button id="btnSalvar"  class="btn">Salvar</button>
+      <span class="mut">Dica: você pode adicionar aos poucos. Só precisa salvar quando terminar.</span>
     </div>
   `;
 
   await store.init();
 
   const LAST = "ac:lastProjectId";
-  const $ = (s) => el.querySelector(s);
+  const $ = (s)=> el.querySelector(s);
 
   let activeId = localStorage.getItem(LAST);
   let active   = activeId ? await store.getProject(activeId) : null;
+
+  // Estado local deste widget (convites estruturados)
+  let convites = []; // { id, titular, acompanhantes[], telefone|null, total }
   let dirty = false;
 
-  // Resultado corrente do parser (usado no salvar/exportar)
-  let currentParse = list.parsePlainList('');
-
-  function setDisabled(disabled) {
-    ["taLista","btnImport","btnExport","btnSalvar"].forEach(id => {
-      const node = $("#"+id);
-      if (node) node.disabled = !!disabled;
-    });
-  }
-
-  function renderPreview(result) {
-    const { items, duplicates, rawCount, filtered = [] } = result;
-    $("#preview").textContent = items.join("\n");
+  // ------- UI helpers -------
+  function renderStatsTA() {
+    const txt = $("#taLista").value;
+    const parsed = parsePlainList(txt); // só para feedback bruto/únicos/filtrados
+    const { rawCount, items, duplicates, filtered = [] } = parsed;
     const dup = duplicates.length ? ` • duplicados removidos: ${duplicates.length}` : '';
-    const fil = filtered.length   ? ` • filtrados (numéricos): ${filtered.length}` : '';
-    $("#stats").textContent = `itens brutos: ${rawCount} • únicos: ${items.length}${dup}${fil}`;
+    const fil = filtered.length   ? ` • filtrados (numéricos): ${filtered.length}`    : '';
+    $("#stats").textContent = `itens brutos: ${rawCount} • únicos (nomes normalizados): ${items.length}${dup}${fil}`;
   }
 
-  function hydrate(project) {
-    const names = Array.isArray(project?.lista) ? project.lista : [];
-    $("#taLista").value = names.join("\n");
-    currentParse = list.parsePlainList($("#taLista").value);
-    renderPreview(currentParse);
-    setDisabled(!activeId);
-    dirty = false;
+  function renderTable() {
+    const tbody = $("#tbody"); tbody.innerHTML = "";
+    let totalPessoas = 0;
+    convites.forEach((c, idx) => {
+      totalPessoas += (c.total ?? (1 + (c.acompanhantes?.length || 0)));
+      const tr = document.createElement('tr'); tr.dataset.id = c.id;
+
+      const acomp = c.acompanhantes?.length ? c.acompanhantes.join(' + ') : '';
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td>${escapeHtml(c.titular)}</td>
+        <td>${escapeHtml(acomp)}</td>
+        <td>${escapeHtml(c.telefone || '')}</td>
+        <td>${c.total ?? (1 + (c.acompanhantes?.length || 0))}</td>
+        <td>
+          <button class="btn ghost btnEdit">Editar</button>
+          <button class="btn danger btnDel">Excluir</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    $("#kpiConvites").textContent = `${convites.length} convite(s)`;
+    $("#kpiPessoas").textContent  = `${totalPessoas} pessoa(s)`;
+    $("#btnSalvar").disabled = !activeId || !dirty;
   }
 
-  // Estado inicial
-  if (active) hydrate(active); else { setDisabled(true); renderPreview(list.parsePlainList("")); }
+  function escapeHtml(s=''){ return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-  // --- Interações ---
-  $("#taLista").addEventListener("input", () => {
-    currentParse = list.parsePlainList($("#taLista").value);
-    renderPreview(currentParse);
-    if (!dirty) { dirty = true; bus.publish("marco:segment-dirty", { name: "lista" }); }
+  function setDirty(v=true){
+    dirty = !!v;
+    $("#btnSalvar").disabled = !activeId || !dirty;
+    if (dirty) bus.publish('marco:segment-dirty', { name: 'invites' });
+  }
+
+  // ------- carregar projeto ativo -------
+  function hydrate(project){
+    const stored = Array.isArray(project?.convites) ? project.convites : [];
+    convites = stored.map(x => ({ ...x, id: x.id || uid() })); // garante id
+    renderTable();
+    renderStatsTA();
+    setDirty(false);
+  }
+
+  if (active) hydrate(active); else hydrate(null);
+
+  // ------- interações esquerda -------
+  $("#taLista").addEventListener('input', renderStatsTA);
+
+  $("#btnAddLines").addEventListener('click', ()=>{
+    const txt = $("#taLista").value;
+    const novos = parseInvites(txt);
+    if (!novos.length) { alert('Nada para adicionar.'); return; }
+    convites.push(...novos);
+    $("#taLista").value = ""; // limpa depois de adicionar
+    renderStatsTA();
+    renderTable();
+    setDirty(true);
   });
 
-  $("#btnSalvar").addEventListener("click", async () => {
+  $("#btnClearTA").addEventListener('click', ()=>{
+    $("#taLista").value = "";
+    renderStatsTA();
+  });
+
+  // ------- ações na tabela -------
+  $("#tbody").addEventListener('click', (e)=>{
+    const btn = e.target.closest('button'); if (!btn) return;
+    const tr = e.target.closest('tr'); const id = tr?.dataset.id;
+    const idx = convites.findIndex(c => c.id === id); if (idx === -1) return;
+
+    if (btn.classList.contains('btnDel')) {
+      if (!confirm('Excluir este convite?')) return;
+      convites.splice(idx, 1);
+      renderTable();
+      setDirty(true);
+    }
+    if (btn.classList.contains('btnEdit')) {
+      const c = convites[idx];
+      // edição simples via prompt (rápido pro estudo). Depois podemos trocar por modal.
+      const novoTit = prompt('Titular:', c.titular) ?? c.titular;
+      const novoAco = prompt('Acompanhantes (separe por +):', (c.acompanhantes||[]).join(' + '));
+      const novoTel = prompt('Telefone:', c.telefone ?? '') ?? c.telefone;
+
+      c.titular = novoTit.trim() ? novoTit.trim() : c.titular;
+      c.acompanhantes = (novoAco || '')
+        .split('+')
+        .map(s => s.trim())
+        .filter(Boolean);
+      c.telefone = (novoTel || '').trim() || null;
+      c.total = 1 + (c.acompanhantes?.length || 0);
+
+      renderTable();
+      setDirty(true);
+    }
+  });
+
+  // ------- salvar / exportar -------
+  $("#btnSalvar").addEventListener('click', async ()=>{
     if (!activeId) { alert('Nenhum evento ativo. Use o header para abrir/criar.'); return; }
-    const payload = { lista: currentParse.items };
+    // Persiste no novo campo "convites" (não quebra quem usava "lista")
+    const payload = { convites };
     active = await store.updateProject(activeId, payload);
     hydrate(active);
-    bus.publish("marco:project-saved", { id: activeId });
-    alert("Lista salva!");
+    bus.publish('marco:project-saved', { id: activeId });
+    alert('Convites salvos!');
   });
 
-  $("#btnExport").addEventListener("click", async () => {
-    const names = currentParse.items?.length
-      ? currentParse.items
-      : (Array.isArray(active?.lista) ? active.lista : []);
-    const csv  = list.toCSV(names);
+  $("#btnExport").addEventListener('click', ()=>{
+    const csv = invitesToCSV(convites);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
     const url  = URL.createObjectURL(blob);
-    const a = Object.assign(document.createElement("a"), { href: url, download: "convidados.csv" });
+    const a = Object.assign(document.createElement('a'), { href: url, download: 'convites.csv' });
     document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   });
 
-  $("#btnImport").addEventListener("click", () => $("#csvFile").click());
-  $("#csvFile").addEventListener("change", async (e) => {
-    const f = e.target.files?.[0]; if (!f) return;
-    const text = await f.text();
-
-    // Converte CSV para nomes, normaliza e mescla com o que já está no textarea
-    const incoming = list.fromCSV(text).map(list.normalizeName);
-    const merged   = list.uniqueCaseInsensitive([...currentParse.items, ...incoming]);
-
-    $("#taLista").value = merged.join("\n");
-    currentParse = list.parsePlainList($("#taLista").value);
-    renderPreview(currentParse);
-
-    dirty = true;
-    bus.publish("marco:segment-dirty", { name: "lista" });
-    e.target.value = ""; // reset input file
-  });
-
-  // --- Eventos do header / coordenador ---
-  bus.subscribe("marco:project-opened", async ({ id }) => {
+  // ------- eventos do header -------
+  bus.subscribe('marco:project-opened', async ({ id })=>{
     activeId = id || null;
     active   = activeId ? await store.getProject(activeId) : null;
-    if (active) hydrate(active); else { setDisabled(true); $("#taLista").value = ""; renderPreview(list.parsePlainList("")); dirty = false; }
+    hydrate(active);
   });
 
-  // Save-all (se o header/coordenador disparar)
-  bus.subscribe("marco:save-request", async () => {
+  // save-all (se o header disparar)
+  bus.subscribe('marco:save-request', async ()=>{
     if (dirty && activeId) {
-      await store.updateProject(activeId, { lista: currentParse.items });
-      dirty = false;
+      await store.updateProject(activeId, { convites });
+      setDirty(false);
     }
-    // sinaliza término para o coordenador (se usado)
-    window.dispatchEvent(new CustomEvent("marco:segment-saved", { detail: { name: "lista" } }));
-    if (activeId) bus.publish("marco:project-saved", { id: activeId });
+    window.dispatchEvent(new CustomEvent('marco:segment-saved', { detail: { name: 'invites' } }));
+    if (activeId) bus.publish('marco:project-saved', { id: activeId });
   });
 }
