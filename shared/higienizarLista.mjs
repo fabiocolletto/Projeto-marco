@@ -1,6 +1,20 @@
 /*
-  Projeto Marco – higienizarLista (v1)
-  ES Module para padronizar convites de convidados a partir de texto livre.
+  Projeto Marco – higienizarLista (v1.1)
+  ES Module para padronizar convites a partir de texto livre.
+
+  =====================================
+  CHANGELOG
+  - 2025-09-25 (v1.1)
+    • Removida a heurística que interpretava "+<n>" como quantidade de acompanhantes.
+      O caractere "+" passa a ser exclusivo de números internacionais (ex.: +351...).
+    • Detecção de acompanhantes agora ocorre apenas por:
+      (a) palavras-chave: "acompanhante(s)", "acomp." seguidas de número; e
+      (b) nomes explícitos separados por conectores ("e", vírgula, & ou /).
+    • Comentários e docs atualizados.
+
+  - 2025-09-25 (v1.0)
+    • Primeira versão pública.
+  =====================================
 
   Regras principais:
   - Cada linha = 1 convite (ordem livre de campos)
@@ -137,7 +151,7 @@ function formatBR(ddd, local) {
 
 /**
  * Retorna um objeto "raw" com dados detectados a partir da linha.
- * { tokens, possiveisNomes, possiveisNumeros, acompanhantesExplicitos, acompanhantesPorNomes }
+ * { parts, possiveisNomes, possiveisNumeros, acompanhantesExplicitos }
  */
 export function tokenizeLinha(line) {
   const original = String(line || "");
@@ -150,44 +164,36 @@ export function tokenizeLinha(line) {
     possiveisNomes: [],
     possiveisNumeros: [],
     acompanhantesExplicitos: 0,
-    acompanhantesPorNomes: [],
   };
 
   // Regex utilitárias
-  const reAcomp = /(\+\s*\d+)|(\b\d+\s*acompanhantes?\b)/i;
-  const reSomenteDigitos = /^[\d\s().+-]+$/;
+  const reAcompPalavra = /\b(\d+)\s*(?:acompanhantes?|acomp\.)\b/i;
+  const reSomenteDigitosOuTelefone = /^[\d\s().+\-]+$/; // permite + apenas para telefone
 
   for (const p of parts) {
     const seg = p.trim();
     if (!seg) continue;
 
-    // 1) Captura marcadores de acompanhantes explícitos ("+2", "2 acompanhantes")
-    const mA = seg.match(/\+\s*(\d+)/);
-    if (mA) raw.acompanhantesExplicitos += parseInt(mA[1], 10) || 0;
-    const mB = seg.match(/\b(\d+)\s*acompanhantes?\b/i);
+    // 1) Captura marcadores de acompanhantes explícitos via palavra-chave (NÃO usa +N)
+    const mB = seg.match(reAcompPalavra);
     if (mB) raw.acompanhantesExplicitos += parseInt(mB[1], 10) || 0;
 
     // 2) Captura números/telefones (segmentos dominados por dígitos e símbolos de fone)
-    if (reSomenteDigitos.test(seg)) {
+    if (reSomenteDigitosOuTelefone.test(seg)) {
       const compact = onlyDigitsKeepPlus(seg);
       if (compact.length >= 8) raw.possiveisNumeros.push(compact);
       continue;
     }
 
-    // 3) O restante tende a ser "nome" ou blocos com "e" / vírgulas
-    // Quebrar por conectores de nomes: e, &, /
+    // 3) O restante tende a ser "nome" ou blocos com conectores
     const sub = seg.split(/\s*(?:,|\se\s|\s&\s|\/)\s*/i).filter(Boolean);
     for (const s of sub) {
-      // ignora palavras-chave de acompanhantes para não virar nome
-      if (reAcomp.test(s)) continue;
-      // descarta trechos muito curtos sem letras
+      // ignora trechos que são somente a palavra-chave de acompanhantes
+      if (reAcompPalavra.test(s)) continue;
       if (!/[A-Za-zÀ-ÖØ-öø-ÿ]/.test(s)) continue;
       raw.possiveisNomes.push(s.trim());
     }
   }
-
-  // Se a linha tinha algo como "Fabio e Patricia" dentro de uma mesma part,
-  // o split acima já populou possiveisNomes com ambos.
 
   return raw;
 }
