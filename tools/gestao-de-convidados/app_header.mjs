@@ -35,11 +35,11 @@ const css = `
 .ac-infine{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
 .ac-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#1a7f37;transition:background .2s}
 .ac-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-.ac-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg)}
+.ac-card{border-radius:var(--radius);background:var(--bg)}
 .ac-card__inner{padding:14px}
 .ac-card__title{margin:0 0 8px 0;font-weight:900}
 .ac-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.ac-kpi{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.ac-kpi{border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .ac-kpi strong{font-size:20px;line-height:1}
 .ac-kpi span{font-size:11px;color:var(--muted)}
 .ac-meta{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:12px}
@@ -52,6 +52,10 @@ const css = `
 @media (max-width:960px){ .ac-panel{grid-template-columns:1fr} .ac-kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:560px){ .ac-kpis{grid-template-columns:1fr} .ac-event-select select{min-width:180px;max-width:55vw} }
 `;
+
+// Evento global emitido sempre que o projeto ativo muda; as abas podem ouvir com
+// window.addEventListener("ac:project-change", handler)
+const PROJECT_EVENT = "ac:project-change";
 
 const html = `
   <div class="ac-top">
@@ -70,11 +74,11 @@ const html = `
               </svg>
             </button>
             <div class="ac-dd__panel" id="menu-panel" role="menu" hidden>
+              <div class="ac-dd__item" data-action="novo">Novo evento</div>
               <div class="ac-dd__item" data-action="carregar">Carregar…</div>
               <div class="ac-dd__item" data-action="duplicar">Duplicar evento</div>
               <div class="ac-dd__item" data-action="deletar">Excluir evento</div>
               <div class="ac-dd__item" data-action="imprimir">Imprimir</div>
-              <div class="ac-dd__item" data-action="ajuda">Ajuda</div>
             </div>
           </div>
         </div>
@@ -149,6 +153,41 @@ const html = `
 `;
 
 // ---------- lógica principal ----------
+let currentRoot = null;
+let currentPanel = null;
+let currentBtn = null;
+let listenersBound = false;
+let currentRefresh = null;
+
+const globalToggleMenu = (state) => {
+  if(!currentPanel || !currentBtn) return;
+  const shouldOpen = typeof state === "boolean" ? state : currentPanel.hidden;
+  currentPanel.hidden = !shouldOpen;
+  currentBtn.setAttribute("aria-expanded", String(shouldOpen));
+};
+
+function bindGlobalListeners(){
+  if(listenersBound) return;
+  document.addEventListener("click", (e)=>{
+    if(!currentRoot) return;
+    const isMenuTrigger = e.target.closest?.(".ac-dd");
+    if(isMenuTrigger) return;
+    if(currentPanel?.hidden) return;
+    globalToggleMenu(false);
+  });
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape") globalToggleMenu(false);
+  });
+  listenersBound = true;
+}
+
+const cloneProject = (data) => {
+  if(typeof globalThis.structuredClone === "function"){
+    return globalThis.structuredClone(data);
+  }
+  return JSON.parse(JSON.stringify(data));
+};
+
 export async function render(rootEl){
   // cria shell
   const root = document.createElement("div");
@@ -178,6 +217,29 @@ export async function render(rootEl){
   // se listProjects não retorna convites, a UI continua funcional (mostra 0/—)
 
   let ativo = lista[0] || null;
+  let lastProjectId;
+
+  const notifyProjectChange = (proj) => {
+    const detailId = proj?.id ?? null;
+    if(detailId === lastProjectId) return;
+    lastProjectId = detailId;
+    if(typeof window !== "undefined" && typeof window.dispatchEvent === "function"){
+      const detail = { detail: { id: detailId } };
+      let evt;
+      try {
+        const Ctor = window.CustomEvent || CustomEvent;
+        evt = new Ctor(PROJECT_EVENT, detail);
+      } catch (err) {
+        if(typeof document !== "undefined" && document.createEvent){
+          evt = document.createEvent("CustomEvent");
+          evt.initCustomEvent(PROJECT_EVENT, false, false, detail.detail);
+        } else {
+          return;
+        }
+      }
+      window.dispatchEvent(evt);
+    }
+  };
 
   // UI: select topo
   const sel = $(root, "#ev-select");
@@ -185,7 +247,7 @@ export async function render(rootEl){
     sel.innerHTML = (lista.map((e,i)=>
       `<option value="${i}">${esc(e?.nome || "—")} • ${e?.dataISO || "—"} • ${esc(e?.local || "—")}</option>`
     ).join("")) || "";
-    sel.selectedIndex = 0;
+    sel.selectedIndex = lista.length ? 0 : -1;
   }
 
   // métricas/linhas
@@ -215,7 +277,7 @@ export async function render(rootEl){
     $(root, "#user-foot").textContent = `${lista.length} eventos`;
   }
 
-  async function renderEvento(){
+  function renderEvento(){
     if(!ativo){ $(root, "#ev-title").textContent="—"; return; }
     // se precisar dados completos: const full = await store.getProject(ativo.id);
     const ev = ativo;
@@ -237,22 +299,45 @@ export async function render(rootEl){
   }
 
   // preencher e renderizar
-  fillSelect(); renderUserPanel(); renderEvento();
+  const setActive = (project, { updateSelect = true, announce = true } = {}) => {
+    ativo = project || null;
+    if(updateSelect){
+      if(ativo){
+        const idx = lista.findIndex(e => e?.id === ativo.id);
+        if(idx >= 0){
+          sel.value = String(idx);
+        } else if(lista.length){
+          sel.selectedIndex = 0;
+          ativo = lista[0];
+        } else {
+          sel.selectedIndex = -1;
+        }
+      } else {
+        sel.selectedIndex = -1;
+      }
+    }
+    renderEvento();
+    if(announce) notifyProjectChange(ativo);
+  };
+
+  fillSelect();
+  renderUserPanel();
+  setActive(ativo, { announce: true });
 
   // select change
   sel.addEventListener("change", (e)=>{
     const i = parseInt(e.target.value,10);
-    ativo = lista[i] || ativo;
-    renderEvento();
+    setActive(lista[i] || ativo);
     setStatus("Evento carregado");
   });
 
   // menu
   const panel = $(root, "#menu-panel"); const btn = $(root, "#btn-menu");
-  const toggleMenu = (s) => { const v = (typeof s==="boolean") ? s : panel.hidden; panel.hidden = !v; btn.setAttribute("aria-expanded", String(v)); };
-  btn.addEventListener("click", ()=>toggleMenu());
-  document.addEventListener("click",(e)=>{ if(!e.target.closest(".ac-dd")) toggleMenu(false); });
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") toggleMenu(false); });
+  currentRoot = root;
+  currentPanel = panel;
+  currentBtn = btn;
+  btn.addEventListener("click", ()=>globalToggleMenu());
+  bindGlobalListeners();
 
   // modal carregar
   function openModal(){
@@ -275,49 +360,53 @@ export async function render(rootEl){
     const it = e.target.closest(".ac-dd__item");
     if(it){
       const act = it.getAttribute("data-action");
+      if(act==="novo")     createNew().catch(console.error);
       if(act==="carregar") openModal();
       if(act==="duplicar") duplicateActive().catch(console.error);
       if(act==="deletar")  deleteActive().catch(console.error);
       if(act==="imprimir") window.print();
-      if(act==="ajuda") setStatus("Abrindo ajuda…");
-      toggleMenu(false);
+      globalToggleMenu(false);
     }
     const b = e.target.closest("[data-load]");
     if(b){
       const i = parseInt(b.getAttribute("data-load"),10);
-      ativo = lista[i] || ativo;
-      sel.value = String(i);
-      renderEvento();
+      setActive(lista[i] || ativo);
       $(root, "#modal").hidden = true;
       setStatus("Evento carregado");
     }
   });
 
-  async function refreshIndex(){
+  async function refreshIndex({ preferredId } = {}){
+    const previousId = ativo?.id ?? null;
     lista = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
-    fillSelect(); renderUserPanel(); // preserva 'ativo' se ainda existir
-    if(ativo){
-      const idx = lista.findIndex(e => e?.id === ativo.id);
-      if(idx >= 0) sel.value = String(idx);
+    fillSelect();
+    renderUserPanel();
+    let nextActive = null;
+    const targetId = preferredId ?? previousId;
+    if(targetId){
+      nextActive = lista.find(e => e?.id === targetId) || null;
     }
-    await renderEvento();
+    if(!nextActive && lista.length){
+      nextActive = lista[0];
+    }
+    const changed = (nextActive?.id ?? null) !== previousId;
+    setActive(nextActive, { announce: changed });
   }
+
+  currentRefresh = refreshIndex;
 
   async function duplicateActive(){
     if(!ativo){ setStatus("Sem evento ativo"); return; }
     const full = (await store.getProject?.(ativo.id)) || ativo;
     // cria uma cópia rascunho
-    const clone = structuredClone(full);
+    const clone = cloneProject(full);
     delete clone.id; // força novo id
     clone.evento = clone.evento || {};
     clone.evento.nome = (clone.evento.nome || ativo.nome || "Evento") + " (cópia)";
     const res = await store.createProject?.(clone);
-    setStatus("Duplicado");
-    await refreshIndex();
-    // seleciona a cópia como ativa
     const novoId = res?.meta?.id;
-    const idx = lista.findIndex(e => e?.id === novoId);
-    if(idx >= 0){ ativo = lista[idx]; sel.value = String(idx); await renderEvento(); }
+    await refreshIndex({ preferredId: novoId });
+    setStatus("Duplicado");
   }
 
   async function deleteActive(){
@@ -325,10 +414,15 @@ export async function render(rootEl){
     const ok = confirm("Excluir este evento? Esta ação não pode ser desfeita.");
     if(!ok) return;
     await store.deleteProject?.(ativo.id);
-    setStatus("Excluído");
     await refreshIndex();
-    ativo = lista[0] || null;
-    await renderEvento();
+    setStatus("Excluído");
+  }
+
+  async function createNew(){
+    const res = await store.createProject?.({});
+    const novoId = res?.meta?.id;
+    await refreshIndex({ preferredId: novoId });
+    setStatus("Evento criado");
   }
 }
 
@@ -337,4 +431,12 @@ export function mount(selector){
   const el = document.querySelector(selector);
   if(!el) throw new Error("Elemento não encontrado: " + selector);
   return render(el);
+}
+
+// Permite que outras ferramentas forcem a atualização do cabeçalho após editar
+// o projeto ativo (ex.: store.updateProject). Basta chamar appHeader.buzz().
+export async function buzz(){
+  if(typeof currentRefresh === "function"){
+    await currentRefresh();
+  }
 }
