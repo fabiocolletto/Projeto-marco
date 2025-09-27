@@ -3,7 +3,7 @@
 // - Shell + navegação
 // - Import dinâmico das views
 // - CSS mínimo namespaced (.ac-app) — tipografia herda do site
-import * as store from '/shared/projectStore.js';
+import * as store from '../../shared/projectStore.js';
 import { qs, on, mount, spinner, showToast, cssBase } from './ui/dom.mjs';
 
 const routes = {
@@ -99,15 +99,23 @@ function setActiveTab(tab) {
 }
 
 async function ensureProjectId() {
-  // Usa o primeiro projeto existente; caso não exista, cria um com mensagens/templates default.
+  // Usa o primeiro projeto existente; caso não exista, cria um inicial em branco.
   const list = await store.listProjects();
   if (list && list.length) {
     return list[0].id;
   }
-  const p = await store.createProject({
-    evento: { titulo: 'Meu Evento', local: '', data: '', hora: '' },
+  const { meta } = await store.createProject({
+    evento: {
+      titulo: 'Meu Evento',
+      local: '',
+      data: '',
+      hora: '',
+      endereco: { logradouro: '' },
+      anfitriao: { nome: '' },
+    },
   });
-  return p.id;
+  showToast('Projeto inicial criado. Preencha os dados do evento.', 'info');
+  return meta.id;
 }
 
 export { render };

@@ -57,7 +57,13 @@ function ensureShape(p){
   p.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" };
 
   // Mantém endereco/anfitriao como OBJETOS (não strings)
-  p.evento ||= { nome:"", data:"", hora:"", local:"", endereco:{}, anfitriao:{} };
+  p.evento ||= {};
+  // Compatibilidade com versões anteriores que usavam "nome" como título
+  if (p.evento.nome && !p.evento.titulo) p.evento.titulo = p.evento.nome;
+  p.evento.titulo ||= "";
+  p.evento.data ||= "";
+  p.evento.hora ||= "";
+  p.evento.local ||= "";
   if (typeof p.evento.endereco !== "object" || p.evento.endereco === null) p.evento.endereco = {};
   if (typeof p.evento.anfitriao !== "object" || p.evento.anfitriao === null) p.evento.anfitriao = {};
 
@@ -68,7 +74,7 @@ function ensureShape(p){
   return p;
 }
 function toMeta(p){
-  return { id: p.id, nome: p.evento?.nome || "Sem nome", updatedAt: now() };
+  return { id: p.id, nome: p.evento?.titulo || p.evento?.nome || "Sem nome", updatedAt: now() };
 }
 
 // ---------- Cache do índice ----------
@@ -89,7 +95,7 @@ export async function createProject(data = {}){
     id,
     cerimonialista: data.cerimonialista || { nomeCompleto:"", telefone:"", redeSocial:"" },
     // aqui também garantimos objetos para endereco/anfitriao
-    evento: data.evento || { nome:"", data:"", hora:"", local:"", endereco:{}, anfitriao:{} },
+    evento: data.evento || { titulo:"", data:"", hora:"", local:"", endereco:{}, anfitriao:{} },
     lista: data.lista || [],
     tipos: data.tipos || [],
     modelos: data.modelos || {},
@@ -116,7 +122,7 @@ export async function updateProject(id, partial){
 
   const idx = indexCache || (await kvGet(INDEX_KEY)) || [];
   const i = idx.findIndex(x => x.id === id);
-  if (i >= 0) idx[i] = { ...idx[i], nome: next.evento?.nome || idx[i].nome, updatedAt: now() };
+  if (i >= 0) idx[i] = { ...idx[i], nome: next.evento?.titulo || next.evento?.nome || idx[i].nome, updatedAt: now() };
   indexCache = idx; await kvSet(INDEX_KEY, idx);
 
   return deep(next);
