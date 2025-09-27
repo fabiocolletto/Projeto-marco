@@ -1,80 +1,64 @@
 // tools/gestao-de-convidados/app_header.mjs
-// Cabeçalho + Painel (somente UI) — consome funções do /shared
+// Cabeçalho + Painel (UI leve) — usa /shared/projectStore.js (v1)
 
-import * as store from "../../shared/projectStore.js";   // init, listProjects, getProject, createProject, deleteProject, updateProject, exportProject (conforme seu shared)
-import * as inviteUtils from "../../shared/inviteUtils.js"; // opcional (reserva para futuras ações)
-import * as listUtils   from "../../shared/listUtils.js";   // opcional (reserva para futuras ações)
+import * as store from "../../shared/projectStore.js";
+// inviteUtils e listUtils seguem opcionais
+// import * as inviteUtils from "../../shared/inviteUtils.js";
+// import * as listUtils   from "../../shared/listUtils.js";
 
-// ---------- helpers mínimos de UI ----------
+// ---------- helpers ----------
 const $ = (root, sel) => root.querySelector(sel);
 const esc = (s) => (s ?? "").replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
-const fmtDate = (iso) => (iso ? new Date(iso + "T00:00:00").toLocaleDateString() : "—");
+const fmtDate = (str) => (str ? new Date(str + "T00:00:00").toLocaleDateString() : "—");
 const phoneDigits = (v) => { let d = (v || "").replace(/\D/g, ""); if (d.startsWith("55") && d.length > 11) d = d.slice(2); return d.slice(-11); };
 const phoneDisplay = (d) => !d ? "" : (d.length===11 ? `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}` :
                                         d.length===10 ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}` :
                                         d.length>2 ? `(${d.slice(0,2)}) ${d.slice(2)}` : d);
+const clone = (o) => (globalThis.structuredClone ? structuredClone(o) : JSON.parse(JSON.stringify(o)));
 
+// ---------- CSS (somente layout/responsividade; estética vem do site) ----------
 const css = `
-.ac-app{--bg:#fff;--fg:#111;--muted:#666;--line:#111;--radius:10px;--sp-3:12px;--brand:#111;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Arial;color:var(--fg);line-height:1.45}
 .ac-app *{box-sizing:border-box}
-.ac-wrap{max-width:1200px;margin:0 auto;padding:var(--sp-3)}
-.ac-top{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
-.ac-top__row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 0}
+.ac-wrap{max-width:1200px;margin:0 auto;padding:12px}
+.ac-top{position:sticky;top:0;z-index:20;background:transparent}
+.ac-top__row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:8px 0}
 .ac-event-select{display:flex;align-items:center;gap:8px}
-.ac-event-select label{font-size:12px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:var(--muted)}
-.ac-event-select select{max-width:460px;min-width:220px;border:1px solid var(--line);background:var(--bg);padding:8px 10px;border-radius:var(--radius)}
 .ac-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.ac-btn, .ac-iconbtn{appearance:none;border:1px solid var(--line);background:var(--bg);padding:8px 12px;border-radius:var(--radius);font-weight:800;cursor:pointer}
-.ac-iconbtn{display:grid;place-items:center;width:38px;height:38px}
-.ac-iconbtn svg{width:18px;height:18px}
+.ac-iconbtn{appearance:none;border:0;background:transparent;cursor:pointer}
 .ac-dd{position:relative}
-.ac-dd__panel{position:absolute;right:0;top:calc(100% + 6px);border:1px solid var(--line);background:var(--bg);border-radius:var(--radius);min-width:220px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.ac-dd__panel{position:absolute;right:0;top:calc(100% + 6px);min-width:220px;display:none;z-index:10}
 .ac-dd__panel[hidden]{display:none}
-.ac-dd__item{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer}
-.ac-dd__item:hover{background:rgba(0,0,0,.04)}
-.ac-infine{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
-.ac-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#1a7f37;transition:background .2s}
+.ac-dd[aria-expanded="true"] .ac-dd__panel{display:block}
 .ac-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-.ac-card{border-radius:var(--radius);background:var(--bg)}
-.ac-card__inner{padding:14px}
-.ac-card__title{margin:0 0 8px 0;font-weight:900}
+.ac-card__inner{padding:12px}
 .ac-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.ac-kpi{border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
-.ac-kpi strong{font-size:20px;line-height:1}
-.ac-kpi span{font-size:11px;color:var(--muted)}
-.ac-meta{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:12px}
 .ac-table{width:100%;border-collapse:collapse}
-.ac-table th,.ac-table td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;font-size:14px}
-.ac-table thead th{position:sticky;top:0;background:var(--bg)}
+.ac-table th,.ac-table td{padding:8px 6px;text-align:left}
 .ac-table--scroll thead,.ac-table--scroll tbody tr{display:table;width:100%;table-layout:fixed}
 .ac-table--scroll tbody{display:block;overflow:auto}
-.ac-table__hint{margin-top:6px;color:var(--muted);font-size:12px}
 @media (max-width:960px){ .ac-panel{grid-template-columns:1fr} .ac-kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
 @media (max-width:560px){ .ac-kpis{grid-template-columns:1fr} .ac-event-select select{min-width:180px;max-width:55vw} }
 `;
 
+// ---------- HTML ----------
 const html = `
   <div class="ac-top">
     <div class="ac-wrap">
       <div class="ac-top__row">
         <div class="ac-event-select">
-          <label>Evento</label>
+          <label for="ev-select">Evento</label>
           <select id="ev-select" aria-label="Selecionar evento"></select>
         </div>
         <div class="ac-actions">
-          <div class="ac-infine"><span class="ac-dot" id="dot"></span><span id="status">Pronto</span></div>
-          <div class="ac-dd">
-            <button class="ac-iconbtn" id="btn-menu" aria-haspopup="menu" aria-expanded="false" title="Menu">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
-              </svg>
-            </button>
+          <div class="ac-infine" aria-live="polite"><span id="status">Pronto</span></div>
+          <div class="ac-dd" id="menu" aria-haspopup="menu" aria-expanded="false">
+            <button class="ac-iconbtn" id="btn-menu" title="Menu">⋮</button>
             <div class="ac-dd__panel" id="menu-panel" role="menu" hidden>
-              <div class="ac-dd__item" data-action="novo">Novo evento</div>
-              <div class="ac-dd__item" data-action="carregar">Carregar…</div>
-              <div class="ac-dd__item" data-action="duplicar">Duplicar evento</div>
-              <div class="ac-dd__item" data-action="deletar">Excluir evento</div>
-              <div class="ac-dd__item" data-action="imprimir">Imprimir</div>
+              <button type="button" data-action="novo"      role="menuitem">➕ Novo evento</button>
+              <button type="button" data-action="carregar"  role="menuitem">📂 Carregar…</button>
+              <button type="button" data-action="duplicar"  role="menuitem">🧬 Duplicar evento</button>
+              <button type="button" data-action="exportar"  role="menuitem">⬇️ Exportar JSON</button>
+              <button type="button" data-action="deletar"   role="menuitem">🗑️ Excluir evento</button>
             </div>
           </div>
         </div>
@@ -86,18 +70,17 @@ const html = `
     <div class="ac-panel">
       <section class="ac-card">
         <div class="ac-card__inner">
-          <h2 class="ac-card__title">Painel do usuário</h2>
+          <h2>Painel do usuário</h2>
           <div class="ac-kpis">
-            <div class="ac-kpi"><strong id="kpi-ev">0</strong><span>eventos</span></div>
-            <div class="ac-kpi"><strong id="kpi-convites">0</strong><span>convites</span></div>
-            <div class="ac-kpi"><strong id="kpi-pessoas">0</strong><span>pessoas</span></div>
+            <div><strong id="kpi-ev">0</strong><div>eventos</div></div>
+            <div><strong id="kpi-convites">0</strong><div>convites</div></div>
+            <div><strong id="kpi-pessoas">0</strong><div>pessoas</div></div>
           </div>
           <div style="margin-top:10px">
             <table class="ac-table ac-table--scroll" id="tbl-user" aria-label="Eventos recentes">
               <thead><tr><th>Evento</th><th>Data</th><th>Convites</th><th>Atualizado</th></tr></thead>
               <tbody id="user-last"></tbody>
             </table>
-            <div class="ac-table__hint" id="user-hint" hidden>Role para ver mais eventos</div>
             <div style="margin-top:6px;text-align:right" id="user-foot"></div>
           </div>
         </div>
@@ -105,13 +88,13 @@ const html = `
 
       <section class="ac-card">
         <div class="ac-card__inner">
-          <h2 class="ac-card__title">Evento selecionado</h2>
+          <h2>Evento selecionado</h2>
           <div class="ac-kpis" style="margin-top:0">
-            <div class="ac-kpi"><strong id="ev-convites">0</strong><span>convites</span></div>
-            <div class="ac-kpi"><strong id="ev-pessoas">0</strong><span>pessoas</span></div>
-            <div class="ac-kpi"><strong id="ev-msgs">0</strong><span>agendamentos</span></div>
+            <div><strong id="ev-convites">0</strong><div>convites</div></div>
+            <div><strong id="ev-pessoas">0</strong><div>pessoas</div></div>
+            <div><strong id="ev-msgs">0</strong><div>agendamentos</div></div>
           </div>
-          <div id="ev-title" style="font-weight:900; margin-top:10px">—</div>
+          <div id="ev-title" style="font-weight:700; margin-top:10px">—</div>
           <div class="ac-meta" style="margin-top:6px">
             <span id="ev-date">—</span><span>•</span><span id="ev-time">—</span><span>•</span><span id="ev-local">—</span>
           </div>
@@ -130,8 +113,8 @@ const html = `
   </main>
 
   <!-- Modal carregar -->
-  <div id="modal" class="ac-modal" hidden>
-    <div class="ac-card" style="max-width:min(840px,95vw);margin:auto">
+  <div id="modal" hidden>
+    <div style="max-width:min(840px,95vw);margin:auto">
       <div class="ac-card__inner">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <strong>Eventos salvos</strong>
@@ -148,241 +131,270 @@ const html = `
   </div>
 `;
 
-// ---------- lógica principal ----------
+// ---------- estado local ----------
 let currentRoot = null;
-let currentPanel = null;
-let currentBtn = null;
 let listenersBound = false;
 
-const globalToggleMenu = (state) => {
-  if(!currentPanel || !currentBtn) return;
-  const shouldOpen = typeof state === "boolean" ? state : currentPanel.hidden;
-  currentPanel.hidden = !shouldOpen;
-  currentBtn.setAttribute("aria-expanded", String(shouldOpen));
-};
-
-function bindGlobalListeners(){
-  if(listenersBound) return;
-  document.addEventListener("click", (e)=>{
-    if(!currentRoot) return;
-    const isMenuTrigger = e.target.closest?.(".ac-dd");
-    if(isMenuTrigger) return;
-    if(currentPanel?.hidden) return;
-    globalToggleMenu(false);
+// ---------- menu ----------
+function bindGlobalListeners(panelEl, btnEl, root) {
+  if (listenersBound) return;
+  document.addEventListener("click", (e) => {
+    if (!root) return;
+    const inMenu = e.target.closest?.("#menu");
+    if (!inMenu) { panelEl.hidden = true; btnEl.parentElement.setAttribute("aria-expanded","false"); }
   });
-  document.addEventListener("keydown", (e)=>{
-    if(e.key === "Escape") globalToggleMenu(false);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { panelEl.hidden = true; btnEl.parentElement.setAttribute("aria-expanded","false"); }
   });
   listenersBound = true;
 }
 
-const cloneProject = (data) => {
-  if(typeof globalThis.structuredClone === "function"){
-    return globalThis.structuredClone(data);
-  }
-  return JSON.parse(JSON.stringify(data));
-};
+// ---------- pequenas utilidades ----------
+function pessoasCountFromLista(lista) {
+  // estrutura genérica: cada item da 'lista' representa um convite, com 'acompanhantes' opcional
+  if (!Array.isArray(lista)) return 0;
+  return lista.reduce((n, it) => n + 1 + (Array.isArray(it?.acompanhantes) ? it.acompanhantes.length : 0), 0);
+}
 
-export async function render(rootEl){
-  // cria shell
+// ---------- render principal ----------
+export async function render(rootEl) {
   const root = document.createElement("div");
   root.className = "ac-app";
-  // injeta CSS escopado
+
   const style = document.createElement("style");
   style.textContent = css;
   root.appendChild(style);
-  // injeta HTML
+
   const host = document.createElement("div");
   host.innerHTML = html;
   root.appendChild(host);
   rootEl.replaceChildren(root);
+  currentRoot = root;
 
-  const setStatus = (text) => {
-    const dot = $(root, "#dot");
-    const st  = $(root, "#status");
-    st.textContent = text;
-    dot.style.background = text.includes("Salv") ? "#d97706" : "#1a7f37";
-    clearTimeout(setStatus._t);
-    setStatus._t = setTimeout(()=>{ st.textContent = "Pronto"; dot.style.background = "#bbb"; }, 1600);
-  };
+  const setStatus = (text) => { $("#status", root).textContent = text; };
 
-  // dados
+  // inicializa índice
   await (store.init?.() ?? Promise.resolve());
-  let lista = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
-  // se listProjects não retorna convites, a UI continua funcional (mostra 0/—)
+  let index = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
+  let ativo = index[0] || null;
 
-  let ativo = lista[0] || null;
-
-  // UI: select topo
-  const sel = $(root, "#ev-select");
-  function fillSelect(){
-    sel.innerHTML = (lista.map((e,i)=>
-      `<option value="${i}">${esc(e?.nome || "—")} • ${e?.dataISO || "—"} • ${esc(e?.local || "—")}</option>`
-    ).join("")) || "";
-    sel.selectedIndex = 0;
+  // preencher select com o índice (meta leve)
+  const sel = $("#ev-select", root);
+  function fillSelect() {
+    sel.innerHTML = index.map((m, i) => {
+      const nome = esc(m?.nome || "—");
+      const data = "—"; // meta não tem data; mostramos na tabela detalhada
+      return `<option value="${i}">${nome} • ${data}</option>`;
+    }).join("");
+    if (index.length) sel.selectedIndex = 0;
   }
 
-  // métricas/linhas
-  const pessoasCount = (ev) => (ev?.convites || []).reduce((n, iv)=> n + 1 + (iv?.acompanhantes?.length || 0), 0);
-  function renderUserPanel(){
-    $(root, "#kpi-ev").textContent = String(lista.length);
-    $(root, "#kpi-convites").textContent = String(lista.reduce((n,ev)=> n + (ev?.convites?.length||0), 0));
-    $(root, "#kpi-pessoas").textContent  = String(lista.reduce((n,ev)=> n + pessoasCount(ev), 0));
+  // painel do usuário (usa meta +, quando necessário, consulta leve)
+  async function computeKPIsFromIndex() {
+    // Para números precisos de convites/pessoas, buscamos os projetos (pode ser otimizado depois)
+    const fulls = await Promise.all(index.map(m => store.getProject(m.id)));
+    const totalConvites = fulls.reduce((n, p) => n + ((p?.lista?.length) || 0), 0);
+    const totalPessoas  = fulls.reduce((n, p) => n + pessoasCountFromLista(p?.lista), 0);
+    return { totalConvites, totalPessoas, fulls };
+  }
 
-    const tbody = $(root, "#user-last");
-    const rows = lista.map(ev =>
-      `<tr><td>${esc(ev?.nome || "—")}</td><td>${fmtDate(ev?.dataISO)}</td><td>${ev?.convites?.length || 0}</td><td>${new Date(ev?.updatedAt||0).toLocaleString()}</td></tr>`
-    ).join("");
-    tbody.innerHTML = rows || `<tr><td colspan="4" style="color:#666">Sem eventos.</td></tr>`;
+  async function renderUserPanel() {
+    const { totalConvites, totalPessoas, fulls } = await computeKPIsFromIndex();
+    $("#kpi-ev", root).textContent        = String(index.length);
+    $("#kpi-convites", root).textContent  = String(totalConvites);
+    $("#kpi-pessoas", root).textContent   = String(totalPessoas);
 
-    const tbl = $(root, "#tbl-user"); const hint = $(root, "#user-hint");
-    if(lista.length>3){
+    const tbody = $("#user-last", root);
+    const rows = index.map((meta, i) => {
+      const p = fulls[i];
+      const titulo = esc(p?.evento?.nome || meta?.nome || "—");
+      const data   = fmtDate(p?.evento?.data);
+      const conv   = (p?.lista?.length || 0);
+      const updt   = new Date(meta?.updatedAt || 0).toLocaleString();
+      return `<tr><td>${titulo}</td><td>${data}</td><td>${conv}</td><td>${updt}</td></tr>`;
+    }).join("");
+    tbody.innerHTML = rows || `<tr><td colspan="4">Sem eventos.</td></tr>`;
+
+    const tbl = $("#tbl-user", root);
+    if (index.length > 3) {
       tbl.classList.add("ac-table--scroll");
-      requestAnimationFrame(()=>{
+      requestAnimationFrame(() => {
         const r = tbody.querySelector("tr"); const rh = r ? r.getBoundingClientRect().height : 36;
-        tbody.style.maxHeight = Math.round(rh*3 + 2) + "px"; hint.hidden = false;
+        tbody.style.maxHeight = Math.round(rh*3 + 2) + "px";
       });
     } else {
       tbl.classList.remove("ac-table--scroll");
-      tbody.style.maxHeight = ""; hint.hidden = true;
+      tbody.style.maxHeight = "";
     }
-    $(root, "#user-foot").textContent = `${lista.length} eventos`;
+    $("#user-foot", root).textContent = `${index.length} eventos`;
   }
 
-  async function renderEvento(){
-    if(!ativo){ $(root, "#ev-title").textContent="—"; return; }
-    // se precisar dados completos: const full = await store.getProject(ativo.id);
-    const ev = ativo;
-    $(root, "#ev-title").textContent = ev?.nome || "—";
-    $(root, "#ev-date").textContent  = fmtDate(ev?.dataISO);
-    $(root, "#ev-time").textContent  = ev?.horario || "—";
+  async function renderEventoSelecionado() {
+    if (!ativo) {
+      $("#ev-title", root).textContent = "—";
+      return;
+    }
+    const p = await store.getProject(ativo.id);
+    const ev = p?.evento || {};
+
+    $("#ev-title", root).textContent = ev?.nome || "—";
+    $("#ev-date", root).textContent  = fmtDate(ev?.data);
+    $("#ev-time", root).textContent  = ev?.hora || "—";
     const cidadeUF = [ev?.endereco?.cidade, ev?.endereco?.uf].filter(Boolean).join("/");
-    $(root, "#ev-local").textContent = [ev?.local, cidadeUF].filter(Boolean).join(", ") || "—";
-    $(root, "#ev-convites").textContent = String(ev?.convites?.length || 0);
-    $(root, "#ev-pessoas").textContent  = String(pessoasCount(ev));
-    $(root, "#ev-msgs").textContent     = "0";
-    const end=[ev?.endereco?.logradouro,ev?.endereco?.numero,ev?.endereco?.bairro,
-               ev?.endereco?.cidade && ev?.endereco?.uf ? `${ev.endereco.cidade}/${ev.endereco.uf}` : (ev?.endereco?.cidade||"")]
-               .filter(Boolean).join(", ");
-    $(root, "#ev-end").textContent = end || "—";
-    $(root, "#ev-host").textContent = ev?.anfitriao?.nome || "—";
-    const tel = phoneDigits(ev?.anfitriao?.telefone || "");
-    $(root, "#ev-host-contato").textContent = [ phoneDisplay(tel), (ev?.anfitriao?.email||"") ].filter(Boolean).join(" • ") || "—";
+    $("#ev-local", root).textContent = [ev?.local, cidadeUF].filter(Boolean).join(", ") || "—";
+
+    const convites = (p?.lista?.length || 0);
+    $("#ev-convites", root).textContent = String(convites);
+    $("#ev-pessoas", root).textContent  = String(pessoasCountFromLista(p?.lista));
+    $("#ev-msgs", root).textContent     = "0"; // placeholder
+
+    const end = [
+      ev?.endereco?.logradouro, ev?.endereco?.numero, ev?.endereco?.bairro,
+      ev?.endereco?.cidade && ev?.endereco?.uf ? `${ev.endereco.cidade}/${ev.endereco.uf}` : (ev?.endereco?.cidade||"")
+    ].filter(Boolean).join(", ");
+    $("#ev-end", root).textContent = end || "—";
+
+    const anfit = ev?.anfitriao || {};
+    $("#ev-host", root).textContent = anfit?.nome || "—";
+    const tel = phoneDigits(anfit?.telefone || "");
+    $("#ev-host-contato", root).textContent = [ phoneDisplay(tel), (anfit?.email || "") ].filter(Boolean).join(" • ") || "—";
   }
 
   // preencher e renderizar
-  fillSelect(); renderUserPanel(); renderEvento();
+  fillSelect();
+  await renderUserPanel();
+  await renderEventoSelecionado();
 
   // select change
-  sel.addEventListener("change", (e)=>{
-    const i = parseInt(e.target.value,10);
-    ativo = lista[i] || ativo;
-    renderEvento();
+  sel.addEventListener("change", async (e) => {
+    const i = parseInt(e.target.value, 10);
+    ativo = index[i] || ativo;
+    setStatus("Carregando evento…");
+    await renderEventoSelecionado();
     setStatus("Evento carregado");
   });
 
-  // menu
-  const panel = $(root, "#menu-panel"); const btn = $(root, "#btn-menu");
-  currentRoot = root;
-  currentPanel = panel;
-  currentBtn = btn;
-  btn.addEventListener("click", ()=>globalToggleMenu());
-  bindGlobalListeners();
+  // menu + ações
+  const menu = $("#menu", root);
+  const panel = $("#menu-panel", root);
+  const btn = $("#btn-menu", root);
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = menu.getAttribute("aria-expanded") === "true";
+    menu.setAttribute("aria-expanded", String(!open));
+    panel.hidden = open;
+  });
+  bindGlobalListeners(panel, btn, root);
 
-  // modal carregar
-  function openModal(){
-    const tb = $(root, "#tbl-evs");
-    const rows = lista.map((ev,i)=>`
-      <tr>
-        <td>${esc(ev?.nome||"—")}</td>
-        <td>${fmtDate(ev?.dataISO)}</td>
-        <td>${ev?.convites?.length||0}</td>
-        <td>${new Date(ev?.updatedAt||0).toLocaleString()}</td>
-        <td><button class="ac-iconbtn" data-load="${i}" title="Selecionar">→</button></td>
-      </tr>`).join("");
-    tb.innerHTML = rows;
-    $(root, "#modal").hidden = false;
+  function openModal() {
+    $("#modal", root).hidden = false;
+  }
+  function closeModal() {
+    $("#modal", root).hidden = true;
   }
 
-  root.addEventListener("click",(e)=>{
-    if(e.target.matches('[data-action="fechar-modal"]')) $(root, "#modal").hidden = true;
+  root.addEventListener("click", async (e) => {
+    if (e.target.matches('[data-action="fechar-modal"]')) { closeModal(); return; }
 
-    const it = e.target.closest(".ac-dd__item");
-    if(it){
+    const it = e.target.closest("#menu-panel [data-action]");
+    if (it) {
       const act = it.getAttribute("data-action");
-      if(act==="novo")     createNew().catch(console.error);
-      if(act==="carregar") openModal();
-      if(act==="duplicar") duplicateActive().catch(console.error);
-      if(act==="deletar")  deleteActive().catch(console.error);
-      if(act==="imprimir") window.print();
-      globalToggleMenu(false);
+      panel.hidden = true; menu.setAttribute("aria-expanded","false");
+
+      try {
+        if (act === "novo") {
+          const res = await store.createProject({});
+          setStatus("Evento criado");
+          await refreshIndex();
+          const novoId = res?.meta?.id;
+          const idx = index.findIndex(x => x?.id === novoId);
+          if (idx >= 0) { ativo = index[idx]; sel.value = String(idx); await renderEventoSelecionado(); }
+        }
+        if (act === "carregar") {
+          await buildModalTable(); openModal();
+        }
+        if (act === "duplicar") {
+          if (!ativo) return alert("Selecione um evento.");
+          const full = await store.getProject(ativo.id);
+          const copy = clone(full); delete copy.id;
+          copy.evento = copy.evento || {};
+          copy.evento.nome = (copy.evento.nome || "Evento") + " (cópia)";
+          const res = await store.createProject(copy);
+          setStatus("Duplicado");
+          await refreshIndex();
+          const novoId = res?.meta?.id;
+          const idx = index.findIndex(x => x?.id === novoId);
+          if (idx >= 0) { ativo = index[idx]; sel.value = String(idx); await renderEventoSelecionado(); }
+        }
+        if (act === "exportar") {
+          if (!ativo) return alert("Selecione um evento.");
+          const json = await store.exportProject(ativo.id);
+          const blob = new Blob([json], { type:"application/json" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = `${ativo.id}.marco.json`;
+          a.click(); URL.revokeObjectURL(a.href);
+        }
+        if (act === "deletar") {
+          if (!ativo) return alert("Selecione um evento.");
+          if (!confirm("Excluir este evento? Esta ação não pode ser desfeita.")) return;
+          await store.deleteProject(ativo.id);
+          setStatus("Excluído");
+          await refreshIndex();
+          ativo = index[0] || null;
+          await renderEventoSelecionado();
+        }
+      } catch (err) {
+        console.error(err);
+        alert(err?.message || "Falha na ação.");
+      }
     }
+
     const b = e.target.closest("[data-load]");
-    if(b){
+    if (b) {
       const i = parseInt(b.getAttribute("data-load"),10);
-      ativo = lista[i] || ativo;
+      ativo = index[i] || ativo;
       sel.value = String(i);
-      renderEvento();
-      $(root, "#modal").hidden = true;
+      await renderEventoSelecionado();
+      closeModal();
       setStatus("Evento carregado");
     }
   });
 
-  async function refreshIndex(){
-    lista = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
-    fillSelect(); renderUserPanel(); // preserva 'ativo' se ainda existir
-    if(ativo){
-      const idx = lista.findIndex(e => e?.id === ativo.id);
-      if(idx >= 0) sel.value = String(idx);
+  async function refreshIndex() {
+    index = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
+    fillSelect();
+    await renderUserPanel();
+    if (ativo) {
+      const idx = index.findIndex(e => e?.id === ativo.id);
+      if (idx >= 0) sel.value = String(idx);
     }
-    await renderEvento();
   }
 
-  async function duplicateActive(){
-    if(!ativo){ setStatus("Sem evento ativo"); return; }
-    const full = (await store.getProject?.(ativo.id)) || ativo;
-    // cria uma cópia rascunho
-    const clone = cloneProject(full);
-    delete clone.id; // força novo id
-    clone.evento = clone.evento || {};
-    clone.evento.nome = (clone.evento.nome || ativo.nome || "Evento") + " (cópia)";
-    const res = await store.createProject?.(clone);
-    setStatus("Duplicado");
-    await refreshIndex();
-    // seleciona a cópia como ativa
-    const novoId = res?.meta?.id;
-    const idx = lista.findIndex(e => e?.id === novoId);
-    if(idx >= 0){ ativo = lista[idx]; sel.value = String(idx); await renderEvento(); }
-  }
-
-  async function deleteActive(){
-    if(!ativo){ setStatus("Sem evento ativo"); return; }
-    const ok = confirm("Excluir este evento? Esta ação não pode ser desfeita.");
-    if(!ok) return;
-    await store.deleteProject?.(ativo.id);
-    setStatus("Excluído");
-    await refreshIndex();
-    ativo = lista[0] || null;
-    await renderEvento();
-  }
-
-  async function createNew(){
-    const res = await store.createProject?.({});
-    setStatus("Evento criado");
-    await refreshIndex();
-    const novoId = res?.meta?.id;
-    const idx = lista.findIndex(e => e?.id === novoId);
-    if(idx >= 0){
-      ativo = lista[idx];
-      sel.value = String(idx);
-      await renderEvento();
-    }
+  async function buildModalTable() {
+    const tb = $("#tbl-evs", root);
+    const fulls = await Promise.all(index.map(m => store.getProject(m.id)));
+    const rows = index.map((meta, i) => {
+      const p = fulls[i];
+      const titulo = esc(p?.evento?.nome || meta?.nome || "—");
+      const data   = fmtDate(p?.evento?.data);
+      const conv   = (p?.lista?.length || 0);
+      const updt   = new Date(meta?.updatedAt || 0).toLocaleString();
+      return `<tr>
+        <td>${titulo}</td>
+        <td>${data}</td>
+        <td>${conv}</td>
+        <td>${updt}</td>
+        <td><button class="ac-iconbtn" data-load="${i}" title="Selecionar">→</button></td>
+      </tr>`;
+    }).join("");
+    tb.innerHTML = rows || `<tr><td colspan="5">Sem eventos.</td></tr>`;
   }
 }
 
-// atalho opcional: montar por seletor
-export function mount(selector){
+// atalho opcional
+export function mount(selector) {
   const el = document.querySelector(selector);
-  if(!el) throw new Error("Elemento não encontrado: " + selector);
+  if (!el) throw new Error("Elemento não encontrado: " + selector);
   return render(el);
 }
