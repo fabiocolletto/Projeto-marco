@@ -35,11 +35,11 @@ const css = `
 .ac-infine{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px}
 .ac-dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:#1a7f37;transition:background .2s}
 .ac-panel{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
-.ac-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--bg)}
+.ac-card{border-radius:var(--radius);background:var(--bg)}
 .ac-card__inner{padding:14px}
 .ac-card__title{margin:0 0 8px 0;font-weight:900}
 .ac-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.ac-kpi{border:1px solid var(--line);border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.ac-kpi{border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .ac-kpi strong{font-size:20px;line-height:1}
 .ac-kpi span{font-size:11px;color:var(--muted)}
 .ac-meta{display:flex;flex-wrap:wrap;gap:10px;color:var(--muted);font-size:12px}
