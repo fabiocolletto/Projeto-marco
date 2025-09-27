@@ -157,7 +157,7 @@ let currentRoot = null;
 let currentPanel = null;
 let currentBtn = null;
 let listenersBound = false;
-let currentRefresh = null;
+
 
 const globalToggleMenu = (state) => {
   if(!currentPanel || !currentBtn) return;
@@ -423,6 +423,19 @@ export async function render(rootEl){
     const novoId = res?.meta?.id;
     await refreshIndex({ preferredId: novoId });
     setStatus("Evento criado");
+  }
+
+  async function createNew(){
+    const res = await store.createProject?.({});
+    setStatus("Evento criado");
+    await refreshIndex();
+    const novoId = res?.meta?.id;
+    const idx = lista.findIndex(e => e?.id === novoId);
+    if(idx >= 0){
+      ativo = lista[idx];
+      sel.value = String(idx);
+      await renderEvento();
+    }
   }
 }
 
