@@ -3,7 +3,7 @@
 // - Shell + navegação
 // - Import dinâmico das views
 // - CSS mínimo namespaced (.ac-app) — tipografia herda do site
-import * as store from '/shared/projectStore.js';
+import * as store from '../../shared/projectStore.js';
 import { qs, on, mount, spinner, showToast, cssBase } from './ui/dom.mjs';
 
 const routes = {

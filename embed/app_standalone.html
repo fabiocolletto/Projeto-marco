@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistente Cerimonial — Gestão de Convites</title>
+    <meta
+      name="description"
+      content="Visualização standalone do Assistente Cerimonial — Gestão de Convites."
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background-color: #faf6f1;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(180deg, #fdf4eb 0%, #fdfaf6 100%);
+        color: #2d2a32;
+      }
+
+      header {
+        padding: 2rem 1.5rem 1rem;
+        text-align: center;
+        background: transparent;
+      }
+
+      header h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 3vw, 2.4rem);
+        color: #f07b24;
+      }
+
+      header p {
+        margin: 0.5rem auto 0;
+        max-width: 52ch;
+        color: #5c5350;
+        line-height: 1.5;
+      }
+
+      main {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 0 1.5rem 3rem;
+      }
+
+      .ac-canvas {
+        width: min(1080px, 100%);
+        box-sizing: border-box;
+      }
+
+      footer {
+        text-align: center;
+        padding: 2rem 1.5rem 3rem;
+        color: #7a726e;
+        font-size: 0.9rem;
+      }
+
+      footer a {
+        color: inherit;
+      }
+    </style>
+
+    <link
+      rel="modulepreload"
+      href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/tools/gestao-de-convidados/app_header.mjs"
+    />
+    <link
+      rel="modulepreload"
+      href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/shared/projectStore.js"
+    />
+    <link
+      rel="modulepreload"
+      href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/shared/higienizarLista.mjs"
+    />
+  </head>
+  <body>
+    <header>
+      <h1>Assistente Cerimonial — Gestão de Convites</h1>
+      <p>
+        Visualize a primeira tela completa do aplicativo, com as abas e o painel
+        de convites carregados automaticamente a partir do CDN.
+      </p>
+    </header>
+
+    <main>
+      <div class="ac-canvas">
+        <div id="ac-root"></div>
+      </div>
+    </main>
+
+    <footer>
+      <small>
+        Dados salvos localmente no seu navegador. Você pode exportar/importar o
+        projeto quando quiser.
+      </small>
+    </footer>
+
+    <script type="module">
+      const CDN = 'https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main';
+      const SRC = `${CDN}/tools/gestao-de-convidados/app_header.mjs`;
+
+      async function boot() {
+        try {
+          const { render } = await import(SRC);
+          await render(document.getElementById('ac-root'));
+        } catch (error) {
+          console.warn('[AC] fallback cache-busting', error);
+          const { render } = await import(`${SRC}?t=${Date.now()}`);
+          await render(document.getElementById('ac-root'));
+        }
+      }
+
+      boot();
+    </script>
+
+    <noscript>Ative o JavaScript para usar a ferramenta.</noscript>
+  </body>
+</html>
