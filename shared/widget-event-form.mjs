@@ -207,7 +207,7 @@ export async function render(rootEl, opts = {}) {
 
   function fillForm(d){
     for (const id in fields) {
-      const input = $("#"+id);
+      const input = el.querySelector("#"+id);
       if (!input) continue;
       const val = fields[id].get() ?? "";
       input.value = val;
@@ -225,32 +225,35 @@ export async function render(rootEl, opts = {}) {
   }
 
   // ------------- ações -------------
-  btnSave.addEventListener("click", async () => {
-    if (!loadedId) return;
-    try {
-      setStatus(labels.statusSaving);
-      // grava somente os blocos envolvidos; o store faz merge com ensureShape
-      const partial = {
-        evento: draft.evento,
-        cerimonialista: draft.cerimonialista
-      };
-      const saved = await store.updateProject(loadedId, partial);
-      current = normalize(saved);
-      draft = deepClone(current);
-      setDirtyUI(false);
-      setStatus(labels.statusSaved);
-    } catch (e) {
-      console.error(e);
-      setStatus("Erro ao salvar");
-      alert(e?.message || "Falha ao salvar");
-    }
-  });
+  el.addEventListener("click", async (e) => {
+    const saveBtn = e.target.closest && e.target.closest("#ac-ef-save");
+    const resetBtn = e.target.closest && e.target.closest("#ac-ef-reset");
 
-  btnReset.addEventListener("click", () => {
-    if (!current) return;
-    draft = deepClone(current);
-    fillForm(draft);
-    setDirtyUI(false);
+    if (saveBtn) {
+      if (!loadedId) return;
+      try {
+        setStatus(labels.statusSaving);
+        const partial = { evento: draft.evento, cerimonialista: draft.cerimonialista };
+        const saved = await store.updateProject(loadedId, partial);
+        current = normalize(saved);
+        draft = deepClone(current);
+        setDirtyUI(false);
+        setStatus(labels.statusSaved);
+      } catch (err) {
+        console.error(err);
+        setStatus("Erro ao salvar");
+        alert(err?.message || "Falha ao salvar");
+      }
+      return;
+    }
+
+    if (resetBtn) {
+      if (!current) return;
+      draft = deepClone(current);
+      fillForm(draft);
+      setDirtyUI(false);
+      return;
+    }
   });
 
   // ------------- wiring -------------
@@ -267,13 +270,13 @@ export async function render(rootEl, opts = {}) {
     await loadEvent(id);
   };
   rootEl.addEventListener("ac:open-event", onOpen);
-  // também ouve no documento (caso emitam de outro container)
-  document.addEventListener("ac:open-event", onOpen as any);
+  const onOpenDoc = (e) => onOpen(e);
+  document.addEventListener("ac:open-event", onOpenDoc);
 
   // cleanup
   _mounted.set(rootEl, () => {
     rootEl.removeEventListener("ac:open-event", onOpen);
-    document.removeEventListener("ac:open-event", onOpen as any);
+    document.removeEventListener("ac:open-event", onOpenDoc);
   });
 
   return { loadEvent };
