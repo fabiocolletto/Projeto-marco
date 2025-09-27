@@ -1,4 +1,4 @@
-// projectStore.js (v1)
+// shared/projectStore.js (v1)
 // IndexedDB para múltiplos eventos. Sem migração (ainda).
 
 const DB_NAME = "marco_db";                  // banco
@@ -55,7 +55,12 @@ function ensureShape(p){
   p ||= {};
   p.schemaVersion = SCHEMA_VERSION; // fixa v1
   p.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" };
-  p.evento ||= { nome:"", data:"", hora:"", local:"", endereco:"", anfitriao:"" };
+
+  // Mantém endereco/anfitriao como OBJETOS (não strings)
+  p.evento ||= { nome:"", data:"", hora:"", local:"", endereco:{}, anfitriao:{} };
+  if (typeof p.evento.endereco !== "object" || p.evento.endereco === null) p.evento.endereco = {};
+  if (typeof p.evento.anfitriao !== "object" || p.evento.anfitriao === null) p.evento.anfitriao = {};
+
   p.lista ||= [];
   p.tipos ||= [];
   p.modelos ||= {};
@@ -83,7 +88,8 @@ export async function createProject(data = {}){
   const payload = ensureShape({
     id,
     cerimonialista: data.cerimonialista || { nomeCompleto:"", telefone:"", redeSocial:"" },
-    evento: data.evento || { nome:"", data:"", hora:"", local:"", endereco:"", anfitriao:"" },
+    // aqui também garantimos objetos para endereco/anfitriao
+    evento: data.evento || { nome:"", data:"", hora:"", local:"", endereco:{}, anfitriao:{} },
     lista: data.lista || [],
     tipos: data.tipos || [],
     modelos: data.modelos || {},
@@ -98,7 +104,7 @@ export async function createProject(data = {}){
 export async function getProject(id){
   const raw = await kvGet(KEY(id));
   if (!raw) return null;
-  const shaped = ensureShape(raw);               // segura contra campos faltando
+  const shaped = ensureShape(raw);               // segura contra campos faltando / tipos divergentes
   if (JSON.stringify(shaped) !== JSON.stringify(raw)) await kvSet(KEY(id), shaped);
   return deep(shaped);
 }
