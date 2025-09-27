@@ -1,5 +1,5 @@
 // tools/gestao-de-convidados/views/convites.mjs
-import { higienizarLinha, higienizarLista } from '/shared/higienizarLista.mjs';
+import { higienizarLinha, higienizarLista } from '../../shared/higienizarLista.mjs';
 
 export async function render(root, ctx){
   const project = await ctx.store.getProject(ctx.projectId);
