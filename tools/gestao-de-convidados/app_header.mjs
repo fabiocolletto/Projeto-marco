@@ -211,28 +211,86 @@ export async function render(rootEl){
   let lista = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
   // se listProjects não retorna convites, a UI continua funcional (mostra 0/—)
 
-  let ativo = lista[0] || null;
+  const projectDetails = new Map();
+  const notifyProjectChange = typeof globalThis.notifyProjectChange === "function"
+    ? globalThis.notifyProjectChange
+    : null;
+
+  let activeId = lista[0]?.id ?? null;
+
+  const mapConvites = (data) => {
+    if(!data) return [];
+    if(Array.isArray(data.lista)) return data.lista;
+    if(Array.isArray(data.convites)) return data.convites;
+    return [];
+  };
+  const pessoasCount = (data) => mapConvites(data).reduce((n, iv)=> n + 1 + (iv?.acompanhantes?.length || 0), 0);
+
+  const getMetaById = (id) => lista.find(ev => ev?.id === id) || null;
+  const getDetailEntry = (id) => (id ? projectDetails.get(id) : null) || null;
+  const getPayloadById = (id) => getDetailEntry(id)?.payload;
+
+  async function loadProjectDetails(metaList){
+    if(typeof store.getProject !== "function") return;
+    const metas = (metaList || []).filter(meta => meta?.id);
+    const ids = new Set(metas.map(meta => meta.id));
+    [...projectDetails.keys()].forEach(key => { if(!ids.has(key)) projectDetails.delete(key); });
+    const details = await Promise.all(metas.map(async meta => {
+      try {
+        const payload = await store.getProject(meta.id);
+        return { id: meta.id, payload };
+      } catch(err){
+        console.error("Falha ao carregar projeto", meta?.id, err);
+        return { id: meta.id, payload: null };
+      }
+    }));
+    details.forEach(entry => {
+      if(!entry) return;
+      projectDetails.set(entry.id, entry);
+    });
+  }
+
+  await loadProjectDetails(lista);
 
   // UI: select topo
   const sel = $(root, "#ev-select");
   function fillSelect(){
-    sel.innerHTML = (lista.map((e,i)=>
-      `<option value="${i}">${esc(e?.nome || "—")} • ${e?.dataISO || "—"} • ${esc(e?.local || "—")}</option>`
-    ).join("")) || "";
-    sel.selectedIndex = 0;
+    sel.innerHTML = (lista.map((meta,i)=>{
+      const payload = getPayloadById(meta?.id);
+      const evento = payload?.evento || {};
+      const nome = evento?.nome || meta?.nome || "—";
+      const dataISO = evento?.dataISO || evento?.data || meta?.dataISO || null;
+      const local = evento?.local || meta?.local || "—";
+      const dataTxt = fmtDate(dataISO);
+      return `<option value="${i}">${esc(nome)} • ${dataTxt || "—"} • ${esc(local)}</option>`;
+    }).join("")) || "";
+    const idx = lista.findIndex(meta => meta?.id === activeId);
+    sel.selectedIndex = idx >= 0 ? idx : (lista.length ? 0 : -1);
   }
 
   // métricas/linhas
-  const pessoasCount = (ev) => (ev?.convites || []).reduce((n, iv)=> n + 1 + (iv?.acompanhantes?.length || 0), 0);
   function renderUserPanel(){
     $(root, "#kpi-ev").textContent = String(lista.length);
-    $(root, "#kpi-convites").textContent = String(lista.reduce((n,ev)=> n + (ev?.convites?.length||0), 0));
-    $(root, "#kpi-pessoas").textContent  = String(lista.reduce((n,ev)=> n + pessoasCount(ev), 0));
+    const totals = lista.reduce((acc, meta) => {
+      const payload = getPayloadById(meta?.id) || meta;
+      const convites = mapConvites(payload);
+      acc.convites += convites.length;
+      acc.pessoas += pessoasCount(payload);
+      return acc;
+    }, { convites:0, pessoas:0 });
+    $(root, "#kpi-convites").textContent = String(totals.convites);
+    $(root, "#kpi-pessoas").textContent  = String(totals.pessoas);
 
     const tbody = $(root, "#user-last");
-    const rows = lista.map(ev =>
-      `<tr><td>${esc(ev?.nome || "—")}</td><td>${fmtDate(ev?.dataISO)}</td><td>${ev?.convites?.length || 0}</td><td>${new Date(ev?.updatedAt||0).toLocaleString()}</td></tr>`
-    ).join("");
+    const rows = lista.map(meta => {
+      const payload = getPayloadById(meta?.id) || meta;
+      const evento = payload?.evento || {};
+      const nome = evento?.nome || meta?.nome || "—";
+      const dataISO = evento?.dataISO || evento?.data || meta?.dataISO || null;
+      const convites = mapConvites(payload).length;
+      const updated = payload?.updatedAt || meta?.updatedAt || 0;
+      return `<tr><td>${esc(nome)}</td><td>${fmtDate(dataISO)}</td><td>${convites}</td><td>${new Date(updated).toLocaleString()}</td></tr>`;
+    }).join("");
     tbody.innerHTML = rows || `<tr><td colspan="4" style="color:#666">Sem eventos.</td></tr>`;
 
     const tbl = $(root, "#tbl-user"); const hint = $(root, "#user-hint");
@@ -250,34 +308,63 @@ export async function render(rootEl){
   }
 
   async function renderEvento(){
-    if(!ativo){ $(root, "#ev-title").textContent="—"; return; }
-    // se precisar dados completos: const full = await store.getProject(ativo.id);
-    const ev = ativo;
-    $(root, "#ev-title").textContent = ev?.nome || "—";
-    $(root, "#ev-date").textContent  = fmtDate(ev?.dataISO);
-    $(root, "#ev-time").textContent  = ev?.horario || "—";
-    const cidadeUF = [ev?.endereco?.cidade, ev?.endereco?.uf].filter(Boolean).join("/");
-    $(root, "#ev-local").textContent = [ev?.local, cidadeUF].filter(Boolean).join(", ") || "—";
-    $(root, "#ev-convites").textContent = String(ev?.convites?.length || 0);
-    $(root, "#ev-pessoas").textContent  = String(pessoasCount(ev));
+    const meta = getMetaById(activeId);
+    if(!meta){
+      $(root, "#ev-title").textContent="—";
+      $(root, "#ev-date").textContent="—";
+      $(root, "#ev-time").textContent="—";
+      $(root, "#ev-local").textContent="—";
+      $(root, "#ev-convites").textContent = "0";
+      $(root, "#ev-pessoas").textContent = "0";
+      $(root, "#ev-msgs").textContent = "0";
+      $(root, "#ev-end").textContent = "—";
+      $(root, "#ev-host").textContent = "—";
+      $(root, "#ev-host-contato").textContent = "—";
+      return;
+    }
+    const detail = getDetailEntry(meta.id);
+    const full = detail?.payload || null;
+    const evento = full?.evento || {};
+    const nome = evento?.nome || meta?.nome || "—";
+    const dataISO = evento?.dataISO || evento?.data || meta?.dataISO || null;
+    const horario = evento?.horario || evento?.hora || meta?.horario || "—";
+    const local = evento?.local || meta?.local || "—";
+    const cidade = evento?.cidade || evento?.cidadeUF || meta?.endereco?.cidade;
+    const uf = evento?.uf || meta?.endereco?.uf;
+    const cidadeUF = [cidade, uf].filter(Boolean).join("/");
+    const convitesArr = mapConvites(full || meta);
+    $(root, "#ev-title").textContent = nome;
+    $(root, "#ev-date").textContent  = fmtDate(dataISO);
+    $(root, "#ev-time").textContent  = horario || "—";
+    $(root, "#ev-local").textContent = [local, cidadeUF].filter(Boolean).join(", ") || local || "—";
+    $(root, "#ev-convites").textContent = String(convitesArr.length);
+    $(root, "#ev-pessoas").textContent  = String(pessoasCount(full || meta));
     $(root, "#ev-msgs").textContent     = "0";
-    const end=[ev?.endereco?.logradouro,ev?.endereco?.numero,ev?.endereco?.bairro,
-               ev?.endereco?.cidade && ev?.endereco?.uf ? `${ev.endereco.cidade}/${ev.endereco.uf}` : (ev?.endereco?.cidade||"")]
-               .filter(Boolean).join(", ");
-    $(root, "#ev-end").textContent = end || "—";
-    $(root, "#ev-host").textContent = ev?.anfitriao?.nome || "—";
-    const tel = phoneDigits(ev?.anfitriao?.telefone || "");
-    $(root, "#ev-host-contato").textContent = [ phoneDisplay(tel), (ev?.anfitriao?.email||"") ].filter(Boolean).join(" • ") || "—";
+    const enderecoMeta = meta?.endereco || {};
+    const enderecoFull = full?.evento?.endereco || full?.endereco || evento?.endereco || enderecoMeta;
+    const endParts = [
+      enderecoFull?.logradouro || evento?.logradouro || enderecoMeta?.logradouro,
+      enderecoFull?.numero || evento?.numero || enderecoMeta?.numero,
+      enderecoFull?.bairro || evento?.bairro || enderecoMeta?.bairro,
+      (enderecoFull?.cidade || evento?.cidade || enderecoMeta?.cidade) && (enderecoFull?.uf || evento?.uf || enderecoMeta?.uf)
+        ? `${enderecoFull?.cidade || evento?.cidade || enderecoMeta?.cidade}/${enderecoFull?.uf || evento?.uf || enderecoMeta?.uf}`
+        : (enderecoFull?.cidade || evento?.cidade || enderecoMeta?.cidade || "")
+    ].filter(Boolean);
+    $(root, "#ev-end").textContent = endParts.join(", ") || "—";
+    const hostData = full?.anfitriao || full?.evento?.anfitriao || meta?.anfitriao || {};
+    $(root, "#ev-host").textContent = hostData?.nome || hostData?.nomeCompleto || "—";
+    const tel = phoneDigits(hostData?.telefone || hostData?.telefonePrincipal || "");
+    $(root, "#ev-host-contato").textContent = [ phoneDisplay(tel), (hostData?.email||"") ].filter(Boolean).join(" • ") || "—";
   }
 
   // preencher e renderizar
-  fillSelect(); renderUserPanel(); renderEvento();
+  fillSelect(); renderUserPanel(); await setActive(activeId);
 
   // select change
-  sel.addEventListener("change", (e)=>{
+  sel.addEventListener("change", async (e)=>{
     const i = parseInt(e.target.value,10);
-    ativo = lista[i] || ativo;
-    renderEvento();
+    const meta = lista[i] || getMetaById(activeId);
+    await setActive(meta?.id);
     setStatus("Evento carregado");
   });
 
@@ -292,19 +379,27 @@ export async function render(rootEl){
   // modal carregar
   function openModal(){
     const tb = $(root, "#tbl-evs");
-    const rows = lista.map((ev,i)=>`
+    const rows = lista.map((meta,i)=>{
+      const payload = getPayloadById(meta?.id) || meta;
+      const evento = payload?.evento || {};
+      const nome = evento?.nome || meta?.nome || "—";
+      const dataISO = evento?.dataISO || evento?.data || meta?.dataISO || null;
+      const convites = mapConvites(payload).length;
+      const updated = payload?.updatedAt || meta?.updatedAt || 0;
+      return `
       <tr>
-        <td>${esc(ev?.nome||"—")}</td>
-        <td>${fmtDate(ev?.dataISO)}</td>
-        <td>${ev?.convites?.length||0}</td>
-        <td>${new Date(ev?.updatedAt||0).toLocaleString()}</td>
+        <td>${esc(nome)}</td>
+        <td>${fmtDate(dataISO)}</td>
+        <td>${convites}</td>
+        <td>${new Date(updated).toLocaleString()}</td>
         <td><button class="ac-iconbtn" data-load="${i}" title="Selecionar">→</button></td>
-      </tr>`).join("");
+      </tr>`;
+    }).join("");
     tb.innerHTML = rows;
     $(root, "#modal").hidden = false;
   }
 
-  root.addEventListener("click",(e)=>{
+  root.addEventListener("click", async (e)=>{
     if(e.target.matches('[data-action="fechar-modal"]')) $(root, "#modal").hidden = true;
 
     const it = e.target.closest(".ac-dd__item");
@@ -320,9 +415,9 @@ export async function render(rootEl){
     const b = e.target.closest("[data-load]");
     if(b){
       const i = parseInt(b.getAttribute("data-load"),10);
-      ativo = lista[i] || ativo;
+      const meta = lista[i] || getMetaById(activeId);
       sel.value = String(i);
-      renderEvento();
+      await setActive(meta?.id);
       $(root, "#modal").hidden = true;
       setStatus("Evento carregado");
     }
@@ -330,40 +425,45 @@ export async function render(rootEl){
 
   async function refreshIndex(){
     lista = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
+    await loadProjectDetails(lista);
+    const idx = lista.findIndex(e => e?.id === activeId);
+    const nextActiveId = idx < 0 ? (lista[0]?.id ?? null) : activeId;
     fillSelect(); renderUserPanel(); // preserva 'ativo' se ainda existir
-    if(ativo){
-      const idx = lista.findIndex(e => e?.id === ativo.id);
-      if(idx >= 0) sel.value = String(idx);
+    if(nextActiveId){
+      const selIdx = lista.findIndex(e => e?.id === nextActiveId);
+      if(selIdx >= 0) sel.value = String(selIdx);
     }
-    await renderEvento();
+    await setActive(nextActiveId);
   }
 
   async function duplicateActive(){
-    if(!ativo){ setStatus("Sem evento ativo"); return; }
-    const full = (await store.getProject?.(ativo.id)) || ativo;
+    const meta = getMetaById(activeId);
+    if(!meta){ setStatus("Sem evento ativo"); return; }
+    const detail = getPayloadById(meta.id);
+    const full = detail || (await store.getProject?.(meta.id)) || meta;
     // cria uma cópia rascunho
     const clone = cloneProject(full);
     delete clone.id; // força novo id
     clone.evento = clone.evento || {};
-    clone.evento.nome = (clone.evento.nome || ativo.nome || "Evento") + " (cópia)";
+    clone.evento.nome = (clone.evento.nome || meta.nome || "Evento") + " (cópia)";
     const res = await store.createProject?.(clone);
     setStatus("Duplicado");
     await refreshIndex();
     // seleciona a cópia como ativa
     const novoId = res?.meta?.id;
     const idx = lista.findIndex(e => e?.id === novoId);
-    if(idx >= 0){ ativo = lista[idx]; sel.value = String(idx); await renderEvento(); }
+    if(idx >= 0){ sel.value = String(idx); await setActive(lista[idx]?.id); }
   }
 
   async function deleteActive(){
-    if(!ativo){ setStatus("Sem evento ativo"); return; }
+    const meta = getMetaById(activeId);
+    if(!meta){ setStatus("Sem evento ativo"); return; }
     const ok = confirm("Excluir este evento? Esta ação não pode ser desfeita.");
     if(!ok) return;
-    await store.deleteProject?.(ativo.id);
+    await store.deleteProject?.(meta.id);
     setStatus("Excluído");
     await refreshIndex();
-    ativo = lista[0] || null;
-    await renderEvento();
+    await setActive(lista[0]?.id ?? null);
   }
 
   async function createNew(){
@@ -373,10 +473,21 @@ export async function render(rootEl){
     const novoId = res?.meta?.id;
     const idx = lista.findIndex(e => e?.id === novoId);
     if(idx >= 0){
-      ativo = lista[idx];
       sel.value = String(idx);
-      await renderEvento();
+      await setActive(lista[idx]?.id);
     }
+  }
+  async function setActive(id){
+    const prevId = activeId;
+    activeId = id ?? null;
+    const idx = lista.findIndex(meta => meta?.id === activeId);
+    if(idx >= 0){
+      sel.value = String(idx);
+    } else if(sel){
+      sel.selectedIndex = -1;
+    }
+    await renderEvento();
+    if(notifyProjectChange && prevId !== activeId) notifyProjectChange(activeId);
   }
 }
 
