@@ -3,8 +3,19 @@
 // - Shell + navegação
 // - Import dinâmico das views
 // - CSS mínimo namespaced (.ac-app) — tipografia herda do site
-import * as store from '/shared/projectStore.js';
 import { qs, on, mount, spinner, showToast, cssBase } from './ui/dom.mjs';
+
+let store = null;
+
+async function ensureStore(){
+  if (store) return store;
+  if (globalThis.__AC_STORE__) {
+    store = globalThis.__AC_STORE__;
+  } else {
+    store = await import('/shared/projectStore.js');
+  }
+  return store;
+}
 
 const routes = {
   convites: () => import('./views/convites.mjs'),
@@ -17,6 +28,7 @@ let current = { destroy: null };
 let currentTab = 'convites';
 
 async function render(root) {
+  await ensureStore();
   injectBaseStyles();
   mountShell(root);
   await store.init?.();
@@ -71,6 +83,7 @@ function bindHeaderNav() {
 }
 
 async function navigate(tab) {
+  await ensureStore();
   const main = qs('#ac-main');
   currentTab = tab;
   main.innerHTML = spinner();
@@ -99,6 +112,7 @@ function setActiveTab(tab) {
 }
 
 async function ensureProjectId() {
+  await ensureStore();
   // Usa o primeiro projeto existente; caso não exista, cria um com mensagens/templates default.
   const list = await store.listProjects();
   if (list && list.length) {
@@ -107,7 +121,7 @@ async function ensureProjectId() {
   const p = await store.createProject({
     evento: { titulo: 'Meu Evento', local: '', data: '', hora: '' },
   });
-  return p.id;
+  return p?.id || p?.payload?.id;
 }
 
 export { render };

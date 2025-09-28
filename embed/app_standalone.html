@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Assistente Cerimonial — Standalone</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f7f7f7;
+        color: #222;
+      }
+      #ac-root {
+        min-height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ac-root"></div>
+    <script type="module">
+      const root = document.getElementById('ac-root');
+      const hasIndexedDB = 'indexedDB' in window;
+
+      if (!hasIndexedDB) {
+        console.warn('[AC] IndexedDB indisponível — usando armazenamento em memória. Dados serão perdidos ao fechar a página.');
+        globalThis.__AC_STORE__ = createMemoryStore();
+      }
+
+      const appModuleUrl = new URL('../tools/gestao-de-convidados/app_header.mjs', import.meta.url);
+      const { render: renderApp } = await import(appModuleUrl.href);
+      await renderApp(root);
+
+      function createMemoryStore() {
+        const SCHEMA_VERSION = 1;
+        const projects = new Map();
+        let index = [];
+
+        const now = () => Date.now();
+        const deep = (obj) => JSON.parse(JSON.stringify(obj));
+        const uid = () => {
+          const cryptoObj = globalThis.crypto;
+          if (cryptoObj?.randomUUID) return cryptoObj.randomUUID();
+          if (cryptoObj?.getRandomValues) {
+            const buf = new Uint8Array(16);
+            cryptoObj.getRandomValues(buf);
+            buf[6] = (buf[6] & 0x0f) | 0x40;
+            buf[8] = (buf[8] & 0x3f) | 0x80;
+            const hex = Array.from(buf, (b) => b.toString(16).padStart(2, '0')).join('');
+            return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+          }
+          return `id-${Math.random().toString(16).slice(2)}`;
+        };
+
+        function ensureShape(p = {}) {
+          p.schemaVersion = SCHEMA_VERSION;
+          p.cerimonialista ||= { nomeCompleto: '', telefone: '', redeSocial: '' };
+          p.evento ||= { nome: '', data: '', hora: '', local: '', endereco: {}, anfitriao: {} };
+          if (typeof p.evento.endereco !== 'object' || p.evento.endereco === null) p.evento.endereco = {};
+          if (typeof p.evento.anfitriao !== 'object' || p.evento.anfitriao === null) p.evento.anfitriao = {};
+          p.lista ||= [];
+          p.tipos ||= [];
+          p.modelos ||= {};
+          p.vars ||= {};
+          return p;
+        }
+
+        function toMeta(p) {
+          return { id: p.id, nome: p.evento?.nome || 'Sem nome', updatedAt: now() };
+        }
+
+        function cloneMetaList(list) {
+          return list.map((item) => ({ ...item }));
+        }
+
+        return {
+          async init() {
+            return this.listProjects();
+          },
+          listProjects() {
+            return cloneMetaList([...index].sort((a, b) => b.updatedAt - a.updatedAt));
+          },
+          async createProject(data = {}) {
+            const id = uid();
+            const payload = ensureShape({
+              id,
+              cerimonialista: data.cerimonialista || { nomeCompleto: '', telefone: '', redeSocial: '' },
+              evento: data.evento || { nome: '', data: '', hora: '', local: '', endereco: {}, anfitriao: {} },
+              lista: data.lista || [],
+              tipos: data.tipos || [],
+              modelos: data.modelos || {},
+              vars: data.vars || {},
+            });
+            projects.set(id, deep(payload));
+            const meta = toMeta(payload);
+            index.push(meta);
+            return { id, meta, payload: deep(payload) };
+          },
+          async getProject(id) {
+            const raw = projects.get(id);
+            if (!raw) return null;
+            const shaped = ensureShape(deep(raw));
+            projects.set(id, deep(shaped));
+            return deep(shaped);
+          },
+          async updateProject(id, partial) {
+            const current = projects.get(id);
+            if (!current) throw new Error('Projeto não encontrado');
+            const next = ensureShape({ ...deep(current), ...deep(partial) });
+            projects.set(id, deep(next));
+            const meta = toMeta(next);
+            const idx = index.findIndex((item) => item.id === id);
+            if (idx >= 0) {
+              index[idx] = { ...index[idx], nome: meta.nome, updatedAt: meta.updatedAt };
+            } else {
+              index.push(meta);
+            }
+            return deep(next);
+          },
+          async deleteProject(id) {
+            projects.delete(id);
+            index = index.filter((item) => item.id !== id);
+          },
+          async exportProject(id) {
+            const project = await this.getProject(id);
+            if (!project) throw new Error('Projeto não encontrado');
+            return JSON.stringify(project, null, 2);
+          },
+          async importProject(jsonOrObj) {
+            const obj = typeof jsonOrObj === 'string' ? JSON.parse(jsonOrObj) : jsonOrObj;
+            const { cerimonialista, evento, lista, tipos, modelos, vars } = obj || {};
+            return this.createProject({ cerimonialista, evento, lista, tipos, modelos, vars });
+          },
+        };
+      }
+    </script>
+  </body>
+</html>
