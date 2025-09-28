@@ -29,8 +29,9 @@ function withStore(mode, cb){
     const tx = db.transaction(STORE, mode);
     const store = tx.objectStore(STORE);
     const out = cb(store);
-    tx.oncomplete = () => resolve(out);
-    tx.onerror = () => reject(tx.error);
+    tx.oncomplete = () => { db.close(); resolve(out); };
+    tx.onabort = () => { db.close(); reject(tx.error); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
   }));
 }
 function kvGet(key){
@@ -121,7 +122,45 @@ export async function getProject(id){
 export async function updateProject(id, partial){
   const curr = await kvGet(KEY(id));
   if (!curr) throw new Error("Projeto não encontrado");
-  const next = ensureShape({ ...curr, ...deep(partial) });
+
+  const patch = deep(partial);
+  const merged = { ...curr, ...patch };
+
+  if (patch.cerimonialista) {
+    merged.cerimonialista = { ...(curr.cerimonialista || {}), ...patch.cerimonialista };
+  }
+
+  if (patch.evento) {
+    const currEvento = curr.evento || {};
+    const patchEvento = patch.evento;
+    merged.evento = { ...currEvento, ...patchEvento };
+
+    if (patchEvento.anfitriao) {
+      merged.evento.anfitriao = { ...(currEvento.anfitriao || {}), ...patchEvento.anfitriao };
+    }
+
+    if (patchEvento.endereco) {
+      merged.evento.endereco = { ...(currEvento.endereco || {}), ...patchEvento.endereco };
+    }
+  }
+
+  if (patch.vars) {
+    merged.vars = { ...(curr.vars || {}), ...patch.vars };
+  }
+
+  if (patch.modelos) {
+    merged.modelos = { ...(curr.modelos || {}), ...patch.modelos };
+  }
+
+  if (patch.tipos) {
+    merged.tipos = Array.isArray(patch.tipos) ? patch.tipos.slice() : (curr.tipos || []);
+  }
+
+  if (patch.lista) {
+    merged.lista = Array.isArray(patch.lista) ? patch.lista.slice() : (curr.lista || []);
+  }
+
+  const next = ensureShape(merged);
   await kvSet(KEY(id), next);
 
   const idx = indexCache || (await kvGet(INDEX_KEY)) || [];
