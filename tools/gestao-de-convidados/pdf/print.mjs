@@ -14,16 +14,25 @@ export function openPrint(sections, project){
   w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Relatório</title><style>'+css+'</style></head><body>');
   if (sections.evento){
     const ev = project.evento||{};
+    const end = ev.endereco || {};
+    const endereco = [end.logradouro, end.numero, end.complemento, end.bairro, end.cidade, end.uf, end.cep]
+      .filter(Boolean)
+      .join(', ');
     w.document.write(`<section class="section"><h2>Dados do evento</h2>
       <p><b>Título:</b> ${ev.titulo||'-'}<br/>
       <b>Data:</b> ${ev.data||'-'} &nbsp; <b>Hora:</b> ${ev.hora||'-'}<br/>
-      <b>Local:</b> ${ev.local||'-'}</p></section>`);
+      <b>Local:</b> ${ev.local||'-'}<br/>
+      <b>Endereço:</b> ${endereco || '-'}<br/>
+      <b>Anfitrião:</b> ${ev.anfitriao || '-'} &nbsp; <b>Cerimonial:</b> ${ev.cerimonial || '-'}</p></section>`);
   }
   if (sections.agenda){
     const agenda = project.agenda||[];
+    const modelos = project.mensagens?.modelos || [];
     w.document.write('<section class="section"><h2>Agenda de mensagens</h2><table><thead><tr><th>Data/Hora</th><th>Modelo</th><th>Público</th><th>Estimado</th><th>Enviados</th><th>Status</th></tr></thead><tbody>');
     agenda.forEach(a=>{
-      w.document.write(`<tr><td>${new Date(a.dataHoraISO).toLocaleString()}</td><td>${a.modeloId}</td><td>${a.publico?.tipo||''}</td><td>${a.metricas?.estimado??0}</td><td>${a.metricas?.enviados??0}</td><td>${a.status}</td></tr>`);
+      const modelo = modelos.find(m => m.id === a.modeloId);
+      const titulo = modelo ? modelo.titulo : a.modeloId;
+      w.document.write(`<tr><td>${new Date(a.dataHoraISO).toLocaleString()}</td><td>${titulo}</td><td>${a.publico?.tipo||''}</td><td>${a.metricas?.estimado??0}</td><td>${a.metricas?.enviados??0}</td><td>${a.status}</td></tr>`);
     });
     w.document.write('</tbody></table></section>');
   }

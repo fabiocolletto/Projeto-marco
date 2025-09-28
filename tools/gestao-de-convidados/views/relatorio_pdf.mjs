@@ -27,4 +27,4 @@ export async function render(root, ctx){
     openPrint(sections, fresh);
   });
 }
-export function destroy(){} 
+export function destroy(){}
