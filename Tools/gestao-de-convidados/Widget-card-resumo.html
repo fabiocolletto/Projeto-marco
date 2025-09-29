@@ -1,14 +1,22 @@
-<!-- Widget fixo de resumo do evento / navegação do app -->
-<!-- Requer CSS global (ac.css) já carregado na página e módulos em /shared -->
-<ac-hub></ac-hub>
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AC — Widget Resumo</title>
+  <link rel="stylesheet" href="https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main/Tools/gestao-de-convidados/ac.css" />
+</head>
+<body>
+  <main class="ac">
+    <div class="container">
+      <ac-hub></ac-hub>
+    </div>
+  </main>
 
-<script type="module">
+  <script type="module">
 class AcHub extends HTMLElement{
   constructor(){ super(); this.state = { id:null, project:null }; }
-  connectedCallback(){
-    this.render();
-    this.bootstrap();
-  }
+  connectedCallback(){ this.render(); this.bootstrap(); }
   render(){
     this.innerHTML = `
       <section class="card ac-hub">
@@ -84,7 +92,6 @@ class AcHub extends HTMLElement{
         </div>
       </div>`;
 
-    // lightweight tile styles leveraging ac.css tokens
     this.classList.add('ac-hub-wrap');
   }
 
@@ -148,28 +155,19 @@ class AcHub extends HTMLElement{
       refs('kNext').textContent = msgs[0]?.whenISO ? fmtDT(msgs[0].whenISO) : '—';
     };
 
-    const refresh = async ()=>{
-      setPill(!!this.state.id);
-      updateHeader();
-    };
+    const refresh = async ()=>{ setPill(!!this.state.id); updateHeader(); };
 
-    const openEvent = async (id)=>{
-      this.state.id = id;
-      this.state.project = id ? await store.getProject?.(id) : null;
-      await refresh();
-    };
+    const openEvent = async (id)=>{ this.state.id = id; this.state.project = id ? await store.getProject?.(id) : null; await refresh(); };
 
     const refreshList = ()=> (store.listProjects?.() || []).filter(m=>!m._deleted);
 
-    // menu interactions
     const btnManage = refs('btnManage');
     const menu      = refs('menu');
     btnManage.addEventListener('click', ()=> menu.classList.toggle('show'));
     document.addEventListener('click', (e)=>{ if(!this.contains(e.target)) return; if(!menu.contains(e.target) && e.target!==btnManage) menu.classList.remove('show'); });
 
     menu.addEventListener('click', async (e)=>{
-      const b = e.target.closest('button[data-act]'); if(!b) return;
-      const act = b.getAttribute('data-act');
+      const b = e.target.closest('button[data-act]'); if(!b) return; const act = b.getAttribute('data-act');
       if(act==='new'){
         const created = await store.createProject?.({ nome: computeEventName({}), cerimonialista: (this.state.project?.cerimonialista||{}) });
         const id = created?.payload?.id || created?.id; await openEvent(id); bus.publish('ac:open-event', { id });
@@ -182,20 +180,20 @@ class AcHub extends HTMLElement{
         modal.removeAttribute('hidden');
       }
       if(act==='save'){
-        if(!this.state.id){ status.textContent='Nenhum evento aberto.'; return; }
+        if(!this.state.id){ refs('status').textContent='Nenhum evento aberto.'; return; }
         await store.updateProject?.(this.state.id, { updatedAt: Date.now() });
         this.state.project = await store.getProject?.(this.state.id);
-        status.textContent='Salvo'; bus.publish('ac:project-updated', { id:this.state.id });
+        refs('status').textContent='Salvo'; bus.publish('ac:project-updated', { id:this.state.id });
       }
       if(act==='dup'){
-        if(!this.state.id){ status.textContent='Nenhum evento para duplicar.'; return; }
+        if(!this.state.id){ refs('status').textContent='Nenhum evento para duplicar.'; return; }
         const src = await store.getProject?.(this.state.id);
         const payload = { nome: (src?.nome ? (src.nome+" — cópia") : computeEventName(src?.evento)), evento: src?.evento, lista: src?.lista, mensagens: src?.mensagens, cerimonialista: src?.cerimonialista };
         const created = await store.createProject?.(payload);
         const id = created?.payload?.id || created?.id; await openEvent(id); bus.publish('ac:open-event', { id });
       }
       if(act==='del'){
-        if(!this.state.id){ status.textContent='Nenhum evento para excluir.'; return; }
+        if(!this.state.id){ refs('status').textContent='Nenhum evento para excluir.'; return; }
         const p = await store.getProject?.(this.state.id);
         const name = p?.evento?.nome || p?.nome || 'evento';
         const ok = (typeof window.confirm==='function') ? window.confirm(`Excluir "${name}"? Esta ação não pode ser desfeita.`) : true;
@@ -205,32 +203,27 @@ class AcHub extends HTMLElement{
       }
     });
 
-    // modal actions
     const modal = refs('modal');
     modal.addEventListener('click', (e)=>{
-      const b = e.target.closest('button[data-act]'); if(!b) return;
-      const act = b.getAttribute('data-act');
+      const b = e.target.closest('button[data-act]'); if(!b) return; const act = b.getAttribute('data-act');
       if(act==='cancelLoad'){ modal.setAttribute('hidden',''); }
-      if(act==='doLoad'){
-        const sel = refs('sel'); const id = sel.value; modal.setAttribute('hidden',''); if(id){ openEvent(id); bus.publish('ac:open-event', { id }); }
-      }
+      if(act==='doLoad'){ const sel = refs('sel'); const id = sel.value; modal.setAttribute('hidden',''); if(id){ openEvent(id); bus.publish('ac:open-event', { id }); } }
     });
 
-    // tiles navigation
     this.querySelectorAll('.tile[data-nav]').forEach(tile=>{
       const to = tile.getAttribute('data-nav');
       tile.addEventListener('click', ()=> bus.publish('ac:navigate',{ tab: to }));
       tile.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); bus.publish('ac:navigate',{ tab: to }); } });
     });
 
-    // BUS subscriptions
     bus.subscribe('ac:open-event', ({id})=>{ if(id) openEvent(id); });
     bus.subscribe('ac:project-updated', ({id})=>{ if(id && id===this.state.id) openEvent(id); else updateHeader(); });
 
-    // initial load: keep current or pick first
-    const metas = refreshList();
+    const metas = (store.listProjects?.() || []).filter(m=>!m._deleted);
     if(metas.length) await openEvent(metas[0].id); else await refresh();
   }
 }
 customElements.define('ac-hub', AcHub);
-</script>
+  </script>
+</body>
+</html>
