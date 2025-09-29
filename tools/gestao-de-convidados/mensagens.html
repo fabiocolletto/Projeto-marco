@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistente Cerimonial — Programação de Mensagens</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/Tools/gestao-de-convidados/ac.css" />
+</head>
+<body>
+  <main class="ac">
+    <div class="container">
+      <h1>Assistente Cerimonial — Programação de Mensagens</h1>
+      <p class="muted">Monte um calendário de envios baseado em modelos. Vincula ao evento aberto via BUS e persiste no projeto.</p>
+
+      <div class="grid">
+        <section class="card">
+          <div class="card__header">
+            <h3>Evento atual</h3>
+            <div class="row">
+              <span id="pillEvento" class="pill warn">Sem evento</span>
+            </div>
+          </div>
+          <div class="kpis">
+            <div class="kpi">Evento: <strong id="evNomeOut">—</strong></div>
+            <div class="kpi">Data: <strong id="evDataOut">—</strong></div>
+            <div class="kpi">Hora: <strong id="evHoraOut">—</strong></div>
+            <div class="kpi">Mensagens programadas: <strong id="evMsgsOut">0</strong></div>
+            <div class="kpi">Exemplo de convite: <strong id="evGuestOut">—</strong></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h3>Criar envio</h3>
+            <span class="muted small">Escolha a categoria, ajuste a data/hora e adicione à programação.</span>
+          </div>
+          <div class="stack-sm">
+            <label class="row">
+              <span class="muted">Categoria</span>
+              <select id="selCat">
+                <option value="save">Save the Date</option>
+                <option value="convite">Convite Formal</option>
+                <option value="lembrete7">Lembrete (7 dias)</option>
+                <option value="lembrete24">Lembrete (24h)</option>
+                <option value="agradecimento">Agradecimento</option>
+              </select>
+            </label>
+            <label class="row">
+              <span class="muted">Dia</span>
+              <input type="date" id="sendDate" />
+            </label>
+            <label class="row">
+              <span class="muted">Hora</span>
+              <input type="time" id="sendTime" />
+            </label>
+            <button id="btnAdd" class="btn btn--primary" type="button" disabled>Adicionar</button>
+          </div>
+          <div class="templates mt-2" id="tpls"></div>
+          <div class="muted small" id="status">—</div>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h3>Calendário de envios</h3>
+            <div class="row">
+              <span id="pillProg" class="pill ok">Pronto</span>
+              <button id="btnSave" class="btn btn--primary" disabled>Salvar alterações</button>
+              <button id="btnExport" class="btn btn--ghost">Exportar relatório (PDF)</button>
+            </div>
+          </div>
+          <div id="schedWrap" class="table-wrap">
+            <table class="sticky-header">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Categoria</th>
+                  <th>Mensagem modelo</th>
+                  <th>Envio</th>
+                  <th class="right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="schedBody"></tbody>
+            </table>
+          </div>
+          <div class="note" id="schedMeta">0 itens</div>
+        </section>
+      </div>
+    </div>
+
+    <div id="modalBus" class="ac-modal" role="dialog" aria-modal="true" hidden>
+      <div class="box">
+        <h3>Erro de inicialização</h3>
+        <p class="muted">O barramento de eventos (BUS) é obrigatório para sincronização entre as abas. Verifique o caminho de <code>/shared/marcoBus.js</code> e recarregue a página.</p>
+        <div class="row-end"><button id="btnCloseBus" class="btn">Fechar</button></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    const PATH_BUS = "/shared/marcoBus.js";
+    const PATH_STORE = "/shared/projectStore.js";
+    const CANDIDATES = [
+      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+    ];
+    async function tryImport(url){ try{ return await import(url); }catch(e1){ try{ return await import(url+(url.includes("?")?"&":"?")+"t="+Date.now()); }catch(e2){ return null; } } }
+    async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+
+    const store = await loadShared(PATH_STORE);
+    const bus = await loadShared(PATH_BUS);
+
+    const modalBus = document.querySelector('#modalBus');
+    document.querySelector('#btnCloseBus')?.addEventListener('click', ()=> modalBus.setAttribute('hidden',''));
+    if(!bus || typeof bus.publish!== 'function' || typeof bus.subscribe!== 'function'){ modalBus.removeAttribute('hidden'); throw new Error('BUS obrigatório não carregou.'); }
+    await store?.init?.();
+
+    const state = { currentId:null, project:null, programacao:[], dirty:false };
+    const $ = (s)=> document.querySelector(s);
+    const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
+
+    const pillEvento = $('#pillEvento');
+    const pillProg = $('#pillProg');
+    const evNomeOut = $('#evNomeOut');
+    const evDataOut = $('#evDataOut');
+    const evHoraOut = $('#evHoraOut');
+    const evGuestOut = $('#evGuestOut');
+    const evMsgsOut = $('#evMsgsOut');
+
+    const selCat = $('#selCat');
+    const sendDate = $('#sendDate');
+    const sendTime = $('#sendTime');
+    const btnAdd = $('#btnAdd');
+    const tpls = $('#tpls');
+    const statusEl = $('#status');
+    const schedBody = $('#schedBody');
+    const schedMeta = $('#schedMeta');
+    const btnSave = $('#btnSave');
+    const btnExport = $('#btnExport');
+
+    function fmtDate(d){ if(!d) return ''; const p=d.split('-'); return p.length===3? p[2]+"/"+p[1]+"/"+p[0] : ''; }
+    function fmtWhen(iso){ if(!iso) return ''; const parts=iso.split('T'); const d=parts[0]||''; const t=(parts[1]||'').slice(0,5); const p=d.split('-'); return p.length===3? p[2]+"/"+p[1]+"/"+p[0]+" "+t : ''; }
+
+    const TEMPLATES = {
+      save:[
+        'Olá, {{nomeConvidado}}! Reserve esta data: {{dataEvento}} às {{horaEvento}}. {{nomeEvento}} está chegando! 🎉',
+        'Save the Date: {{dataEvento}} — {{nomeEvento}}. Contamos com você, {{nomeConvidado}}! ✨',
+        '{{nomeConvidado}}, anote aí: {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Em breve, mais detalhes!',
+        'É oficial! {{nomeEvento}} será em {{dataEvento}} às {{horaEvento}}. Aguarde o convite! 💌',
+        'Oi {{nomeConvidado}}! Guarde o dia {{dataEvento}} para o {{nomeEvento}}. Vai ser especial!',
+        'Agenda aí: {{dataEvento}} — {{nomeEvento}}. Presença sua faz toda a diferença, {{nomeConvidado}}.'
+      ],
+      convite:[
+        'Olá, {{nomeConvidado}}! Você é nosso(a) convidado(a) para {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Confirme sua presença!',
+        '{{nomeConvidado}}, esperamos você no {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}. Contamos com sua presença!',
+        'Convite: {{nomeEvento}} acontece em {{dataEvento}} às {{horaEvento}}. Sua presença é muito importante, {{nomeConvidado}}.',
+        'É com alegria que convidamos você para {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Até lá!',
+        '{{nomeConvidado}}, junte-se a nós no {{nomeEvento}}. Data: {{dataEvento}} • Hora: {{horaEvento}}.',
+        'Convite especial para {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}. Esperamos por você, {{nomeConvidado}}!'
+      ],
+      lembrete7:[
+        'Faltam 7 dias! {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Te esperamos, {{nomeConvidado}}!',
+        'Contagem regressiva: 1 semana para {{nomeEvento}}. Dia {{dataEvento}} às {{horaEvento}}.',
+        '{{nomeConvidado}}, daqui a 7 dias nos vemos no {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}.',
+        'Lembrete: falta pouco para {{nomeEvento}} ({{dataEvento}}). Prepare-se! 🎉',
+        'Tudo certo para {{nomeEvento}}? Dia {{dataEvento}} às {{horaEvento}}. Falta 1 semana!',
+        'Falta uma semana para {{nomeEvento}}! Anote: {{dataEvento}} • {{horaEvento}}.'
+      ],
+      lembrete24:[
+        'Amanhã é o dia! {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Até breve, {{nomeConvidado}}!',
+        'Lembrete 24h: {{nomeEvento}} acontece amanhã — {{dataEvento}} • {{horaEvento}}.',
+        '{{nomeConvidado}}, nos vemos amanhã no {{nomeEvento}} às {{horaEvento}}!',
+        'Está chegando! Amanhã: {{nomeEvento}} ({{dataEvento}} às {{horaEvento}}).',
+        'Falta 1 dia: {{nomeEvento}} em {{dataEvento}} • {{horaEvento}}. Contamos com você!',
+        'Não esqueça: amanhã tem {{nomeEvento}}! Horário: {{horaEvento}}.'
+      ],
+      agradecimento:[
+        'Obrigado por celebrar conosco no {{nomeEvento}}! Sua presença fez a diferença, {{nomeConvidado}}.',
+        'Gratidão pela presença no {{nomeEvento}}. Foi especial ter você!',
+        '{{nomeConvidado}}, agradecemos por participar do {{nomeEvento}}. Até a próxima!',
+        'Nosso muito obrigado! {{nomeEvento}} foi incrível com você lá. 💛',
+        'Valeu por estar no {{nomeEvento}}! Sua presença tornou tudo melhor.',
+        'Agradecemos o carinho no {{nomeEvento}}. Esperamos te ver em breve, {{nomeConvidado}}.'
+      ]
+    };
+
+    function compile(tpl, v){
+      return tpl
+        .replaceAll('{{nomeConvidado}}', v.nomeConvidado)
+        .replaceAll('{{dataEvento}}', v.dataEvento)
+        .replaceAll('{{horaEvento}}', v.horaEvento)
+        .replaceAll('{{nomeEvento}}', v.nomeEvento);
+    }
+
+    function varsEvento(){
+      const ev = state.project?.evento || {};
+      const nomeEvento = (ev?.nome || state.project?.nome || 'Nosso Evento').trim();
+      const dataEvento = fmtDate(ev?.data || '') || 'dd/mm/aaaa';
+      const horaEvento = ev?.hora || 'hh:mm';
+      const nomeConvidado = (state.project?.lista?.[0]?.nome) || 'Convidado(a)';
+      return { nomeEvento, dataEvento, horaEvento, nomeConvidado };
+    }
+
+    function renderTemplates(){
+      const cat = selCat.value; const list = TEMPLATES[cat] || []; const v = varsEvento();
+      tpls.innerHTML = list.map(function(tpl,i){ const msg = compile(tpl, v); return '<label class="tpl"><input type="radio" name="tpl" value="'+i+'" '+(i===0?'checked':'')+' /><pre><span class="badge">Modelo #'+(i+1)+'</span>'+escapeHtml(msg)+'</pre></label>'; }).join('');
+    }
+
+    function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>]/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m]; }); }
+
+    function setDirty(v){ state.dirty = !!v; btnSave.disabled = !state.dirty || !state.currentId; setPill(pillProg, state.dirty? 'warn':'ok', state.dirty? 'Alterações não salvas':'Pronto'); }
+    function setEventLinked(){ const linked = !!state.currentId; setPill(pillEvento, linked? 'ok':'warn', linked? 'Vinculado':'Sem evento'); btnAdd.disabled = !linked; }
+
+    function addItem(){
+      const cat = selCat.value; const pick = document.querySelector('input[name="tpl"]:checked'); const idx = pick? parseInt(pick.value,10):0; const tpl = (TEMPLATES[cat]||[])[idx] || '';
+      const d = sendDate.value; const t = sendTime.value; if(!d || !t){ statusEl.textContent = 'Informe dia e hora.'; return; }
+      const v = varsEvento(); const msg = compile(tpl, v); const whenISO = d+'T'+t+':00';
+      state.programacao.push({ cat:cat, modelIdx:idx, message:msg, whenISO:whenISO });
+      sendDate.value = ''; sendTime.value = '';
+      setDirty(true); renderSchedule(); statusEl.textContent = 'Item adicionado';
+    }
+
+    function labelCat(cat){ switch(cat){ case 'save': return 'Save the Date'; case 'convite': return 'Convite Formal'; case 'lembrete7': return 'Lembrete (7 dias)'; case 'lembrete24': return 'Lembrete (24h)'; case 'agradecimento': return 'Agradecimento'; default: return cat; } }
+
+    function renderSchedule(){
+      const rows = state.programacao || []; schedMeta.textContent = rows.length+' itens'; if(evMsgsOut) evMsgsOut.textContent = String(rows.length);
+      if(!rows.length){ schedBody.innerHTML = '<tr><td colspan="5" class="muted">Nenhum envio programado.</td></tr>'; return; }
+      schedBody.innerHTML = rows.map(function(it,i){ const when = fmtWhen(it.whenISO); return '<tr data-i="'+i+'">'+
+        '<td>'+ (i+1) +'</td>'+
+        '<td>'+ labelCat(it.cat) +'</td>'+
+        '<td style="max-width:640px"><span class="badge">Modelo #'+(it.modelIdx+1)+'</span>'+ escapeHtml(it.message) +'</td>'+
+        '<td><span>'+ when +'</span></td>'+
+        '<td class="right actions">'+
+          '<button class="btn btn--ghost small" data-act="edit" type="button">Editar</button>'+
+          '<button class="btn btn--danger small" data-act="del" type="button">Excluir</button>'+
+        '</td>'+
+      '</tr>'; }).join('');
+    }
+
+    function onTableClick(ev){
+      const btn = ev.target.closest && ev.target.closest('button[data-act]'); if(!btn) return; const tr = btn.closest('tr'); const i = parseInt(tr.getAttribute('data-i'),10); const it = state.programacao[i]; const act = btn.getAttribute('data-act'); if(!it) return;
+      if(act === 'del'){ state.programacao.splice(i,1); setDirty(true); renderSchedule(); return; }
+      if(act === 'edit'){
+        const parts = it.whenISO.split('T'); const d = parts[0]||''; const t = (parts[1]||'').slice(0,5);
+        tr.innerHTML = '<td>'+ (i+1) +'</td>'+
+          '<td>'+ labelCat(it.cat) +'</td>'+
+          '<td style="max-width:640px"><span class="badge">Modelo #'+(it.modelIdx+1)+'</span>'+ escapeHtml(it.message) +'</td>'+
+          '<td>'+
+            '<input type="date" value="'+ d +'" data-f="d" />'+
+            '<input type="time" value="'+ t +'" data-f="t" />'+
+          '</td>'+
+          '<td class="right actions">'+
+            '<button class="btn small" data-act="save">Salvar</button>'+
+            '<button class="btn btn--ghost small" data-act="cancel">Cancelar</button>'+
+            '<button class="btn btn--danger small" data-act="del">Excluir</button>'+
+          '</td>';
+        return;
+      }
+      if(act === 'cancel'){ renderSchedule(); return; }
+      if(act === 'save'){
+        const nd = tr.querySelector('input[data-f="d"]').value; const nt = tr.querySelector('input[data-f="t"]').value; if(!nd || !nt){ statusEl.textContent = 'Informe dia e hora.'; return; }
+        it.whenISO = nd+'T'+nt+':00'; setDirty(true); renderSchedule();
+      }
+    }
+
+    schedBody.addEventListener('click', onTableClick);
+
+    async function saveProgramacao(){ if(!state.currentId){ statusEl.textContent = 'Nenhum evento aberto.'; return; } await store.updateProject?.(state.currentId, { mensagens: state.programacao }); state.project = await store.getProject?.(state.currentId); setDirty(false); bus.publish('ac:project-updated', { id: state.currentId }); }
+
+    btnSave.addEventListener('click', saveProgramacao);
+    btnAdd.addEventListener('click', addItem);
+    selCat.addEventListener('change', renderTemplates);
+    [sendDate, sendTime].forEach(el=> el.addEventListener('input', ()=> statusEl.textContent = '—'));
+
+    function buildReportHTML(){
+      const ev = state.project?.evento || {}; const nome = (ev?.nome || state.project?.nome || 'Evento').trim() || 'Evento'; const data = fmtDate(ev?.data||''); const hora = ev?.hora||''; const rows = state.programacao || [];
+      const tr = rows.map(function(r,i){ return '<tr><td>'+ (i+1) +'</td><td>'+ labelCat(r.cat) +'</td><td>'+ escapeHtml(r.message) +'</td><td style="text-align:right">'+ fmtWhen(r.whenISO) +'</td></tr>'; }).join('');
+      return '<!doctype html><html><head><meta charset="utf-8" />'+
+        '<title>Relatório — Programação de Mensagens</title>'+
+        '<style>body{font-family:system-ui,Arial,sans-serif}.report{padding:24px}h1{margin:0 0 4px 0;font-size:20px}h2{margin:16px 0 6px 0;font-size:16px}.meta{color:#333;font-size:12px;margin-bottom:8px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:6px;text-align:left}</style>'+
+      '</head><body onload="window.print()">'+
+        '<section class="report">'+
+          '<h1>Programação de Mensagens — '+ escapeHtml(nome) +'</h1>'+
+          '<div class="meta">'+ (data? 'Data: '+data+' • ' : '') + (hora? 'Hora: '+hora+' • ' : '') + 'Gerado em '+ (new Date().toLocaleString()) +'</div>'+
+          '<h2>Itens</h2>'+
+          '<table><thead><tr><th>#</th><th>Categoria</th><th>Mensagem</th><th style="text-align:right">Envio</th></tr></thead><tbody>'+ tr +'</tbody></table>'+
+        '</section>'+
+      '</body></html>';
+    }
+
+    function exportReport(){ const win = window.open('', '_blank'); if(!win){ alert('Pop-up bloqueado. Libere pop-ups para exportar o PDF.'); return; } win.document.open(); win.document.write(buildReportHTML()); win.document.close(); }
+    btnExport.addEventListener('click', exportReport);
+
+    function updateHeader(){ const ev = state.project?.evento || {}; evNomeOut.textContent = (ev?.nome || state.project?.nome || '—').trim() || '—'; evDataOut.textContent = fmtDate(ev?.data||'') || '—'; evHoraOut.textContent = ev?.hora || '—'; evGuestOut.textContent = (state.project?.lista?.[0]?.nome) || 'Convidado(a)'; evMsgsOut.textContent = String(state.programacao?.length || 0); setEventLinked(); }
+
+    async function loadCurrent(id){ state.currentId = id || state.currentId; state.project = state.currentId ? await store.getProject?.(state.currentId) : null; state.programacao = (state.project?.mensagens && Array.isArray(state.project.mensagens)) ? [].concat(state.project.mensagens) : []; setDirty(false); updateHeader(); renderTemplates(); renderSchedule(); }
+
+    bus.subscribe('ac:open-event', ({ id }) => { if(id) loadCurrent(id); });
+    bus.subscribe('ac:project-updated', ({ id }) => { if(id === state.currentId) loadCurrent(id); });
+
+    (async function bootstrap(){ const metas = store.listProjects?.() || []; if(metas.length){ await loadCurrent(metas[0].id); } else { renderTemplates(); renderSchedule(); setEventLinked(); } })();
+  </script>
+</body>
+</html>

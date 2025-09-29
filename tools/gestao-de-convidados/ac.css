@@ -1,0 +1,226 @@
+/*
+ * Assistente Cerimonial — Design System (ac.css)
+ * Um único CSS para identidade visual, componentes e responsividade
+ *
+ * Como usar:
+ * 1) Inclua este arquivo nas páginas do produto:
+ *    <link rel="stylesheet" href="tools/gestao-de-convidados/ac.css" />
+ * 2) Envolva o conteúdo do app com um wrapper .ac para isolar estilos do site:
+ *    <main class="ac"> ... </main>
+ * 3) (Opcional) Sobrescreva tokens em :root ou em .ac[data-theme] para alinhar à marca.
+ *
+ * Filosofia:
+ * - Mobile-first, classes utilitárias mínimas, componentes sem JS.
+ * - Acessibilidade: foco visível, contrastes pensados, áreas de toque adequadas.
+ * - Isolamento: estilos aplicam-se apenas dentro de .ac para não poluir o site.
+ */
+
+/* ------------------------------
+   Tokens (CSS Custom Properties)
+   ------------------------------ */
+:where(.ac){
+  /* Cores base (light) */
+  --ac-bg:           #ffffff;
+  --ac-surface:      #fafafa;
+  --ac-surface-2:    #f3f3f3;
+  --ac-border:       #e5e7eb; /* cinza-200 */
+  --ac-muted:        #6b7280; /* cinza-500 */
+  --ac-text:         #111827; /* cinza-900 */
+
+  /* Paleta da marca */
+  --ac-primary:      #5b6cff; /* azul violeta suave */
+  --ac-primary-600:  #4a59e6;
+  --ac-primary-700:  #3e4acc;
+  --ac-accent:       #22c55e; /* verde */
+  --ac-warn:         #f59e0b; /* âmbar */
+  --ac-danger:       #ef4444; /* vermelho */
+  --ac-info:         #0ea5e9; /* ciano */
+
+  /* Tipografia & espaçamentos */
+  --ac-font-sans: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans";
+  --ac-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  --ac-radius-sm: 6px;
+  --ac-radius-md: 10px;
+  --ac-radius-lg: 16px;
+
+  --ac-shadow-sm: 0 1px 2px rgba(0,0,0,.06);
+  --ac-shadow-md: 0 6px 16px rgba(0,0,0,.08);
+
+  /* Escala de espaço (multiplicador de 4px) */
+  --ac-space-1: .25rem; /* 4px  */
+  --ac-space-2: .5rem;  /* 8px  */
+  --ac-space-3: .75rem; /* 12px */
+  --ac-space-4: 1rem;   /* 16px */
+  --ac-space-5: 1.25rem;/* 20px */
+  --ac-space-6: 1.5rem; /* 24px */
+  --ac-space-8: 2rem;   /* 32px */
+  --ac-space-10: 2.5rem;/* 40px */
+
+  /* Larguras e z-index */
+  --ac-container: 1200px;
+  --ac-z-modal:  9999;
+  --ac-z-pop:    1000;
+
+  color-scheme: light; /* DarkMode controlado pelo plugin WP; CSS do app fica sempre em light por padrão */
+}
+
+/* Tema escuro automático (pode ser forçado com .ac[data-theme="dark"]) */
+/* Dark mode removido deste CSS para evitar conflito com o plugin do WordPress.
+   Caso precise reativar no futuro, podemos mapear tokens baseados em classes do plugin
+   (ex.: body.wp-dark-mode-active .ac { ... }) ou usar .ac[data-theme="dark"] manualmente. */
+
+/* ------------------------------
+   Base & resets locais (scopado)
+   ------------------------------ */
+:where(.ac){
+  font-family: var(--ac-font-sans);
+  color: var(--ac-text);
+}
+:where(.ac *), :where(.ac *::before), :where(.ac *::after){ box-sizing: border-box; }
+:where(.ac){ background: transparent; }
+:where(.ac) h1, :where(.ac) h2, :where(.ac) h3, :where(.ac) h4{ margin: 0 0 var(--ac-space-3) 0; line-height: 1.2; }
+:where(.ac) p{ margin: 0 0 var(--ac-space-3) 0; }
+:where(.ac) a{ color: var(--ac-primary); text-decoration: none; }
+:where(.ac) a:hover{ text-decoration: underline; }
+
+/* Container e grade responsiva */
+:where(.ac .container){ max-width: var(--ac-container); margin-inline: auto; padding-inline: var(--ac-space-4); }
+:where(.ac .grid){ display: grid; grid-template-columns: 1fr; gap: var(--ac-space-4); }
+:where(.ac .grid-2){ display:grid; grid-template-columns: 1fr; gap: var(--ac-space-3); }
+:where(.ac .grid-3){ display:grid; grid-template-columns: 1fr; gap: var(--ac-space-3); }
+
+@media (min-width: 768px){
+  :where(.ac .grid-2){ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  :where(.ac .grid-3){ grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+
+/* Linhas flex (utilitário) */
+:where(.ac .row){ display:flex; align-items:center; gap: var(--ac-space-2); flex-wrap: wrap; }
+:where(.ac .row-end){ display:flex; justify-content:flex-end; gap: var(--ac-space-2); }
+
+/* Tipografia utilitária */
+:where(.ac .muted){ color: var(--ac-muted); }
+:where(.ac .small){ font-size: .875rem; }
+:where(.ac code){ font-family: var(--ac-font-mono); background: var(--ac-surface-2); padding: .125rem .25rem; border-radius: var(--ac-radius-sm); }
+
+/* Cartões */
+:where(.ac .card){ background: var(--ac-surface); border: 1px solid var(--ac-border); border-radius: var(--ac-radius-md); padding: var(--ac-space-4); box-shadow: var(--ac-shadow-sm); }
+:where(.ac .card__header){ display:flex; align-items:center; justify-content:space-between; gap: var(--ac-space-2); margin-bottom: var(--ac-space-3); }
+
+/* Ações alinhadas à direita */
+:where(.ac .actions){ display:flex; gap: var(--ac-space-2); justify-content:flex-end; }
+
+/* Botões */
+:where(.ac button){ font: inherit; }
+:where(.ac .btn),
+:where(.ac .iconbtn),
+:where(.ac button.btn){
+  display:inline-flex; align-items:center; gap:.5ch; cursor:pointer; user-select:none;
+  padding: .6rem .9rem; border-radius: var(--ac-radius-sm);
+  border: 1px solid var(--ac-border); background: var(--ac-surface-2); color: var(--ac-text);
+  transition: background .2s ease, border-color .2s ease, transform .02s ease;
+}
+:where(.ac .btn:hover, .ac .iconbtn:hover){ background: color-mix(in oklab, var(--ac-surface-2) 90%, black 10%); }
+:where(.ac .btn:active, .ac .iconbtn:active){ transform: translateY(1px); }
+:where(.ac .btn[disabled], .ac .iconbtn[disabled]){ opacity:.6; cursor:not-allowed; }
+
+/* Variantes */
+:where(.ac .btn--primary){ background: var(--ac-primary); border-color: var(--ac-primary-700); color:#fff; }
+:where(.ac .btn--primary:hover){ background: var(--ac-primary-600); }
+:where(.ac .btn--danger), :where(.ac .danger){ background: color-mix(in oklab, var(--ac-danger) 20%, transparent); border-color: var(--ac-danger); color: var(--ac-danger); }
+:where(.ac .btn--danger:hover), :where(.ac .danger:hover){ background: color-mix(in oklab, var(--ac-danger) 30%, transparent); }
+:where(.ac .btn--ghost){ background: transparent; }
+
+/* Foco acessível */
+:where(.ac :is(button, input, select, textarea, a):focus){ outline: 2px solid transparent; box-shadow: 0 0 0 3px color-mix(in oklab, var(--ac-primary) 60%, white 40%); border-color: var(--ac-primary-700); }
+
+/* Formulários */
+:where(.ac input[type="text"], .ac input[type="email"], .ac input[type="tel"], .ac input[type="url"],
+       .ac input[type="number"], .ac input[type="date"], .ac input[type="time"], .ac select, .ac textarea){
+  width: 100%;
+  padding: .55rem .65rem; border-radius: var(--ac-radius-sm); border: 1px solid var(--ac-border);
+  background: var(--ac-bg); color: var(--ac-text);
+}
+:where(.ac textarea){ min-height: 6rem; resize: vertical; }
+:where(.ac label.row > span){ min-width: 10ch; }
+:where(.ac input::placeholder, .ac textarea::placeholder){ color: color-mix(in srgb, var(--ac-muted) 80%, transparent); }
+:where(.ac input:disabled, .ac select:disabled, .ac textarea:disabled){ opacity:.7; cursor:not-allowed; }
+
+/* Dropdown básico */
+:where(.ac .dropdown){ position: relative; }
+:where(.ac .menu){ position:absolute; top:100%; right:0; min-width: 220px; padding: var(--ac-space-2);
+  display:none; background: var(--ac-surface); border:1px solid var(--ac-border); border-radius: var(--ac-radius-md);
+  box-shadow: var(--ac-shadow-md); z-index: var(--ac-z-pop);
+}
+:where(.ac .menu.show){ display:block; }
+:where(.ac .menu .btn), :where(.ac .menu .iconbtn){ width:100%; justify-content:flex-start; }
+
+/* Pills / status */
+:where(.ac .pill){ display:inline-block; padding: .15rem .5rem; border-radius: 999px; font-size: .75rem; line-height:1.4; }
+:where(.ac .ok){ background: color-mix(in oklab, var(--ac-accent) 18%, transparent); color: var(--ac-accent); }
+:where(.ac .warn){ background: color-mix(in oklab, var(--ac-warn) 18%, transparent); color: var(--ac-warn); }
+:where(.ac .err){ background: color-mix(in oklab, var(--ac-danger) 18%, transparent); color: var(--ac-danger); }
+:where(.ac .info){ background: color-mix(in oklab, var(--ac-info) 18%, transparent); color: var(--ac-info); }
+
+/* KPIs */
+:where(.ac .kpis){ display:flex; gap: var(--ac-space-2); flex-wrap: wrap; }
+:where(.ac .kpi){ background: var(--ac-surface-2); border:1px solid var(--ac-border); border-radius: var(--ac-radius-sm); padding: .4rem .6rem; }
+
+/* Listas */
+:where(.ac .list){ list-style: none; margin:0; padding:0; }
+:where(.ac .list li){ display:grid; grid-template-columns: 1fr auto auto; gap: var(--ac-space-2); align-items:center; padding: .4rem 0; border-bottom: 1px dashed var(--ac-border); }
+:where(.ac .list-actions){ display:flex; gap: var(--ac-space-2); }
+
+/* Tabelas */
+:where(.ac table){ width:100%; border-collapse: collapse; }
+:where(.ac th, .ac td){ padding: .5rem .5rem; border-bottom: 1px solid var(--ac-border); text-align:left; }
+:where(.ac th){ color: var(--ac-muted); font-weight: 600; }
+:where(.ac .right){ text-align: right; }
+:where(.ac .table-wrap){ overflow:auto; max-height: clamp(240px, 40vh, 520px); }
+:where(.ac .sticky-header thead th){ position: sticky; top: 0; background: var(--ac-surface); z-index: 1; }
+
+/* Modais */
+:where(.ac .ac-modal){ position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,.4); z-index: var(--ac-z-modal); }
+:where(.ac .ac-modal.show){ display:flex; }
+:where(.ac .ac-modal .box){ background: var(--ac-surface); border:1px solid var(--ac-border); border-radius: var(--ac-radius-md); padding: var(--ac-space-4); width: min(720px, 92vw); box-shadow: var(--ac-shadow-md); }
+
+/* Utilidades leves */
+:where(.ac .no-print){ display: initial; }
+:where(.ac .visually-hidden){ position:absolute !important; height:1px; width:1px; overflow:hidden; clip: rect(1px, 1px, 1px, 1px); white-space: nowrap; }
+:where(.ac .mt-2){ margin-top: var(--ac-space-2); }  :where(.ac .mt-3){ margin-top: var(--ac-space-3); }  :where(.ac .mt-4){ margin-top: var(--ac-space-4); }
+:where(.ac .mb-2){ margin-bottom: var(--ac-space-2); } :where(.ac .mb-3){ margin-bottom: var(--ac-space-3); } :where(.ac .mb-4){ margin-bottom: var(--ac-space-4); }
+
+/* --------------------------------
+   Breakpoints adicionais de layout
+   -------------------------------- */
+@media (min-width: 1024px){
+  :where(.ac .grid){ gap: var(--ac-space-5); }
+}
+
+/* --------------------------------
+   Impressão (Relatórios)
+   -------------------------------- */
+@media print{
+  :where(.ac){ color: #000; background: #fff; }
+  :where(.ac .no-print){ display:none !important; }
+  :where(.ac .report){ padding: 24px; font-family: var(--ac-font-sans); }
+  :where(.ac .report h1){ margin: 0 0 4px 0; font-size: 20px; }
+  :where(.ac .report h2){ margin: 16px 0 6px 0; font-size: 16px; }
+  :where(.ac .report .meta){ color:#333; font-size:12px; margin-bottom:8px; }
+  :where(.ac .report .kpis){ display:flex; gap:12px; flex-wrap:wrap; margin:8px 0 12px 0; }
+  :where(.ac .report .kpis div){ border:1px solid #888; padding:6px 10px; border-radius:6px; }
+  :where(.ac .report table){ width:100%; border-collapse: collapse; font-size: 12px; }
+  :where(.ac .report th, .ac .report td){ border:1px solid #888; padding:6px; text-align:left; }
+}
+
+/* ------------------------------
+   Slots de componentes futuros
+   ------------------------------ */
+/* Toasts (reservado) */
+:where(.ac .toast){ position: fixed; inset-inline: auto var(--ac-space-4); bottom: var(--ac-space-4); background: var(--ac-surface); border:1px solid var(--ac-border); border-radius: var(--ac-radius-sm); padding: var(--ac-space-3); box-shadow: var(--ac-shadow-md); }
+
+/* Tabs simples (reservado) */
+:where(.ac .tabs){ display:flex; gap: var(--ac-space-2); border-bottom:1px solid var(--ac-border); }
+:where(.ac .tabs button){ border:none; background:none; padding: .6rem .9rem; border-bottom:2px solid transparent; }
+:where(.ac .tabs button[aria-selected="true"]){ border-color: var(--ac-primary); color: var(--ac-primary); }

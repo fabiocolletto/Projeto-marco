@@ -1,0 +1,551 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistente Cerimonial — Gestão de Convites</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/Tools/gestao-de-convidados/ac.css" />
+</head>
+<body>
+  <main class="ac">
+    <div class="container">
+      <h1>Assistente Cerimonial — Gestão de Convites</h1>
+      <p class="muted">Cole a lista, higienize, faça ajustes e consolide na lista final do evento. Persistência e sincronização via BUS.</p>
+
+      <div class="grid">
+        <!-- Cabeçalho do Evento Atual -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Evento atual</h3>
+            <div class="row">
+              <span id="pillEvento" class="pill info">Aguardando seleção…</span>
+              <button id="btnExport" class="btn">Exportar relatório (PDF)</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="muted" id="evResumo">Nenhum evento aberto. Abra pela aba <em>Eventos</em>.</div>
+          </div>
+          <div class="kpis mt-2">
+            <div class="kpi">Convites na lista final: <strong id="kConvFinal">0</strong></div>
+            <div class="kpi">Pessoas: <strong id="kPessFinal">0</strong></div>
+            <div class="kpi">Com telefone: <strong id="kTelFinal">0</strong></div>
+          </div>
+        </section>
+
+        <!-- Entrada e Higienização -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Entrada da lista</h3>
+            <div class="row">
+              <button id="btnTransform" class="btn btn--primary">Transformar</button>
+              <button id="btnClear" class="btn btn--ghost">Limpar</button>
+            </div>
+          </div>
+          <label for="txt" class="muted">Cole aqui (um convidado por linha). Nomes, telefones e acompanhantes serão detectados automaticamente.</label>
+          <textarea id="txt" spellcheck="false">Maria da Silva, 41 99999-0000
+João e Ana — (41) 3333-0000, 2 acomp.
++55 41 98888-7777; Carlos
+D’Ávila e Pedro, +351 912 345 678
+marcos vinícius; 11 98888-1111, acompanhante 1</textarea>
+          <div class="muted small" id="status">módulo: preparando…</div>
+        </section>
+
+        <!-- Pré-visualização -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Pré-visualização</h3>
+            <button id="btnSendAll" class="btn" disabled>Enviar todos ↓</button>
+          </div>
+          <div class="kpis">
+            <div class="kpi">Convites: <strong id="kConvPrev">0</strong></div>
+            <div class="kpi">Pessoas: <strong id="kPessPrev">0</strong></div>
+            <div class="kpi">Com telefone: <strong id="kTelPrev">0</strong></div>
+          </div>
+          <div class="table-wrap mt-2" id="tblPrevWrap">
+            <table id="tblPrev" class="sticky-header">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Convidado</th>
+                  <th>Telefone</th>
+                  <th class="right">Acomp.</th>
+                  <th class="right">Total</th>
+                  <th class="right">Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="note" id="notePrev" hidden></div>
+        </section>
+
+        <!-- Lista Final -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Lista final</h3>
+            <div class="row">
+              <span id="pillLista" class="pill ok">Pronto</span>
+              <button id="btnSaveLista" class="btn btn--primary" disabled>Salvar alterações</button>
+            </div>
+          </div>
+          <div class="kpis">
+            <div class="kpi">Convites: <strong id="kConvFinal2">0</strong></div>
+            <div class="kpi">Pessoas: <strong id="kPessFinal2">0</strong></div>
+            <div class="kpi">Com telefone: <strong id="kTelFinal2">0</strong></div>
+          </div>
+          <div class="table-wrap mt-2" id="tblFinalWrap">
+            <table id="tblFinal" class="sticky-header">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Convidado</th>
+                  <th>Telefone</th>
+                  <th class="right">Acomp.</th>
+                  <th class="right">Total</th>
+                  <th class="right">Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="note" id="noteFinal" hidden></div>
+        </section>
+
+        <div class="card muted">Total por linha = 1 + acompanhantes. A lista final é salva no projeto atual.</div>
+      </div>
+    </div>
+
+    <!-- Modal BUS ausente -->
+    <div id="modalBus" class="ac-modal" role="dialog" aria-modal="true" hidden>
+      <div class="box">
+        <h3>Erro de inicialização</h3>
+        <p class="muted">O barramento de eventos (BUS) é obrigatório para sincronização entre as telas. Verifique o caminho de <code>/shared/marcoBus.js</code> e recarregue a página.</p>
+        <div class="row-end"><button id="btnCloseBus" class="btn">Fechar</button></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    // --- Paths compartilhados ---
+    const PATH_BUS   = "/shared/marcoBus.js";
+    const PATH_STORE = "/shared/projectStore.js";
+    const PATH_HIGI  = "/shared/higienizarLista.mjs";
+
+    const CANDIDATES = [
+      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main",
+    ];
+
+    async function tryImport(url){
+      try { return await import(url); } catch(e1){
+        try { return await import(url + (url.includes("?")?"&":"?") + "t=" + Date.now()); } catch(e2){ return null; }
+      }
+    }
+    async function loadShared(rel){
+      for (const base of CANDIDATES){
+        const mod = await tryImport(base + rel);
+        if (mod) return mod;
+      }
+      return null;
+    }
+
+    // --- Módulos ---
+    const store = await loadShared(PATH_STORE);
+    const bus   = await loadShared(PATH_BUS);
+    const higi  = await loadShared(PATH_HIGI);
+
+    // --- BUS obrigatório ---
+    const modalBus = document.querySelector('#modalBus');
+    document.querySelector('#btnCloseBus')?.addEventListener('click', ()=> modalBus.setAttribute('hidden',''));
+    if (!bus || typeof bus.publish !== 'function' || typeof bus.subscribe !== 'function'){
+      modalBus.removeAttribute('hidden');
+      throw new Error('BUS obrigatório não carregou.');
+    }
+
+    // --- Store ---
+    if (!store || typeof store.init !== 'function'){
+      console.warn('projectStore não disponível.');
+    }
+    await store?.init?.();
+
+    // --- Estado ---
+    const state = {
+      currentId: null,
+      project: null,
+      dirty: { lista:false },
+      preview: [],
+      finalList: [],
+    };
+
+    // --- DOM helpers ---
+    const $ = (s)=> document.querySelector(s);
+    const btnTransform   = $('#btnTransform');
+    const btnClear       = $('#btnClear');
+    const btnSendAll     = $('#btnSendAll');
+    const btnExport      = $('#btnExport');
+    const btnSaveLista   = $('#btnSaveLista');
+    const pillEvento     = $('#pillEvento');
+    const pillLista      = $('#pillLista');
+
+    const evResumo = $('#evResumo');
+    const statusEl = $('#status');
+
+    const tblPrevBody  = document.querySelector('#tblPrev tbody');
+    const kConvPrev = $('#kConvPrev');
+    const kPessPrev = $('#kPessPrev');
+    const kTelPrev  = $('#kTelPrev');
+    const notePrev  = $('#notePrev');
+
+    const tblFinalBody = document.querySelector('#tblFinal tbody');
+    const kConvFinal = $('#kConvFinal');
+    const kPessFinal = $('#kPessFinal');
+    const kTelFinal  = $('#kTelFinal');
+
+    const kConvFinal2 = $('#kConvFinal2');
+    const kPessFinal2 = $('#kPessFinal2');
+    const kTelFinal2  = $('#kTelFinal2');
+
+    const txt = $('#txt');
+
+    const PREVIEW_LIMIT = 10;
+
+    const setPill = (el, kind, txt)=>{ el.className = 'pill ' + kind; el.textContent = txt; };
+
+    // --- Render cabeçalho
+    function updateHeader(){
+      const ev = state.project?.evento || {};
+      const nome = (ev?.nome||state.project?.nome||'').trim();
+      const data = ev?.data||''; const hora = ev?.hora||'';
+      const partes = [];
+      if (nome) partes.push(nome);
+      if (data) partes.push(data);
+      if (hora) partes.push(hora);
+      evResumo.innerHTML = partes.length ? partes.join(' • ') : 'Nenhum evento aberto. Abra pela aba <em>Eventos</em>.';
+      if (state.currentId) setPill(pillEvento, 'ok', 'Vinculado'); else setPill(pillEvento, 'warn', 'Sem evento');
+    }
+
+    // --- Higienização
+    function normRowFromGuest(c, idx){
+      const nome = c?.nome || c?.principal || "";
+      const tel  = c?.telefoneFormatado || c?.telefone || "";
+      const acomp = Number(c?.acompanhantes || 0);
+      const total = 1 + acomp;
+      return { idxOriginal: idx, nome, telefone: tel, acompanhantes: acomp, total };
+    }
+    function toPreviewRows(items){ return items.map((c, idx) => normRowFromGuest(c, idx)); }
+
+    function previewRowTpl(r, i){
+      return `<tr data-src="prev" data-i="${i}" data-idxorig="${r.idxOriginal}">
+        <td>${i+1}</td>
+        <td>${escapeHtml(r.nome)}</td>
+        <td>${escapeHtml(r.telefone || '(sem telefone)')}</td>
+        <td class="right">${r.acompanhantes}</td>
+        <td class="right">${r.total}</td>
+        <td class="right actions">
+          <button class="btn btn--ghost small" data-act="edit">Editar</button>
+          <button class="btn small" data-act="send">Enviar</button>
+          <button class="btn btn--danger small" data-act="del">Excluir</button>
+        </td>
+      </tr>`;
+    }
+
+    function previewEditorTpl(r, i){
+      const computedTotal = 1 + Number(r.acompanhantes || 0);
+      return `<tr data-src="prev" data-i="${i}" data-idxorig="${r.idxOriginal}">
+        <td>${i+1}</td>
+        <td><input type="text" value="${escapeAttr(r.nome)}" data-f="nome" /></td>
+        <td><input type="tel" value="${escapeAttr(r.telefone)}" placeholder="(xx) xxxxx-xxxx" data-f="telefone" /></td>
+        <td class="right"><input type="number" min="0" step="1" value="${r.acompanhantes}" style="width:72px" data-f="acompanhantes"/></td>
+        <td class="right"><span data-f="total-view">${computedTotal}</span></td>
+        <td class="right actions">
+          <button class="btn small" data-act="save">Salvar</button>
+          <button class="btn btn--ghost small" data-act="cancel">Cancelar</button>
+        </td>
+      </tr>`;
+    }
+
+    function finalRowTpl(r, i){
+      return `<tr data-src="final" data-i="${i}">
+        <td>${i+1}</td>
+        <td>${escapeHtml(r.nome)}</td>
+        <td>${escapeHtml(r.telefone || '(sem telefone)')}</td>
+        <td class="right">${r.acompanhantes}</td>
+        <td class="right">${r.total}</td>
+        <td class="right actions">
+          <button class="btn btn--ghost small" data-act="edit">Editar</button>
+          <button class="btn btn--danger small" data-act="del">Excluir</button>
+        </td>
+      </tr>`;
+    }
+
+    function finalEditorTpl(r, i){
+      const computedTotal = 1 + Number(r.acompanhantes || 0);
+      return `<tr data-src="final" data-i="${i}">
+        <td>${i+1}</td>
+        <td><input type="text" value="${escapeAttr(r.nome)}" data-f="nome" /></td>
+        <td><input type="tel" value="${escapeAttr(r.telefone)}" placeholder="(xx) xxxxx-xxxx" data-f="telefone" /></td>
+        <td class="right"><input type="number" min="0" step="1" value="${r.acompanhantes}" style="width:72px" data-f="acompanhantes"/></td>
+        <td class="right"><span data-f="total-view">${computedTotal}</span></td>
+        <td class="right actions">
+          <button class="btn small" data-act="save">Salvar</button>
+          <button class="btn btn--ghost small" data-act="cancel">Cancelar</button>
+        </td>
+      </tr>`;
+    }
+
+    function renderPreview(rows){
+      const totalRows = rows.length;
+      const view = totalRows > PREVIEW_LIMIT ? rows.slice(0, PREVIEW_LIMIT) : rows;
+      const needsScroll = totalRows > PREVIEW_LIMIT;
+      tblPrevBody.innerHTML = view.map(previewRowTpl).join("");
+      attachInlineEvents();
+
+      kConvPrev.textContent = String(totalRows);
+      kPessPrev.textContent = String(rows.reduce((s, r) => s + (r.total||0), 0));
+      kTelPrev.textContent  = String(rows.reduce((s, r) => s + (r.telefone?1:0), 0));
+
+      notePrev.hidden = !needsScroll;
+      if (needsScroll) notePrev.textContent = "";
+      btnSendAll.disabled = totalRows === 0 || !state.currentId;
+    }
+
+    function renderFinal(){
+      const rows = state.finalList;
+      tblFinalBody.innerHTML = rows.map(finalRowTpl).join("");
+      attachInlineEvents();
+
+      const convites = rows.length;
+      const pessoas  = rows.reduce((s, r) => s + (r.total||0), 0);
+      const comTel   = rows.reduce((s, r) => s + (r.telefone?1:0), 0);
+
+      kConvFinal.textContent = String(convites);
+      kPessFinal.textContent = String(pessoas);
+      kTelFinal.textContent  = String(comTel);
+
+      kConvFinal2.textContent = String(convites);
+      kPessFinal2.textContent = String(pessoas);
+      kTelFinal2.textContent  = String(comTel);
+
+      pillLista && (state.dirty.lista ? setPill(pillLista,'warn','Alterações não salvas') : setPill(pillLista,'ok','Pronto'));
+      btnSaveLista.disabled = !state.dirty.lista || !state.currentId;
+    }
+
+    function markDirtyLista(v){ state.dirty.lista = !!v; renderFinal(); }
+
+    function attachInlineEvents(){
+      document.querySelectorAll('#tblPrev tbody button[data-act]')?.forEach(b => b.addEventListener('click', onRowAction));
+      document.querySelectorAll('#tblPrev tbody input[data-f="acompanhantes"]').forEach(inp => inp.addEventListener('input', onAcompChange));
+      document.querySelectorAll('#tblFinal tbody button[data-act]')?.forEach(b => b.addEventListener('click', onRowAction));
+      document.querySelectorAll('#tblFinal tbody input[data-f="acompanhantes"]').forEach(inp => inp.addEventListener('input', onAcompChange));
+    }
+
+    function onAcompChange(e){
+      const v = Math.max(0, parseInt(e.target.value, 10) || 0);
+      const tr = e.target.closest('tr');
+      const totalView = tr?.querySelector('[data-f="total-view"]');
+      if (totalView) totalView.textContent = String(1 + v);
+    }
+
+    function keyFor(r){ return (r.nome || '').trim().toLowerCase() + '|' + (r.telefone || '').replace(/\D+/g, ''); }
+
+    function onRowAction(ev){
+      const btn = ev.currentTarget;
+      const act = btn.getAttribute('data-act');
+      const tr  = btn.closest('tr');
+      const src = tr?.getAttribute('data-src'); // 'prev' ou 'final'
+      const i   = Number(tr?.getAttribute('data-i'));
+      const idxOriginal = Number(tr?.getAttribute('data-idxorig'));
+
+      const guests = state.preview || [];
+      const prevRows = toPreviewRows(guests);
+      let r = (src === 'final') ? state.finalList[i] : prevRows[i];
+
+      if (act === 'edit'){
+        tr.outerHTML = (src === 'final') ? finalEditorTpl(r,i) : previewEditorTpl(r,i);
+        attachInlineEvents();
+        return;
+      }
+      if (act === 'cancel'){
+        tr.outerHTML = (src === 'final') ? finalRowTpl(r,i) : previewRowTpl(r,i);
+        attachInlineEvents();
+        return;
+      }
+      if (act === 'save'){
+        const nome = tr.querySelector('input[data-f="nome"]').value.trim();
+        const telefone = tr.querySelector('input[data-f="telefone"]').value.trim();
+        const acompanhantes = Math.max(0, parseInt(tr.querySelector('input[data-f="acompanhantes"]').value, 10) || 0);
+        const total = 1 + acompanhantes;
+        r = { ...r, nome, telefone, acompanhantes, total };
+        if (src === 'final'){
+          state.finalList[i] = r;
+          markDirtyLista(true);
+        } else {
+          if (idxOriginal >= 0){
+            const g = guests[idxOriginal] || {};
+            g.nome = nome; g.telefone = telefone; g.acompanhantes = acompanhantes; g.totalConvite = total;
+            guests[idxOriginal] = g; state.preview = guests;
+          }
+          renderPreview(toPreviewRows(guests));
+        }
+        renderFinal();
+        return;
+      }
+      if (act === 'del'){
+        if (src === 'final'){
+          state.finalList.splice(i,1);
+          markDirtyLista(true);
+          renderFinal();
+        } else {
+          if (idxOriginal >= 0){ guests.splice(idxOriginal,1); state.preview = guests; renderPreview(toPreviewRows(guests)); }
+        }
+        return;
+      }
+      if (act === 'send' && src === 'prev'){
+        const k = keyFor(r);
+        const exists = state.finalList.some(x => keyFor(x) === k);
+        if (!exists) state.finalList.push({ ...r });
+        if (idxOriginal >= 0){ guests.splice(idxOriginal,1); state.preview = guests; }
+        markDirtyLista(true);
+        renderPreview(toPreviewRows(guests));
+        renderFinal();
+        return;
+      }
+    }
+
+    function sendAllFromPreview(){
+      const guests = state.preview || [];
+      const rows = toPreviewRows(guests);
+      if (!rows.length) return;
+      const seen = new Set(state.finalList.map(keyFor));
+      rows.forEach(r => { const k = keyFor(r); if (!seen.has(k)) { state.finalList.push({ ...r }); seen.add(k); } });
+      state.preview = [];
+      txt.value = '';
+      markDirtyLista(true);
+      renderPreview([]);
+      renderFinal();
+    }
+
+    function escapeHtml(s){ return String(s ?? '').replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function escapeAttr(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
+
+    // --- Persistência
+    async function saveLista(){
+      if (!state.currentId){ alert('Nenhum evento aberto. Abra pela aba Eventos.'); return; }
+      await store.updateProject?.(state.currentId, { lista: state.finalList });
+      state.project = await store.getProject?.(state.currentId);
+      markDirtyLista(false);
+      bus.publish('ac:project-updated', { id: state.currentId });
+    }
+
+    // --- Exportação (PDF via print)
+    function fmtDate(d){ if(!d) return ''; const [y,m,day] = d.split('-'); return `${day}/${m}/${y}`; }
+    function now(){ const n = new Date(); return n.toLocaleString(); }
+    function buildReportHTML(){
+      const ev = state.project?.evento || {};
+      const nome = (ev?.nome||state.project?.nome||'Evento').trim() || 'Evento';
+      const data = fmtDate(ev?.data||'');
+      const hora = ev?.hora || '';
+      const rows = state.finalList || [];
+      const convites = rows.length;
+      const pessoas = rows.reduce((s,r)=> s + (r.total||0), 0);
+      const comTel  = rows.reduce((s,r)=> s + (r.telefone?1:0), 0);
+      const acomp   = rows.reduce((s,r)=> s + (r.acompanhantes||0), 0);
+
+      const tr = rows.map((r,i)=>`<tr>
+        <td>${i+1}</td>
+        <td>${escapeHtml(r.nome)}</td>
+        <td>${escapeHtml(r.telefone||'')}</td>
+        <td style="text-align:right">${r.acompanhantes}</td>
+        <td style="text-align:right">${r.total}</td>
+      </tr>`).join('');
+
+      return `<!doctype html><html><head><meta charset="utf-8" />
+        <title>Relatório — ${escapeHtml(nome)}</title>
+        <style>
+          body{ font-family: system-ui, Arial, sans-serif; }
+          .report{ padding:24px; }
+          h1{ margin:0 0 4px 0; font-size:20px; }
+          h2{ margin:16px 0 6px 0; font-size:16px; }
+          .meta{ color:#333; font-size:12px; margin-bottom:8px; }
+          .kpis{ display:flex; gap:12px; flex-wrap:wrap; margin:8px 0 12px 0; }
+          .kpis div{ border:1px solid #888; padding:6px 10px; border-radius:6px; }
+          table{ width:100%; border-collapse: collapse; font-size:12px; }
+          th,td{ border:1px solid #888; padding:6px; text-align:left; }
+        </style>
+      </head><body>
+        <section class="report">
+          <h1>Lista de Convidados — ${escapeHtml(nome)}</h1>
+          <div class="meta">${data ? `Data: ${data} • `:''}${hora ? `Hora: ${hora} • `:''}Gerado em ${escapeHtml(now())}</div>
+          <div class="kpis">
+            <div>Convites: <strong>${convites}</strong></div>
+            <div>Pessoas: <strong>${pessoas}</strong></div>
+            <div>Acompanhantes: <strong>${acomp}</strong></div>
+            <div>Com telefone: <strong>${comTel}</strong></div>
+          </div>
+          <h2>Convidados</h2>
+          <table>
+            <thead><tr><th>#</th><th>Convidado</th><th>Telefone</th><th style="text-align:right">Acomp.</th><th style="text-align:right">Total</th></tr></thead>
+            <tbody>${tr}</tbody>
+          </table>
+        </section>
+        <script>window.onload = () => { window.print(); }<\/script>
+      </body></html>`;
+    }
+    function exportReport(){
+      const win = window.open('', '_blank');
+      if (!win) { alert('Pop-up bloqueado. Libere pop-ups para exportar o PDF.'); return; }
+      win.document.open();
+      win.document.write(buildReportHTML());
+      win.document.close();
+    }
+
+    // --- Transformação & UI events ---
+    async function onTransform(){
+      if (!higi || typeof higi.higienizarLista !== 'function'){
+        statusEl.textContent = 'módulo: indisponível'; statusEl.className = 'muted err';
+        document.querySelector('#tblPrev tbody').innerHTML = '<tr><td colspan="6">Falha ao carregar higienizador.</td></tr>';
+        return;
+      }
+      statusEl.textContent = 'módulo: ok'; statusEl.className = 'muted ok';
+      const text = txt.value || '';
+      const res = higi.higienizarLista(text) || { convidados: [] };
+      state.preview = res.convidados || [];
+      renderPreview(toPreviewRows(state.preview));
+      txt.value = '';
+    }
+
+    function onClear(){ txt.value = ''; }
+
+    btnTransform.addEventListener('click', onTransform);
+    btnClear.addEventListener('click', onClear);
+    btnSendAll.addEventListener('click', sendAllFromPreview);
+    btnExport.addEventListener('click', exportReport);
+    btnSaveLista.addEventListener('click', saveLista);
+
+    // --- Carregamento do projeto atual ---
+    async function loadCurrent(id){
+      state.currentId = id || state.currentId;
+      state.project = state.currentId ? await store.getProject?.(state.currentId) : null;
+      state.finalList = (state.project?.lista && Array.isArray(state.project.lista)) ? [...state.project.lista] : [];
+      updateHeader();
+      renderFinal();
+    }
+
+    // Ao abrir/atualizar projeto via BUS
+    bus.subscribe('ac:open-event', ({ id }) => { if (id) loadCurrent(id); });
+    bus.subscribe('ac:project-updated', ({ id }) => { if (id === state.currentId) loadCurrent(id); });
+
+    // Fallback: abrir o mais recente ao carregar (se nenhuma seleção for emitida)
+    (async function bootstrap(){
+      const metas = store.listProjects?.() || [];
+      if (metas.length && !state.currentId){
+        const first = metas[0];
+        await loadCurrent(first.id);
+      } else {
+        updateHeader();
+        renderFinal();
+      }
+    })();
+  </script>
+</body>
+</html>
