@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AC — Widget Resumo</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/Tools/gestao-de-convidados/ac.css" />
+  <link rel="stylesheet" href="https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main/Tools/gestao-de-convidados/ac.css" />
 </head>
 <body>
   <main class="ac">
@@ -45,10 +45,7 @@ class AcHub extends HTMLElement{
 
         <div class="grid-3 ac-hub__tiles">
           <button class="tile" data-nav="evento" aria-label="Ir para Evento" role="button" tabindex="0">
-            <div class="tile__header">
-              <span class="muted">Evento</span>
-              <span class="badge" data-ref="evTipo">—</span>
-            </div>
+            <div class="tile__header"><span class="muted">Evento</span><span class="badge" data-ref="evTipo">—</span></div>
             <div class="tile__body">
               <div class="tile__line"><strong data-ref="evLocal">—</strong></div>
               <div class="tile__meta muted small" data-ref="evWhen">—</div>
@@ -91,8 +88,6 @@ class AcHub extends HTMLElement{
           </div>
         </div>
       </div>`;
-
-    this.classList.add('ac-hub-wrap');
   }
 
   async bootstrap(){
@@ -119,17 +114,9 @@ class AcHub extends HTMLElement{
     }
     await store?.init?.();
 
-    const computeEventName = (ev)=>{
-      const nome = (ev?.nome||'').trim();
-      const data = (ev?.data||'').trim();
-      const hora = (ev?.hora||'').trim();
-      const parts=[]; if(nome) parts.push(nome); if(data && hora) parts.push(`${data} ${hora}`); else if(data) parts.push(data); else if(hora) parts.push(hora);
-      return parts.join(' — ') || `Evento ${new Date().toLocaleString()}`;
-    };
-
+    const computeEventName = (ev)=>{ const n=(ev?.nome||'').trim(); const d=(ev?.data||'').trim(); const h=(ev?.hora||'').trim(); const p=[]; if(n)p.push(n); if(d&&h)p.push(`${d} ${h}`); else if(d)p.push(d); else if(h)p.push(h); return p.join(' — ') || `Evento ${new Date().toLocaleString()}`; };
     const fmtDate = (d)=>{ if(!d) return ''; const p=d.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}`:''; };
-    const fmtDT   = (iso)=>{ if(!iso) return '—'; const [d,t]=iso.split('T'); const p=d.split('-'); const hhmm=(t||'').slice(0,5); return `${p[2]}/${p[1]}/${p[0]} ${hhmm}`; };
-
+    const fmtDT   = (iso)=>{ if(!iso) return '—'; const [dd,t]=iso.split('T'); const p=dd.split('-'); const hhmm=(t||'').slice(0,5); return `${p[2]}/${p[1]}/${p[0]} ${hhmm}`; };
     const setPill = (ok)=>{ pill.className = 'pill '+(ok?'ok':'warn'); pill.textContent = ok?'Vinculado':'Sem evento'; };
 
     const updateHeader = ()=>{
@@ -156,9 +143,7 @@ class AcHub extends HTMLElement{
     };
 
     const refresh = async ()=>{ setPill(!!this.state.id); updateHeader(); };
-
     const openEvent = async (id)=>{ this.state.id = id; this.state.project = id ? await store.getProject?.(id) : null; await refresh(); };
-
     const refreshList = ()=> (store.listProjects?.() || []).filter(m=>!m._deleted);
 
     const btnManage = refs('btnManage');
