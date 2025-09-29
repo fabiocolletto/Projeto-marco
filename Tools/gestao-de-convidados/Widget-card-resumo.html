@@ -1,0 +1,236 @@
+<!-- Widget fixo de resumo do evento / navegação do app -->
+<!-- Requer CSS global (ac.css) já carregado na página e módulos em /shared -->
+<ac-hub></ac-hub>
+
+<script type="module">
+class AcHub extends HTMLElement{
+  constructor(){ super(); this.state = { id:null, project:null }; }
+  connectedCallback(){
+    this.render();
+    this.bootstrap();
+  }
+  render(){
+    this.innerHTML = `
+      <section class="card ac-hub">
+        <div class="card__header">
+          <h3>Painel do evento</h3>
+          <div class="row">
+            <span class="pill warn" data-ref="pill">Sem evento</span>
+            <div class="dropdown">
+              <button class="iconbtn" data-ref="btnManage">Gerenciar ▾</button>
+              <div class="menu" data-ref="menu">
+                <button data-act="new">Novo evento</button>
+                <button data-act="load">Carregar…</button>
+                <button data-act="save">Salvar agora</button>
+                <button data-act="dup">Duplicar</button>
+                <button class="danger" data-act="del">Excluir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpis" aria-live="polite">
+          <div class="kpi">Evento: <strong data-ref="evNome">—</strong></div>
+          <div class="kpi">Data: <strong data-ref="evData">—</strong></div>
+          <div class="kpi">Hora: <strong data-ref="evHora">—</strong></div>
+        </div>
+
+        <div class="grid-3 ac-hub__tiles">
+          <button class="tile" data-nav="evento" aria-label="Ir para Evento" role="button" tabindex="0">
+            <div class="tile__header">
+              <span class="muted">Evento</span>
+              <span class="badge" data-ref="evTipo">—</span>
+            </div>
+            <div class="tile__body">
+              <div class="tile__line"><strong data-ref="evLocal">—</strong></div>
+              <div class="tile__meta muted small" data-ref="evWhen">—</div>
+            </div>
+          </button>
+
+          <button class="tile" data-nav="convites" aria-label="Ir para Convites" role="button" tabindex="0">
+            <div class="tile__header"><span class="muted">Convidados</span></div>
+            <div class="tile__body">
+              <div class="tile__kpis">
+                <span class="badge">Convites: <strong data-ref="kConv">0</strong></span>
+                <span class="badge">Pessoas: <strong data-ref="kPess">0</strong></span>
+                <span class="badge">Com telefone: <strong data-ref="kTel">0</strong></span>
+              </div>
+            </div>
+          </button>
+
+          <button class="tile" data-nav="mensagens" aria-label="Ir para Mensagens" role="button" tabindex="0">
+            <div class="tile__header"><span class="muted">Mensagens</span></div>
+            <div class="tile__body">
+              <div class="tile__kpis">
+                <span class="badge">Programadas: <strong data-ref="kMsgs">0</strong></span>
+                <span class="badge">Próximo envio: <strong data-ref="kNext">—</strong></span>
+              </div>
+            </div>
+          </button>
+        </div>
+
+        <div class="note" data-ref="status">—</div>
+      </section>
+
+      <div class="ac-modal" data-ref="modal" role="dialog" aria-modal="true" hidden>
+        <div class="box">
+          <h3 style="margin:0 0 8px 0">Carregar evento</h3>
+          <label class="muted" for="ac-hub-sel">Selecione:</label>
+          <select id="ac-hub-sel" data-ref="sel"></select>
+          <div class="row-end">
+            <button class="iconbtn" data-act="cancelLoad">Cancelar</button>
+            <button class="iconbtn" data-act="doLoad">Abrir</button>
+          </div>
+        </div>
+      </div>`;
+
+    // lightweight tile styles leveraging ac.css tokens
+    this.classList.add('ac-hub-wrap');
+  }
+
+  async bootstrap(){
+    const $ = (q) => this.querySelector(q);
+    const refs = (name) => this.querySelector(`[data-ref="${name}"]`);
+    const CANDIDATES = [
+      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+    ];
+    const PATH_STORE = "/shared/projectStore.js";
+    const PATH_BUS   = "/shared/marcoBus.js";
+    const tryImport = async (url)=>{ try{ return await import(url); }catch(e1){ try{ return await import(url+(url.includes("?")?"&":"?")+"t="+Date.now()); }catch(e2){ return null; } } };
+    const loadShared = async (rel)=>{ for(const base of CANDIDATES){ const m = await tryImport(base+rel); if(m) return m; } return null; };
+    const store = await loadShared(PATH_STORE);
+    const bus   = await loadShared(PATH_BUS);
+
+    const pill  = refs('pill');
+    const status= refs('status');
+
+    if(!bus || typeof bus.publish!=='function' || typeof bus.subscribe!=='function'){
+      status.textContent = 'BUS não disponível';
+      pill.className = 'pill err'; pill.textContent = 'Erro';
+      return;
+    }
+    await store?.init?.();
+
+    const computeEventName = (ev)=>{
+      const nome = (ev?.nome||'').trim();
+      const data = (ev?.data||'').trim();
+      const hora = (ev?.hora||'').trim();
+      const parts=[]; if(nome) parts.push(nome); if(data && hora) parts.push(`${data} ${hora}`); else if(data) parts.push(data); else if(hora) parts.push(hora);
+      return parts.join(' — ') || `Evento ${new Date().toLocaleString()}`;
+    };
+
+    const fmtDate = (d)=>{ if(!d) return ''; const p=d.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}`:''; };
+    const fmtDT   = (iso)=>{ if(!iso) return '—'; const [d,t]=iso.split('T'); const p=d.split('-'); const hhmm=(t||'').slice(0,5); return `${p[2]}/${p[1]}/${p[0]} ${hhmm}`; };
+
+    const setPill = (ok)=>{ pill.className = 'pill '+(ok?'ok':'warn'); pill.textContent = ok?'Vinculado':'Sem evento'; };
+
+    const updateHeader = ()=>{
+      const p  = this.state.project || {};
+      const ev = p.evento || {};
+      refs('evNome').textContent = (ev?.nome || p?.nome || '—').trim() || '—';
+      refs('evData').textContent = fmtDate(ev?.data||'') || '—';
+      refs('evHora').textContent = ev?.hora || '—';
+      refs('evTipo').textContent = ev?.tipo || '—';
+      const e = ev?.endereco||{};
+      const loc = [ev?.local, e?.logradouro, e?.numero, e?.bairro, e?.cidade].filter(Boolean).join(', ');
+      refs('evLocal').textContent = loc || '—';
+      refs('evWhen').textContent = [fmtDate(ev?.data||''), ev?.hora].filter(Boolean).join(' • ') || '—';
+
+      const lista = Array.isArray(p?.lista)? p.lista : [];
+      refs('kConv').textContent = String(lista.length);
+      refs('kPess').textContent = String(lista.reduce((s,r)=> s + (Number(r.total)||1),0));
+      refs('kTel').textContent  = String(lista.reduce((s,r)=> s + (r.telefone?1:0),0));
+
+      const msgs = Array.isArray(p?.mensagens)? [...p.mensagens] : [];
+      refs('kMsgs').textContent = String(msgs.length);
+      msgs.sort((a,b)=> String(a.whenISO).localeCompare(String(b.whenISO)));
+      refs('kNext').textContent = msgs[0]?.whenISO ? fmtDT(msgs[0].whenISO) : '—';
+    };
+
+    const refresh = async ()=>{
+      setPill(!!this.state.id);
+      updateHeader();
+    };
+
+    const openEvent = async (id)=>{
+      this.state.id = id;
+      this.state.project = id ? await store.getProject?.(id) : null;
+      await refresh();
+    };
+
+    const refreshList = ()=> (store.listProjects?.() || []).filter(m=>!m._deleted);
+
+    // menu interactions
+    const btnManage = refs('btnManage');
+    const menu      = refs('menu');
+    btnManage.addEventListener('click', ()=> menu.classList.toggle('show'));
+    document.addEventListener('click', (e)=>{ if(!this.contains(e.target)) return; if(!menu.contains(e.target) && e.target!==btnManage) menu.classList.remove('show'); });
+
+    menu.addEventListener('click', async (e)=>{
+      const b = e.target.closest('button[data-act]'); if(!b) return;
+      const act = b.getAttribute('data-act');
+      if(act==='new'){
+        const created = await store.createProject?.({ nome: computeEventName({}), cerimonialista: (this.state.project?.cerimonialista||{}) });
+        const id = created?.payload?.id || created?.id; await openEvent(id); bus.publish('ac:open-event', { id });
+      }
+      if(act==='load'){
+        const modal = refs('modal'); const sel = refs('sel'); sel.innerHTML='';
+        const metas = refreshList();
+        if(!metas.length){ sel.innerHTML = '<option value="">(nenhum evento)</option>'; }
+        else { metas.forEach(m=>{ const o=document.createElement('option'); o.value=m.id; o.textContent=m.nome||`Projeto ${m.id}`; sel.appendChild(o); }); }
+        modal.removeAttribute('hidden');
+      }
+      if(act==='save'){
+        if(!this.state.id){ status.textContent='Nenhum evento aberto.'; return; }
+        await store.updateProject?.(this.state.id, { updatedAt: Date.now() });
+        this.state.project = await store.getProject?.(this.state.id);
+        status.textContent='Salvo'; bus.publish('ac:project-updated', { id:this.state.id });
+      }
+      if(act==='dup'){
+        if(!this.state.id){ status.textContent='Nenhum evento para duplicar.'; return; }
+        const src = await store.getProject?.(this.state.id);
+        const payload = { nome: (src?.nome ? (src.nome+" — cópia") : computeEventName(src?.evento)), evento: src?.evento, lista: src?.lista, mensagens: src?.mensagens, cerimonialista: src?.cerimonialista };
+        const created = await store.createProject?.(payload);
+        const id = created?.payload?.id || created?.id; await openEvent(id); bus.publish('ac:open-event', { id });
+      }
+      if(act==='del'){
+        if(!this.state.id){ status.textContent='Nenhum evento para excluir.'; return; }
+        const p = await store.getProject?.(this.state.id);
+        const name = p?.evento?.nome || p?.nome || 'evento';
+        const ok = (typeof window.confirm==='function') ? window.confirm(`Excluir "${name}"? Esta ação não pode ser desfeita.`) : true;
+        if(!ok) return;
+        if(typeof store.deleteProject==='function') await store.deleteProject(this.state.id); else await store.updateProject?.(this.state.id, { _deleted:true });
+        this.state.id=null; this.state.project=null; await refresh(); bus.publish('ac:project-deleted',{});
+      }
+    });
+
+    // modal actions
+    const modal = refs('modal');
+    modal.addEventListener('click', (e)=>{
+      const b = e.target.closest('button[data-act]'); if(!b) return;
+      const act = b.getAttribute('data-act');
+      if(act==='cancelLoad'){ modal.setAttribute('hidden',''); }
+      if(act==='doLoad'){
+        const sel = refs('sel'); const id = sel.value; modal.setAttribute('hidden',''); if(id){ openEvent(id); bus.publish('ac:open-event', { id }); }
+      }
+    });
+
+    // tiles navigation
+    this.querySelectorAll('.tile[data-nav]').forEach(tile=>{
+      const to = tile.getAttribute('data-nav');
+      tile.addEventListener('click', ()=> bus.publish('ac:navigate',{ tab: to }));
+      tile.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); bus.publish('ac:navigate',{ tab: to }); } });
+    });
+
+    // BUS subscriptions
+    bus.subscribe('ac:open-event', ({id})=>{ if(id) openEvent(id); });
+    bus.subscribe('ac:project-updated', ({id})=>{ if(id && id===this.state.id) openEvent(id); else updateHeader(); });
+
+    // initial load: keep current or pick first
+    const metas = refreshList();
+    if(metas.length) await openEvent(metas[0].id); else await refresh();
+  }
+}
+customElements.define('ac-hub', AcHub);
+</script>
