@@ -3,212 +3,395 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AC — Widget Resumo</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/Tools/gestao-de-convidados/ac.css" />
+  <title>Assistente Cerimonial — Home do Evento (Widget)</title>
+  <link rel="stylesheet" href="https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main/Tools/gestao-de-convidados/ac.css" />
 </head>
 <body>
   <main class="ac">
     <div class="container">
-      <ac-hub></ac-hub>
+      <h1>Assistente Cerimonial — Home do Evento</h1>
+      <p class="muted">Visão geral, cadastro fixo do Cerimonial (aplicado a todos os eventos), dados do Evento e do Anfitrião. Sincronização via BUS é obrigatória.</p>
+
+      <div class="grid">
+        <!-- Resumo -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Resumo</h3>
+            <div class="row">
+              <button id="btnNovo" class="iconbtn">Novo evento</button>
+            </div>
+          </div>
+          <div class="kpis">
+            <div class="kpi">Eventos cadastrados: <strong id="kTotalEventos">0</strong></div>
+          </div>
+          <div>
+            <div class="muted small">Principais eventos</div>
+            <ul id="listaPrincipais" class="list"></ul>
+          </div>
+        </section>
+
+        <!-- Cerimonial (fixo) -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Cerimonial (fixo)</h3>
+            <div class="status"><span id="stCerimonial" class="pill ok">Pronto</span></div>
+          </div>
+          <div class="grid-2">
+            <label class="row"><span class="muted">Nome completo</span><input type="text" id="ceNome" /></label>
+            <label class="row"><span class="muted">Telefone</span><input type="tel" id="ceTel" /></label>
+            <label class="row"><span class="muted">Rede social</span><input type="text" id="ceRede" /></label>
+            <label class="row"><span class="muted">E-mail</span><input type="email" id="ceEmail" /></label>
+          </div>
+          <div class="muted small">Esses dados são padrão e serão aplicados a todos os eventos automaticamente.</div>
+          <div class="actions"><button id="btnSaveCerimonial" disabled>Salvar</button></div>
+        </section>
+
+        <!-- Evento -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Evento</h3>
+            <div class="status"><span id="stEvento" class="pill ok">Pronto</span></div>
+          </div>
+          <div class="grid-2">
+            <label class="row"><span class="muted">Nome do evento</span><input type="text" id="evNome" placeholder="Ex.: Aniversário da Laura" /></label>
+            <div class="row">
+              <label class="row"><span class="muted">Data</span><input type="date" id="evData" /></label>
+              <label class="row"><span class="muted">Hora</span><input type="time" id="evHora" /></label>
+            </div>
+          </div>
+          <div class="grid-2">
+            <label class="row"><span class="muted">Tipo do evento</span>
+              <select id="evTipo">
+                <option value="">(selecione)</option>
+                <option>Aniversário</option>
+                <option>Casamento</option>
+                <option>Formatura</option>
+                <option>Chá revelação</option>
+                <option>Batizado</option>
+                <option>Corporativo</option>
+                <option>Jantar</option>
+                <option>Outro</option>
+              </select>
+            </label>
+            <label class="row"><span class="muted">Público estimado</span><input type="number" id="evPublicoPrevisto" min="0" step="1" placeholder="Ex.: 120" /></label>
+          </div>
+          <label class="row"><span class="muted">Local</span><input type="text" id="evLocal" placeholder="Salão, chácara etc." /></label>
+          <details>
+            <summary class="muted">Endereço do evento (opcional)</summary>
+            <div class="grid-2">
+              <label class="row"><span class="muted">Logradouro</span><input type="text" id="endLogradouro" /></label>
+              <label class="row"><span class="muted">Número</span><input type="text" id="endNumero" /></label>
+              <label class="row"><span class="muted">Bairro</span><input type="text" id="endBairro" /></label>
+              <label class="row"><span class="muted">Cidade</span><input type="text" id="endCidade" /></label>
+              <label class="row"><span class="muted">Estado</span><input type="text" id="endEstado" /></label>
+              <label class="row"><span class="muted">CEP</span><input type="text" id="endCep" /></label>
+              <label class="row" style="grid-column:1 / -1"><span class="muted">Complemento</span><input type="text" id="endComp" /></label>
+            </div>
+          </details>
+          <div class="actions"><button id="btnSaveEvento" disabled>Salvar</button></div>
+        </section>
+
+        <!-- Anfitrião -->
+        <section class="card">
+          <div class="card__header">
+            <h3>Anfitrião</h3>
+            <div class="status"><span id="stAnfitriao" class="pill ok">Pronto</span></div>
+          </div>
+          <div class="grid-2">
+            <label class="row"><span class="muted">Nome completo</span><input type="text" id="anNome" /></label>
+            <label class="row"><span class="muted">Telefone</span><input type="tel" id="anTel" /></label>
+            <label class="row"><span class="muted">E-mail</span><input type="email" id="anEmail" /></label>
+            <label class="row"><span class="muted">Rede social</span><input type="text" id="anRede" /></label>
+          </div>
+          <details>
+            <summary class="muted">Dados para convite (opcional)</summary>
+            <div class="grid-2">
+              <label class="row"><span class="muted">Canal preferido</span>
+                <select id="anConvCanal">
+                  <option value="">(selecione)</option>
+                  <option>WhatsApp</option>
+                  <option>SMS</option>
+                  <option>Ligação</option>
+                  <option>E-mail</option>
+                </select>
+              </label>
+              <label class="row"><span class="muted">Horário preferido</span><input type="time" id="anConvHorario" /></label>
+              <label class="row"><span class="muted">Link do convite digital</span><input type="url" id="anConvLink" placeholder="https://..." /></label>
+            </div>
+          </details>
+          <label class="row"><span class="muted">Observações</span><textarea id="anObs" placeholder="Detalhes importantes para a recepção..."></textarea></label>
+          <div class="actions"><button id="btnSaveAnfitriao" disabled>Salvar</button></div>
+        </section>
+      </div>
     </div>
   </main>
 
+  <!-- Modal BUS ausente -->
+  <div id="modalBus" class="ac-modal" role="dialog" aria-modal="true" hidden>
+    <div class="box">
+      <h3>Erro de inicialização</h3>
+      <p class="muted">O barramento de eventos (BUS) é obrigatório para sincronização entre as telas. Verifique o caminho de <code>/shared/marcoBus.js</code> e recarregue a página.</p>
+      <div class="row-end"><button id="btnCloseBus" class="iconbtn">Fechar</button></div>
+    </div>
+  </div>
+
   <script type="module">
-class AcHub extends HTMLElement{
-  constructor(){ super(); this.state = { id:null, project:null }; }
-  connectedCallback(){ this.render(); this.bootstrap(); }
-  render(){
-    this.innerHTML = `
-      <section class="card ac-hub">
-        <div class="card__header">
-          <h3>Painel do evento</h3>
-          <div class="row">
-            <span class="pill warn" data-ref="pill">Sem evento</span>
-            <div class="dropdown">
-              <button class="iconbtn" data-ref="btnManage">Gerenciar ▾</button>
-              <div class="menu" data-ref="menu">
-                <button data-act="new">Novo evento</button>
-                <button data-act="load">Carregar…</button>
-                <button data-act="save">Salvar agora</button>
-                <button data-act="dup">Duplicar</button>
-                <button class="danger" data-act="del">Excluir</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="kpis" aria-live="polite">
-          <div class="kpi">Evento: <strong data-ref="evNome">—</strong></div>
-          <div class="kpi">Data: <strong data-ref="evData">—</strong></div>
-          <div class="kpi">Hora: <strong data-ref="evHora">—</strong></div>
-        </div>
-
-        <div class="grid-3 ac-hub__tiles">
-          <button class="tile" data-nav="evento" aria-label="Ir para Evento" role="button" tabindex="0">
-            <div class="tile__header"><span class="muted">Evento</span><span class="badge" data-ref="evTipo">—</span></div>
-            <div class="tile__body">
-              <div class="tile__line"><strong data-ref="evLocal">—</strong></div>
-              <div class="tile__meta muted small" data-ref="evWhen">—</div>
-            </div>
-          </button>
-
-          <button class="tile" data-nav="convites" aria-label="Ir para Convites" role="button" tabindex="0">
-            <div class="tile__header"><span class="muted">Convidados</span></div>
-            <div class="tile__body">
-              <div class="tile__kpis">
-                <span class="badge">Convites: <strong data-ref="kConv">0</strong></span>
-                <span class="badge">Pessoas: <strong data-ref="kPess">0</strong></span>
-                <span class="badge">Com telefone: <strong data-ref="kTel">0</strong></span>
-              </div>
-            </div>
-          </button>
-
-          <button class="tile" data-nav="mensagens" aria-label="Ir para Mensagens" role="button" tabindex="0">
-            <div class="tile__header"><span class="muted">Mensagens</span></div>
-            <div class="tile__body">
-              <div class="tile__kpis">
-                <span class="badge">Programadas: <strong data-ref="kMsgs">0</strong></span>
-                <span class="badge">Próximo envio: <strong data-ref="kNext">—</strong></span>
-              </div>
-            </div>
-          </button>
-        </div>
-
-        <div class="note" data-ref="status">—</div>
-      </section>
-
-      <div class="ac-modal" data-ref="modal" role="dialog" aria-modal="true" hidden>
-        <div class="box">
-          <h3 style="margin:0 0 8px 0">Carregar evento</h3>
-          <label class="muted" for="ac-hub-sel">Selecione:</label>
-          <select id="ac-hub-sel" data-ref="sel"></select>
-          <div class="row-end">
-            <button class="iconbtn" data-act="cancelLoad">Cancelar</button>
-            <button class="iconbtn" data-act="doLoad">Abrir</button>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  async bootstrap(){
-    const $ = (q) => this.querySelector(q);
-    const refs = (name) => this.querySelector(`[data-ref="${name}"]`);
-    const CANDIDATES = [
-      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-    ];
     const PATH_STORE = "/shared/projectStore.js";
     const PATH_BUS   = "/shared/marcoBus.js";
-    const tryImport = async (url)=>{ try{ return await import(url); }catch(e1){ try{ return await import(url+(url.includes("?")?"&":"?")+"t="+Date.now()); }catch(e2){ return null; } } };
-    const loadShared = async (rel)=>{ for(const base of CANDIDATES){ const m = await tryImport(base+rel); if(m) return m; } return null; };
+    const CANDIDATES = [
+      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main",
+    ];
+
+    async function tryImport(url){
+      try { return await import(url); } catch(e1){
+        try { return await import(url + (url.includes("?")?"&":"?") + "t=" + Date.now()); } catch(e2){ return null; }
+      }
+    }
+    async function loadShared(rel){
+      for (const base of CANDIDATES){ const mod = await tryImport(base + rel); if (mod) return mod; }
+      return null;
+    }
+
     const store = await loadShared(PATH_STORE);
     const bus   = await loadShared(PATH_BUS);
 
-    const pill  = refs('pill');
-    const status= refs('status');
+    const modalBus = document.querySelector('#modalBus');
+    document.querySelector('#btnCloseBus')?.addEventListener('click', ()=> modalBus.setAttribute('hidden',''));
+    if (!bus || typeof bus.publish !== 'function' || typeof bus.subscribe !== 'function'){
+      modalBus.removeAttribute('hidden');
+      throw new Error('BUS obrigatório não carregou.');
+    }
 
-    if(!bus || typeof bus.publish!=='function' || typeof bus.subscribe!=='function'){
-      status.textContent = 'BUS não disponível';
-      pill.className = 'pill err'; pill.textContent = 'Erro';
-      return;
+    if (!store || typeof store.init !== 'function'){
+      console.warn('projectStore não disponível.');
     }
     await store?.init?.();
 
-    const computeEventName = (ev)=>{ const n=(ev?.nome||'').trim(); const d=(ev?.data||'').trim(); const h=(ev?.hora||'').trim(); const p=[]; if(n)p.push(n); if(d&&h)p.push(`${d} ${h}`); else if(d)p.push(d); else if(h)p.push(h); return p.join(' — ') || `Evento ${new Date().toLocaleString()}`; };
-    const fmtDate = (d)=>{ if(!d) return ''; const p=d.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}`:''; };
-    const fmtDT   = (iso)=>{ if(!iso) return '—'; const [dd,t]=iso.split('T'); const p=dd.split('-'); const hhmm=(t||'').slice(0,5); return `${p[2]}/${p[1]}/${p[0]} ${hhmm}`; };
-    const setPill = (ok)=>{ pill.className = 'pill '+(ok?'ok':'warn'); pill.textContent = ok?'Vinculado':'Sem evento'; };
-
-    const updateHeader = ()=>{
-      const p  = this.state.project || {};
-      const ev = p.evento || {};
-      refs('evNome').textContent = (ev?.nome || p?.nome || '—').trim() || '—';
-      refs('evData').textContent = fmtDate(ev?.data||'') || '—';
-      refs('evHora').textContent = ev?.hora || '—';
-      refs('evTipo').textContent = ev?.tipo || '—';
-      const e = ev?.endereco||{};
-      const loc = [ev?.local, e?.logradouro, e?.numero, e?.bairro, e?.cidade].filter(Boolean).join(', ');
-      refs('evLocal').textContent = loc || '—';
-      refs('evWhen').textContent = [fmtDate(ev?.data||''), ev?.hora].filter(Boolean).join(' • ') || '—';
-
-      const lista = Array.isArray(p?.lista)? p.lista : [];
-      refs('kConv').textContent = String(lista.length);
-      refs('kPess').textContent = String(lista.reduce((s,r)=> s + (Number(r.total)||1),0));
-      refs('kTel').textContent  = String(lista.reduce((s,r)=> s + (r.telefone?1:0),0));
-
-      const msgs = Array.isArray(p?.mensagens)? [...p.mensagens] : [];
-      refs('kMsgs').textContent = String(msgs.length);
-      msgs.sort((a,b)=> String(a.whenISO).localeCompare(String(b.whenISO)));
-      refs('kNext').textContent = msgs[0]?.whenISO ? fmtDT(msgs[0].whenISO) : '—';
+    const state = {
+      currentId: null,
+      project: null,
+      dirty: { evento:false, cerimonial:false, anfitriao:false },
     };
 
-    const refresh = async ()=>{ setPill(!!this.state.id); updateHeader(); };
-    const openEvent = async (id)=>{ this.state.id = id; this.state.project = id ? await store.getProject?.(id) : null; await refresh(); };
-    const refreshList = ()=> (store.listProjects?.() || []).filter(m=>!m._deleted);
+    const $ = (s)=> document.querySelector(s);
+    const setPill = (el, dirty)=> { el.textContent = dirty ? 'Alterações não salvas' : 'Pronto'; el.className = 'pill ' + (dirty? 'warn':'ok'); };
+    const isEq = (a,b)=> JSON.stringify(a) === JSON.stringify(b);
 
-    const btnManage = refs('btnManage');
-    const menu      = refs('menu');
-    btnManage.addEventListener('click', ()=> menu.classList.toggle('show'));
-    document.addEventListener('click', (e)=>{ if(!this.contains(e.target)) return; if(!menu.contains(e.target) && e.target!==btnManage) menu.classList.remove('show'); });
+    function computeEventName(ev){
+      const nome = (ev?.nome||'').trim();
+      const data = (ev?.data||'').trim();
+      const hora = (ev?.hora||'').trim();
+      const parts = [];
+      if (nome) parts.push(nome);
+      if (data && hora) parts.push(`${data} ${hora}`);
+      else if (data) parts.push(data);
+      else if (hora) parts.push(hora);
+      return (parts.join(' — ').trim()) || `Evento ${new Date().toLocaleString()}`;
+    }
 
-    menu.addEventListener('click', async (e)=>{
-      const b = e.target.closest('button[data-act]'); if(!b) return; const act = b.getAttribute('data-act');
-      if(act==='new'){
-        const created = await store.createProject?.({ nome: computeEventName({}), cerimonialista: (this.state.project?.cerimonialista||{}) });
-        const id = created?.payload?.id || created?.id; await openEvent(id); bus.publish('ac:open-event', { id });
-      }
-      if(act==='load'){
-        const modal = refs('modal'); const sel = refs('sel'); sel.innerHTML='';
-        const metas = refreshList();
-        if(!metas.length){ sel.innerHTML = '<option value="">(nenhum evento)</option>'; }
-        else { metas.forEach(m=>{ const o=document.createElement('option'); o.value=m.id; o.textContent=m.nome||`Projeto ${m.id}`; sel.appendChild(o); }); }
-        modal.removeAttribute('hidden');
-      }
-      if(act==='save'){
-        if(!this.state.id){ refs('status').textContent='Nenhum evento aberto.'; return; }
-        await store.updateProject?.(this.state.id, { updatedAt: Date.now() });
-        this.state.project = await store.getProject?.(this.state.id);
-        refs('status').textContent='Salvo'; bus.publish('ac:project-updated', { id:this.state.id });
-      }
-      if(act==='dup'){
-        if(!this.state.id){ refs('status').textContent='Nenhum evento para duplicar.'; return; }
-        const src = await store.getProject?.(this.state.id);
-        const payload = { nome: (src?.nome ? (src.nome+" — cópia") : computeEventName(src?.evento)), evento: src?.evento, lista: src?.lista, mensagens: src?.mensagens, cerimonialista: src?.cerimonialista };
-        const created = await store.createProject?.(payload);
-        const id = created?.payload?.id || created?.id; await openEvent(id); bus.publish('ac:open-event', { id });
-      }
-      if(act==='del'){
-        if(!this.state.id){ refs('status').textContent='Nenhum evento para excluir.'; return; }
-        const p = await store.getProject?.(this.state.id);
-        const name = p?.evento?.nome || p?.nome || 'evento';
-        const ok = (typeof window.confirm==='function') ? window.confirm(`Excluir "${name}"? Esta ação não pode ser desfeita.`) : true;
-        if(!ok) return;
-        if(typeof store.deleteProject==='function') await store.deleteProject(this.state.id); else await store.updateProject?.(this.state.id, { _deleted:true });
-        this.state.id=null; this.state.project=null; await refresh(); bus.publish('ac:project-deleted',{});
-      }
+    const kTotalEventos = $('#kTotalEventos');
+    const listaPrincipais = $('#listaPrincipais');
+
+    const evNome = $('#evNome');
+    const evData = $('#evData');
+    const evHora = $('#evHora');
+    const evTipo = $('#evTipo');
+    const evPublicoPrevisto = $('#evPublicoPrevisto');
+    const evLocal = $('#evLocal');
+    const endLogradouro = $('#endLogradouro');
+    const endNumero = $('#endNumero');
+    const endBairro = $('#endBairro');
+    const endCidade = $('#endCidade');
+    const endEstado = $('#endEstado');
+    const endCep = $('#endCep');
+    const endComp = $('#endComp');
+    const stEvento = $('#stEvento');
+    const btnSaveEvento = $('#btnSaveEvento');
+
+    const ceNome = $('#ceNome');
+    const ceTel = $('#ceTel');
+    const ceRede = $('#ceRede');
+    const ceEmail = $('#ceEmail');
+    const stCerimonial = $('#stCerimonial');
+    const btnSaveCerimonial = $('#btnSaveCerimonial');
+
+    const anNome = $('#anNome');
+    const anTel = $('#anTel');
+    const anEmail = $('#anEmail');
+    const anRede = $('#anRede');
+    const anObs = $('#anObs');
+    const anConvCanal = $('#anConvCanal');
+    const anConvHorario = $('#anConvHorario');
+    const anConvLink = $('#anConvLink');
+    const stAnfitriao = $('#stAnfitriao');
+    const btnSaveAnfitriao = $('#btnSaveAnfitriao');
+
+    $('#btnNovo').addEventListener('click', async ()=>{
+      const seed = readEvento();
+      const created = await store.createProject?.({ nome: computeEventName(seed), cerimonialista: loadCerimonialLocal() });
+      const id = created?.payload?.id || created?.id;
+      await loadCurrent(id);
+      bus.publish('ac:open-event', { id });
     });
 
-    const modal = refs('modal');
-    modal.addEventListener('click', (e)=>{
-      const b = e.target.closest('button[data-act]'); if(!b) return; const act = b.getAttribute('data-act');
-      if(act==='cancelLoad'){ modal.setAttribute('hidden',''); }
-      if(act==='doLoad'){ const sel = refs('sel'); const id = sel.value; modal.setAttribute('hidden',''); if(id){ openEvent(id); bus.publish('ac:open-event', { id }); } }
+    const LS_CE = 'marco:cerimonial:preset:v1';
+    const loadCerimonialLocal = ()=> { try { return JSON.parse(localStorage.getItem(LS_CE)||'null') || {}; } catch { return {}; } };
+    const saveCerimonialLocal = (o)=> { try { localStorage.setItem(LS_CE, JSON.stringify(o||{})); } catch {} };
+
+    const savedEvento = ()=> (state.project?.evento)||{ endereco:{} };
+    const savedAnfitriao = ()=> (state.project?.evento?.anfitriao)||{};
+    const savedCerimonial = ()=> (state.project?.cerimonialista)||loadCerimonialLocal();
+
+    const readEvento = ()=> ({
+      nome: evNome.value.trim(),
+      data: evData.value,
+      hora: evHora.value,
+      tipo: evTipo.value.trim(),
+      publicoPrevisto: Math.max(0, parseInt(evPublicoPrevisto.value, 10) || 0),
+      local: evLocal.value.trim(),
+      endereco: {
+        logradouro: endLogradouro.value.trim(),
+        numero: endNumero.value.trim(),
+        bairro: endBairro.value.trim(),
+        cidade: endCidade.value.trim(),
+        estado: endEstado.value.trim(),
+        cep: endCep.value.trim(),
+        complemento: endComp.value.trim(),
+      }
     });
+    const writeEvento = (ev={})=>{
+      evNome.value = ev.nome||''; evData.value = ev.data||''; evHora.value = ev.hora||''; evTipo.value = ev.tipo||''; evPublicoPrevisto.value = ev.publicoPrevisto ?? ''; evLocal.value = ev.local||'';
+      const e = ev.endereco||{}; endLogradouro.value = e.logradouro||''; endNumero.value = e.numero||''; endBairro.value = e.bairro||''; endCidade.value = e.cidade||''; endEstado.value = e.estado||''; endCep.value = e.cep||''; endComp.value = e.complemento||'';
+    };
 
-    this.querySelectorAll('.tile[data-nav]').forEach(tile=>{
-      const to = tile.getAttribute('data-nav');
-      tile.addEventListener('click', ()=> bus.publish('ac:navigate',{ tab: to }));
-      tile.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' || ev.key===' ') { ev.preventDefault(); bus.publish('ac:navigate',{ tab: to }); } });
+    const readAnfitriao = ()=> ({
+      nomeCompleto: anNome.value.trim(), telefone: anTel.value.trim(), email: anEmail.value.trim(), redeSocial: anRede.value.trim(),
+      convite: { canal: anConvCanal.value.trim(), horario: anConvHorario.value, link: anConvLink.value.trim() },
+      obs: anObs.value.trim(),
     });
+    const writeAnfitriao = (a={})=>{
+      anNome.value = a.nomeCompleto||''; anTel.value = a.telefone||''; anEmail.value = a.email||''; anRede.value = a.redeSocial||'';
+      anConvCanal.value = a?.convite?.canal || ''; anConvHorario.value = a?.convite?.horario || ''; anConvLink.value = a?.convite?.link || '';
+      anObs.value = a.obs||'';
+    };
 
-    bus.subscribe('ac:open-event', ({id})=>{ if(id) openEvent(id); });
-    bus.subscribe('ac:project-updated', ({id})=>{ if(id && id===this.state.id) openEvent(id); else updateHeader(); });
+    const readCerimonial = ()=> ({ nomeCompleto: ceNome.value.trim(), telefone: ceTel.value.trim(), redeSocial: ceRede.value.trim(), email: ceEmail.value.trim() });
+    const writeCerimonial = (c={})=>{ ceNome.value = c.nomeCompleto||''; ceTel.value = c.telefone||''; ceRede.value = c.redeSocial||''; ceEmail.value = c.email||''; };
 
-    const metas = (store.listProjects?.() || []).filter(m=>!m._deleted);
-    if(metas.length) await openEvent(metas[0].id); else await refresh();
-  }
-}
-customElements.define('ac-hub', AcHub);
+    function bindDirty(){
+      const setDirty = (which, val)=>{
+        state.dirty[which] = !!val;
+        if (which==='evento'){ setPill(stEvento, state.dirty.evento); btnSaveEvento.disabled = !state.dirty.evento; }
+        if (which==='cerimonial'){ setPill(stCerimonial, state.dirty.cerimonial); btnSaveCerimonial.disabled = !state.dirty.cerimonial; }
+        if (which==='anfitriao'){ setPill(stAnfitriao, state.dirty.anfitriao); btnSaveAnfitriao.disabled = !state.dirty.anfitriao; }
+      };
+      const onEv = ()=> setDirty('evento', !isEq(readEvento(), savedEvento()));
+      const onCe = ()=> setDirty('cerimonial', !isEq(readCerimonial(), savedCerimonial()));
+      const onAn = ()=> setDirty('anfitriao', !isEq(readAnfitriao(), savedAnfitriao()));
+
+      [evNome, evData, evHora, evTipo, evPublicoPrevisto, evLocal, endLogradouro, endNumero, endBairro, endCidade, endEstado, endCep, endComp].forEach(el=> el.addEventListener('input', onEv));
+      [ceNome, ceTel, ceRede, ceEmail].forEach(el=> el.addEventListener('input', onCe));
+      [anNome, anTel, anEmail, anRede, anConvCanal, anConvHorario, anConvLink, anObs].forEach(el=> el.addEventListener('input', onAn));
+    }
+
+    async function ensureProject(){
+      if (state.currentId) return state.currentId;
+      const seed = readEvento();
+      const created = await store.createProject?.({ nome: computeEventName(seed), cerimonialista: loadCerimonialLocal() });
+      const id = created?.payload?.id || created?.id;
+      state.currentId = id; state.project = created?.payload || created || null;
+      await refreshResumo();
+      return id;
+    }
+
+    async function saveEvento(){
+      const id = await ensureProject();
+      const ev = readEvento();
+      const nomeAuto = computeEventName(ev);
+      await store.updateProject?.(id, { evento: { ...(state.project?.evento||{}), ...ev }, nome: nomeAuto });
+      await loadCurrent(id);
+      bus.publish('ac:project-updated', { id });
+    }
+
+    async function saveCerimonial(){
+      const ce = readCerimonial();
+      saveCerimonialLocal(ce);
+      const id = await ensureProject();
+      await store.updateProject?.(id, { cerimonialista: ce });
+      for (const m of (store.listProjects?.()||[])) { try { await store.updateProject?.(m.id, { cerimonialista: ce }); } catch {} }
+      await loadCurrent(id);
+      bus.publish('ac:cerimonial-updated', { id, ce, global:true });
+    }
+
+    async function saveAnfitriao(){
+      const id = await ensureProject();
+      const an = readAnfitriao();
+      const ev = { ...(state.project?.evento||{}), anfitriao: an };
+      await store.updateProject?.(id, { evento: ev });
+      await loadCurrent(id);
+      bus.publish('ac:project-updated', { id });
+    }
+
+    btnSaveEvento.addEventListener('click', saveEvento);
+    btnSaveCerimonial.addEventListener('click', saveCerimonial);
+    btnSaveAnfitriao.addEventListener('click', saveAnfitriao);
+
+    async function openEvent(id){ await loadCurrent(id); bus.publish('ac:open-event', { id }); }
+
+    async function deleteEvent(id){
+      const p = await store.getProject?.(id);
+      const name = p?.evento?.nome || p?.nome || 'evento';
+      const ok = window.confirm ? window.confirm(`Excluir "${name}"? Esta ação não pode ser desfeita.`) : true;
+      if (!ok) return;
+      if (typeof store.deleteProject === 'function') await store.deleteProject(id); else await store.updateProject?.(id, { _deleted: true });
+      if (state.currentId === id){ state.currentId = null; state.project = null; writeEvento({}); writeAnfitriao({}); writeCerimonial(loadCerimonialLocal()); setPill(stEvento, false); setPill(stCerimonial, false); setPill(stAnfitriao, false); btnSaveEvento.disabled = true; btnSaveCerimonial.disabled = true; btnSaveAnfitriao.disabled = true; }
+      await refreshResumo();
+      bus.publish('ac:project-deleted', { id });
+    }
+
+    async function refreshResumo(){
+      let metas = store.listProjects?.() || [];
+      const filtered = [];
+      for (const m of metas){
+        if (m._deleted) continue;
+        let full = null; try { full = await store.getProject?.(m.id); } catch {}
+        if (full?._deleted) continue; filtered.push({ meta: m, full });
+      }
+      kTotalEventos.textContent = String(filtered.length);
+      listaPrincipais.innerHTML = '';
+      filtered.slice(0,5).forEach(({meta:m, full}) => {
+        const ev = full?.evento || m?.evento || {};
+        const display = computeEventName(ev) || m.nome || 'Sem nome';
+        const li = document.createElement('li');
+        const name = document.createElement('span'); name.textContent = display;
+        const when = document.createElement('span'); when.className = 'muted small'; when.textContent = (m.updatedAt || full?.updatedAt) ? new Date(m.updatedAt || full?.updatedAt).toLocaleString() : '';
+        const actions = document.createElement('div'); actions.className = 'list-actions';
+        const bOpen = document.createElement('button'); bOpen.className = 'iconbtn'; bOpen.textContent = 'Abrir'; bOpen.addEventListener('click', ()=> openEvent(m.id));
+        const bDel = document.createElement('button'); bDel.className = 'iconbtn danger'; bDel.textContent = 'Excluir'; bDel.addEventListener('click', ()=> deleteEvent(m.id));
+        actions.append(bOpen, bDel); li.append(name, when, actions); listaPrincipais.appendChild(li);
+      });
+    }
+
+    async function loadCurrent(id){
+      state.currentId = id || state.currentId;
+      state.project = state.currentId ? await store.getProject?.(state.currentId) : null;
+      const p = state.project || { evento:{ endereco:{} }, cerimonialista:{}, lista:[], vars:{}, anfitriao:{} };
+      writeEvento(p.evento||{});
+      writeAnfitriao(p.evento?.anfitriao||{});
+      writeCerimonial(p.cerimonialista||loadCerimonialLocal());
+      setPill(stEvento, false); setPill(stCerimonial, false); setPill(stAnfitriao, false);
+      btnSaveEvento.disabled = true; btnSaveCerimonial.disabled = true; btnSaveAnfitriao.disabled = true;
+      await refreshResumo();
+    }
+
+    bindDirty();
+    await refreshResumo();
+
+    bus.subscribe('ac:open-event', ({ id }) => { if (id) loadCurrent(id); });
+    bus.subscribe('ac:project-updated', ({ id }) => { if (id === state.currentId) loadCurrent(id); });
+    bus.subscribe('ac:cerimonial-updated', ({ id }) => { if (id === state.currentId) loadCurrent(id); });
+    bus.subscribe('ac:project-deleted', ({ id }) => { if (id === state.currentId) { state.currentId = null; refreshResumo(); } });
   </script>
 </body>
 </html>
