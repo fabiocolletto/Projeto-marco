@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistente Cerimonial — Relatório / Planejamento</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/Tools/gestao-de-convidados/ac.css" />
+</head>
+<body>
+  <main class="ac">
+    <div class="container">
+      <h1>Assistente Cerimonial — Relatório / Planejamento</h1>
+      <p class="muted">Documento operacional com cronograma e checklist para executar o evento conforme planejado.</p>
+
+      <div class="grid">
+        <section class="card">
+          <div class="card__header">
+            <h3>Evento atual</h3>
+            <div class="row">
+              <span id="pillEvento" class="pill warn">Sem evento</span>
+              <button id="btnExportPlan" class="btn btn--ghost">Exportar planejamento (PDF)</button>
+            </div>
+          </div>
+          <div class="kpis">
+            <div class="kpi">Evento: <strong id="evNomeOut">—</strong></div>
+            <div class="kpi">Data: <strong id="evDataOut">—</strong></div>
+            <div class="kpi">Hora: <strong id="evHoraOut">—</strong></div>
+            <div class="kpi">Tipo: <strong id="evTipoOut">—</strong></div>
+            <div class="kpi">Local: <strong id="evLocalOut">—</strong></div>
+          </div>
+          <div class="kpis">
+            <div class="kpi">Convites: <strong id="kConv">0</strong></div>
+            <div class="kpi">Pessoas: <strong id="kPess">0</strong></div>
+            <div class="kpi">Com telefone: <strong id="kTel">0</strong></div>
+            <div class="kpi">Mensagens programadas: <strong id="kMsgs">0</strong></div>
+            <div class="kpi">Dias para o evento: <strong id="kDias">—</strong></div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h3>Contatos</h3>
+            <span class="muted small">Cerimonial e Anfitrião</span>
+          </div>
+          <div class="grid-2">
+            <div>
+              <div class="muted small">Cerimonial</div>
+              <div><strong id="ceNomeOut">—</strong></div>
+              <div class="muted small" id="ceTelOut">—</div>
+              <div class="muted small" id="ceEmailOut">—</div>
+              <div class="muted small" id="ceRedeOut">—</div>
+            </div>
+            <div>
+              <div class="muted small">Anfitrião</div>
+              <div><strong id="anNomeOut">—</strong></div>
+              <div class="muted small" id="anTelOut">—</div>
+              <div class="muted small" id="anEmailOut">—</div>
+              <div class="muted small" id="anRedeOut">—</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h3>Cronograma</h3>
+            <span class="muted small">Eventos e envios programados</span>
+          </div>
+          <div class="table-wrap">
+            <table class="sticky-header">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Quando</th>
+                  <th>Item</th>
+                  <th>Origem</th>
+                </tr>
+              </thead>
+              <tbody id="timelineBody"></tbody>
+            </table>
+          </div>
+          <div class="note" id="timelineMeta">0 itens</div>
+        </section>
+
+        <section class="card">
+          <div class="card__header">
+            <h3>Checklist de execução</h3>
+            <div class="row">
+              <span id="pillChecklist" class="pill ok">Pronto</span>
+              <button id="btnLoadTemplate" class="btn btn--ghost">Carregar checklist padrão</button>
+              <button id="btnAddTask" class="btn">Adicionar item</button>
+              <button id="btnSavePlan" class="btn btn--primary" disabled>Salvar alterações</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="sticky-header">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Tarefa</th>
+                  <th>Responsável</th>
+                  <th>Prazo</th>
+                  <th>Status</th>
+                  <th class="right">Ações</th>
+                </tr>
+              </thead>
+              <tbody id="tasksBody"></tbody>
+            </table>
+          </div>
+          <div class="note" id="tasksMeta">0 itens</div>
+          <div class="note" id="status">—</div>
+        </section>
+      </div>
+    </div>
+
+    <div id="modalBus" class="ac-modal" role="dialog" aria-modal="true" hidden>
+      <div class="box">
+        <h3>Erro de inicialização</h3>
+        <p class="muted">O barramento de eventos (BUS) é obrigatório para sincronização entre as abas. Verifique o caminho de <code>/shared/marcoBus.js</code> e recarregue a página.</p>
+        <div class="row-end"><button id="btnCloseBus" class="btn">Fechar</button></div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    const PATH_BUS = "/shared/marcoBus.js";
+    const PATH_STORE = "/shared/projectStore.js";
+    const CANDIDATES = [
+      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+    ];
+    async function tryImport(url){ try{ return await import(url); }catch(e1){ try{ return await import(url+(url.includes("?")?"&":"?")+"t="+Date.now()); }catch(e2){ return null; } } }
+    async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+
+    const store = await loadShared(PATH_STORE);
+    const bus = await loadShared(PATH_BUS);
+
+    const modalBus = document.querySelector('#modalBus');
+    document.querySelector('#btnCloseBus')?.addEventListener('click', ()=> modalBus.setAttribute('hidden',''));
+    if(!bus || typeof bus.publish!=='function' || typeof bus.subscribe!=='function'){ modalBus.removeAttribute('hidden'); throw new Error('BUS obrigatório não carregou.'); }
+    await store?.init?.();
+
+    const state = { currentId:null, project:null, checklist:[], dirty:false };
+    const $ = (s)=> document.querySelector(s);
+    const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
+    const esc = (s)=> String(s==null?'':s).replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
+
+    const pillEvento = $('#pillEvento');
+    const pillChecklist = $('#pillChecklist');
+    const statusEl = $('#status');
+
+    const evNomeOut = $('#evNomeOut');
+    const evDataOut = $('#evDataOut');
+    const evHoraOut = $('#evHoraOut');
+    const evTipoOut = $('#evTipoOut');
+    const evLocalOut = $('#evLocalOut');
+
+    const kConv = $('#kConv');
+    const kPess = $('#kPess');
+    const kTel  = $('#kTel');
+    const kMsgs = $('#kMsgs');
+    const kDias = $('#kDias');
+
+    const ceNomeOut = $('#ceNomeOut');
+    const ceTelOut = $('#ceTelOut');
+    const ceEmailOut = $('#ceEmailOut');
+    const ceRedeOut = $('#ceRedeOut');
+
+    const anNomeOut = $('#anNomeOut');
+    const anTelOut = $('#anTelOut');
+    const anEmailOut = $('#anEmailOut');
+    const anRedeOut = $('#anRedeOut');
+
+    const timelineBody = $('#timelineBody');
+    const timelineMeta = $('#timelineMeta');
+
+    const tasksBody = $('#tasksBody');
+    const tasksMeta = $('#tasksMeta');
+
+    const btnExportPlan = $('#btnExportPlan');
+    const btnLoadTemplate = $('#btnLoadTemplate');
+    const btnAddTask = $('#btnAddTask');
+    const btnSavePlan = $('#btnSavePlan');
+
+    function fmtDate(d){ if(!d) return ''; const p=d.split('-'); return p.length===3? p[2]+"/"+p[1]+"/"+p[0] : ''; }
+    function fmtDT(iso){ if(!iso) return ''; const [d,t] = iso.split('T'); const p = (d||'').split('-'); const hhmm = (t||'').slice(0,5); return p.length===3? (p[2]+"/"+p[1]+"/"+p[0]+" "+hhmm) : ''; }
+    function isoFrom(d,t){ return d && t ? (d+"T"+t+":00") : ""; }
+
+    function labelCat(cat){ switch(cat){ case 'save': return 'Save the Date'; case 'convite': return 'Convite Formal'; case 'lembrete7': return 'Lembrete (7 dias)'; case 'lembrete24': return 'Lembrete (24h)'; case 'agradecimento': return 'Agradecimento'; default: return cat; } }
+
+    function daysTo(dateISO){
+      if(!dateISO) return "—";
+      const d = new Date(dateISO+"T00:00:00");
+      const now = new Date();
+      const ms = d.setHours(0,0,0,0) - now.setHours(0,0,0,0);
+      return String(Math.round(ms/86400000));
+    }
+
+    function setDirty(v){ state.dirty = !!v; btnSavePlan.disabled = !state.dirty || !state.currentId; setPill(pillChecklist, state.dirty? 'warn':'ok', state.dirty? 'Alterações não salvas':'Pronto'); }
+
+    function computeKPIs(){
+      const lista = Array.isArray(state.project?.lista)? state.project.lista : [];
+      const conv = lista.length;
+      const pess = lista.reduce((s,r)=> s + (Number(r.total)||1), 0);
+      const tel  = lista.reduce((s,r)=> s + (r.telefone?1:0), 0);
+      const msgs = Array.isArray(state.project?.mensagens)? state.project.mensagens.length : 0;
+      kConv.textContent = String(conv);
+      kPess.textContent = String(pess);
+      kTel.textContent  = String(tel);
+      kMsgs.textContent = String(msgs);
+    }
+
+    function updateHeader(){
+      const p = state.project || {};
+      const ev = p.evento || {};
+      evNomeOut.textContent = (ev?.nome || p?.nome || '—').trim() || '—';
+      evDataOut.textContent = fmtDate(ev?.data||'') || '—';
+      evHoraOut.textContent = ev?.hora || '—';
+      evTipoOut.textContent = ev?.tipo || '—';
+      const end = ev?.endereco || {};
+      const loc = [ev?.local, end?.logradouro, end?.numero, end?.bairro, end?.cidade].filter(Boolean).join(', ');
+      evLocalOut.textContent = loc || '—';
+
+      ceNomeOut.textContent = p?.cerimonialista?.nomeCompleto || '—';
+      ceTelOut.textContent = p?.cerimonialista?.telefone || '—';
+      ceEmailOut.textContent = p?.cerimonialista?.email || '—';
+      ceRedeOut.textContent = p?.cerimonialista?.redeSocial || '—';
+
+      const an = ev?.anfitriao || {};
+      anNomeOut.textContent = an?.nomeCompleto || '—';
+      anTelOut.textContent = an?.telefone || '—';
+      anEmailOut.textContent = an?.email || '—';
+      anRedeOut.textContent = an?.redeSocial || '—';
+
+      computeKPIs();
+      const d = ev?.data || '';
+      kDias.textContent = daysTo(d);
+      const linked = !!state.currentId;
+      setPill(pillEvento, linked? 'ok':'warn', linked? 'Vinculado':'Sem evento');
+    }
+
+    function renderTimeline(){
+      const p = state.project || {};
+      const ev = p.evento || {};
+      const items = [];
+      if (ev?.data){
+        const iso = isoFrom(ev.data, ev.hora||'00:00');
+        items.push({ whenISO: iso, what: "Início do evento", source: "Evento" });
+      }
+      const msgs = Array.isArray(p?.mensagens)? [...p.mensagens] : [];
+      msgs.sort((a,b)=> String(a.whenISO).localeCompare(String(b.whenISO)));
+      msgs.forEach(m => {
+        items.push({ whenISO: m.whenISO, what: labelCat(m.cat)+": "+(m.message||'').slice(0,80), source: "Mensagens" });
+      });
+      if (!items.length){
+        timelineBody.innerHTML = '<tr><td colspan="4" class="muted">Nenhum item no cronograma.</td></tr>';
+        timelineMeta.textContent = '0 itens';
+        return;
+      }
+      timelineBody.innerHTML = items.map((it,i)=>(
+        `<tr><td>${i+1}</td><td>${esc(fmtDT(it.whenISO))}</td><td>${esc(it.what)}</td><td>${esc(it.source)}</td></tr>`
+      )).join('');
+      timelineMeta.textContent = `${items.length} itens`;
+    }
+
+    function renderTasks(){
+      const rows = state.checklist || [];
+      tasksMeta.textContent = `${rows.length} itens`;
+      if (!rows.length){
+        tasksBody.innerHTML = '<tr><td colspan="6" class="muted">Nenhum item na checklist.</td></tr>';
+        return;
+      }
+      tasksBody.innerHTML = rows.map((t,i)=>(
+        `<tr data-i="${i}">
+          <td>${i+1}</td>
+          <td>${esc(t.titulo||'')}</td>
+          <td>${esc(t.responsavel||'')}</td>
+          <td>${esc(fmtDT(t.prazoISO)||'')}</td>
+          <td><span class="badge">${esc(labelStatus(t.status))}</span></td>
+          <td class="right actions">
+            <button class="btn btn--ghost small" data-act="edit">Editar</button>
+            <button class="btn btn--danger small" data-act="del">Excluir</button>
+          </td>
+        </tr>`
+      )).join('');
+    }
+
+    function labelStatus(s){
+      switch(s){
+        case 'feito': return 'Concluído';
+        case 'andamento': return 'Em andamento';
+        default: return 'Pendente';
+      }
+    }
+
+    function editRow(i){
+      const t = state.checklist[i];
+      const d = t?.prazoISO ? (t.prazoISO.split('T')[0]||'') : '';
+      const hh = t?.prazoISO ? ((t.prazoISO.split('T')[1]||'').slice(0,5)) : '';
+      const tr = tasksBody.querySelector(`tr[data-i="${i}"]`);
+      if (!tr) return;
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td><input type="text" value="${esc(t?.titulo||'')}" data-f="titulo"/></td>
+        <td><input type="text" value="${esc(t?.responsavel||'')}" data-f="responsavel"/></td>
+        <td>
+          <input type="date" value="${d}" data-f="d"/>
+          <input type="time" value="${hh}" data-f="h"/>
+        </td>
+        <td>
+          <select data-f="status">
+            <option value="pendente"${t?.status==='pendente'?' selected':''}>Pendente</option>
+            <option value="andamento"${t?.status==='andamento'?' selected':''}>Em andamento</option>
+            <option value="feito"${t?.status==='feito'?' selected':''}>Concluído</option>
+          </select>
+        </td>
+        <td class="right actions">
+          <button class="btn small" data-act="save">Salvar</button>
+          <button class="btn btn--ghost small" data-act="cancel">Cancelar</button>
+          <button class="btn btn--danger small" data-act="del">Excluir</button>
+        </td>`;
+    }
+
+    function onTasksClick(ev){
+      const btn = ev.target.closest && ev.target.closest('button[data-act]');
+      if (!btn) return;
+      const tr = btn.closest('tr');
+      const i = parseInt(tr.getAttribute('data-i'),10);
+      const t = state.checklist[i];
+      const act = btn.getAttribute('data-act');
+      if (act === 'del'){ state.checklist.splice(i,1); setDirty(true); renderTasks(); return; }
+      if (act === 'edit'){ editRow(i); return; }
+      if (act === 'cancel'){ renderTasks(); return; }
+      if (act === 'save'){
+        const titulo = tr.querySelector('input[data-f="titulo"]').value.trim();
+        const responsavel = tr.querySelector('input[data-f="responsavel"]').value.trim();
+        const d = tr.querySelector('input[data-f="d"]').value;
+        const h = tr.querySelector('input[data-f="h"]').value;
+        const status = tr.querySelector('select[data-f="status"]').value;
+        const prazoISO = d && h ? isoFrom(d,h) : (d ? isoFrom(d,'00:00') : '');
+        state.checklist[i] = { ...t, titulo, responsavel, prazoISO, status };
+        setDirty(true); renderTasks(); return;
+      }
+    }
+
+    tasksBody.addEventListener('click', onTasksClick);
+
+    function addTask(){
+      state.checklist.push({ titulo:'', responsavel:'', prazoISO:'', status:'pendente' });
+      setDirty(true);
+      renderTasks();
+      const i = state.checklist.length - 1;
+      editRow(i);
+    }
+
+    function checklistTemplate(tipo, evDateISO){
+      const base = [
+        { titulo:'Conferir lista de convidados e contatos', offsetDays:-30, status:'pendente' },
+        { titulo:'Validar fornecedores e contratos', offsetDays:-30, status:'pendente' },
+        { titulo:'Definir roteiro do evento', offsetDays:-15, status:'pendente' },
+        { titulo:'Enviar lembrete geral', offsetDays:-7, status:'pendente' },
+        { titulo:'Briefing com equipe', offsetDays:-2, status:'pendente' },
+        { titulo:'Chegada da equipe e montagem', offsetDays:0, status:'pendente' },
+        { titulo:'Recepção dos convidados', offsetDays:0, status:'pendente' },
+        { titulo:'Encerramento e desmontagem', offsetDays:0, status:'pendente' }
+      ];
+      const casamento = [
+        { titulo:'Ensaio dos noivos', offsetDays:-3, status:'pendente' },
+        { titulo:'Confirmação com celebrante', offsetDays:-7, status:'pendente' }
+      ];
+      const corporativo = [
+        { titulo:'Teste de som e projeção', offsetDays:-1, status:'pendente' },
+        { titulo:'Checagem de credenciamento', offsetDays:0, status:'pendente' }
+      ];
+      let tpl = [...base];
+      if ((tipo||'').toLowerCase()==='casamento') tpl = [...tpl, ...casamento];
+      if ((tipo||'').toLowerCase()==='corporativo') tpl = [...tpl, ...corporativo];
+      const out = [];
+      const d0 = evDateISO ? new Date(evDateISO) : null;
+      for (const t of tpl){
+        let prazoISO = '';
+        if (d0){
+          const dd = new Date(d0);
+          dd.setDate(dd.getDate() + (t.offsetDays||0));
+          const y = dd.getFullYear(), m = String(dd.getMonth()+1).padStart(2,'0'), d = String(dd.getDate()).padStart(2,'0');
+          prazoISO = `${y}-${m}-${d}T00:00:00`;
+        }
+        out.push({ titulo:t.titulo, responsavel:'', prazoISO, status:t.status });
+      }
+      return out;
+    }
+
+    function loadTemplate(){
+      const ev = state.project?.evento || {};
+      const dISO = ev?.data ? `${ev.data}T00:00:00` : "";
+      const tpl = checklistTemplate(ev?.tipo, dISO);
+      if (state.checklist.length && !confirm('Substituir a checklist atual pelo padrão?')) return;
+      state.checklist = tpl;
+      setDirty(true);
+      renderTasks();
+      statusEl.textContent = 'Checklist padrão carregada';
+    }
+
+    async function savePlan(){
+      if (!state.currentId){ statusEl.textContent = 'Nenhum evento aberto.'; return; }
+      await store.updateProject?.(state.currentId, { plano: { checklist: state.checklist } });
+      state.project = await store.getProject?.(state.currentId);
+      setDirty(false);
+      statusEl.textContent = 'Planejamento salvo';
+      bus.publish('ac:project-updated', { id: state.currentId });
+    }
+
+    function buildPlanHTML(){
+      const p = state.project || {};
+      const ev = p.evento || {};
+      const nome = (ev?.nome || p?.nome || 'Evento').trim() || 'Evento';
+      const data = fmtDate(ev?.data||'');
+      const hora = ev?.hora||'';
+      const tipo = ev?.tipo||'';
+      const local = [ev?.local, ev?.endereco?.logradouro, ev?.endereco?.numero, ev?.endereco?.bairro, ev?.endereco?.cidade].filter(Boolean).join(', ');
+
+      const lista = Array.isArray(p?.lista)? p.lista : [];
+      const conv = lista.length;
+      const pess = lista.reduce((s,r)=> s + (Number(r.total)||1), 0);
+      const tel  = lista.reduce((s,r)=> s + (r.telefone?1:0), 0);
+      const msgs = Array.isArray(p?.mensagens)? p.mensagens.length : 0;
+
+      const itemsTL = [];
+      if (ev?.data){
+        const iso = isoFrom(ev.data, ev.hora||'00:00');
+        itemsTL.push({ whenISO: iso, what: "Início do evento", src: "Evento" });
+      }
+      const msgsArr = Array.isArray(p?.mensagens)? [...p.mensagens] : [];
+      msgsArr.sort((a,b)=> String(a.whenISO).localeCompare(String(b.whenISO)));
+      msgsArr.forEach(m => itemsTL.push({ whenISO:m.whenISO, what: labelCat(m.cat)+": "+(m.message||'').slice(0,120), src:"Mensagens" }));
+      const rowsTL = itemsTL.map((it,i)=>`<tr><td>${i+1}</td><td>${esc(fmtDT(it.whenISO))}</td><td>${esc(it.what)}</td><td>${esc(it.src)}</td></tr>`).join('');
+      const rowsTasks = (state.checklist||[]).map((t,i)=>`<tr><td>${i+1}</td><td>${esc(t.titulo||'')}</td><td>${esc(t.responsavel||'')}</td><td>${esc(fmtDT(t.prazoISO)||'')}</td><td>${esc(labelStatus(t.status))}</td></tr>`).join('');
+
+      return `<!doctype html><html><head><meta charset="utf-8" />
+        <title>Planejamento — ${esc(nome)}</title>
+        <style>
+          body{ font-family:system-ui,Arial,sans-serif; }
+          .report{ padding:24px; }
+          h1{ margin:0 0 4px 0; font-size:20px; }
+          h2{ margin:16px 0 6px 0; font-size:16px; }
+          .meta{ color:#333; font-size:12px; margin-bottom:8px; }
+          .kpis{ display:flex; gap:12px; flex-wrap:wrap; margin:8px 0 12px 0; }
+          .kpis div{ border:1px solid #888; padding:6px 10px; border-radius:6px; }
+          table{ width:100%; border-collapse: collapse; font-size:12px; }
+          th,td{ border:1px solid #888; padding:6px; text-align:left; }
+        </style>
+      </head><body>
+        <section class="report">
+          <h1>Planejamento do Evento — ${esc(nome)}</h1>
+          <div class="meta">${data?`Data: ${esc(data)} • `:''}${hora?`Hora: ${esc(hora)} • `:''}${tipo?`Tipo: ${esc(tipo)} • `:''}${local?`Local: ${esc(local)} • `:''}Gerado em ${esc(new Date().toLocaleString())}</div>
+          <div class="kpis">
+            <div>Convites: <strong>${conv}</strong></div>
+            <div>Pessoas: <strong>${pess}</strong></div>
+            <div>Com telefone: <strong>${tel}</strong></div>
+            <div>Mensagens programadas: <strong>${msgs}</strong></div>
+          </div>
+          <h2>Cronograma</h2>
+          <table><thead><tr><th>#</th><th>Quando</th><th>Item</th><th>Origem</th></tr></thead><tbody>${rowsTL}</tbody></table>
+          <h2>Checklist</h2>
+          <table><thead><tr><th>#</th><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr></thead><tbody>${rowsTasks}</tbody></table>
+        </section>
+        <script>window.onload=()=>{window.print()}<\/script>
+      </body></html>`;
+    }
+
+    function exportPlan(){
+      const win = window.open('', '_blank');
+      if(!win){ alert('Pop-up bloqueado. Libere pop-ups para exportar o PDF.'); return; }
+      win.document.open();
+      win.document.write(buildPlanHTML());
+      win.document.close();
+    }
+
+    async function loadCurrent(id){
+      state.currentId = id || state.currentId;
+      state.project = state.currentId ? await store.getProject?.(state.currentId) : null;
+      state.checklist = Array.isArray(state.project?.plano?.checklist) ? [...state.project.plano.checklist] : [];
+      setDirty(false);
+      updateHeader();
+      renderTimeline();
+      renderTasks();
+    }
+
+    btnExportPlan.addEventListener('click', exportPlan);
+    btnLoadTemplate.addEventListener('click', loadTemplate);
+    btnAddTask.addEventListener('click', addTask);
+    btnSavePlan.addEventListener('click', savePlan);
+
+    bus.subscribe('ac:open-event', ({ id }) => { if(id) loadCurrent(id); });
+    bus.subscribe('ac:project-updated', ({ id }) => { if(id === state.currentId) loadCurrent(id); });
+
+    (async function bootstrap(){
+      const metas = store.listProjects?.() || [];
+      if (metas.length){ await loadCurrent(metas[0].id); }
+      else { renderTimeline(); renderTasks(); }
+    })();
+  </script>
+</body>
+</html>
