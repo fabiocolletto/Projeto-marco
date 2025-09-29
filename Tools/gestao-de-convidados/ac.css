@@ -224,3 +224,40 @@
 :where(.ac .tabs){ display:flex; gap: var(--ac-space-2); border-bottom:1px solid var(--ac-border); }
 :where(.ac .tabs button){ border:none; background:none; padding: .6rem .9rem; border-bottom:2px solid transparent; }
 :where(.ac .tabs button[aria-selected="true"]){ border-color: var(--ac-primary); color: var(--ac-primary); }
+
+/* Edicoes para tentar arrumar o css do menu */
+/* Hub (Widget-card-resumo): tiles & badges */
+:where(.ac .badge){
+  display:inline-block; padding:.2rem .6rem; border:1px solid var(--ac-border);
+  border-radius:999px; font-size:.78rem; background:var(--ac-surface-2); color:var(--ac-text);
+}
+
+:where(.ac .ac-hub__tiles){ gap: var(--ac-space-3); }
+
+:where(.ac .tile){
+  display:block; text-align:left; cursor:pointer;
+  background:var(--ac-bg); border:1px solid var(--ac-border); border-radius:var(--ac-radius-md);
+  padding:var(--ac-space-4); box-shadow:var(--ac-shadow-sm); min-height:112px;
+}
+:where(.ac .tile:hover){
+  background: color-mix(in oklab, var(--ac-bg) 92%, black 8%);
+}
+:where(.ac .tile:focus){
+  outline:none;
+  box-shadow:0 0 0 3px color-mix(in oklab, var(--ac-primary) 60%, white 40%);
+  border-color:var(--ac-primary-700);
+}
+
+:where(.ac .tile__header){
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--ac-space-2);
+}
+:where(.ac .tile__body){ display:grid; gap:var(--ac-space-2); }
+:where(.ac .tile__kpis){ display:flex; gap:var(--ac-space-2); flex-wrap:wrap; }
+:where(.ac .tile__line){ font-weight:600; }
+:where(.ac .tile__meta){ color:var(--ac-muted); }
+
+/* Tabs: suportar classe .tab--active usada pelo AppShell */
+:where(.ac .tabs button.tab--active){
+  border-color: var(--ac-primary);
+  color: var(--ac-primary);
+}
