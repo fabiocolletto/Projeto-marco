@@ -1,6 +1,7 @@
 /*
   Projeto Marco – higienizarLista (v1.1)
   ES Module para padronizar convites a partir de texto livre.
+  Patch = shared/higienizarLista.mjs
 
   =====================================
   CHANGELOG
