@@ -4,33 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gerenciar Eventos</title>
-  <style>
-    :root{color-scheme: light}
-    .ac{background:#fff;color:#111}
-    .ac .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:12px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .threecol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    @media(max-width:900px){.twocol,.threecol{grid-template-columns:1fr}}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:12px;color:#555}
-    .field input{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:14px}
-    .pill{display:inline-block;border-radius:999px;padding:4px 10px;font-size:12px;border:1px solid #ddd}
-    .pill.ok{background:#f0fff4;border-color:#b6f2c7;color:#0a7a2e}
-    .pill.warn{background:#fff7ed;border-color:#ffd6ae;color:#9a4b00}
-    .pill.saving{background:#fffdea;border-color:#ffe9a6;color:#6a4b00}
-    .btn{border-radius:8px;border:1px solid #ccc;background:#0b65c2;color:#fff;padding:8px 12px;cursor:pointer}
-    .btn--ghost{background:#fff;color:#111}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .danger{color:#a40000}
-    .list{display:grid;gap:8px}
-    .item{display:flex;align-items:center;justify-content:space-between;border:1px solid #eee;border-radius:10px;padding:8px 10px}
-    .item .meta{font-size:12px;color:#666}
-    details{border:1px solid #eee;border-radius:10px;padding:8px 10px}
-    details>summary{cursor:pointer;list-style:none}
-    details+details{margin-top:10px}
-    .summary-line{font-size:14px;margin:4px 0}
-  </style>
+  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
 </head>
 <body>
 <main class="ac">

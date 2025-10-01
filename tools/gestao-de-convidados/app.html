@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestão de Eventos — Central</title>
+  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
+</head>
+<body>
+  <main class="ac">
+    <div class="container">
+      <div class="app-hero">
+        <h1>Gestão de Eventos</h1>
+        <p class="small muted">Centralize o acompanhamento do evento, acesse rapidamente cada ferramenta e gere um relatório operacional completo.</p>
+        <div class="app-status-line">
+          <span id="app_status" class="pill warn">Nenhum evento selecionado</span>
+          <span>ID: <strong id="app_summaryId">—</strong></span>
+          <span>Atualizado em <strong id="app_summaryUpdated">—</strong></span>
+        </div>
+      </div>
+
+      <section class="card">
+        <div class="card__header">
+          <h2>Selecionar evento</h2>
+          <div class="row">
+            <button id="app_btnRefresh" class="btn btn--ghost" type="button">Atualizar lista</button>
+            <button id="app_btnOpenEventos" class="btn" type="button">Gerenciar eventos</button>
+          </div>
+        </div>
+        <div class="twocol">
+          <div class="field">
+            <label for="app_selEvento"><h3>Evento ativo</h3></label>
+            <select id="app_selEvento">
+              <option value="">Selecione um evento salvo…</option>
+            </select>
+          </div>
+          <div class="field">
+            <label><h3>Resumo rápido</h3></label>
+            <div id="app_overviewSummary" class="small">Nenhum evento carregado.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header"><h2>Visão geral</h2></div>
+        <div>
+          <strong id="app_summaryName">—</strong>
+          <div class="small" id="app_summaryDate">—</div>
+          <div class="small" id="app_summaryVenue">—</div>
+          <div class="small" id="app_summaryHost">—</div>
+          <div class="small" id="app_summaryCerimonial">—</div>
+        </div>
+        <div class="kpi-cards" style="margin-top:12px">
+          <div class="mini-card">
+            <h3>Convidados</h3>
+            <div class="mini-grid">
+              <div><strong id="app_kpiConvites">0</strong><div class="small">Convites</div></div>
+              <div><strong id="app_kpiConfirmados">0</strong><div class="small">Confirmados</div></div>
+              <div><strong id="app_kpiPendentes">0</strong><div class="small">Pendentes</div></div>
+              <div><strong id="app_kpiPessoas">0</strong><div class="small">Pessoas</div></div>
+              <div><strong id="app_kpiTelefones">0</strong><div class="small">Telefones prontos</div></div>
+            </div>
+          </div>
+          <div class="mini-card">
+            <h3>Financeiro</h3>
+            <div class="mini-grid">
+              <div><strong id="app_kpiFornecedores">0</strong><div class="small">Fornecedores</div></div>
+              <div><strong id="app_kpiPrevisto">R$ 0,00</strong><div class="small">Previsto</div></div>
+              <div><strong id="app_kpiPago">R$ 0,00</strong><div class="small">Pago</div></div>
+              <div><strong id="app_kpiPendente">R$ 0,00</strong><div class="small">Pendente</div></div>
+            </div>
+          </div>
+          <div class="mini-card">
+            <h3>Execução</h3>
+            <div class="mini-grid">
+              <div><strong id="app_kpiTarefasTotal">0</strong><div class="small">Tarefas</div></div>
+              <div><strong id="app_kpiTarefasConcluidas">0</strong><div class="small">Concluídas</div></div>
+              <div><strong id="app_kpiMensagens">0</strong><div class="small">Mensagens</div></div>
+              <div><strong id="app_kpiProximoEnvio">—</strong><div class="small">Próximo envio</div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header"><h2>Atalhos rápidos</h2></div>
+        <div class="app-shortcuts" id="app_shortcuts">
+          <button class="shortcut-card" data-tool="eventos" type="button">
+            <strong>Eventos</strong>
+            <span>Dados gerais, anfitriões e locais.</span>
+          </button>
+          <button class="shortcut-card" data-tool="convidados" type="button">
+            <strong>Convidados</strong>
+            <span>Convites, mesas e confirmações.</span>
+          </button>
+          <button class="shortcut-card" data-tool="fornecedores" type="button">
+            <strong>Fornecedores</strong>
+            <span>Contratos, pagamentos e contatos.</span>
+          </button>
+          <button class="shortcut-card" data-tool="mensagens" type="button">
+            <strong>Mensagens</strong>
+            <span>Programação de envios e templates.</span>
+          </button>
+          <button class="shortcut-card" data-tool="tarefas" type="button">
+            <strong>Tarefas</strong>
+            <span>Checklist operacional.</span>
+          </button>
+          <button class="shortcut-card" data-tool="relatorio" type="button">
+            <strong>Relatório</strong>
+            <span>Visualizar resumo completo.</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card__header"><h2>Eventos salvos</h2></div>
+        <div id="app_savedList" class="list"></div>
+        <div id="app_savedEmpty" class="app-empty">Nenhum evento cadastrado até o momento.</div>
+      </section>
+
+      <section class="card" id="app_reportCard">
+        <div class="card__header"><h2>Relatório operacional</h2></div>
+        <div class="app-report-actions">
+          <div class="row">
+            <button id="app_reportRefresh" class="btn btn--ghost" type="button">Atualizar dados</button>
+            <button id="app_reportCopy" class="btn btn--ghost" type="button">Copiar texto</button>
+            <button id="app_reportPrint" class="btn" type="button">Imprimir</button>
+          </div>
+          <div id="app_reportStatus" class="small muted"></div>
+        </div>
+        <div id="app_report" class="report"></div>
+      </section>
+
+      <section class="card">
+        <div class="card__header"><h2>Ferramentas detalhadas</h2></div>
+        <div class="app-module-tabs">
+          <button class="btn btn--ghost" data-tool-open="eventos" type="button">Eventos</button>
+          <button class="btn btn--ghost" data-tool-open="convidados" type="button">Convidados</button>
+          <button class="btn btn--ghost" data-tool-open="fornecedores" type="button">Fornecedores</button>
+          <button class="btn btn--ghost" data-tool-open="mensagens" type="button">Mensagens</button>
+          <button class="btn btn--ghost" data-tool-open="tarefas" type="button">Tarefas</button>
+        </div>
+        <iframe id="app_frame" class="app-frame" title="Ferramenta selecionada" loading="lazy"></iframe>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    const PATH_BUS = "/shared/marcoBus.js";
+    const PATH_STORE = "/shared/projectStore.js";
+    const PATH_INV = "/shared/inviteUtils.js";
+    const CDN_BASES = [
+      (() => {
+        try {
+          const url = new URL(import.meta.url);
+          return url.origin.startsWith('http') ? url.origin : null;
+        } catch {
+          return null;
+        }
+      })(),
+      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+    ].filter(Boolean);
+
+    const buildUrl = (base, rel) => {
+      if (!base) return rel;
+      const cleanRel = rel.startsWith('/') ? rel.slice(1) : rel;
+      const normalized = base.endsWith('/') ? base : base + '/';
+      return normalized + cleanRel;
+    };
+
+    async function loadShared(rel) {
+      const attempts = [rel, ...CDN_BASES.map(base => buildUrl(base, rel))];
+      for (const url of attempts) {
+        try {
+          const mod = await import(url);
+          if (mod) return mod;
+        } catch (err) {
+          console.warn('[app] Falha ao importar', url, err);
+        }
+      }
+      return null;
+    }
+
+    const store = await loadShared(PATH_STORE);
+    const bus = await loadShared(PATH_BUS);
+    const inviteUtils = await loadShared(PATH_INV);
+    await store?.init?.();
+
+    const state = {
+      metas: [],
+      currentId: null,
+      project: null,
+      activeTool: null
+    };
+
+    const $ = (sel) => document.querySelector(sel);
+    const statusPill = $('#app_status');
+    const summaryId = $('#app_summaryId');
+    const summaryUpdated = $('#app_summaryUpdated');
+    const overviewSummary = $('#app_overviewSummary');
+    const summaryName = $('#app_summaryName');
+    const summaryDate = $('#app_summaryDate');
+    const summaryVenue = $('#app_summaryVenue');
+    const summaryHost = $('#app_summaryHost');
+    const summaryCerimonial = $('#app_summaryCerimonial');
+    const kpiConvites = $('#app_kpiConvites');
+    const kpiConfirmados = $('#app_kpiConfirmados');
+    const kpiPendentes = $('#app_kpiPendentes');
+    const kpiPessoas = $('#app_kpiPessoas');
+    const kpiTelefones = $('#app_kpiTelefones');
+    const kpiFornecedores = $('#app_kpiFornecedores');
+    const kpiPrevisto = $('#app_kpiPrevisto');
+    const kpiPago = $('#app_kpiPago');
+    const kpiPendente = $('#app_kpiPendente');
+    const kpiTarefasTotal = $('#app_kpiTarefasTotal');
+    const kpiTarefasConcluidas = $('#app_kpiTarefasConcluidas');
+    const kpiMensagens = $('#app_kpiMensagens');
+    const kpiProximoEnvio = $('#app_kpiProximoEnvio');
+    const selEvento = $('#app_selEvento');
+    const btnRefresh = $('#app_btnRefresh');
+    const btnOpenEventos = $('#app_btnOpenEventos');
+    const savedList = $('#app_savedList');
+    const savedEmpty = $('#app_savedEmpty');
+    const reportEl = $('#app_report');
+    const reportStatus = $('#app_reportStatus');
+    const reportCard = $('#app_reportCard');
+    const btnReportRefresh = $('#app_reportRefresh');
+    const btnReportCopy = $('#app_reportCopy');
+    const btnReportPrint = $('#app_reportPrint');
+    const toolFrame = $('#app_frame');
+    const shortcutButtons = [...document.querySelectorAll('.shortcut-card[data-tool]')];
+    const tabButtons = [...document.querySelectorAll('[data-tool-open]')];
+
+    const TOOL_PATHS = {
+      eventos: 'eventos.html',
+      convidados: 'convidados.html',
+      fornecedores: 'fornecedores.html',
+      mensagens: 'mensagens.html',
+      tarefas: 'tarefas.html'
+    };
+
+    const MSG_LABELS = {
+      save: 'Save the Date',
+      convite: 'Convite Formal',
+      lembrete7: 'Lembrete (7 dias)',
+      lembrete24: 'Lembrete (24h)',
+      agradecimento: 'Agradecimento'
+    };
+
+    const fmtDate = (val) => {
+      if (!val) return '—';
+      const [y, m, d] = String(val).split('-');
+      if (!y || !m || !d) return val;
+      return `${d}/${m}/${y}`;
+    };
+
+    const fmtDateTime = (ts) => ts ? new Date(ts).toLocaleString() : '—';
+    const money = (v) => (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+    const onlyDigits = (s) => String(s || '').replace(/\D+/g, '');
+    const validDDD = (ddd) => /^(1[1-9]|[2-9]\d)$/.test(String(ddd || ''));
+    const parseBR = (digits) => {
+      const nd = onlyDigits(digits);
+      if (!(nd.length === 10 || nd.length === 11)) return null;
+      const ddd = nd.slice(0, 2);
+      const local = nd.slice(2);
+      if (!validDDD(ddd)) return null;
+      return { ddd, local };
+    };
+    const toE164IfBR = (raw) => {
+      const nd = onlyDigits(raw);
+      if (nd.startsWith('55') && (nd.length === 12 || nd.length === 13)) return '+' + nd;
+      const br = parseBR(nd);
+      return br ? '+55' + br.ddd + br.local : null;
+    };
+    const isE164 = (s) => /^\+[1-9]\d{7,14}$/.test(String(s || ''));
+    const normalizeToE164 = (raw) => {
+      const viaMod = inviteUtils?.normalizePhone?.(raw || '') || '';
+      if (isE164(viaMod)) return viaMod;
+      const viaBR = toE164IfBR(raw);
+      return isE164(viaBR || '') ? viaBR : null;
+    };
+
+    function ensureShape(p) {
+      const base = p ? JSON.parse(JSON.stringify(p)) : {};
+      base.cerimonialista = base.cerimonialista || { nomeCompleto: '', telefone: '', redeSocial: '' };
+      base.evento = base.evento || { nome: '', data: '', hora: '', local: '', tipo: '', endereco: {}, anfitriao: {} };
+      base.evento.endereco = base.evento.endereco || {};
+      base.evento.anfitriao = base.evento.anfitriao || {};
+      base.lista = Array.isArray(base.lista) ? base.lista : [];
+      base.fornecedores = Array.isArray(base.fornecedores) ? base.fornecedores : [];
+      if (!base.plano || typeof base.plano !== 'object') base.plano = {};
+      base.plano.checklist = Array.isArray(base.plano.checklist) ? base.plano.checklist : [];
+      base.mensagens = Array.isArray(base.mensagens) ? base.mensagens : [];
+      return base;
+    }
+
+    function guestStats(list) {
+      const rows = Array.isArray(list) ? list : [];
+      const convites = rows.length;
+      const pessoas = rows.reduce((acc, item) => acc + (Number(item.total) || (1 + (item.acompanhantes || []).length)), 0);
+      const confirmados = rows.filter((r) => r.confirmacao === 'confirmado').length;
+      const pendentes = rows.filter((r) => !r.confirmacao || r.confirmacao === 'pendente').length;
+      const telValidos = rows.filter((r) => normalizeToE164(r.telefone)).length;
+      return { rows, convites, pessoas, confirmados, pendentes, telValidos };
+    }
+
+    function supplierStats(items) {
+      const rows = Array.isArray(items) ? items : [];
+      let previsto = 0;
+      let pago = 0;
+      let pend = 0;
+      for (const f of rows) {
+        const prev = Number(f.previsto) || 0;
+        const paid = Number(f.pago) || 0;
+        previsto += prev;
+        pago += paid;
+        const diff = prev - paid;
+        pend += diff > 0 ? diff : 0;
+      }
+      return { rows, total: rows.length, previsto, pago, pend };
+    }
+
+    function taskStats(items) {
+      const rows = Array.isArray(items) ? items.slice().sort((a, b) => (a.prazoISO || '').localeCompare(b.prazoISO || '')) : [];
+      const total = rows.length;
+      const concluidas = rows.filter((t) => t.status === 'feito').length;
+      return { rows, total, concluidas };
+    }
+
+    function messageStats(items) {
+      const rows = Array.isArray(items) ? items.slice().sort((a, b) => (a.whenISO || '').localeCompare(b.whenISO || '')) : [];
+      const now = Date.now();
+      const next = rows.find((r) => {
+        if (!r.whenISO) return false;
+        const ms = Date.parse(r.whenISO);
+        return !Number.isNaN(ms) && ms >= now;
+      }) || null;
+      return { rows, total: rows.length, next };
+    }
+
+    function eventSummary(project) {
+      if (!project) return 'Nenhum evento carregado.';
+      const ev = project.evento || {};
+      const parts = [ev.tipo, fmtDate(ev.data), ev.hora].filter(Boolean).join(' • ');
+      const conv = guestStats(project.lista);
+      return `${ev.nome || 'Evento sem nome'} • ${parts || 'Data a definir'} • ${conv.convites} convites / ${conv.confirmados} confirmados`;
+    }
+
+    async function refreshMetas() {
+      state.metas = store?.listProjects?.() || [];
+      renderSavedList();
+      renderSelectOptions();
+    }
+
+    async function loadProject(id) {
+      if (!id) {
+        state.project = null;
+        return;
+      }
+      const proj = await store?.getProject?.(id);
+      state.project = ensureShape(proj || {});
+    }
+
+    function renderSelectOptions() {
+      if (!selEvento) return;
+      const current = selEvento.value;
+      selEvento.innerHTML = '<option value="">Selecione um evento salvo…</option>' + state.metas.map((meta) => {
+        const selected = meta.id === current || meta.id === state.currentId ? ' selected' : '';
+        const label = esc(meta.nome || meta.id);
+        return `<option value="${esc(meta.id)}"${selected}>${label}</option>`;
+      }).join('');
+    }
+
+    function renderSavedList() {
+      if (!savedList || !savedEmpty) return;
+      if (!state.metas.length) {
+        savedList.innerHTML = '';
+        savedEmpty.style.display = 'block';
+        return;
+      }
+      savedEmpty.style.display = 'none';
+      savedList.innerHTML = state.metas.map((meta) => {
+        const label = esc(meta.nome || 'Evento sem nome');
+        const upd = fmtDateTime(meta.updatedAt);
+        const isActive = meta.id === state.currentId;
+        return `<div class="item" data-id="${esc(meta.id)}">
+          <div>
+            <div><strong>${label}</strong>${isActive ? ' <span class="pill ok">Ativo</span>' : ''}</div>
+            <div class="meta">Atualizado: ${esc(upd)}</div>
+          </div>
+          <div class="row">
+            <button class="btn btn--ghost" data-act="open" type="button">Abrir</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderOverview() {
+      const project = state.project;
+      const has = !!project && !!state.currentId;
+      statusPill.textContent = has ? 'Evento carregado' : 'Nenhum evento selecionado';
+      statusPill.className = 'pill ' + (has ? 'ok' : 'warn');
+      summaryId.textContent = has ? state.currentId : '—';
+      summaryUpdated.textContent = has ? fmtDateTime(project.updatedAt) : '—';
+      overviewSummary.textContent = eventSummary(project);
+
+      if (!has) {
+        summaryName.textContent = '—';
+        summaryDate.textContent = '—';
+        summaryVenue.textContent = '—';
+        summaryHost.textContent = '—';
+        summaryCerimonial.textContent = '—';
+        kpiConvites.textContent = '0';
+        kpiConfirmados.textContent = '0';
+        kpiPendentes.textContent = '0';
+        kpiPessoas.textContent = '0';
+        kpiTelefones.textContent = '0';
+        kpiFornecedores.textContent = '0';
+        kpiPrevisto.textContent = money(0);
+        kpiPago.textContent = money(0);
+        kpiPendente.textContent = money(0);
+        kpiTarefasTotal.textContent = '0';
+        kpiTarefasConcluidas.textContent = '0';
+        kpiMensagens.textContent = '0';
+        kpiProximoEnvio.textContent = '—';
+        return;
+      }
+
+      const ev = project.evento || {};
+      const end = ev.endereco || {};
+      const anf = ev.anfitriao || {};
+      const cer = project.cerimonialista || {};
+      const guests = guestStats(project.lista);
+      const suppliers = supplierStats(project.fornecedores);
+      const tasks = taskStats(project.plano?.checklist);
+      const messages = messageStats(project.mensagens);
+
+      const dateParts = [ev.tipo, fmtDate(ev.data), ev.hora].filter(Boolean).join(' • ');
+      const addressParts = [end.logradouro, end.numero, end.bairro, end.cidade, end.uf].filter(Boolean).join(', ');
+
+      summaryName.textContent = ev.nome || 'Evento sem nome';
+      summaryDate.textContent = dateParts || 'Data não definida';
+      summaryVenue.textContent = addressParts ? `Endereço: ${addressParts}` : 'Endereço não informado';
+      summaryHost.textContent = anf.nome ? `Anfitrião: ${anf.nome}${anf.telefone ? ' • ' + anf.telefone : ''}` : 'Anfitrião não informado';
+      summaryCerimonial.textContent = cer.nomeCompleto ? `Cerimonial: ${cer.nomeCompleto}${cer.telefone ? ' • ' + cer.telefone : ''}` : 'Cerimonial não informado';
+
+      kpiConvites.textContent = String(guests.convites);
+      kpiConfirmados.textContent = String(guests.confirmados);
+      kpiPendentes.textContent = String(guests.pendentes);
+      kpiPessoas.textContent = String(guests.pessoas);
+      kpiTelefones.textContent = String(guests.telValidos);
+
+      kpiFornecedores.textContent = String(suppliers.total);
+      kpiPrevisto.textContent = money(suppliers.previsto);
+      kpiPago.textContent = money(suppliers.pago);
+      kpiPendente.textContent = money(suppliers.pend);
+
+      kpiTarefasTotal.textContent = String(tasks.total);
+      kpiTarefasConcluidas.textContent = String(tasks.concluidas);
+      kpiMensagens.textContent = String(messages.total);
+      kpiProximoEnvio.textContent = messages.next?.whenISO ? new Date(messages.next.whenISO).toLocaleString() : '—';
+    }
+
+    function renderReport() {
+      if (!reportEl) return;
+      if (!state.project || !state.currentId) {
+        reportEl.innerHTML = '<p class="report__empty">Selecione um evento para gerar o relatório operacional.</p>';
+        return;
+      }
+
+      const project = state.project;
+      const ev = project.evento || {};
+      const end = ev.endereco || {};
+      const anf = ev.anfitriao || {};
+      const cer = project.cerimonialista || {};
+      const guests = guestStats(project.lista);
+      const suppliers = supplierStats(project.fornecedores);
+      const tasks = taskStats(project.plano?.checklist);
+      const messages = messageStats(project.mensagens);
+
+      const addressParts = [end.logradouro, end.numero, end.bairro, end.cidade, end.uf, end.complemento].filter(Boolean).join(', ');
+      const hostLine = [anf.nome, anf.telefone, anf.redeSocial].filter(Boolean).join(' • ');
+      const cerLine = [cer.nomeCompleto, cer.telefone, cer.redeSocial].filter(Boolean).join(' • ');
+
+      const suppliersTable = suppliers.rows.length ? suppliers.rows.map((f, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${esc([f.nome, f.servico].filter(Boolean).join(' — ') || 'Sem nome')}</td>
+          <td>${money(f.previsto)}</td>
+          <td>${money(f.pago)}</td>
+          <td>${esc(f.status || (Number(f.pago) >= Number(f.previsto) ? 'Pago' : 'Pendente'))}</td>
+          <td>${esc(f.contato || '')}</td>
+        </tr>`).join('') : '<tr><td colspan="6" class="small">Nenhum fornecedor cadastrado.</td></tr>';
+
+      const tasksTable = tasks.rows.length ? tasks.rows.map((t, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${esc(t.titulo || 'Sem título')}</td>
+          <td>${esc(t.responsavel || '—')}</td>
+          <td>${t.prazoISO ? new Date(t.prazoISO).toLocaleString() : '—'}</td>
+          <td>${esc(t.status === 'feito' ? 'Concluído' : t.status === 'andamento' ? 'Em andamento' : 'Pendente')}</td>
+        </tr>`).join('') : '<tr><td colspan="5" class="small">Nenhum item na checklist.</td></tr>';
+
+      const messagesTable = messages.rows.length ? messages.rows.map((m, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${esc(MSG_LABELS[m.cat] || m.cat || 'Mensagem')}</td>
+          <td>${esc(m.message || '')}</td>
+          <td>${m.whenISO ? new Date(m.whenISO).toLocaleString() : '—'}</td>
+        </tr>`).join('') : '<tr><td colspan="4" class="small">Nenhuma mensagem programada.</td></tr>';
+
+      reportEl.innerHTML = `
+        <section class="report__header">
+          <h3>${esc(ev.nome || 'Evento sem nome')}</h3>
+          <div class="small">${esc([ev.tipo, fmtDate(ev.data), ev.hora].filter(Boolean).join(' • ') || 'Data/Hora não definidas')}</div>
+          <div class="small">Local: ${esc(ev.local || addressParts || 'A definir')}</div>
+          ${addressParts ? `<div class="small">Endereço: ${esc(addressParts)}</div>` : ''}
+          ${hostLine ? `<div class="small">Anfitrião: ${esc(hostLine)}</div>` : ''}
+          ${cerLine ? `<div class="small">Cerimonial: ${esc(cerLine)}</div>` : ''}
+        </section>
+        <section class="report__section">
+          <h3>Indicadores rápidos</h3>
+          <div class="report__grid">
+            <div>
+              <strong>${guests.convites}</strong>
+              <div class="small">Convites cadastrados</div>
+            </div>
+            <div>
+              <strong>${guests.confirmados}</strong>
+              <div class="small">Convites confirmados</div>
+            </div>
+            <div>
+              <strong>${guests.pessoas}</strong>
+              <div class="small">Total de pessoas previstas</div>
+            </div>
+            <div>
+              <strong>${suppliers.total}</strong>
+              <div class="small">Fornecedores cadastrados</div>
+            </div>
+            <div>
+              <strong>${money(suppliers.previsto)}</strong>
+              <div class="small">Valor previsto</div>
+            </div>
+            <div>
+              <strong>${money(suppliers.pago)}</strong>
+              <div class="small">Valor já pago</div>
+            </div>
+            <div>
+              <strong>${tasks.total}</strong>
+              <div class="small">Itens na checklist</div>
+            </div>
+            <div>
+              <strong>${tasks.concluidas}</strong>
+              <div class="small">Itens concluídos</div>
+            </div>
+            <div>
+              <strong>${messages.total}</strong>
+              <div class="small">Mensagens programadas</div>
+            </div>
+            <div>
+              <strong>${messages.next?.whenISO ? new Date(messages.next.whenISO).toLocaleString() : '—'}</strong>
+              <div class="small">Próximo envio previsto</div>
+            </div>
+          </div>
+        </section>
+        <section class="report__section">
+          <h3>Fornecedores</h3>
+          <table class="report__table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Fornecedor / Serviço</th>
+                <th>Previsto</th>
+                <th>Pago</th>
+                <th>Status</th>
+                <th>Contato</th>
+              </tr>
+            </thead>
+            <tbody>${suppliersTable}</tbody>
+          </table>
+        </section>
+        <section class="report__section">
+          <h3>Checklist</h3>
+          <table class="report__table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tarefa</th>
+                <th>Responsável</th>
+                <th>Prazo</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>${tasksTable}</tbody>
+          </table>
+        </section>
+        <section class="report__section">
+          <h3>Mensagens e comunicação</h3>
+          <table class="report__table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Categoria</th>
+                <th>Conteúdo</th>
+                <th>Envio</th>
+              </tr>
+            </thead>
+            <tbody>${messagesTable}</tbody>
+          </table>
+        </section>`;
+    }
+
+    async function setCurrent(id, opts = {}) {
+      state.currentId = id || null;
+      await loadProject(state.currentId);
+      renderOverview();
+      renderReport();
+      renderSelectOptions();
+      renderSavedList();
+      if (!opts.silent && state.currentId && bus?.publish) {
+        bus.publish('ac:open-event', { id: state.currentId, from: 'app' });
+      }
+    }
+
+    function openTool(tool) {
+      if (!toolFrame) return;
+      if (tool === 'relatorio') {
+        reportCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      const rel = TOOL_PATHS[tool];
+      if (!rel) return;
+      state.activeTool = tool;
+      const url = new URL(rel, import.meta.url).href;
+      if (toolFrame.src !== url) {
+        toolFrame.src = url;
+      }
+      tabButtons.forEach((btn) => {
+        btn.classList.toggle('btn', true);
+        btn.classList.toggle('btn--ghost', btn.dataset.toolOpen !== tool);
+        if (btn.dataset.toolOpen === tool) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      shortcutButtons.forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.tool === tool);
+      });
+    }
+
+    selEvento?.addEventListener('change', async (ev) => {
+      const id = ev.target.value || null;
+      await setCurrent(id);
+    });
+
+    btnRefresh?.addEventListener('click', async () => {
+      await refreshMetas();
+      reportStatus.textContent = 'Lista de eventos atualizada.';
+      setTimeout(() => { reportStatus.textContent = ''; }, 2500);
+    });
+
+    btnOpenEventos?.addEventListener('click', () => openTool('eventos'));
+
+    savedList?.addEventListener('click', async (ev) => {
+      const btn = ev.target.closest('button[data-act]');
+      if (!btn) return;
+      const id = btn.closest('.item')?.getAttribute('data-id');
+      if (!id) return;
+      if (btn.dataset.act === 'open') {
+        selEvento.value = id;
+        await setCurrent(id);
+      }
+    });
+
+    shortcutButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const tool = btn.dataset.tool;
+        openTool(tool);
+      });
+    });
+
+    tabButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        openTool(btn.dataset.toolOpen);
+      });
+    });
+
+    btnReportRefresh?.addEventListener('click', () => {
+      renderReport();
+      reportStatus.textContent = 'Relatório atualizado.';
+      setTimeout(() => { reportStatus.textContent = ''; }, 2500);
+    });
+
+    btnReportCopy?.addEventListener('click', async () => {
+      if (!reportEl) return;
+      const text = reportEl.innerText || '';
+      try {
+        await navigator.clipboard.writeText(text);
+        reportStatus.textContent = 'Relatório copiado para a área de transferência!';
+      } catch (err) {
+        console.warn('Falha ao copiar', err);
+        reportStatus.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.';
+      }
+      setTimeout(() => { reportStatus.textContent = ''; }, 4000);
+    });
+
+    btnReportPrint?.addEventListener('click', () => {
+      window.print();
+    });
+
+    if (bus?.subscribe) {
+      bus.subscribe('ac:open-event', async ({ id, from }) => {
+        if (from === 'app') return;
+        if (!id) {
+          await setCurrent(null, { silent: true });
+          return;
+        }
+        if (id !== state.currentId) {
+          await setCurrent(id, { silent: true });
+        }
+      });
+
+      bus.subscribe('ac:project-updated', async ({ id, updatedAt }) => {
+        await refreshMetas();
+        if (id && id === state.currentId) {
+          await loadProject(id);
+          state.project.updatedAt = updatedAt || state.project.updatedAt;
+          renderOverview();
+          renderReport();
+        }
+      });
+
+      bus.subscribe('ac:request-current', () => {
+        if (state.currentId) {
+          bus.publish('ac:open-event', { id: state.currentId, from: 'app' });
+        }
+      });
+    }
+
+    await refreshMetas();
+    if (state.metas.length) {
+      const firstId = state.metas[0].id;
+      selEvento.value = firstId;
+      await setCurrent(firstId);
+    } else {
+      renderOverview();
+      renderReport();
+    }
+
+    openTool('eventos');
+  </script>
+</body>
+</html>
