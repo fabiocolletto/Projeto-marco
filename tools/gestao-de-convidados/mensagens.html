@@ -3,301 +3,382 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Assistente Cerimonial — Programação de Mensagens</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/Tools/gestao-de-convidados/ac.css" />
+  <title>Gerenciar Mensagens</title>
+  <style>
+    :root{color-scheme: light}
+    .ac{background:#fff;color:#111}
+    .ac .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:900px){.twocol{grid-template-columns:1fr}}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;color:#555}
+    .field input,.field select{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:14px}
+    .pill{display:inline-block;border-radius:999px;padding:4px 10px;font-size:12px;border:1px solid #ddd}
+    .pill.ok{background:#f0fff4;border-color:#b6f2c7;color:#0a7a2e}
+    .pill.warn{background:#fff7ed;border-color:#ffd6ae;color:#9a4b00}
+    .pill.saving{background:#fffdea;border-color:#ffe9a6;color:#6a4b00}
+    .btn{border-radius:8px;border:1px solid #ccc;background:#0b65c2;color:#fff;padding:8px 12px;cursor:pointer}
+    .btn--ghost{background:#fff;color:#111}
+    .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .danger{color:#a40000}
+    .summary-line{font-size:14px;margin:4px 0}
+
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;border-bottom:1px solid #ddd}
+    thead th{position:sticky;top:0;background:#fafafa;border-bottom:1px solid #eee}
+    th,td{border:1px solid #eee;padding:8px;text-align:left}
+    .right{text-align:right}
+
+    .tpls-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px}
+    @media(max-width:900px){.tpls-grid{grid-template-columns:1fr}}
+    .tpl-card{border:1px solid #eee;border-radius:10px;padding:10px;display:flex;gap:8px;align-items:flex-start;background:#fff}
+    .tpl-card input{margin-top:4px}
+    .tpl-card pre{margin:0;white-space:pre-wrap;font-size:13px}
+    .tpl-card:hover{box-shadow:0 1px 0 rgba(0,0,0,.03)}
+  </style>
 </head>
 <body>
-  <main class="ac">
-    <div class="container">
-      <h1>Assistente Cerimonial — Programação de Mensagens</h1>
-      <p class="muted">Monte um calendário de envios baseado em modelos. Vincula ao evento aberto via BUS e persiste no projeto.</p>
+<main class="ac">
+  <div class="container">
+    <h1>Gerenciar Mensagens</h1>
 
-      <div class="grid">
-        <section class="card">
-          <div class="card__header">
-            <h3>Evento atual</h3>
-            <div class="row">
-              <span id="pillEvento" class="pill warn">Sem evento</span>
-            </div>
-          </div>
-          <div class="kpis">
-            <div class="kpi">Evento: <strong id="evNomeOut">—</strong></div>
-            <div class="kpi">Data: <strong id="evDataOut">—</strong></div>
-            <div class="kpi">Hora: <strong id="evHoraOut">—</strong></div>
-            <div class="kpi">Mensagens programadas: <strong id="evMsgsOut">0</strong></div>
-            <div class="kpi">Exemplo de convite: <strong id="evGuestOut">—</strong></div>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="card__header">
-            <h3>Criar envio</h3>
-            <span class="muted small">Escolha a categoria, ajuste a data/hora e adicione à programação.</span>
-          </div>
-          <div class="stack-sm">
-            <label class="row">
-              <span class="muted">Categoria</span>
-              <select id="selCat">
-                <option value="save">Save the Date</option>
-                <option value="convite">Convite Formal</option>
-                <option value="lembrete7">Lembrete (7 dias)</option>
-                <option value="lembrete24">Lembrete (24h)</option>
-                <option value="agradecimento">Agradecimento</option>
-              </select>
-            </label>
-            <label class="row">
-              <span class="muted">Dia</span>
-              <input type="date" id="sendDate" />
-            </label>
-            <label class="row">
-              <span class="muted">Hora</span>
-              <input type="time" id="sendTime" />
-            </label>
-            <button id="btnAdd" class="btn btn--primary" type="button" disabled>Adicionar</button>
-          </div>
-          <div class="templates mt-2" id="tpls"></div>
-          <div class="muted small" id="status">—</div>
-        </section>
-
-        <section class="card">
-          <div class="card__header">
-            <h3>Calendário de envios</h3>
-            <div class="row">
-              <span id="pillProg" class="pill ok">Pronto</span>
-              <button id="btnSave" class="btn btn--primary" disabled>Salvar alterações</button>
-              <button id="btnExport" class="btn btn--ghost">Exportar relatório (PDF)</button>
-            </div>
-          </div>
-          <div id="schedWrap" class="table-wrap">
-            <table class="sticky-header">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Categoria</th>
-                  <th>Mensagem modelo</th>
-                  <th>Envio</th>
-                  <th class="right">Ações</th>
-                </tr>
-              </thead>
-              <tbody id="schedBody"></tbody>
-            </table>
-          </div>
-          <div class="note" id="schedMeta">0 itens</div>
-        </section>
+    <section class="card" id="m_cardResumo">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div>
+          <h2 id="m_evTitle">—</h2>
+          <div id="m_resTipoData" class="small muted">—</div>
+        </div>
       </div>
-    </div>
+      <div class="summary-line" id="m_resEndereco">Endereço</div>
+      <div class="summary-line" id="m_resAnfitriao">Anfitrião</div>
+      <div class="summary-line" id="m_resCerimonial">Cerimonialista</div>
+    </section>
 
-    <div id="modalBus" class="ac-modal" role="dialog" aria-modal="true" hidden>
-      <div class="box">
-        <h3>Erro de inicialização</h3>
-        <p class="muted">O barramento de eventos (BUS) é obrigatório para sincronização entre as abas. Verifique o caminho de <code>/shared/marcoBus.js</code> e recarregue a página.</p>
-        <div class="row-end"><button id="btnCloseBus" class="btn">Fechar</button></div>
+    <section class="card">
+      <div class="card__header"><h2>Indicadores</h2></div>
+      <div class="twocol">
+        <div><strong id="m_kpiTotal">0</strong><div class="small muted">Mensagens programadas</div></div>
+        <div><strong id="m_kpiProx">—</strong><div class="small muted">Próximo envio</div></div>
       </div>
-    </div>
-  </main>
+    </section>
 
-  <script type="module">
-    const PATH_BUS = "/shared/marcoBus.js";
-    const PATH_STORE = "/shared/projectStore.js";
-    const CANDIDATES = [
-      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-    ];
-    async function tryImport(url){ try{ return await import(url); }catch(e1){ try{ return await import(url+(url.includes("?")?"&":"?")+"t="+Date.now()); }catch(e2){ return null; } } }
-    async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+    <section class="card">
+      <div class="card__header"><h2>Criar envio</h2></div>
+      <div class="twocol">
+        <div class="field"><label for="m_selCat"><h3>Categoria</h3></label>
+          <select id="m_selCat">
+            <option value="save">Save the Date</option>
+            <option value="convite">Convite Formal</option>
+            <option value="lembrete7">Lembrete (7 dias)</option>
+            <option value="lembrete24">Lembrete (24h)</option>
+            <option value="agradecimento">Agradecimento</option>
+          </select>
+        </div>
+        <div class="field"><label for="m_sendWhen"><h3>Data e hora</h3></label><input id="m_sendWhen" type="datetime-local"/></div>
+      </div>
+      <div id="m_tpls" class="tpls-grid"></div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button id="m_btnAdd" class="btn" type="button" disabled>Adicionar</button>
+      </div>
+    </section>
 
-    const store = await loadShared(PATH_STORE);
-    const bus = await loadShared(PATH_BUS);
+    <section class="card">
+      <div class="card__header"><h2>Calendário de envios</h2></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Categoria</th>
+              <th>Mensagem</th>
+              <th>Envio</th>
+              <th class="right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="m_schedBody"></tbody>
+        </table>
+      </div>
+      <div class="small muted" id="m_schedMeta">0 itens</div>
+    </section>
 
-    const modalBus = document.querySelector('#modalBus');
-    document.querySelector('#btnCloseBus')?.addEventListener('click', ()=> modalBus.setAttribute('hidden',''));
-    if(!bus || typeof bus.publish!== 'function' || typeof bus.subscribe!== 'function'){ modalBus.removeAttribute('hidden'); throw new Error('BUS obrigatório não carregou.'); }
-    await store?.init?.();
+    <section class="card">
+      <div class="card__header"><h2>Estado</h2></div>
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="small muted">Projeto: <span id="m_estadoMetaId">—</span></div>
+          <div class="small muted">Atualizado em: <span id="m_estadoMetaUpd">—</span></div>
+        </div>
+        <div class="row">
+          <span id="m_pillLink" class="pill warn">Sem evento</span>
+          <span id="m_pillSaving" class="pill ok">Pronto</span>
+          <button id="m_btnExport" class="btn btn--ghost" type="button">Exportar relatório (PDF)</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
 
-    const state = { currentId:null, project:null, programacao:[], dirty:false };
-    const $ = (s)=> document.querySelector(s);
-    const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
+<script type="module">
+  const PATH_BUS   = "/shared/marcoBus.js";
+  const PATH_STORE = "/shared/projectStore.js";
+  const CANDIDATES = [
+    "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+    "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+  ];
+  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
+  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+  const store = await loadShared(PATH_STORE);
+  const bus   = await loadShared(PATH_BUS);
+  await store?.init?.();
 
-    const pillEvento = $('#pillEvento');
-    const pillProg = $('#pillProg');
-    const evNomeOut = $('#evNomeOut');
-    const evDataOut = $('#evDataOut');
-    const evHoraOut = $('#evHoraOut');
-    const evGuestOut = $('#evGuestOut');
-    const evMsgsOut = $('#evMsgsOut');
+  const AUTO_SAVE_MS = 700;
+  const state = { currentId:null, project:null, programacao:[], dirty:false, saving:false, timer:null, metas:[] };
+  const $ = (s)=> document.querySelector(s);
+  const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
 
-    const selCat = $('#selCat');
-    const sendDate = $('#sendDate');
-    const sendTime = $('#sendTime');
-    const btnAdd = $('#btnAdd');
-    const tpls = $('#tpls');
-    const statusEl = $('#status');
-    const schedBody = $('#schedBody');
-    const schedMeta = $('#schedMeta');
-    const btnSave = $('#btnSave');
-    const btnExport = $('#btnExport');
+  const evTitle      = $('#m_evTitle');
+  const resTipoData  = $('#m_resTipoData');
+  const resEndereco  = $('#m_resEndereco');
+  const resAnfitriao = $('#m_resAnfitriao');
+  const resCerimonial= $('#m_resCerimonial');
 
-    function fmtDate(d){ if(!d) return ''; const p=d.split('-'); return p.length===3? p[2]+"/"+p[1]+"/"+p[0] : ''; }
-    function fmtWhen(iso){ if(!iso) return ''; const parts=iso.split('T'); const d=parts[0]||''; const t=(parts[1]||'').slice(0,5); const p=d.split('-'); return p.length===3? p[2]+"/"+p[1]+"/"+p[0]+" "+t : ''; }
+  const kpiTotal = $('#m_kpiTotal');
+  const kpiProx  = $('#m_kpiProx');
 
-    const TEMPLATES = {
-      save:[
-        'Olá, {{nomeConvidado}}! Reserve esta data: {{dataEvento}} às {{horaEvento}}. {{nomeEvento}} está chegando! 🎉',
-        'Save the Date: {{dataEvento}} — {{nomeEvento}}. Contamos com você, {{nomeConvidado}}! ✨',
-        '{{nomeConvidado}}, anote aí: {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Em breve, mais detalhes!',
-        'É oficial! {{nomeEvento}} será em {{dataEvento}} às {{horaEvento}}. Aguarde o convite! 💌',
-        'Oi {{nomeConvidado}}! Guarde o dia {{dataEvento}} para o {{nomeEvento}}. Vai ser especial!',
-        'Agenda aí: {{dataEvento}} — {{nomeEvento}}. Presença sua faz toda a diferença, {{nomeConvidado}}.'
-      ],
-      convite:[
-        'Olá, {{nomeConvidado}}! Você é nosso(a) convidado(a) para {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Confirme sua presença!',
-        '{{nomeConvidado}}, esperamos você no {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}. Contamos com sua presença!',
-        'Convite: {{nomeEvento}} acontece em {{dataEvento}} às {{horaEvento}}. Sua presença é muito importante, {{nomeConvidado}}.',
-        'É com alegria que convidamos você para {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Até lá!',
-        '{{nomeConvidado}}, junte-se a nós no {{nomeEvento}}. Data: {{dataEvento}} • Hora: {{horaEvento}}.',
-        'Convite especial para {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}. Esperamos por você, {{nomeConvidado}}!'
-      ],
-      lembrete7:[
-        'Faltam 7 dias! {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Te esperamos, {{nomeConvidado}}!',
-        'Contagem regressiva: 1 semana para {{nomeEvento}}. Dia {{dataEvento}} às {{horaEvento}}.',
-        '{{nomeConvidado}}, daqui a 7 dias nos vemos no {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}.',
-        'Lembrete: falta pouco para {{nomeEvento}} ({{dataEvento}}). Prepare-se! 🎉',
-        'Tudo certo para {{nomeEvento}}? Dia {{dataEvento}} às {{horaEvento}}. Falta 1 semana!',
-        'Falta uma semana para {{nomeEvento}}! Anote: {{dataEvento}} • {{horaEvento}}.'
-      ],
-      lembrete24:[
-        'Amanhã é o dia! {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Até breve, {{nomeConvidado}}!',
-        'Lembrete 24h: {{nomeEvento}} acontece amanhã — {{dataEvento}} • {{horaEvento}}.',
-        '{{nomeConvidado}}, nos vemos amanhã no {{nomeEvento}} às {{horaEvento}}!',
-        'Está chegando! Amanhã: {{nomeEvento}} ({{dataEvento}} às {{horaEvento}}).',
-        'Falta 1 dia: {{nomeEvento}} em {{dataEvento}} • {{horaEvento}}. Contamos com você!',
-        'Não esqueça: amanhã tem {{nomeEvento}}! Horário: {{horaEvento}}.'
-      ],
-      agradecimento:[
-        'Obrigado por celebrar conosco no {{nomeEvento}}! Sua presença fez a diferença, {{nomeConvidado}}.',
-        'Gratidão pela presença no {{nomeEvento}}. Foi especial ter você!',
-        '{{nomeConvidado}}, agradecemos por participar do {{nomeEvento}}. Até a próxima!',
-        'Nosso muito obrigado! {{nomeEvento}} foi incrível com você lá. 💛',
-        'Valeu por estar no {{nomeEvento}}! Sua presença tornou tudo melhor.',
-        'Agradecemos o carinho no {{nomeEvento}}. Esperamos te ver em breve, {{nomeConvidado}}.'
-      ]
-    };
+  const estadoMetaId  = $('#m_estadoMetaId');
+  const estadoMetaUpd = $('#m_estadoMetaUpd');
+  const pillLink      = $('#m_pillLink');
+  const pillSaving    = $('#m_pillSaving');
 
-    function compile(tpl, v){
-      return tpl
-        .replaceAll('{{nomeConvidado}}', v.nomeConvidado)
-        .replaceAll('{{dataEvento}}', v.dataEvento)
-        .replaceAll('{{horaEvento}}', v.horaEvento)
-        .replaceAll('{{nomeEvento}}', v.nomeEvento);
+  const selCat    = $('#m_selCat');
+  const sendWhen  = $('#m_sendWhen');
+  const btnAdd    = $('#m_btnAdd');
+  const tpls      = $('#m_tpls');
+  const schedBody = $('#m_schedBody');
+  const schedMeta = $('#m_schedMeta');
+  const btnExport = $('#m_btnExport');
+
+  function canAdd(){ return !!(state.currentId && sendWhen.value && document.querySelector('input[name="tpl"]:checked')); }
+  function updateAddState(){ btnAdd.disabled = !canAdd(); }
+
+  const fmtDate     = (d)=>{ if(!d) return ''; const p=d.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}` : ''; };
+  const fmtDateTime = (ts)=> ts? new Date(ts).toLocaleString() : '—';
+  const fmtWhen     = (iso)=>{ if(!iso) return ''; const [d,t='00:00:00'] = iso.split('T'); const p=d.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]} ${t.slice(0,5)}` : ''; };
+  const esc = (s)=> String(s==null?'':s).replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
+
+  function ensureShape(o){ o ||= {}; o.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" }; o.evento ||= { nome:"", data:"", hora:"", local:"", tipo:"", endereco:{}, anfitriao:{} }; o.evento.endereco ||= {}; o.evento.anfitriao ||= {}; return o; }
+  function setDirty(v){ state.dirty=!!v; if(!state.saving) setPill(pillSaving, v? 'warn':'ok', v? 'Alterações não salvas':'Pronto'); }
+  function setSaving(v){ state.saving=!!v; setPill(pillSaving, v? 'saving':'ok', v? 'Salvando…':'Pronto'); }
+
+  const TEMPLATES = {
+    save:[
+      'Olá, {{nomeConvidado}}! Reserve esta data: {{dataEvento}} às {{horaEvento}}. {{nomeEvento}} está chegando! 🎉',
+      'Save the Date: {{dataEvento}} — {{nomeEvento}}. Contamos com você, {{nomeConvidado}}! ✨',
+      '{{nomeConvidado}}, anote aí: {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Em breve, mais detalhes!',
+      'É oficial! {{nomeEvento}} será em {{dataEvento}} às {{horaEvento}}. Aguarde o convite! 💌',
+      'Oi {{nomeConvidado}}! Guarde o dia {{dataEvento}} para o {{nomeEvento}}. Vai ser especial!',
+      'Agenda aí: {{dataEvento}} — {{nomeEvento}}. Presença sua faz toda a diferença, {{nomeConvidado}}.'
+    ],
+    convite:[
+      'Olá, {{nomeConvidado}}! Você é nosso(a) convidado(a) para {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Confirme sua presença!',
+      '{{nomeConvidado}}, esperamos você no {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}. Contamos com sua presença!',
+      'Convite: {{nomeEvento}} acontece em {{dataEvento}} às {{horaEvento}}. Sua presença é muito importante, {{nomeConvidado}}.',
+      'É com alegria que convidamos você para {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Até lá!',
+      '{{nomeConvidado}}, junte-se a nós no {{nomeEvento}}. Data: {{dataEvento}} • Hora: {{horaEvento}}.',
+      'Convite especial para {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}. Esperamos por você, {{nomeConvidado}}!'
+    ],
+    lembrete7:[
+      'Faltam 7 dias! {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Te esperamos, {{nomeConvidado}}!',
+      'Contagem regressiva: 1 semana para {{nomeEvento}}. Dia {{dataEvento}} às {{horaEvento}}.',
+      '{{nomeConvidado}}, daqui a 7 dias nos vemos no {{nomeEvento}} — {{dataEvento}} às {{horaEvento}}.',
+      'Lembrete: falta pouco para {{nomeEvento}} ({{dataEvento}}). Prepare-se! 🎉',
+      'Tudo certo para {{nomeEvento}}? Dia {{dataEvento}} às {{horaEvento}}. Falta 1 semana!',
+      'Falta uma semana para {{nomeEvento}}! Anote: {{dataEvento}} • {{horaEvento}}.'
+    ],
+    lembrete24:[
+      'Amanhã é o dia! {{nomeEvento}} em {{dataEvento}} às {{horaEvento}}. Até breve, {{nomeConvidado}}!',
+      'Lembrete 24h: {{nomeEvento}} acontece amanhã — {{dataEvento}} • {{horaEvento}}.',
+      '{{nomeConvidado}}, nos vemos amanhã no {{nomeEvento}} às {{horaEvento}}!',
+      'Está chegando! Amanhã: {{nomeEvento}} ({{dataEvento}} às {{horaEvento}}).',
+      'Falta 1 dia: {{nomeEvento}} em {{dataEvento}} • {{horaEvento}}. Contamos com você!',
+      'Não esqueça: amanhã tem {{nomeEvento}}! Horário: {{horaEvento}}.'
+    ],
+    agradecimento:[
+      'Obrigado por celebrar conosco no {{nomeEvento}}! Sua presença fez a diferença, {{nomeConvidado}}.',
+      'Gratidão pela presença no {{nomeEvento}}. Foi especial ter você!',
+      '{{nomeConvidado}}, agradecemos por participar do {{nomeEvento}}. Até a próxima!',
+      'Nosso muito obrigado! {{nomeEvento}} foi incrível com você lá. 💛',
+      'Valeu por estar no {{nomeEvento}}! Sua presença tornou tudo melhor.',
+      'Agradecemos o carinho no {{nomeEvento}}. Esperamos te ver em breve, {{nomeConvidado}}.'
+    ]
+  };
+  function compile(tpl, v){ return tpl.replaceAll('{{nomeConvidado}}',v.nomeConvidado).replaceAll('{{dataEvento}}',v.dataEvento).replaceAll('{{horaEvento}}',v.horaEvento).replaceAll('{{nomeEvento}}',v.nomeEvento); }
+
+  function varsEvento(){
+    const ev = state.project?.evento || {};
+    const nomeEvento = (ev?.nome || state.project?.nome || 'Nosso Evento').trim();
+    const dataEvento = fmtDate(ev?.data || '') || 'dd/mm/aaaa';
+    const horaEvento = ev?.hora || 'hh:mm';
+    const nomeConvidado = (state.project?.lista?.[0]?.nome) || 'Convidado(a)';
+    return { nomeEvento, dataEvento, horaEvento, nomeConvidado };
+  }
+
+  function renderTemplates(){
+    const cat=selCat.value; const list=TEMPLATES[cat]||[]; const v=varsEvento();
+    tpls.innerHTML = list.map((tpl,i)=>
+      `<label class="tpl-card"><input type="radio" name="tpl" value="${i}" ${i===0?'checked':''} />
+        <pre>${esc(compile(tpl,v))}</pre>
+      </label>`
+    ).join('');
+  }
+
+  function labelCat(cat){ return ({save:'Save the Date',convite:'Convite Formal',lembrete7:'Lembrete (7 dias)',lembrete24:'Lembrete (24h)',agradecimento:'Agradecimento'})[cat]||cat; }
+
+  function updateKPIs(){
+    const rows = state.programacao||[]; kpiTotal.textContent = String(rows.length);
+    if(!rows.length){ kpiProx.textContent = '—'; return; }
+    const soonest = rows.map(r=>r.whenISO).filter(Boolean).sort()[0];
+    kpiProx.textContent = fmtWhen(soonest);
+  }
+
+  function renderSchedule(){
+    const rows = state.programacao||[]; schedMeta.textContent = `${rows.length} itens`;
+    if(!rows.length){ schedBody.innerHTML = '<tr><td colspan="5" class="muted">Nenhum envio programado.</td></tr>'; updateKPIs(); return; }
+    schedBody.innerHTML = rows.map((it,i)=>{
+      const when = fmtWhen(it.whenISO);
+      return `<tr data-i="${i}">
+        <td>${i+1}</td>
+        <td>${labelCat(it.cat)}</td>
+        <td style="max-width:640px">${esc(it.message)}</td>
+        <td>${when}</td>
+        <td class="right">
+          <button class="btn btn--ghost small" data-act="edit" type="button">Editar</button>
+          <button class="btn btn--ghost small danger" data-act="del" type="button">Excluir</button>
+        </td>
+      </tr>`;
+    }).join('');
+    updateKPIs();
+  }
+
+  function onTableClick(ev){
+    const btn = ev.target.closest && ev.target.closest('button[data-act]'); if(!btn) return;
+    const tr = btn.closest('tr'); const i = parseInt(tr.getAttribute('data-i'),10); const it = state.programacao[i]; const act = btn.getAttribute('data-act'); if(!it) return;
+    if(act==='del'){ state.programacao.splice(i,1); setDirty(true); renderSchedule(); scheduleSave(); return; }
+    if(act==='edit'){
+      const dt = (it.whenISO||'');
+      tr.innerHTML = `<td>${i+1}</td><td>${labelCat(it.cat)}</td><td style="max-width:640px">${esc(it.message)}</td>
+      <td><input type="datetime-local" value="${dt.replace('Z','')}" data-f="dt" /></td>
+      <td class="right"><button class="btn small" data-act="save">Salvar</button><button class="btn btn--ghost small" data-act="cancel">Cancelar</button><button class="btn btn--ghost small danger" data-act="del">Excluir</button></td>`;
+      return;
     }
-
-    function varsEvento(){
-      const ev = state.project?.evento || {};
-      const nomeEvento = (ev?.nome || state.project?.nome || 'Nosso Evento').trim();
-      const dataEvento = fmtDate(ev?.data || '') || 'dd/mm/aaaa';
-      const horaEvento = ev?.hora || 'hh:mm';
-      const nomeConvidado = (state.project?.lista?.[0]?.nome) || 'Convidado(a)';
-      return { nomeEvento, dataEvento, horaEvento, nomeConvidado };
+    if(act==='cancel'){ renderSchedule(); return; }
+    if(act==='save'){
+      const ndt = tr.querySelector('input[data-f="dt"]').value;
+      if(!ndt) return; it.whenISO = `${ndt}:00`; setDirty(true); renderSchedule(); scheduleSave();
     }
+  }
+  schedBody.addEventListener('click', onTableClick);
 
-    function renderTemplates(){
-      const cat = selCat.value; const list = TEMPLATES[cat] || []; const v = varsEvento();
-      tpls.innerHTML = list.map(function(tpl,i){ const msg = compile(tpl, v); return '<label class="tpl"><input type="radio" name="tpl" value="'+i+'" '+(i===0?'checked':'')+' /><pre><span class="badge">Modelo #'+(i+1)+'</span>'+escapeHtml(msg)+'</pre></label>'; }).join('');
+  function addItem(){
+    const cat = selCat.value; const pick = document.querySelector('input[name="tpl"]:checked'); const idx = pick? parseInt(pick.value,10):0; const tpl = (TEMPLATES[cat]||[])[idx] || '';
+    const when = sendWhen.value; if(!when) return;
+    const v = varsEvento(); const msg = compile(tpl, v); const whenISO = `${when}:00`;
+    state.programacao.push({ cat, modelIdx:idx, message:msg, whenISO });
+    sendWhen.value=''; setDirty(true); renderSchedule(); scheduleSave();
+  }
+  btnAdd.addEventListener('click', addItem);
+  selCat.addEventListener('change', ()=>{ renderTemplates(); updateAddState(); });
+  tpls.addEventListener('change', updateAddState);
+  sendWhen.addEventListener('input', updateAddState);
+
+  async function doSave(){
+    if(!state.currentId || !state.dirty) return;
+    setSaving(true);
+    const next = { ...state.project, mensagens: state.programacao, updatedAt: Date.now() };
+    await store.updateProject?.(state.currentId, next);
+    state.project = await store.getProject?.(state.currentId);
+    setSaving(false); setDirty(false);
+    renderSchedule(); renderResumo();
+    bus.publish('ac:project-updated', { id: state.currentId, updatedAt: next.updatedAt });
+  }
+  function scheduleSave(){ if(state.timer) clearTimeout(state.timer); state.timer = setTimeout(doSave, AUTO_SAVE_MS); }
+
+  function renderResumo(){
+    const p = state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{};
+    evTitle.textContent = ev.nome||'—';
+    resTipoData.textContent = [ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—';
+    resEndereco.textContent = 'Endereço' + (end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):'');
+    resAnfitriao.textContent = 'Anfitrião' + (anf.nome? ': '+anf.nome:'');
+    resCerimonial.textContent = 'Cerimonialista' + (cer.nomeCompleto? ': '+cer.nomeCompleto:'');
+    estadoMetaId.textContent = state.currentId||'—';
+    estadoMetaUpd.textContent = fmtDateTime(p.updatedAt);
+    setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento');
+    updateAddState();
+  }
+
+  function renderTemplatesSafe(){ try{ renderTemplates(); }catch(e){} }
+
+  function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'mensagens' }); }
+  async function loadCurrent(id){ state.currentId=id||state.currentId; state.project = state.currentId? await store.getProject?.(state.currentId):null; state.programacao = Array.isArray(state.project?.mensagens)? [...state.project.mensagens] : []; setDirty(false); renderResumo(); renderTemplatesSafe(); renderSchedule(); }
+  async function setCurrent(id){ if(!id){ state.currentId=null; state.project=null; state.programacao=[]; renderResumo(); renderTemplatesSafe(); renderSchedule(); setDirty(false); return; }
+    state.currentId=id; setPill(pillLink,'ok','Vinculado');
+    await loadCurrent(id); localStorage.setItem('ac:lastId', id); }
+
+  // Responde pedidos de estado: ajuda outras abas a sincronizarem
+  bus.subscribe('ac:request-current', ()=>{ if(state.currentId) publishCurrent(); });
+
+  // BUS — recebe id atual e atualizações
+  bus.subscribe('ac:open-event', async ({ id })=>{ if(!id) return; await setCurrent(id); });
+  bus.subscribe('ac:project-updated', async ({ id, updatedAt })=>{
+    if(id && id===state.currentId){
+      if(updatedAt){ estadoMetaUpd.textContent = fmtDateTime(updatedAt); }
+      await loadCurrent(id);
     }
+  });
 
-    function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>]/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;'}[m]; }); }
+  function buildReportHTML(){
+    const ev = state.project?.evento || {}; const nome = (ev?.nome || state.project?.nome || 'Evento').trim() || 'Evento'; const data = fmtDate(ev?.data||''); const hora = ev?.hora||''; const rows = state.programacao || [];
+    const tr = rows.map((r,i)=>`<tr><td>${i+1}</td><td>${labelCat(r.cat)}</td><td>${esc(r.message)}</td><td style=\"text-align:right\">${fmtWhen(r.whenISO)}</td></tr>`).join('');
+    return `<!doctype html><html><head><meta charset=\"utf-8\" /><title>Relatório — Programação de Mensagens</title><style>body{font-family:system-ui,Arial,sans-serif}.report{padding:24px}h1{margin:0 0 4px 0;font-size:20px}h2{margin:16px 0 6px 0;font-size:16px}.meta{color:#333;font-size:12px;margin-bottom:8px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:6px;text-align:left}</style></head><body onload=\"window.print()\"><section class=\"report\"><h1>Programação de Mensagens — ${esc(nome)}</h1><div class=\"meta\">${data? 'Data: '+data+' • ' : ''}${hora? 'Hora: '+hora+' • ' : ''}Gerado em ${new Date().toLocaleString()}</div><h2>Itens</h2><table><thead><tr><th>#</th><th>Categoria</th><th>Mensagem</th><th style=\"text-align:right\">Envio</th></tr></thead><tbody>${tr}</tbody></table></section></body></html>`;
+  }
+  function exportReport(){ const win = window.open('', '_blank'); if(!win){ alert('Pop-up bloqueado. Libere pop-ups para exportar o PDF.'); return; } win.document.open(); win.document.write(buildReportHTML()); win.document.close(); }
+  btnExport.addEventListener('click', exportReport);
 
-    function setDirty(v){ state.dirty = !!v; btnSave.disabled = !state.dirty || !state.currentId; setPill(pillProg, state.dirty? 'warn':'ok', state.dirty? 'Alterações não salvas':'Pronto'); }
-    function setEventLinked(){ const linked = !!state.currentId; setPill(pillEvento, linked? 'ok':'warn', linked? 'Vinculado':'Sem evento'); btnAdd.disabled = !linked; }
+  // Handshake idêntico ao das Tarefas + fallback
+  async function trySyncWithEventos(maxTries=8, interval=400){
+    return new Promise(resolve=>{
+      let tries = 0;
+      const ask = ()=>{ try{ bus.publish('ac:request-current'); }catch{}
+        tries++;
+        if(state.currentId){ resolve(true); return; }
+        if(tries<maxTries){ setTimeout(ask, interval); } else { resolve(false); }
+      };
+      ask();
+    });
+  }
 
-    function addItem(){
-      const cat = selCat.value; const pick = document.querySelector('input[name="tpl"]:checked'); const idx = pick? parseInt(pick.value,10):0; const tpl = (TEMPLATES[cat]||[])[idx] || '';
-      const d = sendDate.value; const t = sendTime.value; if(!d || !t){ statusEl.textContent = 'Informe dia e hora.'; return; }
-      const v = varsEvento(); const msg = compile(tpl, v); const whenISO = d+'T'+t+':00';
-      state.programacao.push({ cat:cat, modelIdx:idx, message:msg, whenISO:whenISO });
-      sendDate.value = ''; sendTime.value = '';
-      setDirty(true); renderSchedule(); statusEl.textContent = 'Item adicionado';
-    }
+  async function bootstrap(){
+    // 1) tenta sincronizar com outra aba
+    const synced = await trySyncWithEventos();
+    if(synced && state.currentId){ publishCurrent(); renderTemplatesSafe(); return; }
+    // 2) fallback local: último id salvo ou primeiro
+    state.metas = store.listProjects?.()||[];
+    const last = localStorage.getItem('ac:lastId');
+    const initial = (state.metas.find(m=>m.id===last)?.id) || state.metas[0]?.id || null;
+    if(initial){ await setCurrent(initial); publishCurrent(); }
+    // 3) render vazio aguardando ac:open-event
+    if(!initial){ renderResumo(); renderTemplatesSafe(); renderSchedule(); }
+  }
+  await bootstrap();
 
-    function labelCat(cat){ switch(cat){ case 'save': return 'Save the Date'; case 'convite': return 'Convite Formal'; case 'lembrete7': return 'Lembrete (7 dias)'; case 'lembrete24': return 'Lembrete (24h)'; case 'agradecimento': return 'Agradecimento'; default: return cat; } }
-
-    function renderSchedule(){
-      const rows = state.programacao || []; schedMeta.textContent = rows.length+' itens'; if(evMsgsOut) evMsgsOut.textContent = String(rows.length);
-      if(!rows.length){ schedBody.innerHTML = '<tr><td colspan="5" class="muted">Nenhum envio programado.</td></tr>'; return; }
-      schedBody.innerHTML = rows.map(function(it,i){ const when = fmtWhen(it.whenISO); return '<tr data-i="'+i+'">'+
-        '<td>'+ (i+1) +'</td>'+
-        '<td>'+ labelCat(it.cat) +'</td>'+
-        '<td style="max-width:640px"><span class="badge">Modelo #'+(it.modelIdx+1)+'</span>'+ escapeHtml(it.message) +'</td>'+
-        '<td><span>'+ when +'</span></td>'+
-        '<td class="right actions">'+
-          '<button class="btn btn--ghost small" data-act="edit" type="button">Editar</button>'+
-          '<button class="btn btn--danger small" data-act="del" type="button">Excluir</button>'+
-        '</td>'+
-      '</tr>'; }).join('');
-    }
-
-    function onTableClick(ev){
-      const btn = ev.target.closest && ev.target.closest('button[data-act]'); if(!btn) return; const tr = btn.closest('tr'); const i = parseInt(tr.getAttribute('data-i'),10); const it = state.programacao[i]; const act = btn.getAttribute('data-act'); if(!it) return;
-      if(act === 'del'){ state.programacao.splice(i,1); setDirty(true); renderSchedule(); return; }
-      if(act === 'edit'){
-        const parts = it.whenISO.split('T'); const d = parts[0]||''; const t = (parts[1]||'').slice(0,5);
-        tr.innerHTML = '<td>'+ (i+1) +'</td>'+
-          '<td>'+ labelCat(it.cat) +'</td>'+
-          '<td style="max-width:640px"><span class="badge">Modelo #'+(it.modelIdx+1)+'</span>'+ escapeHtml(it.message) +'</td>'+
-          '<td>'+
-            '<input type="date" value="'+ d +'" data-f="d" />'+
-            '<input type="time" value="'+ t +'" data-f="t" />'+
-          '</td>'+
-          '<td class="right actions">'+
-            '<button class="btn small" data-act="save">Salvar</button>'+
-            '<button class="btn btn--ghost small" data-act="cancel">Cancelar</button>'+
-            '<button class="btn btn--danger small" data-act="del">Excluir</button>'+
-          '</td>';
-        return;
-      }
-      if(act === 'cancel'){ renderSchedule(); return; }
-      if(act === 'save'){
-        const nd = tr.querySelector('input[data-f="d"]').value; const nt = tr.querySelector('input[data-f="t"]').value; if(!nd || !nt){ statusEl.textContent = 'Informe dia e hora.'; return; }
-        it.whenISO = nd+'T'+nt+':00'; setDirty(true); renderSchedule();
-      }
-    }
-
-    schedBody.addEventListener('click', onTableClick);
-
-    async function saveProgramacao(){ if(!state.currentId){ statusEl.textContent = 'Nenhum evento aberto.'; return; } await store.updateProject?.(state.currentId, { mensagens: state.programacao }); state.project = await store.getProject?.(state.currentId); setDirty(false); bus.publish('ac:project-updated', { id: state.currentId }); }
-
-    btnSave.addEventListener('click', saveProgramacao);
-    btnAdd.addEventListener('click', addItem);
-    selCat.addEventListener('change', renderTemplates);
-    [sendDate, sendTime].forEach(el=> el.addEventListener('input', ()=> statusEl.textContent = '—'));
-
-    function buildReportHTML(){
-      const ev = state.project?.evento || {}; const nome = (ev?.nome || state.project?.nome || 'Evento').trim() || 'Evento'; const data = fmtDate(ev?.data||''); const hora = ev?.hora||''; const rows = state.programacao || [];
-      const tr = rows.map(function(r,i){ return '<tr><td>'+ (i+1) +'</td><td>'+ labelCat(r.cat) +'</td><td>'+ escapeHtml(r.message) +'</td><td style="text-align:right">'+ fmtWhen(r.whenISO) +'</td></tr>'; }).join('');
-      return '<!doctype html><html><head><meta charset="utf-8" />'+
-        '<title>Relatório — Programação de Mensagens</title>'+
-        '<style>body{font-family:system-ui,Arial,sans-serif}.report{padding:24px}h1{margin:0 0 4px 0;font-size:20px}h2{margin:16px 0 6px 0;font-size:16px}.meta{color:#333;font-size:12px;margin-bottom:8px}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:6px;text-align:left}</style>'+
-      '</head><body onload="window.print()">'+
-        '<section class="report">'+
-          '<h1>Programação de Mensagens — '+ escapeHtml(nome) +'</h1>'+
-          '<div class="meta">'+ (data? 'Data: '+data+' • ' : '') + (hora? 'Hora: '+hora+' • ' : '') + 'Gerado em '+ (new Date().toLocaleString()) +'</div>'+
-          '<h2>Itens</h2>'+
-          '<table><thead><tr><th>#</th><th>Categoria</th><th>Mensagem</th><th style="text-align:right">Envio</th></tr></thead><tbody>'+ tr +'</tbody></table>'+
-        '</section>'+
-      '</body></html>';
-    }
-
-    function exportReport(){ const win = window.open('', '_blank'); if(!win){ alert('Pop-up bloqueado. Libere pop-ups para exportar o PDF.'); return; } win.document.open(); win.document.write(buildReportHTML()); win.document.close(); }
-    btnExport.addEventListener('click', exportReport);
-
-    function updateHeader(){ const ev = state.project?.evento || {}; evNomeOut.textContent = (ev?.nome || state.project?.nome || '—').trim() || '—'; evDataOut.textContent = fmtDate(ev?.data||'') || '—'; evHoraOut.textContent = ev?.hora || '—'; evGuestOut.textContent = (state.project?.lista?.[0]?.nome) || 'Convidado(a)'; evMsgsOut.textContent = String(state.programacao?.length || 0); setEventLinked(); }
-
-    async function loadCurrent(id){ state.currentId = id || state.currentId; state.project = state.currentId ? await store.getProject?.(state.currentId) : null; state.programacao = (state.project?.mensagens && Array.isArray(state.project.mensagens)) ? [].concat(state.project.mensagens) : []; setDirty(false); updateHeader(); renderTemplates(); renderSchedule(); }
-
-    bus.subscribe('ac:open-event', ({ id }) => { if(id) loadCurrent(id); });
-    bus.subscribe('ac:project-updated', ({ id }) => { if(id === state.currentId) loadCurrent(id); });
-
-    (async function bootstrap(){ const metas = store.listProjects?.() || []; if(metas.length){ await loadCurrent(metas[0].id); } else { renderTemplates(); renderSchedule(); setEventLinked(); } })();
-  </script>
+  (function __tests(){
+    try{
+      console.assert(typeof compile==='function','compile ok');
+      console.assert(Object.keys(TEMPLATES).length>=5,'templates ok');
+      console.assert(typeof buildReportHTML==='function','report ok');
+    }catch(e){ console.warn('tests falharam', e); }
+  })();
+</script>
 </body>
 </html>
