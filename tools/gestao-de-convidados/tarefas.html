@@ -4,41 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Assistente Cerimonial — Tarefas (V4)</title>
-  <style>
-    :root{color-scheme: light}
-    .ac{background:#fff;color:#111}
-    .ac .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:12px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .threecol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    @media(max-width:900px){.twocol,.threecol{grid-template-columns:1fr}}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:12px;color:#555}
-    .field input,.field select{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:14px}
-    .pill{display:inline-block;border-radius:999px;padding:4px 10px;font-size:12px;border:1px solid #ddd}
-    .pill.ok{background:#f0fff4;border-color:#b6f2c7;color:#0a7a2e}
-    .pill.warn{background:#fff7ed;border-color:#ffd6ae;color:#9a4b00}
-    .pill.saving{background:#fffdea;border-color:#ffe9a6;color:#6a4b00}
-    .btn{border-radius:8px;border:1px solid #ccc;background:#0b65c2;color:#fff;padding:8px 12px;cursor:pointer}
-    .btn--ghost{background:#fff;color:#111}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .list{display:grid;gap:8px}
-    .summary-line{font-size:14px;margin:4px 0}
-    .kgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-    .kcell{border:1px solid #eee;border-radius:10px;padding:10px;font-size:13px}
-    .kcell strong{font-size:15px}
-    .bar{height:8px;background:#f1f1f1;border-radius:999px;overflow:hidden;margin-top:6px}
-    .bar__fill{height:100%;background:linear-gradient(90deg,#59b,#378);width:0%}
-    .bar__label{font-size:12px;color:#555;margin-top:4px}
-    @media(max-width:900px){.kgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:600px){.kgrid{grid-template-columns:1fr}}
-    .table-wrap{overflow:auto}
-    table{width:100%;border-collapse:separate;border-spacing:0;border-bottom:1px solid #ddd}
-    thead th{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;text-align:left;padding:8px;font-size:12px;color:#555}
-    tbody td{border-bottom:1px solid #f0f0f0;padding:8px;font-size:14px}
-    td.right{text-align:right}
-    .small{font-size:12px;color:#666}
-  </style>
+  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
 </head>
 <body>
 <main class="ac">

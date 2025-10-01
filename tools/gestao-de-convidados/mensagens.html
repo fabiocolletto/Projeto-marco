@@ -4,38 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gerenciar Mensagens</title>
+  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
   <style>
-    :root{color-scheme: light}
-    .ac{background:#fff;color:#111}
-    .ac .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:12px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:900px){.twocol{grid-template-columns:1fr}}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:12px;color:#555}
-    .field input,.field select{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:14px}
-    .pill{display:inline-block;border-radius:999px;padding:4px 10px;font-size:12px;border:1px solid #ddd}
-    .pill.ok{background:#f0fff4;border-color:#b6f2c7;color:#0a7a2e}
-    .pill.warn{background:#fff7ed;border-color:#ffd6ae;color:#9a4b00}
-    .pill.saving{background:#fffdea;border-color:#ffe9a6;color:#6a4b00}
-    .btn{border-radius:8px;border:1px solid #ccc;background:#0b65c2;color:#fff;padding:8px 12px;cursor:pointer}
-    .btn--ghost{background:#fff;color:#111}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .danger{color:#a40000}
-    .summary-line{font-size:14px;margin:4px 0}
-
-    .table-wrap{overflow:auto}
-    table{width:100%;border-collapse:collapse;border-bottom:1px solid #ddd}
-    thead th{position:sticky;top:0;background:#fafafa;border-bottom:1px solid #eee}
-    th,td{border:1px solid #eee;padding:8px;text-align:left}
-    .right{text-align:right}
-
-    .tpls-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:8px}
-    @media(max-width:900px){.tpls-grid{grid-template-columns:1fr}}
-    .tpl-card{border:1px solid #eee;border-radius:10px;padding:10px;display:flex;gap:8px;align-items:flex-start;background:#fff}
-    .tpl-card input{margin-top:4px}
-    .tpl-card pre{margin:0;white-space:pre-wrap;font-size:13px}
-    .tpl-card:hover{box-shadow:0 1px 0 rgba(0,0,0,.03)}
+    table{border-collapse:collapse;border-spacing:0;}
+    thead th{background:#fafafa;}
+    th,td{border:1px solid #eee;padding:8px;text-align:left;}
   </style>
 </head>
 <body>
