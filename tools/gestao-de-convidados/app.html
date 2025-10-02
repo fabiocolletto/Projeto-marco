@@ -146,6 +146,52 @@
   </main>
 
   <script type="module">
+    const parentChannel = (() => {
+      const canMessage = () => window.parent && window.parent !== window && typeof window.parent.postMessage === 'function';
+      let hasCompleted = false;
+      let hasFailed = false;
+
+      const emit = (type, detail = {}) => {
+        if (!canMessage()) {
+          return;
+        }
+        window.parent.postMessage({ type, ...detail, href: window.location.href }, '*');
+      };
+
+      return {
+        loading() {
+          if (hasCompleted || hasFailed) return;
+          emit('gestao-eventos-app:loading');
+        },
+        ready() {
+          if (hasCompleted || hasFailed) return;
+          hasCompleted = true;
+          emit('gestao-eventos-app:ready');
+        },
+        error(message) {
+          if (hasCompleted || hasFailed) return;
+          hasFailed = true;
+          emit('gestao-eventos-app:error', { message });
+        }
+      };
+    })();
+
+    parentChannel.loading();
+
+    window.addEventListener('error', (event) => {
+      if (!(event instanceof ErrorEvent)) {
+        return;
+      }
+      const message = event?.error?.message || event?.message || 'Erro desconhecido';
+      parentChannel.error(message);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      const reason = event?.reason;
+      const message = typeof reason === 'string' ? reason : reason?.message || 'Erro desconhecido';
+      parentChannel.error(message);
+    });
+
     const PATH_BUS = "/shared/marcoBus.js";
     const PATH_STORE = "/shared/projectStore.js";
     const PATH_INV = "/shared/inviteUtils.js";
@@ -186,6 +232,16 @@
     const bus = await loadShared(PATH_BUS);
     const inviteUtils = await loadShared(PATH_INV);
     await store?.init?.();
+
+    if (!store || !bus || !inviteUtils) {
+      const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+      const main = document.querySelector('main.ac');
+      if (main) {
+        main.innerHTML = `<div class="container"><section class="card"><h2>Carregamento interrompido</h2><p>${errorMessage}</p></section></div>`;
+      }
+      parentChannel.error(errorMessage);
+      throw new Error(errorMessage);
+    }
 
     const state = {
       metas: [],
@@ -752,6 +808,7 @@
     }
 
     openTool('eventos');
+    parentChannel.ready();
   </script>
 </body>
 </html>
