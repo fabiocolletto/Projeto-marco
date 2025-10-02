@@ -1,6 +1,10 @@
-// MiniApp Tarefas — v1
-// UI minimalista + modelos prontos + persistência via projectStore
-// Requer: acEventsCore.v2.mjs (helpers/kpis), projectStore.js, marcoBus.js
+// ===============================
+// /shared/acTasks.v1.mjs
+// ===============================
+// MiniApp Tarefas — v1 (atualizado)
+// - Coluna de Status (A fazer / Em andamento / Concluída / Atrasada)
+// - KPIs e barra respeitam breakdown do Core v2
+// - Persistência retrocompatível (mantém `done` e grava `status`)
 
 /* API
 import * as ac from '/shared/acEventsCore.v2.mjs';
@@ -16,15 +20,40 @@ mountTasksMiniApp(rootElement, {
 
 const uid = (p='t')=> p + Math.random().toString(36).slice(2,10);
 
+// ---------- Helpers internos ----------
+const normalizeStatus = (s)=>{
+  const k = String(s||'').trim().toLowerCase();
+  const map = { 'a fazer':'todo','todo':'todo','pendente':'todo','em andamento':'doing','andamento':'doing','doing':'doing','concluida':'done','concluída':'done','feito':'done','done':'done','atrasada':'late','atrasado':'late','late':'late' };
+  return map[k] || '';
+};
+const computeStatus = (t)=>{
+  // tenta usar core se disponível (passado via contexto no mount)
+  try{ if(window.__ac_core_tasks_compute__) return window.__ac_core_tasks_compute__(t); }catch{}
+  const done = !!(t?.done ?? t?.concluida ?? t?.feito);
+  if(done) return 'done';
+  const prazo = t?.prazo || t?.due || '';
+  if(prazo){ const d = new Date(prazo); const ref = new Date(); ref.setHours(0,0,0,0); if(!Number.isNaN(+d) && d < ref) return 'late'; }
+  return normalizeStatus(t?.status) || 'todo';
+};
+
 // ---------- Normalização ----------
-const normTask = (t={})=>({
-  id: t.id || uid(),
-  titulo: t.titulo ?? t.nome ?? t.title ?? t.text ?? '',
-  responsavel: t.responsavel ?? t.owner ?? t.assign ?? '',
-  prazo: t.prazo ?? t.data ?? t.due ?? '',   // YYYY-MM-DD preferencial
-  done: !!(t.done ?? t.concluida ?? t.feito),
-  notas: t.notas ?? t.obs ?? t.notes ?? ''
-});
+const normTask = (t={})=>{
+  const base = {
+    id: t.id || uid(),
+    titulo: t.titulo ?? t.nome ?? t.title ?? t.text ?? '',
+    responsavel: t.responsavel ?? t.owner ?? t.assign ?? '',
+    prazo: t.prazo ?? t.data ?? t.due ?? '',   // YYYY-MM-DD preferencial
+    done: !!(t.done ?? t.concluida ?? t.feito),
+    notas: t.notas ?? t.obs ?? t.notes ?? ''
+  };
+  // status persistido (retrocompatível)
+  const st = normalizeStatus(t.status);
+  base.status = st || computeStatus(base);
+  // coerência done/status
+  if(base.done && base.status!=='done') base.status='done';
+  if(!base.done && base.status==='done') base.done=true;
+  return base;
+};
 
 // ---------- Modelos prontos ----------
 export const taskModels = {
@@ -75,7 +104,7 @@ function clear(node){ while(node && node.firstChild) node.removeChild(node.first
 function kpiRow(ac, list){
   const k = ac.stats.kpiTarefas(list||[]);
   return el('div',{className:'row',style:'gap:.75rem;align-items:center;margin:6px 0'},[
-    el('strong',{textContent:`${k.pendentes} pendentes`}),
+    el('strong',{textContent:`${k.pendentes} pendentes`} ),
     el('span',{textContent:'•'}),
     el('span',{textContent:`${k.concluidas} concluídas • ${k.pctConcluidas}%`, className:'muted'})
   ]);
@@ -92,6 +121,9 @@ function progress(ac, list){
 // ---------- UI principal ----------
 export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   if(!root) throw new Error('root inválido');
+
+  // Expor computeStatus do core para os helpers locais, se existir
+  try{ window.__ac_core_tasks_compute__ = ac?.tasks?.computeStatus; }catch{}
 
   const header = el('div',{className:'row',style:'justify-content:space-between;align-items:center;margin-bottom:8px'},[
     el('h3',{textContent:'Tarefas', style:'margin:0;color:#0b65c2;font-size:1rem'}),
@@ -123,7 +155,12 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   // Tabela
   const table = el('table',{className:'table',style:'width:100%;border-collapse:collapse;margin-top:8px'});
   const thead = el('thead',{},[ el('tr',{},[
-    el('th',{textContent:'Feita'}), el('th',{textContent:'Tarefa'}), el('th',{textContent:'Responsável'}), el('th',{textContent:'Prazo'}), el('th',{textContent:'Ações'})
+    el('th',{textContent:'Feita'}),
+    el('th',{textContent:'Tarefa'}),
+    el('th',{textContent:'Responsável'}),
+    el('th',{textContent:'Status'}),
+    el('th',{textContent:'Prazo'}),
+    el('th',{textContent:'Ações'})
   ])]);
   const tbody = el('tbody');
   table.append(thead, tbody);
@@ -144,9 +181,11 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
     currentId = getCurrentId?.();
     const next = await updateProject(store, currentId, (draft)=>{
       draft.checklist ||= [];
+      // normaliza e reavalia status antes de persistir
       const normed = (draft.checklist||[]).map(normTask);
       mutator(normed, draft);
-      draft.checklist = normed;
+      // garantir coerência final
+      draft.checklist = normed.map(normTask);
     });
     bus?.publish?.('ac:project-updated',{ id: currentId, updatedAt: Date.now() });
     return next;
@@ -156,8 +195,15 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
     clear(tbody);
     list.forEach((t,i)=>{
       const tr = el('tr');
+
       const cb = el('input',{type:'checkbox',checked:!!t.done});
-      cb.addEventListener('change', async ()=>{ await saveList((normed)=>{ normed[i].done = !!cb.checked; }); await rerender(); });
+      cb.addEventListener('change', async ()=>{
+        await saveList((normed)=>{ 
+          normed[i].done = !!cb.checked; 
+          normed[i].status = cb.checked ? 'done' : computeStatus(normed[i]);
+        });
+        await rerender();
+      });
 
       const ti = el('input',{type:'text',value:t.titulo,style:'width:100%'});
       ti.addEventListener('change', async ()=>{ await saveList((normed)=>{ normed[i].titulo = ti.value; }); });
@@ -165,8 +211,30 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
       const ri = el('input',{type:'text',value:t.responsavel||'',style:'width:100%'});
       ri.addEventListener('change', async ()=>{ await saveList((normed)=>{ normed[i].responsavel = ri.value; }); });
 
+      const si = el('select',{},[
+        el('option',{value:'todo',textContent:'A fazer'}),
+        el('option',{value:'doing',textContent:'Em andamento'}),
+        el('option',{value:'done',textContent:'Concluída'}),
+        el('option',{value:'late',textContent:'Atrasada'})
+      ]);
+      si.value = normalizeStatus(t.status)||computeStatus(t);
+      si.addEventListener('change', async ()=>{
+        const v = si.value;
+        await saveList((normed)=>{ 
+          normed[i].status = v; 
+          normed[i].done = (v==='done');
+        });
+        await rerender();
+      });
+
       const di = el('input',{type:'date',value:(t.prazo||'').slice(0,10),style:'width:100%'});
-      di.addEventListener('change', async ()=>{ await saveList((normed)=>{ normed[i].prazo = di.value; }); });
+      di.addEventListener('change', async ()=>{ 
+        await saveList((normed)=>{ 
+          normed[i].prazo = di.value; 
+          if(!normed[i].done) normed[i].status = computeStatus(normed[i]);
+        }); 
+        await rerender();
+      });
 
       const del = el('button',{className:'btn btn--ghost',textContent:'Remover'});
       del.addEventListener('click', async ()=>{ await saveList((normed)=>{ normed.splice(i,1); }); await rerender(); });
@@ -175,6 +243,7 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
         el('td',{},[cb]),
         el('td',{},[ti]),
         el('td',{},[ri]),
+        el('td',{},[si]),
         el('td',{},[di]),
         el('td',{},[del])
       );
@@ -192,7 +261,7 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   // ------- Handlers -------
   btnAdd.addEventListener('click', async ()=>{
     const title = (inTitle.value||'').trim(); if(!title) return;
-    await saveList((normed)=>{ normed.push(normTask({ titulo:title, responsavel:inResp.value||'', prazo:inDate.value||'', done:false })); });
+    await saveList((normed)=>{ normed.push(normTask({ titulo:title, responsavel:inResp.value||'', prazo:inDate.value||'', done:false, status:'todo' })); });
     inTitle.value=''; inResp.value=''; inDate.value='';
     await rerender();
   });
