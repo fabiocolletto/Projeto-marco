@@ -67,10 +67,42 @@
     </template>
 
     <script>
+      const APP_REPO_PATH = "/tools/gestao-de-convidados/app.html";
+      const CDN_BASES = [
+        (() => {
+          try {
+            const current = new URL(window.location.href);
+            return current.origin.startsWith("http") ? current.origin : null;
+          } catch {
+            return null;
+          }
+        })(),
+        "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+        "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+      ].filter(Boolean);
+
+      const buildUrl = (base, rel) => {
+        if (!base) return rel;
+        const cleanRel = rel.startsWith("/") ? rel.slice(1) : rel;
+        const normalized = base.endsWith("/") ? base : `${base}/`;
+        return `${normalized}${cleanRel}`;
+      };
+
+      const resolveLocalApp = () => {
+        try {
+          return new URL("app.html", window.location.href).href;
+        } catch {
+          return "app.html";
+        }
+      };
+
       const APP_SOURCES = [
-        "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/tools/gestao-de-convidados/app.html",
-        "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main/tools/gestao-de-convidados/app.html"
-      ];
+        resolveLocalApp(),
+        ...CDN_BASES.map((base) => buildUrl(base, APP_REPO_PATH))
+      ].reduce((list, src) => {
+        if (src && !list.includes(src)) list.push(src);
+        return list;
+      }, []);
 
       const ATTEMPT_TIMEOUT = 10000;
 
