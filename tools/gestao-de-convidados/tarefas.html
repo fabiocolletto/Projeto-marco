@@ -93,11 +93,39 @@
     "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
   ];
   async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
-  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+  const buildUrl = (base, rel)=>{ if(!base) return rel; const cleanRel = rel.startsWith('/') ? rel.slice(1) : rel; const normalized = base.endsWith('/') ? base : base + '/'; return normalized + cleanRel; };
+  async function loadShared(rel){
+    try{
+      const mod = await import(rel);
+      if(mod) return mod;
+    }catch(err){
+      console.warn('[tarefas] Falha ao importar local', rel, err);
+    }
+    for(const base of CANDIDATES){
+      const url = buildUrl(base, rel);
+      const mod = await tryImport(url);
+      if(mod) return mod;
+    }
+    return null;
+  }
+
+  function showLoadError(message){
+    const main = document.querySelector('main.ac');
+    if(main){
+      main.innerHTML = `<div class="container"><section class="card"><h2>Carregamento interrompido</h2><p>${message}</p></section></div>`;
+    }
+  }
 
   const store = await loadShared(PATH_STORE);
   const bus   = await loadShared(PATH_BUS);
-  await store?.init?.();
+
+  if(!store || !bus){
+    const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+    showLoadError(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  await store.init?.();
 
   // Estado
   const AUTO_SAVE_MS = 700;
