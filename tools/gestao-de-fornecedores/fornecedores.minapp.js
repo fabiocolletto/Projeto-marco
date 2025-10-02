@@ -1,4 +1,4 @@
-// Tools/gestao-de-fornecedores/fornecedores.minapp.js
+// tools/gestao-de-fornecedores/fornecedores.minapp.js
 // Mini-App Fornecedores — documento único (Web Component + Shadow DOM)
 // Requisitos de uso:
 //   <script type="module" src=".../Tools/gestao-de-fornecedores/fornecedores.minapp.js"></script>
