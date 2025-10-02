@@ -1,5 +1,8 @@
-// AC Eventos Core v2 — helpers + KPIs centralizados
-// Mantém compatibilidade com v1, adicionando funções kpi* usadas no Painel Geral v3
+// ===============================
+// /shared/acEventsCore.v2.mjs
+// ===============================
+// AC Eventos Core v2 — helpers + KPIs centralizados (atualizado)
+// Mantém compatibilidade com v1 e amplia KPIs de tarefas com breakdown de status
 
 // ========================= Utils =========================
 const toNum = (v)=>{
@@ -55,9 +58,39 @@ export const model = {
   }
 };
 
+// ========================= Tasks helper =========================
+export const tasks = {
+  /** Normaliza e infere status da tarefa de forma retrocompatível.
+   * Regras:
+   * - done=true => 'done'
+   * - se não done e prazo < hoje => 'late'
+   * - senão usa status informado mapeando sinônimos; fallback 'todo'
+   */
+  computeStatus(t, today = new Date()){
+    const done = !!(t?.done ?? t?.concluida ?? t?.feito);
+    if(done) return 'done';
+    const norm = (s)=> String(s||'').trim().toLowerCase();
+    const map  = {
+      'a fazer':'todo', 'todo':'todo', 'pendente':'todo',
+      'em andamento':'doing','andamento':'doing','doing':'doing',
+      'concluida':'done','concluída':'done','feito':'done','done':'done',
+      'atrasada':'late','atrasado':'late','late':'late'
+    };
+    let st = map[norm(t?.status)] || null;
+    const prazo = t?.prazo || t?.due || '';
+    if(prazo){
+      const d = new Date(prazo);
+      if(!Number.isNaN(+d)){
+        const ref = new Date(today); ref.setHours(0,0,0,0);
+        if(d < ref) return 'late';
+      }
+    }
+    return st || 'todo';
+  }
+};
+
 // ========================= Stats (compat + KPIs) =========================
 function fornecedorPrevisto(f){
-  // valor do contrato: usa itens se houver, senão tenta campos comuns
   if(Array.isArray(f?.itens) && f.itens.length){
     return sum(f.itens.map(it=> toNum(it?.valor ?? it?.preco ?? it?.total)));
   }
@@ -70,7 +103,11 @@ function fornecedorPago(f){
   return pago;
 }
 
-function taskDone(t){ return !!(t?.done ?? t?.concluida ?? t?.feito); }
+function taskDone(t){
+  // respeita boolean legacy e status derivado
+  if(!!(t?.done ?? t?.concluida ?? t?.feito)) return true;
+  try{ return tasks.computeStatus(t)==='done'; }catch{ return false; }
+}
 
 function guestConfirmed(g){
   const s = String(g?.status||'').toLowerCase();
@@ -133,15 +170,18 @@ export const stats = {
   },
   kpiTarefas(list){
     const total = Array.isArray(list)? list.length : 0;
-    const concluidas = (list||[]).filter(taskDone).length;
+    const counts = { todo:0, doing:0, late:0, done:0 };
+    (list||[]).forEach(t=>{ try{ counts[tasks.computeStatus(t)]++; }catch{ counts.todo++; } });
+    const concluidas = counts.done;
     const pendentes  = Math.max(0, total - concluidas);
     const pctConcluidas = total>0? Math.round((concluidas/total)*100) : 0;
-    return { total, concluidas, pendentes, pctConcluidas };
+    return { total, concluidas, pendentes, pctConcluidas, ...counts };
   },
   kpiConvidados(list){
     const b = this.convidados(list);
     const pctConfirmados = b.n>0? Math.round((b.conf/b.n)*100) : 0;
-    return { total:b.n, confirmados:b.conf, pctConfirmados, mesas:b.mesas, grupos:b.grupos };
+    const pendentes = Math.max(0, b.n - b.conf);
+    return { total:b.n, confirmados:b.conf, pendentes, pctConfirmados, mesas:b.mesas, grupos:b.grupos };
   },
   kpiMensagens(list){
     const k = this.mensagens(list);
@@ -151,4 +191,4 @@ export const stats = {
   }
 };
 
-export default { format, cep, model, stats };
+export default { format, cep, model, tasks, stats };
