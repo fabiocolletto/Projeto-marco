@@ -3,21 +3,30 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gerenciar Eventos — AC (v2)</title>
-  <!-- Estilos locais, mínimos e escopados (restante fica no Elementor) -->
+  <title>Gerenciar Eventos — AC (v2) + Mini‑App Fornecedores</title>
+  <!-- Estilos locais, mínimos e escopados -->
   <style>
-    /* KPIs com altura fixa para alinhamento lateral */
-    #cardIndicadores .mini.kpi{display:flex;flex-direction:column;justify-content:center;height:150px}
-    #cardIndicadores .mini.kpi .label{font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    /* ===== KPIs / MiniApps ===== */
+    #cardIndicadores .mini.kpi{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:150px}
+    #cardIndicadores .mini.kpi .label{font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:flex-start}
+    #cardIndicadores .mini.kpi .label .title{color:#0b65c2}
+    /* h3 nos títulos dos KPIs para padronizar com os badges acima */
+    #cardIndicadores .mini.kpi .label h3{margin:0 48px 2px 0;font-size:14px;line-height:1.2;color:#0b65c2;display:flex;align-items:center}
+    /* Destaque laranja quando o mini-app estiver expandido */
+    #cardIndicadores .mini.kpi.active{border-color:#ffa245;background:#fff7ed;box-shadow:0 0 0 1px #ffa245 inset}
+    #cardIndicadores #secTarefas[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
+    #cardIndicadores #secFornecedores[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
+    #cardIndicadores .mini.kpi .actions{position:absolute;top:10px;right:10px}
+    #cardIndicadores .mini.kpi .edit-btn{border:1px solid #cccccc;background:#ffffff;border-radius:10px;padding:4px 8px;cursor:pointer;line-height:1}
+
     #cardIndicadores .progress.progress--lg .progress__track{height:10px;border-radius:6px;background:#eef2f6}
     #cardIndicadores .progress.progress--lg .progress__bar{height:10px;border-radius:6px;background:#0b65c2;transition:width .25s ease}
     #cardIndicadores .hbar-legend{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:.875rem;color:#555}
     #cardIndicadores .progress--segments .progress__track{display:flex;gap:2px;align-items:center}
     #cardIndicadores .progress--segments .seg{height:10px;border-radius:4px;background:#0b65c2;flex:0 0 auto}
     #cardIndicadores .muted{opacity:.75}
-    /* painel inline do mini‑app aparece logo abaixo do card */
-    .miniapp__panel{margin-top:12px}
-    @media (max-width:640px){#cardIndicadores .mini.kpi{height:140px}}
+    #cardIndicadores details>summary{display:none}
+    @media (max-width:640px){#cardIndicadores .mini.kpi{min-height:140px}}
   </style>
 </head>
 <body>
@@ -36,15 +45,13 @@
             <label class="small" for="switchEvent">Selecionar evento</label>
             <select id="switchEvent"></select>
 
-            <div class="row">
+            <div class="row" style="align-items:center">
               <button id="btnNew" class="btn btn--ghost" type="button">Novo</button>
               <button id="btnDelete" class="btn btn--ghost danger" type="button">Excluir</button>
-            </div>
-
-            <div class="row" aria-live="polite">
-              <span id="chipReady"  class="pill pillok">Pronto</span>
-              <span id="chipDirty"  class="pill pillwarn"   style="display:none">Edição não salva</span>
-              <span id="chipSaving" class="pill pillsaving" style="display:none">Salvando…</span>
+              <!-- Pílulas de status ALINHADAS ao lado dos botões -->
+              <span id="chipReady"  class="pill pillok" style="margin-left:8px">Pronto</span>
+              <span id="chipDirty"  class="pill pillwarn"   style="display:none;margin-left:8px">Edição não salva</span>
+              <span id="chipSaving" class="pill pillsaving" style="display:none;margin-left:8px">Salvando…</span>
             </div>
           </div>
         </div>
@@ -270,87 +277,78 @@
       <section class="card" id="cardIndicadores">
         <h2>Indicadores do evento</h2>
         <div class="mini-grid">
-          <!-- Fornecedores: 0 -> total comprometido -->
+          <!-- ===== 1) Tarefas (Checklist unificado) ===== -->
+          <div class="mini kpi" id="kpi_tasks">
+            <div class="label"><h3 class="title" id="kpi_task_title">Tarefas</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secTarefas" aria-label="Editar tarefas" title="Abrir painel de tarefas">✎</button></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_task_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="hbar-legend"><span id="kpi_task_lbl1">0 concluídas — 0%</span><span id="kpi_task_lbl2">Total: 0</span></div>
+          </div>
+
+          <!-- ===== 2) Fornecedores ===== -->
           <div class="mini kpi" id="kpi_for">
-            <div class="label"><span id="kpi_for_title">Fornecedores</span></div>
-            <div class="progress progress--lg">
-              <div class="progress__track"><div id="kpi_for_bar" class="progress__bar" style="width:0%"></div></div>
-            </div>
-            <div class="hbar-legend">
-              <span id="kpi_for_lbl1">R$ 0,00 pagos — 0%</span>
-              <span id="kpi_for_lbl2">Total: R$ 0,00</span>
-            </div>
+            <div class="label"><h3 class="title" id="kpi_for_title">Fornecedores</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secFornecedores" aria-label="Editar fornecedores" title="Abrir painel de fornecedores">✎</button></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_for_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="hbar-legend"><span id="kpi_for_lbl1">R$ 0,00 pagos — 0%</span><span id="kpi_for_lbl2">Total: R$ 0,00</span></div>
           </div>
 
-          <!-- Tarefas (Checklist unificado) — container de mini‑app (2 estados) -->
-          <div class="mini kpi ac-mini" id="kpi_tasks" data-miniapp="tarefas" data-state="collapsed">
-            <div class="label">
-              <span id="kpi_task_title">Tarefas</span>
-              <button class="edit-btn js-edit" aria-label="Editar tarefas" title="Abrir painel de tarefas">✎</button>
-            </div>
-            <div class="progress progress--lg">
-              <div class="progress__track"><div id="kpi_task_bar" class="progress__bar" style="width:0%"></div></div>
-            </div>
-            <div class="hbar-legend">
-              <span id="kpi_task_lbl1">0 concluídas — 0%</span>
-              <span id="kpi_task_lbl2">Total: 0</span>
-            </div>
-            <!-- painel inline para o mini‑app tarefas (montado sob demanda) -->
-            <div class="miniapp__panel" id="miniapp-tarefas-panel" hidden></div>
-          </div>
-
-          <!-- Convidados & Convites com distribuição (mesas/grupos) -->
+          <!-- ===== 3) Convidados & Convites ===== -->
           <div class="mini kpi" id="kpi_guests">
-            <div class="label"><span id="kpi_guest_title">Convidados & Convites</span></div>
-            <div class="progress progress--lg">
-              <div class="progress__track"><div id="kpi_guest_bar" class="progress__bar" style="width:0%"></div></div>
-            </div>
-            <div class="hbar-legend">
-              <span id="kpi_guest_lbl1">0 confirmados — 0%</span>
-              <span id="kpi_guest_lbl2">Total: 0</span>
-            </div>
-            <div class="progress progress--lg progress--segments" aria-label="Distribuição por mesas/grupos">
-              <div class="progress__track" id="kpi_guest_bands"></div>
-            </div>
+            <div class="label"><h3 class="title" id="kpi_guest_title">Convidados &amp; Convites</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secConvidados" aria-label="Editar convidados" title="Em breve" disabled>✎</button></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_guest_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="hbar-legend"><span id="kpi_guest_lbl1">0 confirmados — 0%</span><span id="kpi_guest_lbl2">Total: 0</span></div>
+            <div class="progress progress--lg progress--segments" aria-label="Distribuição por mesas/grupos"><div class="progress__track" id="kpi_guest_bands"></div></div>
             <div class="small muted" id="kpi_guest_legend"></div>
           </div>
 
-          <!-- Mensagens próximos 7 dias (barra segmentada) -->
+          <!-- ===== 4) Mensagens ===== -->
           <div class="mini kpi" id="kpi_msgs">
-            <div class="label">Mensagens — próximos 7 dias</div>
-            <div class="progress progress--lg progress--segments">
-              <div class="progress__track" id="kpi_msg_track"></div>
-            </div>
-            <div class="hbar-legend">
-              <span id="kpi_msg_lbl1">Total na semana: 0</span>
-              <span id="kpi_msg_lbl2">Pico: 0/dia</span>
-            </div>
+            <div class="label"><h3 class="title">Mensagens — próximos 7 dias</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secMensagens" aria-label="Editar mensagens" title="Em breve" disabled>✎</button></div>
+            <div class="progress progress--lg progress--segments"><div class="progress__track" id="kpi_msg_track"></div></div>
+            <div class="hbar-legend"><span id="kpi_msg_lbl1">Total na semana: 0</span><span id="kpi_msg_lbl2">Pico: 0/dia</span></div>
           </div>
         </div>
+
+        <!-- ===== MiniApp Tarefas ===== -->
+        <details id="secTarefas"><summary>Tarefas</summary>
+          <div class="details-wrap"><div id="tasks_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        </details>
+
+        <!-- ===== MiniApp Fornecedores ===== -->
+        <details id="secFornecedores"><summary>Fornecedores</summary>
+          <div class="details-wrap"><div id="fornecedores_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        </details>
       </section>
     </div>
   </main>
 
   <script type="module">
     // ====================== Shared Modules ======================
-    const PATH_BUS     = "/shared/marcoBus.js";
-    const PATH_STORE   = "/shared/projectStore.js";
-    const PATH_CORE    = "/shared/acEventsCore.v2.mjs";
-    const PATH_TASKS   = "/shared/acTasks.v1.mjs";        // mini‑app tarefas
-    const PATH_MINIHOST= "/shared/acMiniHost.v1.mjs";     // host 2 estados
+    const PATH_BUS    = "/shared/marcoBus.js";
+    const PATH_STORE  = "/shared/projectStore.js";
+    const PATH_CORE   = "/shared/acEventsCore.v2.mjs";
+    const PATH_TASKS  = "/shared/acTasks.v1.mjs";            // MiniApp tarefas
+    const PATH_FORNEC = "/tools/gestao-de-fornecedores/fornecedores.minapp.js"; // MiniApp fornecedores (tools minúsculo)
 
     const CANDIDATES = [
       "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
       "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
     ];
-    async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
+    async function tryImport(url){
+      try{ return await import(url); }
+      catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; }
+      }
+    }
     async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
 
     const store    = await loadShared(PATH_STORE);
     const bus      = await loadShared(PATH_BUS);
     const ac       = await loadShared(PATH_CORE);
     const tasksMod = await loadShared(PATH_TASKS);
-    const miniHost = await loadShared(PATH_MINIHOST);
+    await loadShared(PATH_FORNEC); // importa e registra <ac-fornecedores>
     await store?.init?.();
 
     // ====================== Estado & helpers ======================
@@ -394,8 +392,6 @@
     const kpiGuestLegend = $('#kpi_guest_legend');
 
     const kpiMsgTrack = $('#kpi_msg_track');
-    const kpiMsgLbl1  = $('#kpi_msg_lbl1');
-    const kpiMsgLbl2  = $('#kpi_msg_lbl2');
 
     function renderStatus(){
       chipReady.style.display = (!state.dirty && !state.saving)? 'inline-block':'none';
@@ -405,9 +401,9 @@
     function setDirty(v){ state.dirty=!!v; renderStatus(); }
     function setSaving(v){ state.saving=!!v; renderStatus(); }
 
-    const fmtDateTime = (ts)=> ac.format.fmtDateTime(ts);
-    const fmtDateBR   = (d)=> ac.format?.fmtDateBR ? ac.format.fmtDateBR(d) : (d? d.split('-').reverse().join('/') : '');
-    const fmtDateCompact = (d,h)=>{ const ddmmyyyy = fmtDateBR(d); const hhmm = (h||'').slice(0,5); return [ddmmyyyy, hhmm].filter(Boolean).join(' '); };
+    const fmtDateTime   = (ts)=> ac.format.fmtDateTime(ts);
+    const fmtDateBR     = (d)=> ac.format?.fmtDateBR ? ac.format.fmtDateBR(d) : (d? d.split('-').reverse().join('/') : '');
+    const fmtDateCompact= (d,h)=>{ const ddmmyyyy = fmtDateBR(d); const hhmm = (h||'').slice(0,5); return [ddmmyyyy, hhmm].filter(Boolean).join(' '); };
     function setKV(sel, pairs){ const el=$(sel); if(!el) return; el.innerHTML = (pairs&&pairs.length)? pairs.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join(''):''; }
 
     function renderBadges(){
@@ -440,7 +436,10 @@
       renderBadges();
     }
 
-    function renderSwitcher(){ const metas=state.metas||[]; switchEvent.innerHTML = metas.map(m=>`<option value="${m.id}"${m.id===state.currentId?' selected':''}>${m.nome||m.id}</option>`).join(''); }
+    function renderSwitcher(){
+      const metas=state.metas||[];
+      switchEvent.innerHTML = metas.map(m=>`<option value="${m.id}"${m.id===state.currentId?' selected':''}>${m.nome||m.id}</option>`).join('');
+    }
     switchEvent.addEventListener('change', async ()=>{ const id=switchEvent.value; if(id){ await setCurrent(id); publishCurrent(); }});
     async function renderSaved(){ state.metas = store.listProjects?.()||[]; renderSwitcher(); }
 
@@ -479,6 +478,7 @@
       setSaving(false); setDirty(false);
       await renderSaved(); fillForm(state.project); renderHeader(); renderIndicators();
       bus.publish('ac:project-updated',{ id: state.currentId, updatedAt: next.updatedAt });
+      updateFornecedoresProject();
     }
     function scheduleSave(){ if(state.timer) clearTimeout(state.timer); state.timer = setTimeout(doSave, AUTO_SAVE_MS); }
 
@@ -505,6 +505,9 @@
     }
 
     // ====================== KPIs (v2) ======================
+    function syncTasksKpiActive(){ try{ const kpi=document.querySelector('#kpi_tasks'); const det=document.querySelector('#secTarefas'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
+    function syncForKpiActive(){ try{ const kpi=document.querySelector('#kpi_for'); const det=document.querySelector('#secFornecedores'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
+
     function clearChildren(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
     function pushSeg(container, pct, title){ const seg=document.createElement('div'); seg.className='seg'; seg.style.width=Math.max(0,Math.min(100,pct)).toFixed(2)+'%'; if(title) seg.title=title; container.appendChild(seg); }
 
@@ -527,7 +530,12 @@
 
       // Convidados & Convites
       const kG = ac.stats.kpiConvidados(p.convidados||[]);
-      if(kpiGuestTitle) kpiGuestTitle.textContent = `Convidados & Convites (${kG.pendentes||Math.max(0,(kG.total||0)-(kG.confirmados||0))} pendentes)`;
+      const kpiGuestBar    = $('#kpi_guest_bar');
+      const kpiGuestLbl1   = $('#kpi_guest_lbl1');
+      const kpiGuestLbl2   = $('#kpi_guest_lbl2');
+      const kpiGuestBands  = $('#kpi_guest_bands');
+      const kpiGuestLegend = $('#kpi_guest_legend');
+      if($('#kpi_guest_title')) $('#kpi_guest_title').textContent = `Convidados & Convites (${kG.pendentes} pendentes)`;
       if(kpiGuestBar)   kpiGuestBar.style.width = Math.min(100, Math.max(0, kG.pctConfirmados)) + '%';
       if(kpiGuestLbl1)  kpiGuestLbl1.textContent = `${kG.confirmados} confirmados — ${kG.pctConfirmados}%`;
       if(kpiGuestLbl2)  kpiGuestLbl2.textContent = `Total: ${kG.total}`;
@@ -542,6 +550,8 @@
 
       // Mensagens próximos 7 dias
       const kM = ac.stats.kpiMensagens(p.mensagens||[]);
+      const kpiMsgLbl1  = $('#kpi_msg_lbl1');
+      const kpiMsgLbl2  = $('#kpi_msg_lbl2');
       if(kpiMsgTrack){
         clearChildren(kpiMsgTrack);
         const arr = Array.isArray(kM.perDay)? kM.perDay.slice(0,7) : [0,0,0,0,0,0,0];
@@ -561,7 +571,7 @@
         fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
       });
       const { meta } = await store.createProject?.(blank);
-      await setCurrent(meta.id); await renderSaved(); publishCurrent();
+      await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject();
     });
 
     btnDelete.addEventListener('click', async ()=>{
@@ -573,55 +583,71 @@
       }catch(e){ console.error(e); }
       state.currentId=null; await renderSaved();
       const nextId=(state.metas[0]&&state.metas[0].id)||null;
-      await setCurrent(nextId); publishCurrent();
+      await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject();
     });
 
     function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'eventos' }); }
+
+    function mountTasksIfNeeded(){
+      const host = document.querySelector('#tasks_host');
+      if(host && !host?.dataset?.mounted && tasksMod?.mountTasksMiniApp){
+        tasksMod.mountTasksMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+        host.dataset.mounted = '1';
+      }
+    }
+
+    function mountFornecedoresIfNeeded(){
+      const host = document.querySelector('#fornecedores_host');
+      if(host && !host.dataset.mounted){
+        const el = document.createElement('ac-fornecedores');
+        if(state.currentId) el.setAttribute('project-id', state.currentId);
+        host.appendChild(el);
+        host.dataset.mounted = '1';
+      }
+    }
+    function updateFornecedoresProject(){
+      const el = document.querySelector('#fornecedores_host ac-fornecedores');
+      if(el){ const pid = state.currentId || ''; if(pid) el.setAttribute('project-id', pid); }
+    }
 
     async function loadCurrent(id){
       state.currentId=id||state.currentId;
       state.project = state.currentId? await store.getProject?.(state.currentId) : null;
       ac.model.ensureShape(state.project);
       fillForm(state.project||{}); setDirty(false); renderHeader(); renderIndicators();
+      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject();
     }
     async function setCurrent(id){
-      if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); return; }
+      if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject(); return; }
       await loadCurrent(id); localStorage.setItem('ac:lastId', id); renderSwitcher();
     }
 
-    // BUS: refletir atualizações externas
-    bus.subscribe('ac:project-updated', ({ id, updatedAt:ts })=>{
+    // BUS: refletir atualizações externas (com refresh do projeto atual)
+    bus.subscribe('ac:project-updated', async ({ id, updatedAt:ts })=>{
       try{
-        if(id){ renderSaved(); if(id===state.currentId && ts && updatedAt){ updatedAt.textContent = fmtDateTime(ts)||'—'; } renderIndicators(); }
-      }catch{}
+        if(id){
+          await renderSaved();
+          if(id===state.currentId){
+            state.project = await store.getProject?.(state.currentId);
+            if(ts && updatedAt){ updatedAt.textContent = fmtDateTime(ts)||'—'; }
+            renderIndicators(); updateFornecedoresProject();
+          }
+        }
+      }catch(err){ console.error(err); }
     });
 
-    // Abrir/fechar seções (somente os <details> de cadastro)
+    // Abrir/fechar seções
     function updateEditActives(){
       document.querySelectorAll('[data-open]')?.forEach(b=>b.classList.remove('active'));
-      ['#secEvento','#secAnfitriao','#secCerimonial'].forEach(sel=>{
+      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores'].forEach(sel=>{
         const d=document.querySelector(sel); if(d && d.open){ const btn=document.querySelector(`[data-open="${sel}"]`); if(btn) btn.classList.add('active'); }
       });
     }
-    function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
-    function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); }
+    function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
+    function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); }
     document.addEventListener('click', (ev)=>{ const btn = ev.target.closest('[data-open]'); if(!btn) return; const sel = btn.getAttribute('data-open'); if(sel) toggleSection(sel); });
     window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeAll(); }});
-    ['#secEvento','#secAnfitriao','#secCerimonial'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', updateEditActives); });
-
-    // ====================== MiniHost (registrar mini‑app Tarefas) ======================
-    miniHost?.init?.(bus);
-    if(miniHost && tasksMod?.mountTasksMiniApp){
-      miniHost.registerMiniApp({
-        id: 'tarefas',
-        title: 'Tarefas',
-        card: '#kpi_tasks',
-        panel: '#miniapp-tarefas-panel',
-        mount: tasksMod.mountTasksMiniApp,
-        ctx: { ac, store, bus, getCurrentId: ()=> state.currentId },
-        mode: 'inline'
-      });
-    }
+    ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); }); });
 
     // ====================== Boot ======================
     async function bootstrap(){
@@ -635,15 +661,21 @@
           fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
         });
         const { meta } = await store.createProject?.(blank);
-        await setCurrent(meta.id); publishCurrent(); return;
+        await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject(); return;
       }
       const last = localStorage.getItem('ac:lastId');
       const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
       await setCurrent(initial); if(initial) publishCurrent();
       closeAll();
       renderStatus();
+      mountTasksIfNeeded();
+      mountFornecedoresIfNeeded();
+      updateFornecedoresProject();
     }
     await bootstrap();
+    // garantir estado visual correto no carregamento
+    syncTasksKpiActive();
+    syncForKpiActive();
   </script>
 </body>
 </html>
