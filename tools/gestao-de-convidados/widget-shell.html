@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gestão de Eventos</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0f1824;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        color: #f5f7fa;
+      }
+
+      iframe {
+        border: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .fallback {
+        display: grid;
+        place-content: center;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        gap: 1rem;
+      }
+
+      .fallback h1 {
+        font-size: 1.25rem;
+        margin: 0;
+      }
+
+      .fallback p {
+        margin: 0;
+        opacity: 0.72;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe
+      id="gestao-eventos-frame"
+      src="about:blank"
+      allow="clipboard-write"
+      referrerpolicy="no-referrer"
+      loading="lazy"
+      title="Gestão de Eventos"
+    ></iframe>
+
+    <template id="fallback-template">
+      <div class="fallback">
+        <h1>Não foi possível carregar o aplicativo agora.</h1>
+        <p>Tente novamente mais tarde ou verifique a disponibilidade das CDNs configuradas.</p>
+      </div>
+    </template>
+
+    <script>
+      const APP_SOURCES = [
+        "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/tools/gestao-de-convidados/app.html",
+        "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main/tools/gestao-de-convidados/app.html"
+      ];
+
+      const frame = document.getElementById("gestao-eventos-frame");
+      const fallbackTemplate = document.getElementById("fallback-template");
+
+      async function selectSource() {
+        for (const url of APP_SOURCES) {
+          try {
+            const response = await fetch(url, {
+              method: "GET",
+              mode: "cors",
+              cache: "no-store"
+            });
+
+            if (response.ok) {
+              return url;
+            }
+          } catch (error) {
+            console.warn("Falha ao carregar fonte", url, error);
+          }
+        }
+
+        return null;
+      }
+
+      (async () => {
+        const source = await selectSource();
+
+        if (source) {
+          frame.src = source;
+          return;
+        }
+
+        const fallback = fallbackTemplate.content.cloneNode(true);
+        document.body.innerHTML = "";
+        document.body.appendChild(fallback);
+      })();
+    </script>
+  </body>
+</html>
