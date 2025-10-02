@@ -29,6 +29,40 @@
         display: block;
       }
 
+      .loader {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: 1rem;
+        padding: 3rem 1.5rem;
+        text-align: center;
+        background: radial-gradient(circle at top, rgba(32, 52, 80, 0.6), rgba(15, 24, 36, 0.95));
+      }
+
+      .loader__spinner {
+        width: 3rem;
+        height: 3rem;
+        border-radius: 999px;
+        border: 0.25rem solid rgba(245, 247, 250, 0.16);
+        border-top-color: #4da3ff;
+        animation: loader-spin 0.9s linear infinite;
+        margin: 0 auto;
+      }
+
+      .loader__message {
+        margin: 0;
+        font-size: 1rem;
+        line-height: 1.5;
+        opacity: 0.84;
+      }
+
+      @keyframes loader-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
       .fallback {
         display: grid;
         place-content: center;
@@ -50,6 +84,17 @@
     </style>
   </head>
   <body>
+    <div
+      id="loading-overlay"
+      class="loader"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <div class="loader__spinner" aria-hidden="true"></div>
+      <p class="loader__message">Carregando aplicativo de gestão de eventos…</p>
+    </div>
+
     <iframe
       id="gestao-eventos-frame"
       src="about:blank"
@@ -57,6 +102,7 @@
       referrerpolicy="no-referrer"
       loading="lazy"
       title="Gestão de Eventos"
+      hidden
     ></iframe>
 
     <template id="fallback-template">
@@ -107,6 +153,7 @@
       const ATTEMPT_TIMEOUT = 10000;
 
       const frame = document.getElementById("gestao-eventos-frame");
+      const loadingOverlay = document.getElementById("loading-overlay");
       const fallbackTemplate = document.getElementById("fallback-template");
 
       const allowedOrigins = APP_SOURCES.reduce((origins, src) => {
@@ -132,6 +179,24 @@
         }
       }
 
+      function showLoading() {
+        if (fallbackVisible) {
+          return;
+        }
+        if (loadingOverlay) {
+          loadingOverlay.removeAttribute("hidden");
+          loadingOverlay.setAttribute("aria-busy", "true");
+        }
+        frame.setAttribute("hidden", "hidden");
+      }
+
+      function hideLoading() {
+        if (loadingOverlay) {
+          loadingOverlay.setAttribute("hidden", "hidden");
+          loadingOverlay.removeAttribute("aria-busy");
+        }
+      }
+
       function showFallback() {
         if (fallbackVisible) {
           return;
@@ -140,7 +205,11 @@
         clearTimer();
         frame.setAttribute("hidden", "hidden");
         const fallback = fallbackTemplate.content.cloneNode(true);
-        document.body.appendChild(fallback);
+        if (loadingOverlay && loadingOverlay.parentNode) {
+          loadingOverlay.replaceWith(fallback);
+        } else {
+          document.body.appendChild(fallback);
+        }
       }
 
       function withCacheBuster(url) {
@@ -178,7 +247,7 @@
           signature: getSignature(baseUrl)
         };
 
-        frame.removeAttribute("hidden");
+        showLoading();
         frame.src = finalUrl;
 
         clearTimer();
@@ -216,6 +285,8 @@
         if (data.type === "gestao-eventos-app:ready") {
           clearTimer();
           currentAttempt = null;
+          hideLoading();
+          frame.removeAttribute("hidden");
           return;
         }
 
