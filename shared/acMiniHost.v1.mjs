@@ -1,175 +1,102 @@
-// acMiniHost.v1.mjs — Host genérico de MiniApps (2 estados: recolhido/expandido)
-// Padrão: cada mini‑app tem um card/KPI (recolhido) e um painel inline (expandido)
-// Uso sugerido:
-/*
-import * as host from '/shared/acMiniHost.v1.mjs';
-import { mountTasksMiniApp } from '/shared/acTasks.v1.mjs';
+// acMiniHost.v1.mjs — Mini‑apps Host (overlay + painel)
+// Patch: adiciona fundo sólido ao painel e backdrop opcional para leitura
+// Uso: 
+//  1) Importe este módulo no HTML e chame init(bus)
+//  2) Garanta que o card do mini‑app tenha a classe `ac-mini` e um painel interno:
+//     <div class="mini kpi ac-mini" id="kpi_tasks" data-state="collapsed" data-overlay="true">
+//       ... título/botões ...
+//       <div class="miniapp__panel" id="miniapp-tarefas-panel"></div>
+//     </div>
+//  3) O botão ✎ deve ter classe .js-edit para abrir. Um botão .js-close fecha.
 
-host.init(bus);
-host.registerMiniApp({
-  id: 'tarefas',
-  title: 'Tarefas',
-  card: '#kpi_tasks',               // card/KPI (estado recolhido)
-  panel: '#miniapp-tarefas-panel',  // container do painel (inline)
-  mount: mountTasksMiniApp,
-  ctx: { ac, store, bus, getCurrentId: () => state.currentId },
-  mode: 'inline' // 'inline' | 'dialog' (opcional)
-});
-*/
-
-// ------------------------ Infra básica ------------------------
-const REG = new Map(); // id -> record
-let BUS = null;
-
-const qsel = (x)=> (typeof x === 'string' ? document.querySelector(x) : x) || null;
-const once = (el, ev, fn)=>{ el?.addEventListener?.(ev, function h(e){ el.removeEventListener(ev, h); fn(e); }); };
-
-function ensurePanelChrome(rec){
-  const panel = rec.panelEl;
-  if(!panel) return;
-  // header (título + botão fechar)
-  if(!panel.querySelector('.miniapp__header')){
-    const header = document.createElement('div');
-    header.className = 'miniapp__header row';
-    header.style.cssText = 'align-items:center;justify-content:space-between;margin:0 0 8px 0;';
-
-    const h = document.createElement('h3');
-    h.textContent = rec.title || rec.id;
-    h.style.cssText = 'margin:0;color:#0b65c2;font-size:1rem';
-
-    const x = document.createElement('button');
-    x.type='button';
-    x.className='js-close btn btn--ghost';
-    x.textContent='×';
-    x.title='Fechar';
-
-    header.append(h,x);
-    panel.prepend(header);
-  }
-
-  // root (onde o mini‑app será montado)
-  if(!panel.querySelector('.miniapp__root')){
-    const root = document.createElement('div');
-    root.className='miniapp__root';
-    panel.appendChild(root);
-  }
-}
-
-function getContainer(rec){
-  // Container visual do miniapp para marcação de estado (se existir)
-  return rec.cardEl?.closest?.('.ac-mini') || rec.panelEl?.closest?.('.ac-mini') || null;
-}
-
-function setState(rec, state){
-  rec.state = state; // 'collapsed' | 'expanded'
-  const cont = getContainer(rec);
-  if(cont) cont.dataset.state = state;
-  // visibilidade default
-  if(rec.mode === 'dialog' && rec.panelEl?.tagName === 'DIALOG'){
-    // nada aqui; aberto/fechado é controlado no expand/collapse
-  }else{
-    if(state==='expanded'){ rec.panelEl?.removeAttribute?.('hidden'); rec.panelEl?.style?.setProperty('display',''); }
-    else{ rec.panelEl?.setAttribute?.('hidden',''); rec.panelEl?.style?.setProperty('display','none'); }
-  }
-}
-
-function wireButtons(rec){
-  const editBtn = rec.cardEl?.querySelector?.('.js-edit') || rec.cardEl?.querySelector?.('.edit-btn');
-  if(editBtn && !editBtn.dataset._wired){
-    editBtn.dataset._wired = '1';
-    editBtn.addEventListener('click', ()=> expand(rec.id));
-  }
-  const closeBtn = rec.panelEl?.querySelector?.('.miniapp__header .js-close');
-  if(closeBtn && !closeBtn.dataset._wired){
-    closeBtn.dataset._wired = '1';
-    closeBtn.addEventListener('click', ()=> collapse(rec.id));
-  }
-}
-
-function mountIfNeeded(rec){
-  if(rec.mounted) return;
-  ensurePanelChrome(rec);
-  wireButtons(rec);
-
-  const root = rec.panelEl.querySelector('.miniapp__root');
-  if(!root || typeof rec.mount !== 'function') return;
-
-  // Contexto pode ter funções dinâmicas (ex.: getCurrentId)
-  const ctx = typeof rec.ctx === 'function' ? rec.ctx() : rec.ctx || {};
-  try{
-    rec.instance = rec.mount(root, ctx) || null;
-    rec.mounted = true;
-  }catch(err){
-    console.error('[acMiniHost] falha ao montar miniapp', rec.id, err);
-  }
-}
-
-function show(rec){
-  if(rec.mode === 'dialog' && rec.panelEl?.tagName === 'DIALOG'){
-    // se for dialog, garantir que está montado antes de abrir
-    mountIfNeeded(rec);
-    try{ rec.panelEl.showModal?.(); }catch{ rec.panelEl.show?.(); }
-  }else{
-    mountIfNeeded(rec);
-    setState(rec,'expanded');
-  }
-  rec.onOpen?.(rec);
-  // botão Esc fecha quando inline (dialog já trata Esc nativo)
-  if(rec.mode!=='dialog'){
-    const esc = (ev)=>{ if(ev.key==='Escape'){ collapse(rec.id); document.removeEventListener('keydown', esc); } };
-    once(document,'keydown',esc);
-  }
-}
-
-function hide(rec){
-  if(rec.mode === 'dialog' && rec.panelEl?.tagName === 'DIALOG'){
-    try{ rec.panelEl.close?.(); }catch{}
-  }else{
-    setState(rec,'collapsed');
-  }
-  rec.onClose?.(rec);
-}
-
-// ------------------------ API pública ------------------------
-export function init(bus){ BUS = bus || null; BUS?.subscribe?.('ac:project-updated', ({id})=>{
-  // Atualiza painel aberto, se tiver refresh
-  REG.forEach(rec=>{
-    if(rec.state==='expanded' && rec.instance && typeof rec.instance.refresh==='function'){
-      try{ rec.instance.refresh(); }catch(e){ /* ignora */ }
+export function init(bus){
+  injectStyles();
+  // Abre/fecha via delegação
+  document.addEventListener('click', (ev)=>{
+    const editBtn = ev.target.closest('.ac-mini .js-edit');
+    if(editBtn){ const host = editBtn.closest('.ac-mini'); if(host){ openMini(host); ev.preventDefault(); }}
+    const closeBtn = ev.target.closest('.ac-mini .js-close');
+    if(closeBtn){ const host = closeBtn.closest('.ac-mini'); if(host){ closeMini(host); ev.preventDefault(); }}
+    // Clicar no backdrop (quando habilitado) fecha
+    const backdropHit = ev.target?.classList?.contains('ac-mini__backdrop');
+    if(backdropHit){ const host = ev.target.closest('.ac-mini'); if(host) closeMini(host); }
+  });
+  // Esc fecha quando expandido
+  window.addEventListener('keydown', (e)=>{
+    if(e.key==='Escape'){
+      document.querySelectorAll('.ac-mini[data-state="expanded"]').forEach(closeMini);
     }
   });
-}); }
 
-export function registerMiniApp(opts){
-  const { id, title, card, panel, mount, ctx, mode='inline', onOpen, onClose } = (opts||{});
-  if(!id) throw new Error('registerMiniApp: id obrigatório');
-  const cardEl  = qsel(card);
-  const panelEl = qsel(panel);
-  if(!cardEl || !panelEl) throw new Error('registerMiniApp: card ou panel não encontrados');
-
-  const rec = { id, title, cardEl, panelEl, mount, ctx, mode, onOpen, onClose, state:'collapsed', mounted:false, instance:null };
-  REG.set(id, rec);
-
-  // cromo + botões + estado inicial
-  ensurePanelChrome(rec);
-  wireButtons(rec);
-  setState(rec,'collapsed');
-
-  return {
-    expand: ()=> expand(id),
-    collapse: ()=> collapse(id),
-    get state(){ return REG.get(id)?.state; },
-    get mounted(){ return REG.get(id)?.mounted; }
-  };
+  // Se o painel não tiver header, injeta um header simples com botão fechar
+  const observer = new MutationObserver((muts)=>{
+    muts.forEach(m=>{
+      m.addedNodes?.forEach(node=>{
+        if(!(node instanceof HTMLElement)) return;
+        if(node.matches('.ac-mini .miniapp__panel')) ensurePanelHeader(node);
+        node.querySelectorAll?.('.ac-mini .miniapp__panel')?.forEach(ensurePanelHeader);
+      });
+    });
+  });
+  observer.observe(document.documentElement, { childList:true, subtree:true });
 }
 
-export function expand(id){ const rec = REG.get(id); if(!rec) return; show(rec); }
-export function collapse(id){ const rec = REG.get(id); if(!rec) return; hide(rec); }
-export function toggle(id){ const rec = REG.get(id); if(!rec) return; (rec.state==='expanded'? hide: show)(rec); }
-export function getState(id){ return REG.get(id)?.state || 'collapsed'; }
+export function openMini(host){ if(!host) return; host.dataset.state='expanded'; ensureBackdrop(host); }
+export function closeMini(host){ if(!host) return; host.dataset.state='collapsed'; removeBackdrop(host); }
 
-// Utilitário: registrar vários de uma vez
-export function registerMany(arr){ return (arr||[]).map(o=> registerMiniApp(o)); }
+function ensurePanelHeader(panel){
+  if(!(panel instanceof HTMLElement)) return;
+  if(panel.dataset.headerReady==='1') return;
+  // Se já houver header dentro, não duplica
+  if(panel.querySelector('.miniapp__header')){ panel.dataset.headerReady='1'; return; }
+  const header = document.createElement('div');
+  header.className = 'miniapp__header';
+  const h = document.createElement('h3'); h.textContent = panel.getAttribute('data-title')||'Detalhes';
+  const x = document.createElement('button'); x.className='js-close miniapp__close'; x.setAttribute('aria-label','Fechar'); x.textContent='×';
+  header.append(h,x);
+  panel.prepend(header);
+  panel.dataset.headerReady='1';
+}
 
-// Debug leve no console, opcional
-export const _debug = { list(){ return Array.from(REG.values()).map(r=>({ id:r.id, state:r.state, mounted:r.mounted })); } };
+function ensureBackdrop(host){
+  if(host.dataset.overlay!=='true') return; // só cria quando habilitado no host
+  if(host.querySelector('.ac-mini__backdrop')) return;
+  const bd = document.createElement('div');
+  bd.className = 'ac-mini__backdrop';
+  host.prepend(bd); // atrás do painel (z-index cuida das camadas)
+}
+function removeBackdrop(host){
+  const bd = host.querySelector('.ac-mini__backdrop');
+  if(bd) bd.remove();
+}
+
+function injectStyles(){
+  if(document.getElementById('ac-mini-host-styles')) return;
+  const css = `
+  /* Host básico */
+  .ac-mini{ position:relative; }
+  .ac-mini .label{ display:flex; align-items:center; justify-content:space-between; gap:.5rem; }
+
+  /* Backdrop opcional (quando data-overlay="true") */
+  .ac-mini .ac-mini__backdrop{ display:none; position:fixed; inset:0; background:rgba(17,24,39,.35); z-index:14; }
+  .ac-mini[data-state="expanded"] .ac-mini__backdrop{ display:block; }
+
+  /* Painel do mini‑app com fundo sólido e sombra (não transparente) */
+  .ac-mini .miniapp__panel{ display:none; position:absolute; inset:0; z-index:20; background:#fff; color:inherit; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,.18); padding:16px; overflow:auto; }
+  .ac-mini[data-state="expanded"] .miniapp__panel{ display:block; }
+
+  /* Cabeçalho do painel */
+  .miniapp__header{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; margin-bottom:8px; border-bottom:1px solid #e5e7eb; padding-bottom:8px; }
+  .miniapp__header h3{ margin:0; font-size:1rem; color:#0b65c2; }
+  .miniapp__close{ background:none; border:0; font-size:22px; line-height:1; cursor:pointer; color:#334155; }
+  .miniapp__close:hover{ color:#111827; }
+
+  /* Garante que a barra de progresso fique visível em 0% (track com fundo) */
+  .ac-mini .progress__track{ background:#eef2f6; border-radius:6px; height:10px; overflow:hidden; }
+  .ac-mini .progress__bar{ background:#0b65c2; height:10px; border-radius:6px; }
+  `;
+  const st = document.createElement('style');
+  st.id = 'ac-mini-host-styles';
+  st.textContent = css;
+  document.head.appendChild(st);
+}
