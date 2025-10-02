@@ -8,16 +8,60 @@
 </head>
 <body>
 <main class="ac">
-  <div class="container" style="text-align:center; padding:48px 24px;">
-    <h1>Assistente Cerimonial</h1>
-    <p id="appStatus" class="muted" style="font-size:16px; color:#555;">
-      Carregando shell...
-    </p>
+  <div class="container">
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Assistente Cerimonial</p>
+        <h1>Central de gestão</h1>
+        <p class="muted">
+          Utilize os cartões abaixo para abrir os módulos de eventos, convidados e demais
+          ferramentas do hub.
+        </p>
+      </div>
+      <div class="hero-status">
+        <span id="appStatus" class="pill warn">Inicializando shell…</span>
+        <span id="appStatusDetail" class="muted" style="font-size:12px;">Preparando ambiente</span>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="card__header">
+        <h2>Ferramentas disponíveis</h2>
+      </div>
+      <div class="tile-grid" role="list">
+        <a class="tile-link" href="./eventos.html" role="listitem">
+          <h3>Eventos</h3>
+          <p>Planeje datas, horários e detalhes logísticos do evento principal.</p>
+        </a>
+        <a class="tile-link" href="./convidados.html" role="listitem">
+          <h3>Convidados</h3>
+          <p>Organize listas de presença, status de envio e confirmações.</p>
+        </a>
+        <a class="tile-link" href="./fornecedores.html" role="listitem">
+          <h3>Fornecedores</h3>
+          <p>Acompanhe contratos, pagamentos e contatos de fornecedores.</p>
+        </a>
+        <a class="tile-link" href="./tarefas.html" role="listitem">
+          <h3>Tarefas</h3>
+          <p>Distribua atividades entre a equipe e monitore os avanços.</p>
+        </a>
+        <a class="tile-link" href="./mensagens.html" role="listitem">
+          <h3>Mensagens</h3>
+          <p>Centralize comunicações com convidados, equipe e parceiros.</p>
+        </a>
+      </div>
+    </section>
   </div>
 </main>
 <script type="module">
   const status = document.getElementById('appStatus');
-  status.textContent = 'Shell carregado: mensagem simples exibida a partir de app.html.';
+  const detail = document.getElementById('appStatusDetail');
+  if (status && detail) {
+    status.textContent = 'Shell carregado';
+    status.classList.remove('warn');
+    status.classList.add('ok');
+    detail.textContent = 'Pronto para carregar os módulos em abas ou via widget.';
+  }
 </script>
 </body>
 </html>
