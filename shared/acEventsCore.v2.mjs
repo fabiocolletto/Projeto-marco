@@ -71,8 +71,8 @@ export const tasks = {
     if(done) return 'done';
     const norm = (s)=> String(s||'').trim().toLowerCase();
     const map  = {
-      'a fazer':'todo', 'todo':'todo', 'pendente':'todo',
-      'em andamento':'doing','andamento':'doing','doing':'doing',
+      'a fazer':'todo','nao iniciado':'todo','não iniciado':'todo','não-iniciado':'todo','pendente':'todo','todo':'todo',
+      'iniciado':'doing','em andamento':'doing','andamento':'doing','doing':'doing',
       'concluida':'done','concluída':'done','feito':'done','done':'done',
       'atrasada':'late','atrasado':'late','late':'late'
     };
