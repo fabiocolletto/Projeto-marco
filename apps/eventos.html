@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gerenciar Eventos — AC (v2) + Mini‑Apps Fornecedores & Convidados</title>
+  <title>Gerenciar Eventos — AC (v2) + Mini‑Apps (fallback Safari)</title>
   <!-- Estilos locais, mínimos e escopados -->
   <style>
     /* ===== KPIs / MiniApps ===== */
@@ -17,6 +17,7 @@
     #cardIndicadores #secTarefas[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
     #cardIndicadores #secFornecedores[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
     #cardIndicadores #secConvidados[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
+    #cardIndicadores #secMensagens[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
     #cardIndicadores .mini.kpi .actions{position:absolute;top:10px;right:10px}
     #cardIndicadores .mini.kpi .edit-btn{border:1px solid #cccccc;background:#ffffff;border-radius:10px;padding:4px 8px;cursor:pointer;line-height:1}
 
@@ -28,6 +29,12 @@
     #cardIndicadores .muted{opacity:.75}
     #cardIndicadores details>summary{display:none}
     @media (max-width:640px){#cardIndicadores .mini.kpi{min-height:140px}}
+
+    /* ===== Header: badge de sincronização no topo ===== */
+    #cardResumo .hdr-sync{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    #cardResumo .hdr-sync .small-label{font-size:.8rem;color:#555}
+    #cardResumo .hdr-sync .badge{display:flex;align-items:center;gap:6px;border:1px solid #ccc;border-radius:12px;padding:2px 8px;background:#fff}
+    #cardResumo .hdr-sync .badge.active{border-color:#ffa245;background:#fff7ed;box-shadow:0 0 0 1px #ffa245 inset}
   </style>
 </head>
 <body>
@@ -35,24 +42,36 @@
     <div class="container">
       <!-- ===================== TOP / RESUMO ===================== -->
       <section class="card" id="cardResumo">
-        <div class="row">
+        <div class="row" style="align-items:flex-start; gap:16px">
           <div>
             <h1 class="app-title">Gestão de eventos</h1>
             <h2 id="evTitle">—</h2>
-            <div class="small muted" id="updatedWrap">Atualizado: <span id="updatedAt">—</span></div>
+            <div class="small muted" id="updatedWrap">Atualizado: <span id="updatedAt">—</span>
+              <span id="storageWarn" class="pill pillwarn" style="display:none;margin-left:8px">Modo temporário (sem persistência)</span>
+            </div>
           </div>
 
-          <div class="select-block" style="margin-left:auto">
+          <div class="select-block" style="margin-left:auto; min-width:min(520px, 100%)">
             <label class="small" for="switchEvent">Selecionar evento</label>
             <select id="switchEvent"></select>
 
-            <div class="row" style="align-items:center">
+            <div class="row" id="hdrControlsRow" style="align-items:center; gap:8px; flex-wrap:wrap">
               <button id="btnNew" class="btn btn--ghost" type="button">Novo</button>
               <button id="btnDelete" class="btn btn--ghost danger" type="button">Excluir</button>
-              <!-- Pílulas de status ALINHADAS ao lado dos botões -->
-              <span id="chipReady"  class="pill pillok" style="margin-left:8px">Pronto</span>
-              <span id="chipDirty"  class="pill pillwarn"   style="display:none;margin-left:8px">Edição não salva</span>
-              <span id="chipSaving" class="pill pillsaving" style="display:none;margin-left:8px">Salvando…</span>
+              <!-- Pílulas de status -->
+              <span id="chipReady"  class="pill pillok">Pronto</span>
+              <span id="chipDirty"  class="pill pillwarn"   style="display:none">Edição não salva</span>
+              <span id="chipSaving" class="pill pillsaving" style="display:none">Salvando…</span>
+
+              <!-- Badge de Sync no topo (etiqueta com lápis) -->
+              <div class="hdr-sync" id="hdr_sync_wrap">
+                <span class="small-label">Sincronização</span>
+                <div class="badge" id="hdr_sync_badge">
+                  <span id="hdr_sync_status">Desativado</span>
+                  <button class="edit-btn" data-open="#secSync" aria-label="Abrir painel de sincronização" title="Abrir painel de sincronização">✎</button>
+                </div>
+                <span id="hdr_sync_detail" class="small muted">—</span>
+              </div>
             </div>
           </div>
         </div>
@@ -304,13 +323,7 @@
             <div class="small muted" id="kpi_guest_legend"></div>
           </div>
 
-          <!-- ===== 4) Mensagens ===== -->
-          <div class="mini kpi" id="kpi_msgs">
-            <div class="label"><h3 class="title">Mensagens — próximos 7 dias</h3></div>
-            <div class="actions"><button class="edit-btn" data-open="#secMensagens" aria-label="Editar mensagens" title="Em breve" disabled>✎</button></div>
-            <div class="progress progress--lg progress--segments"><div class="progress__track" id="kpi_msg_track"></div></div>
-            <div class="hbar-legend"><span id="kpi_msg_lbl1">Total na semana: 0</span><span id="kpi_msg_lbl2">Pico: 0/dia</span></div>
-          </div>
+          <!-- (Removido o KPI de Sincronização — agora no topo) -->
         </div>
 
         <!-- ===== MiniApp Tarefas ===== -->
@@ -323,10 +336,21 @@
           <div class="details-wrap"><div id="fornecedores_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
 
-        <!-- ===== MiniApp Convidados ===== -->
-        <details id="secConvidados"><summary>Convidados</summary>
-          <div class="details-wrap"><div id="guests_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        <!-- ===== MiniApp Convidados & Convites ===== -->
+        <details id="secConvidados"><summary>Convidados & Convites</summary>
+          <div class="details-wrap"><div id="convidados_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
+
+        <!-- ===== MiniApp Mensagens ===== -->
+        <details id="secMensagens"><summary>Mensagens</summary>
+          <div class="details-wrap"><div id="msgs_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        </details>
+
+        <!-- ===== MiniApp Sincronização ===== -->
+        <details id="secSync"><summary>Sincronização</summary>
+          <div class="details-wrap"><div id="sync_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        </details>
+
       </section>
     </div>
   </main>
@@ -337,26 +361,84 @@
     const PATH_STORE  = "/shared/projectStore.js";
     const PATH_CORE   = "/shared/acEventsCore.v2.mjs";
     const PATH_TASKS  = "/shared/acTasks.v1.mjs";            // MiniApp tarefas
-    const PATH_FORNEC = "/shared/acFornecedores.v1.mjs";      // MiniApp fornecedores (shared)
-    const PATH_GUESTS = "/shared/acConvidados.v1.mjs";        // MiniApp convidados (shared)
+    const PATH_FORNEC = "/tools/gestao-de-fornecedores/fornecedores.minapp.js"; // MiniApp fornecedores (custom element)
+    const PATH_CONVID = "/shared/acConvidados.v1.mjs";       // MiniApp convidados
+    const PATH_MSGS   = "/shared/acMensagens.v1.mjs";        // MiniApp mensagens
+    const PATH_SYNC   = "/unique/sync.minapp.js";            // MiniApp sincronização (Unique)
 
     const CANDIDATES = [
-      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main", // githack primeiro
-      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main"
+      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
     ];
     async function tryImport(url){
       try{ return await import(url); }
-      catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } }
+      catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; }
+      }
     }
     async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
 
-    const store     = await loadShared(PATH_STORE);
-    const bus       = await loadShared(PATH_BUS);
-    const ac        = await loadShared(PATH_CORE);
-    const tasksMod  = await loadShared(PATH_TASKS);
-    const fornMod   = await loadShared(PATH_FORNEC);
-    const guestsMod = await loadShared(PATH_GUESTS);
-    await store?.init?.();
+    // ===== Helpers: storage seguro + fallback =====
+    const safeLS = {
+      get(k){ try{ return localStorage.getItem(k); }catch{ return null; } },
+      set(k,v){ try{ localStorage.setItem(k,v); }catch{} },
+      remove(k){ try{ localStorage.removeItem(k); }catch{} }
+    };
+
+    function makeFallbackStore(){
+      const KEY = 'ac:memstore:v1';
+      let MEM = { metas: [], map: {} };
+      function load(){ try{ const j=safeLS.get(KEY); if(j){ MEM=JSON.parse(j); } }catch{} }
+      function save(){ try{ safeLS.set(KEY, JSON.stringify(MEM)); }catch{} }
+      load();
+      const api = {
+        __fallback:true,
+        async init(){ return true; },
+        listProjects(){ return MEM.metas||[]; },
+        async createProject(obj){
+          const id = 'p_'+Math.random().toString(36).slice(2,9);
+          const nome = obj?.evento?.nome || 'Novo evento';
+          const meta = { id, nome };
+          MEM.map[id] = { ...(obj||{}), updatedAt: Date.now() };
+          MEM.metas = [meta, ...(MEM.metas||[])];
+          save();
+          return { meta, project: MEM.map[id] };
+        },
+        async getProject(id){ return MEM.map[id]||null; },
+        async updateProject(id, obj){ MEM.map[id]=obj; const m=(MEM.metas||[]).find(m=>m.id===id); if(m){ m.nome = obj?.evento?.nome || m.nome; } save(); return true; },
+        async deleteProject(id){ delete MEM.map[id]; MEM.metas=(MEM.metas||[]).filter(m=>m.id!==id); save(); }
+      };
+      return api;
+    }
+
+    // Tenta carregar store "real"; se falhar no iOS (IDB bloqueado), cai no fallback
+    let store = await loadShared(PATH_STORE);
+    let USING_FALLBACK = false;
+    try{
+      await store?.init?.();
+      // Prova rápida de IndexedDB (Safari privado costuma falhar aqui)
+      const idbOk = await new Promise(res=>{
+        try{ const name='ac-probe-'+Math.random().toString(36).slice(2); const req=indexedDB.open(name); req.onerror=()=>res(false); req.onblocked=()=>res(false); req.onsuccess=()=>{ try{ req.result.close(); indexedDB.deleteDatabase(name); }catch{} res(true); }; }
+        catch{ res(false); }
+      });
+      if(!idbOk){ throw new Error('IndexedDB indisponível'); }
+      store?.listProjects?.();
+    }catch(err){
+      console.warn('[STORE] Persistência indisponível, ativando fallback em memória/LocalStorage:', err?.message||err);
+      store = makeFallbackStore();
+      USING_FALLBACK = true;
+      await store.init();
+    }
+
+    const bus      = await loadShared(PATH_BUS);
+    const ac       = await loadShared(PATH_CORE);
+    const tasksMod = await loadShared(PATH_TASKS);
+    await loadShared(PATH_FORNEC); // registra <ac-fornecedores>
+    const convidMod= await loadShared(PATH_CONVID);
+    if(!convidMod?.mountConvidadosMiniApp){ console.warn('[MiniApp Convidados] módulo não disponível em', PATH_CONVID); }
+    const msgsMod  = await loadShared(PATH_MSGS);
+    if(!msgsMod?.mountMensagensMiniApp){ console.warn('[MiniApp Mensagens] módulo não disponível em', PATH_MSGS); }
+    const syncMod  = await loadShared(PATH_SYNC);
+    if(!syncMod?.mountSyncMiniApp){ console.warn('[MiniApp Sync] módulo não disponível em', PATH_SYNC); }
 
     // ====================== Estado & helpers ======================
     const AUTO_SAVE_MS = 700;
@@ -367,6 +449,7 @@
     // Header UI refs
     const evTitle   = $('#evTitle');
     const updatedAt = $('#updatedAt');
+    const storageWarn = $('#storageWarn');
     const switchEvent = $('#switchEvent');
     const btnNew    = $('#btnNew');
     const btnDelete = $('#btnDelete');
@@ -397,6 +480,7 @@
       chipReady.style.display = (!state.dirty && !state.saving)? 'inline-block':'none';
       chipDirty.style.display = (state.dirty && !state.saving)? 'inline-block':'none';
       chipSaving.style.display= state.saving? 'inline-block':'none';
+      if(storageWarn){ storageWarn.style.display = USING_FALLBACK ? 'inline-block':'none'; }
     }
     function setDirty(v){ state.dirty=!!v; renderStatus(); }
     function setSaving(v){ state.saving=!!v; renderStatus(); }
@@ -441,7 +525,7 @@
       switchEvent.innerHTML = metas.map(m=>`<option value="${m.id}"${m.id===state.currentId?' selected':''}>${m.nome||m.id}</option>`).join('');
     }
     switchEvent.addEventListener('change', async ()=>{ const id=switchEvent.value; if(id){ await setCurrent(id); publishCurrent(); }});
-    async function renderSaved(){ state.metas = store.listProjects?.()||[]; renderSwitcher(); }
+    async function renderSaved(){ try{ state.metas = store.listProjects?.()||[]; }catch{ state.metas=[]; } renderSwitcher(); }
 
     // Form <-> State
     function fillForm(p){
@@ -473,11 +557,12 @@
       if(!state.currentId || !state.dirty) return;
       setSaving(true);
       let next = readForm(); next = applyDateTime(next); next.updatedAt = Date.now();
-      await store.updateProject?.(state.currentId,next);
-      state.project = await store.getProject?.(state.currentId);
+      try{ await store.updateProject?.(state.currentId,next); }catch(e){ console.warn('Falha ao salvar no store:', e); }
+      try{ state.project = await store.getProject?.(state.currentId); }catch{ state.project = next; }
       setSaving(false); setDirty(false);
       await renderSaved(); fillForm(state.project); renderHeader(); renderIndicators();
-      bus.publish('ac:project-updated',{ id: state.currentId, updatedAt: next.updatedAt });
+      bus?.publish?.('ac:project-updated',{ id: state.currentId, updatedAt: next.updatedAt });
+      updateFornecedoresProject();
     }
     function scheduleSave(){ if(state.timer) clearTimeout(state.timer); state.timer = setTimeout(doSave, AUTO_SAVE_MS); }
 
@@ -506,7 +591,9 @@
     // ====================== KPIs (v2) ======================
     function syncTasksKpiActive(){ try{ const kpi=document.querySelector('#kpi_tasks'); const det=document.querySelector('#secTarefas'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
     function syncForKpiActive(){ try{ const kpi=document.querySelector('#kpi_for'); const det=document.querySelector('#secFornecedores'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
-    function syncGuestKpiActive(){ try{ const kpi=document.querySelector('#kpi_guests'); const det=document.querySelector('#secConvidados'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
+    function syncGuestsKpiActive(){ try{ const kpi=document.querySelector('#kpi_guests'); const det=document.querySelector('#secConvidados'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
+    function syncMsgsKpiActive(){ try{ const kpi=document.querySelector('#kpi_msgs'); const det=document.querySelector('#secMensagens'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
+    function syncSyncHeaderActive(){ try{ const badge=document.querySelector('#hdr_sync_badge'); const det=document.querySelector('#secSync'); if(badge&&det){ badge.classList.toggle('active', !!det.open); } }catch{} }
 
     function clearChildren(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
     function pushSeg(container, pct, title){ const seg=document.createElement('div'); seg.className='seg'; seg.style.width=Math.max(0,Math.min(100,pct)).toFixed(2)+'%'; if(title) seg.title=title; container.appendChild(seg); }
@@ -521,14 +608,21 @@
       if(kpiForLbl1)  kpiForLbl1.textContent = `${ac.format.money(kFor.pago)} pagos — ${kFor.pctPago}%`;
       if(kpiForLbl2)  kpiForLbl2.textContent = `Total: ${ac.format.money(kFor.total)}`;
 
+      // Tarefas (checklist)
+      const kTk = ac.stats.kpiTarefas(p.checklist||[]);
+      if(kpiTaskTitle) kpiTaskTitle.textContent = `Tarefas (${kTk.pendentes} pendentes)`;
+      if(kpiTaskBar)   kpiTaskBar.style.width = Math.min(100, Math.max(0, kTk.pctConcluidas)) + '%';
+      if(kpiTaskLbl1)  kpiTaskLbl1.textContent = `${kTk.concluidas} concluídas — ${kTk.pctConcluidas}%`;
+      if(kpiTaskLbl2)  kpiTaskLbl2.textContent = `Total: ${kTk.total}`;
+
       // Convidados & Convites
       const kG = ac.stats.kpiConvidados(p.convidados||[]);
-      const kpiGuestTitle  = document.querySelector('#kpi_guest_title');
       const kpiGuestBar    = document.querySelector('#kpi_guest_bar');
       const kpiGuestLbl1   = document.querySelector('#kpi_guest_lbl1');
       const kpiGuestLbl2   = document.querySelector('#kpi_guest_lbl2');
       const kpiGuestBands  = document.querySelector('#kpi_guest_bands');
       const kpiGuestLegend = document.querySelector('#kpi_guest_legend');
+      const kpiGuestTitle  = document.querySelector('#kpi_guest_title');
       if(kpiGuestTitle) kpiGuestTitle.textContent = `Convidados & Convites (${kG.pendentes} pendentes)`;
       if(kpiGuestBar)   kpiGuestBar.style.width = Math.min(100, Math.max(0, kG.pctConfirmados)) + '%';
       if(kpiGuestLbl1)  kpiGuestLbl1.textContent = `${kG.confirmados} confirmados — ${kG.pctConfirmados}%`;
@@ -542,17 +636,10 @@
         if(kpiGuestLegend){ kpiGuestLegend.textContent = top.length ? top.map(([n,v])=>`${(n||'—').slice(0,12)}: ${v}`).join(' • ') : 'Sem distribuição registrada'; }
       }
 
-      // Tarefas (checklist)
-      const kTk = ac.stats.kpiTarefas(p.checklist||[]);
-      if(kpiTaskTitle) kpiTaskTitle.textContent = `Tarefas (${kTk.pendentes} pendentes)`;
-      if(kpiTaskBar)   kpiTaskBar.style.width = Math.min(100, Math.max(0, kTk.pctConcluidas)) + '%';
-      if(kpiTaskLbl1)  kpiTaskLbl1.textContent = `${kTk.concluidas} concluídas — ${kTk.pctConcluidas}%`;
-      if(kpiTaskLbl2)  kpiTaskLbl2.textContent = `Total: ${kTk.total}`;
-
       // Mensagens próximos 7 dias
       const kM = ac.stats.kpiMensagens(p.mensagens||[]);
-      const kpiMsgLbl1  = $('#kpi_msg_lbl1');
-      const kpiMsgLbl2  = $('#kpi_msg_lbl2');
+      const kpiMsgLbl1  = document.querySelector('#kpi_msg_lbl1');
+      const kpiMsgLbl2  = document.querySelector('#kpi_msg_lbl2');
       if(kpiMsgTrack){
         clearChildren(kpiMsgTrack);
         const arr = Array.isArray(kM.perDay)? kM.perDay.slice(0,7) : [0,0,0,0,0,0,0];
@@ -572,8 +659,7 @@
         fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
       });
       const { meta } = await store.createProject?.(blank);
-      await setCurrent(meta.id); await renderSaved(); publishCurrent();
-      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded();
+      await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
     });
 
     btnDelete.addEventListener('click', async ()=>{
@@ -585,11 +671,10 @@
       }catch(e){ console.error(e); }
       state.currentId=null; await renderSaved();
       const nextId=(state.metas[0]&&state.metas[0].id)||null;
-      await setCurrent(nextId); publishCurrent();
-      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded();
+      await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
     });
 
-    function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'eventos' }); }
+    function publishCurrent(){ if(state.currentId) bus?.publish?.('ac:open-event',{ id: state.currentId, from:'eventos' }); }
 
     function mountTasksIfNeeded(){
       const host = document.querySelector('#tasks_host');
@@ -601,67 +686,129 @@
 
     function mountFornecedoresIfNeeded(){
       const host = document.querySelector('#fornecedores_host');
-      if(host && !host.dataset.mounted && fornMod?.mountFornecedoresMiniApp){
-        fornMod.mountFornecedoresMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+      if(host && !host.dataset.mounted){
+        const el = document.createElement('ac-fornecedores');
+        if(state.currentId) el.setAttribute('project-id', state.currentId);
+        host.appendChild(el);
         host.dataset.mounted = '1';
       }
     }
+    function updateFornecedoresProject(){
+      const el = document.querySelector('#fornecedores_host ac-fornecedores');
+      if(el){ const pid = state.currentId || ''; if(pid) el.setAttribute('project-id', pid); }
+    }
+
     function mountConvidadosIfNeeded(){
-      const host = document.querySelector('#guests_host');
-      if(host && !host.dataset.mounted && guestsMod?.mountConvidadosMiniApp){
-        guestsMod.mountConvidadosMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+      const host = document.querySelector('#convidados_host');
+      if(host && !host?.dataset?.mounted && convidMod?.mountConvidadosMiniApp){
+        convidMod.mountConvidadosMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
         host.dataset.mounted = '1';
+      } else if(host && !convidMod?.mountConvidadosMiniApp){
+        host.innerHTML = '<div class="muted">Módulo de Convidados não encontrado. Verifique /shared/acConvidados.v1.mjs.</div>';
       }
+    }
+
+    function mountMensagensIfNeeded(){
+      const host = document.querySelector('#msgs_host');
+      if(host && !host?.dataset?.mounted && msgsMod?.mountMensagensMiniApp){
+        msgsMod.mountMensagensMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+        host.dataset.mounted = '1';
+      } else if(host && !msgsMod?.mountMensagensMiniApp){
+        host.innerHTML = '<div class="muted">Módulo de Mensagens não encontrado. Verifique /shared/acMensagens.v1.mjs.</div>';
+      }
+    }
+
+    function mountSyncIfNeeded(){
+      const host = document.querySelector('#sync_host');
+      if(host && !host?.dataset?.mounted && syncMod?.mountSyncMiniApp){
+        syncMod.mountSyncMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+        host.dataset.mounted = '1';
+        wireSyncHeaderMirror(); // espelha status do mini-app para a etiqueta do topo
+      } else if(host && !syncMod?.mountSyncMiniApp){
+        host.innerHTML = '<div class="muted">Módulo de Sincronização não encontrado. Verifique /unique/sync.minapp.js.</div>';
+      }
+    }
+
+    // ===== Espelhar status do mini-app (#sync_host) para a etiqueta do topo
+    function wireSyncHeaderMirror(){
+      const mirror = ()=>{
+        const s = document.querySelector('#sync_host #sync_status');
+        const d = document.querySelector('#sync_host #sync_detail');
+        const hs = document.querySelector('#hdr_sync_status');
+        const hd = document.querySelector('#hdr_sync_detail');
+        if(s && hs) hs.textContent = (s.textContent||'').trim() || '—';
+        if(d && hd) hd.textContent = (d.textContent||'').trim() || '—';
+      };
+      mirror();
+      const hostEl = document.querySelector('#sync_host');
+      if(!hostEl) return;
+      try{
+        const mo = new MutationObserver(()=> mirror());
+        mo.observe(hostEl, { childList:true, subtree:true, characterData:true });
+      }catch{}
     }
 
     async function loadCurrent(id){
       state.currentId=id||state.currentId;
-      state.project = state.currentId? await store.getProject?.(state.currentId) : null;
-      ac.model.ensureShape(state.project);
+      try{ state.project = state.currentId? await store.getProject?.(state.currentId) : null; }catch{ state.project=null; }
+      ac.model.ensureShape(state.project||{});
       fillForm(state.project||{}); setDirty(false); renderHeader(); renderIndicators();
-      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded();
+      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
     }
     async function setCurrent(id){
-      if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); return; }
-      await loadCurrent(id); localStorage.setItem('ac:lastId', id); renderSwitcher();
+      if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return; }
+      await loadCurrent(id); safeLS.set('ac:lastId', id); renderSwitcher();
     }
 
     // BUS: refletir atualizações externas (com refresh do projeto atual)
-    bus.subscribe('ac:project-updated', async ({ id, updatedAt:ts })=>{
+    bus?.subscribe?.('ac:project-updated', async ({ id, updatedAt:ts })=>{
       try{
         if(id){
           await renderSaved();
           if(id===state.currentId){
-            state.project = await store.getProject?.(state.currentId);
+            try{ state.project = await store.getProject?.(state.currentId); }catch{}
             if(ts && updatedAt){ updatedAt.textContent = fmtDateTime(ts)||'—'; }
-            renderIndicators();
+            renderIndicators(); updateFornecedoresProject();
           }
         }
       }catch(err){ console.error(err); }
     });
 
+    // Atualizar etiqueta de Sync via BroadcastChannel (quando o Mini-App publicar)
+    try{
+      const bc = new BroadcastChannel('ac-sync');
+      bc.onmessage = (ev)=>{
+        if(ev?.data?.type==='sync-status'){
+          const s=document.querySelector('#hdr_sync_status');
+          const d=document.querySelector('#hdr_sync_detail');
+          if(s) s.textContent = ev.data.mode || ev.data.status || '—';
+          if(d) d.textContent = ev.data.detail || '—';
+        }
+      };
+    }catch{}
+
     // Abrir/fechar seções
     function updateEditActives(){
       document.querySelectorAll('[data-open]')?.forEach(b=>b.classList.remove('active'));
-      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados'].forEach(sel=>{
+      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{
         const d=document.querySelector(sel); if(d && d.open){ const btn=document.querySelector(`[data-open="${sel}"]`); if(btn) btn.classList.add('active'); }
       });
     }
-    function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
-    function toggleSection(selector){
-      const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives();
-      if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } if(selector==='#secConvidados'){ mountConvidadosIfNeeded(); } }
-      syncTasksKpiActive(); syncForKpiActive(); syncGuestKpiActive();
-    }
+    function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
+    function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } if(selector==='#secConvidados'){ mountConvidadosIfNeeded(); } if(selector==='#secMensagens'){ mountMensagensIfNeeded(); } if(selector==='#secSync'){ mountSyncIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncMsgsKpiActive(); syncSyncHeaderActive(); }
     document.addEventListener('click', (ev)=>{ const btn = ev.target.closest('[data-open]'); if(!btn) return; const sel = btn.getAttribute('data-open'); if(sel) toggleSection(sel); });
     window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeAll(); }});
-    ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); syncGuestKpiActive(); }); });
+    ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncMsgsKpiActive(); syncSyncHeaderActive(); }); });
 
     // ====================== Boot ======================
     async function bootstrap(){
       await renderSaved();
       wireCepInputs();
-      const metas = store.listProjects?.()||[];
+
+      // Mover o aviso de armazenamento temporário para o mesmo container dos controles
+      try{ const row = document.getElementById('hdrControlsRow'); const sw = document.getElementById('storageWarn'); if(row && sw){ row.appendChild(sw); sw.style.marginLeft='8px'; } }catch{}
+
+      const metas = state.metas||[];
       if(!metas.length){
         const blank = ac.model.ensureShape({
           cerimonialista:{},
@@ -669,9 +816,9 @@
           fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
         });
         const { meta } = await store.createProject?.(blank);
-        await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); return;
+        await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
       }
-      const last = localStorage.getItem('ac:lastId');
+      const last = safeLS.get('ac:lastId');
       const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
       await setCurrent(initial); if(initial) publishCurrent();
       closeAll();
@@ -679,12 +826,28 @@
       mountTasksIfNeeded();
       mountFornecedoresIfNeeded();
       mountConvidadosIfNeeded();
+      mountMensagensIfNeeded();
+      mountSyncIfNeeded();
+      updateFornecedoresProject();
+      syncSyncHeaderActive();
     }
     await bootstrap();
-    // garantir estado visual correto no carregamento
-    syncTasksKpiActive();
-    syncForKpiActive();
-    syncGuestKpiActive();
+
+    // ====================== Self-tests (sanidade rápida) ======================
+    (function selfTests(){
+      console.groupCollapsed('Self-tests MiniApps');
+      try{
+        console.assert(typeof syncMsgsKpiActive === 'function', 'syncMsgsKpiActive definido');
+        console.assert(typeof store.listProjects === 'function', 'store.listProjects disponível');
+        console.assert(typeof store.createProject === 'function', 'store.createProject disponível');
+        console.assert(typeof store.updateProject === 'function', 'store.updateProject disponível');
+        console.assert(!!document.querySelector('#secMensagens'), '#secMensagens existe');
+        console.assert(!!document.querySelector('#secSync'),     '#secSync existe');
+        console.assert(!!document.querySelector('#hdr_sync_status'), '#hdr_sync_status no topo');
+      } finally {
+        console.groupEnd();
+      }
+    })();
   </script>
 </body>
 </html>
