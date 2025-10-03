@@ -1,4 +1,4 @@
-// shared/marcoBus.js
+// tools/shared/core/marcoBus.js
 // Event bus simples para coordenação entre widgets (mesma aba e multi-abas).
 
 const bc = ('BroadcastChannel' in self) ? new BroadcastChannel('marco-bus') : null;

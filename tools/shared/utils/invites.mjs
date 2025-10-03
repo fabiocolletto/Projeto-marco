@@ -1,4 +1,4 @@
-// shared/inviteUtils.js
+// tools/shared/utils/invites.mjs
 // Converte LINHAS em "convites" estruturados (titular, acompanhantes, telefone, total).
 // Regras:
 // - Cada **linha** = 1 convite.
@@ -6,25 +6,21 @@
 // - Telefone pode estar em qualquer lugar na linha; é detectado e padronizado (BR 10/11 dígitos).
 // - Sequências com 2+ dígitos não são consideradas parte do nome.
 
-import { normalizeName, stripNumbersFromName } from "./listUtils.js";
+import { normalizeName, stripNumbersFromName } from './list.mjs';
+import { normalizePhoneBR } from './br.mjs';
+import { uid as makeUid } from './ids.mjs';
 
 // Telefones soltos: aceita +55, DDD, espaços, hífens e parênteses
 const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g;
 
 // ID estável para cada convite
-export function uid() {
-  return (crypto?.randomUUID?.() ?? `id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`);
-}
+export const uid = () => makeUid('invite');
 
 // Normaliza telefone BR (10/11 dígitos). Se vier +55, mantém os 11 finais.
-export function normalizePhone(s = "") {
-  let d = String(s).replace(/\D/g, "");
-  if (d.length > 11) d = d.slice(-11);
-  if (d.length < 10) return null;
-  return d.length === 10
-    ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
-    : `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7,11)}`;
-}
+export const normalizePhone = (s = '') => {
+  const normalized = normalizePhoneBR(s);
+  return normalized || null;
+};
 
 // Pega o "melhor" telefone (mais dígitos) e remove da linha
 function extractPhone(line = "") {

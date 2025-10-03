@@ -1,4 +1,7 @@
-// AC — Mini‑App de Mensagens (v1)
+import { uid as makeUid } from '../../utils/ids.mjs';
+import { formatDateBR } from '../../utils/br.mjs';
+
+// tools/shared/miniapps/mensagens/v1.mjs — Mini‑App de Mensagens (v1)
 // Padrão de montagem: mountMensagensMiniApp(host, { ac, store, bus, getCurrentId })
 // Mantém compatibilidade com o ecossistema (autosave via store, eventos via bus).
 
@@ -16,9 +19,9 @@ export function mountMensagensMiniApp(host, deps){
   // ===== Helpers =====
   const $  = (sel, root = host) => root.querySelector(sel);
   const $$ = (sel, root = host) => [...root.querySelectorAll(sel)];
-  const uid = () => (Date.now().toString(36) + Math.random().toString(36).slice(2,7));
+  const uid = () => makeUid('msg');
 
-  const fmtDateBR = (d) => ac?.format?.fmtDateBR ? ac.format.fmtDateBR(d) : (d ? d.split('-').reverse().join('/') : '');
+  const fmtDateBR = (d) => ac?.format?.fmtDateBR ? ac.format.fmtDateBR(d) : formatDateBR(d);
   const fmtDateTime = (d,h) => [fmtDateBR(d), (h||'').slice(0,5)].filter(Boolean).join(' ');
   const nowIsoDate = () => new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
   const today = nowIsoDate();

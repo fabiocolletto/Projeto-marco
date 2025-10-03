@@ -1,4 +1,4 @@
-// shared/projectStore.js (v2)
+// tools/shared/core/projectStore.js (v2)
 // IndexedDB para múltiplos eventos, com migração, persistência e utilidades.
 // Fontes & boas práticas:
 // - MDN Using IndexedDB / API: transações, onupgradeneeded, versionchange, erros

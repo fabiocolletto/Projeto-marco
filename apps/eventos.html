@@ -4,31 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Gerenciar Eventos — AC (v2) + Mini‑Apps Fornecedores & Convidados</title>
-  <!-- Estilos locais, mínimos e escopados -->
-  <style>
-    /* ===== KPIs / MiniApps ===== */
-    #cardIndicadores .mini.kpi{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:150px}
-    #cardIndicadores .mini.kpi .label{font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:flex-start}
-    #cardIndicadores .mini.kpi .label .title{color:#0b65c2}
-    /* h3 nos títulos dos KPIs para padronizar com os badges acima */
-    #cardIndicadores .mini.kpi .label h3{margin:0 48px 2px 0;font-size:14px;line-height:1.2;color:#0b65c2;display:flex;align-items:center}
-    /* Destaque laranja quando o mini-app estiver expandido */
-    #cardIndicadores .mini.kpi.active{border-color:#ffa245;background:#fff7ed;box-shadow:0 0 0 1px #ffa245 inset}
-    #cardIndicadores #secTarefas[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
-    #cardIndicadores #secFornecedores[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
-    #cardIndicadores #secConvidados[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
-    #cardIndicadores .mini.kpi .actions{position:absolute;top:10px;right:10px}
-    #cardIndicadores .mini.kpi .edit-btn{border:1px solid #cccccc;background:#ffffff;border-radius:10px;padding:4px 8px;cursor:pointer;line-height:1}
-
-    #cardIndicadores .progress.progress--lg .progress__track{height:10px;border-radius:6px;background:#eef2f6}
-    #cardIndicadores .progress.progress--lg .progress__bar{height:10px;border-radius:6px;background:#0b65c2;transition:width .25s ease}
-    #cardIndicadores .hbar-legend{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:.875rem;color:#555}
-    #cardIndicadores .progress--segments .progress__track{display:flex;gap:2px;align-items:center}
-    #cardIndicadores .progress--segments .seg{height:10px;border-radius:4px;background:#0b65c2;flex:0 0 auto}
-    #cardIndicadores .muted{opacity:.75}
-    #cardIndicadores details>summary{display:none}
-    @media (max-width:640px){#cardIndicadores .mini.kpi{min-height:140px}}
-  </style>
 </head>
 <body>
   <main class="ac">
@@ -42,19 +17,19 @@
             <div class="small muted" id="updatedWrap">Atualizado: <span id="updatedAt">—</span></div>
           </div>
 
-          <div class="select-block" style="margin-left:auto">
-            <label class="small" for="switchEvent">Selecionar evento</label>
-            <select id="switchEvent"></select>
+        <div class="select-block push-end">
+          <label class="small" for="switchEvent">Selecionar evento</label>
+          <select id="switchEvent"></select>
 
-            <div class="row" style="align-items:center">
-              <button id="btnNew" class="btn btn--ghost" type="button">Novo</button>
-              <button id="btnDelete" class="btn btn--ghost danger" type="button">Excluir</button>
-              <!-- Pílulas de status ALINHADAS ao lado dos botões -->
-              <span id="chipReady"  class="pill pillok" style="margin-left:8px">Pronto</span>
-              <span id="chipDirty"  class="pill pillwarn"   style="display:none;margin-left:8px">Edição não salva</span>
-              <span id="chipSaving" class="pill pillsaving" style="display:none;margin-left:8px">Salvando…</span>
-            </div>
+          <div class="row row--center status-stack">
+            <button id="btnNew" class="btn btn--ghost" type="button">Novo</button>
+            <button id="btnDelete" class="btn btn--ghost danger" type="button">Excluir</button>
+            <!-- Pílulas de status ALINHADAS ao lado dos botões -->
+            <span id="chipReady"  class="pill pillok pill--status">Pronto</span>
+            <span id="chipDirty"  class="pill pillwarn pill--status">Edição não salva</span>
+            <span id="chipSaving" class="pill pillsaving pill--status">Salvando…</span>
           </div>
+        </div>
         </div>
 
         <!-- BADGES -->
@@ -282,7 +257,7 @@
           <div class="mini kpi" id="kpi_tasks">
             <div class="label"><h3 class="title" id="kpi_task_title">Tarefas</h3></div>
             <div class="actions"><button class="edit-btn" data-open="#secTarefas" aria-label="Editar tarefas" title="Abrir painel de tarefas">✎</button></div>
-            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_task_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_task_bar" class="progress__bar"></div></div></div>
             <div class="hbar-legend"><span id="kpi_task_lbl1">0 concluídas — 0%</span><span id="kpi_task_lbl2">Total: 0</span></div>
           </div>
 
@@ -290,7 +265,7 @@
           <div class="mini kpi" id="kpi_for">
             <div class="label"><h3 class="title" id="kpi_for_title">Fornecedores</h3></div>
             <div class="actions"><button class="edit-btn" data-open="#secFornecedores" aria-label="Editar fornecedores" title="Abrir painel de fornecedores">✎</button></div>
-            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_for_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_for_bar" class="progress__bar"></div></div></div>
             <div class="hbar-legend"><span id="kpi_for_lbl1">R$ 0,00 pagos — 0%</span><span id="kpi_for_lbl2">Total: R$ 0,00</span></div>
           </div>
 
@@ -298,7 +273,7 @@
           <div class="mini kpi" id="kpi_guests">
             <div class="label"><h3 class="title" id="kpi_guest_title">Convidados &amp; Convites</h3></div>
             <div class="actions"><button class="edit-btn" data-open="#secConvidados" aria-label="Editar convidados" title="Abrir painel de convidados">✎</button></div>
-            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_guest_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_guest_bar" class="progress__bar"></div></div></div>
             <div class="hbar-legend"><span id="kpi_guest_lbl1">0 confirmados — 0%</span><span id="kpi_guest_lbl2">Total: 0</span></div>
             <div class="progress progress--lg progress--segments" aria-label="Distribuição por mesas/grupos"><div class="progress__track" id="kpi_guest_bands"></div></div>
             <div class="small muted" id="kpi_guest_legend"></div>
@@ -314,17 +289,17 @@
         </div>
 
         <!-- ===== MiniApp Tarefas ===== -->
-        <details id="secTarefas"><summary>Tarefas</summary>
+        <details id="secTarefas" data-highlight="orange"><summary>Tarefas</summary>
           <div class="details-wrap"><div id="tasks_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
 
         <!-- ===== MiniApp Fornecedores ===== -->
-        <details id="secFornecedores"><summary>Fornecedores</summary>
+        <details id="secFornecedores" data-highlight="orange"><summary>Fornecedores</summary>
           <div class="details-wrap"><div id="fornecedores_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
 
         <!-- ===== MiniApp Convidados ===== -->
-        <details id="secConvidados"><summary>Convidados</summary>
+        <details id="secConvidados" data-highlight="orange"><summary>Convidados</summary>
           <div class="details-wrap"><div id="guests_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
       </section>
@@ -332,35 +307,33 @@
   </main>
 
   <script type="module">
-    // ====================== Shared Modules ======================
-    const PATH_BUS    = "/shared/marcoBus.js";
-    const PATH_STORE  = "/shared/projectStore.js";
-    const PATH_CORE   = "/shared/acEventsCore.v2.mjs";
-    const PATH_TASKS  = "/shared/acTasks.v1.mjs";            // MiniApp tarefas
-    const PATH_FORNEC = "/shared/acFornecedores.v1.mjs";      // MiniApp fornecedores (shared)
-    const PATH_GUESTS = "/shared/acConvidados.v1.mjs";        // MiniApp convidados (shared)
+    import { loadSharedModule, ensureSharedStyle } from '../tools/shared/runtime/loader.mjs';
 
-    const CANDIDATES = [
-      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main", // githack primeiro
-      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main"
-    ];
-    async function tryImport(url){
-      try{ return await import(url); }
-      catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } }
-    }
-    async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+    await ensureSharedStyle('styles/app.css', { key: 'ac-shared-styles' });
 
-    const store     = await loadShared(PATH_STORE);
-    const bus       = await loadShared(PATH_BUS);
-    const ac        = await loadShared(PATH_CORE);
-    const tasksMod  = await loadShared(PATH_TASKS);
-    const fornMod   = await loadShared(PATH_FORNEC);
-    const guestsMod = await loadShared(PATH_GUESTS);
+    const store     = await loadSharedModule('core/projectStore.js');
+    const bus       = await loadSharedModule('core/marcoBus.js');
+    const ac        = await loadSharedModule('core/eventsCore.v2.mjs');
+    const tasksMod  = await loadSharedModule('miniapps/tarefas/v1.mjs');
+    const fornMod   = await loadSharedModule('miniapps/fornecedores/v1.mjs');
+    const guestsMod = await loadSharedModule('miniapps/convidados/v1.mjs');
+    const miniSync  = await loadSharedModule('core/miniAppSync.mjs');
+
     await store?.init?.();
+
+    const { createMiniAppSync } = miniSync;
 
     // ====================== Estado & helpers ======================
     const AUTO_SAVE_MS = 700;
     const state = { currentId:null, project:null, metas:[], dirty:false, saving:false, timer:null };
+    const miniApps = createMiniAppSync({ ac, store, bus, getCurrentId: () => state.currentId });
+    miniApps.register('#tasks_host', tasksMod, { mountKey: 'mountTasksMiniApp' });
+    miniApps.register('#fornecedores_host', fornMod, { mountKey: 'mountFornecedoresMiniApp' });
+    miniApps.register('#guests_host', guestsMod, { mountKey: 'mountConvidadosMiniApp' });
+    ['#tasks_host','#fornecedores_host','#guests_host'].forEach(sel => {
+      const host = document.querySelector(sel);
+      if (host?.dataset?.mounted) delete host.dataset.mounted;
+    });
     const $  = (s)=> document.querySelector(s);
     const $$ = (s)=> [...document.querySelectorAll(s)];
 
@@ -398,6 +371,7 @@
       chipDirty.style.display = (state.dirty && !state.saving)? 'inline-block':'none';
       chipSaving.style.display= state.saving? 'inline-block':'none';
     }
+    renderStatus();
     function setDirty(v){ state.dirty=!!v; renderStatus(); }
     function setSaving(v){ state.saving=!!v; renderStatus(); }
 
@@ -591,28 +565,9 @@
 
     function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'eventos' }); }
 
-    function mountTasksIfNeeded(){
-      const host = document.querySelector('#tasks_host');
-      if(host && !host?.dataset?.mounted && tasksMod?.mountTasksMiniApp){
-        tasksMod.mountTasksMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
-        host.dataset.mounted = '1';
-      }
-    }
-
-    function mountFornecedoresIfNeeded(){
-      const host = document.querySelector('#fornecedores_host');
-      if(host && !host.dataset.mounted && fornMod?.mountFornecedoresMiniApp){
-        fornMod.mountFornecedoresMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
-        host.dataset.mounted = '1';
-      }
-    }
-    function mountConvidadosIfNeeded(){
-      const host = document.querySelector('#guests_host');
-      if(host && !host.dataset.mounted && guestsMod?.mountConvidadosMiniApp){
-        guestsMod.mountConvidadosMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
-        host.dataset.mounted = '1';
-      }
-    }
+    function mountTasksIfNeeded(){ miniApps.ensure('#tasks_host'); }
+    function mountFornecedoresIfNeeded(){ miniApps.ensure('#fornecedores_host'); }
+    function mountConvidadosIfNeeded(){ miniApps.ensure('#guests_host'); }
 
     async function loadCurrent(id){
       state.currentId=id||state.currentId;

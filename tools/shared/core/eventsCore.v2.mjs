@@ -1,5 +1,5 @@
 // ===============================
-// /shared/acEventsCore.v2.mjs
+// tools/shared/core/eventsCore.v2.mjs
 // ===============================
 // AC Eventos Core v2 — helpers + KPIs centralizados (atualizado)
 // Mantém compatibilidade com v1 e amplia KPIs de tarefas com breakdown de status

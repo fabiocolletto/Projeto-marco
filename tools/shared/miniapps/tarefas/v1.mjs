@@ -1,5 +1,9 @@
+import { uid as makeUid } from '../../utils/ids.mjs';
+import { el, clear, ensureHost } from '../../utils/dom.mjs';
+import { getProject, updateProject } from '../../utils/store.mjs';
+
 // ===============================
-// /shared/acTasks.v1.mjs
+// tools/shared/miniapps/tarefas/v1.mjs
 // ===============================
 // MiniApp Tarefas — v1 (atualizado)
 // - Coluna de Status (Não iniciado / Em andamento / Concluída / Atrasada)
@@ -8,8 +12,10 @@
 // - Cabeçalho da tabela sem bordas e visual limpo
 
 /* API
-import * as ac from '/shared/acEventsCore.v2.mjs';
-import { mountTasksMiniApp } from '/shared/acTasks.v1.mjs';
+import { loadSharedModule } from '../tools/shared/runtime/loader.mjs';
+
+const ac = await loadSharedModule('core/eventsCore.v2.mjs');
+const { mountTasksMiniApp } = await loadSharedModule('miniapps/tarefas/v1.mjs');
 
 mountTasksMiniApp(rootElement, {
   ac,
@@ -18,8 +24,6 @@ mountTasksMiniApp(rootElement, {
   getCurrentId: ()=> state.currentId // função que devolve o id atual do evento
 });
 */
-
-const uid = (p='t')=> p + Math.random().toString(36).slice(2,10);
 
 // ---------- Helpers internos ----------
 const normalizeStatus = (s)=>{
@@ -42,7 +46,7 @@ const computeStatus = (t)=>{
 // ---------- Normalização ----------
 const normTask = (t={})=>{
   const base = {
-    id: t.id || uid(),
+    id: t.id || makeUid('task'),
     titulo: t.titulo ?? t.nome ?? t.title ?? t.text ?? '',
     responsavel: t.responsavel ?? t.owner ?? t.assign ?? '',
     prazo: t.prazo ?? t.data ?? t.due ?? '',   // YYYY-MM-DD preferencial
@@ -79,32 +83,10 @@ export const taskModels = {
   ]
 };
 
-// ---------- Persistência utilitária ----------
-async function getProject(store, id){ return id? await store.getProject?.(id) : null; }
-async function updateProject(store, id, mut){
-  if(!id) return null;
-  const current = await getProject(store, id) || {};
-  const next = JSON.parse(JSON.stringify(current));
-  mut(next);
-  next.updatedAt = Date.now();
-  await store.updateProject?.(id, next);
-  return await getProject(store, id);
-}
-
 // ---------- Render helpers ----------
-function el(tag, attrs={}, children=[]){
-  const n = document.createElement(tag);
-  Object.entries(attrs||{}).forEach(([k,v])=>{
-    if(k==='className') n.className=v; else if(k==='dataset') Object.assign(n.dataset,v); else if(k in n) n[k]=v; else n.setAttribute(k,v);
-  });
-  (children||[]).forEach(c=> n.appendChild(typeof c==='string'? document.createTextNode(c) : c));
-  return n;
-}
-function clear(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
-
 function kpiRow(ac, list){
   const k = ac.stats.kpiTarefas(list||[]);
-  return el('div',{className:'row',style:'gap:.75rem;align-items:center;margin:6px 0'},[
+  return el('div',{className:'row row--center row--gap-md row--tight miniapp__legend'},[
     el('strong',{textContent:`${k.pendentes} pendentes`} ),
     el('span',{textContent:'•'}),
     el('span',{textContent:`${k.concluidas} concluídas • ${k.pctConcluidas}%`, className:'muted'})
@@ -113,21 +95,23 @@ function kpiRow(ac, list){
 
 function progress(ac, list){
   const k = ac.stats.kpiTarefas(list||[]);
-  const track = el('div',{className:'progress__track',style:'height:10px;border-radius:6px;background:#eef2f6;overflow:hidden'});
-  const bar = el('div',{className:'progress__bar',style:`height:10px;border-radius:6px;background:#0b65c2;width:${k.pctConcluidas}%;transition:width .25s ease`});
+  const track = el('div',{className:'miniapp__progress-track'});
+  const bar = el('div',{className:'miniapp__progress-bar'});
+  bar.style.width = `${k.pctConcluidas}%`;
   track.appendChild(bar);
   return track;
 }
 
 // ---------- UI principal ----------
 export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
-  if(!root) throw new Error('root inválido');
+  const host = ensureHost(root);
+  host.classList.add('miniapp','miniapp--tarefas');
 
   // Expor computeStatus do core para os helpers locais, se existir
   try{ window.__ac_core_tasks_compute__ = ac?.tasks?.computeStatus; }catch{}
 
-  const header = el('div',{className:'row',style:'justify-content:space-between;align-items:center;margin-bottom:8px'},[
-    el('h3',{textContent:'Tarefas', style:'margin:0;color:#0b65c2;font-size:1rem'}),
+  const header = el('div',{className:'row row--between row--center row--tight'},[
+    el('h3',{textContent:'Tarefas', className:'miniapp__title'}),
   ]);
 
   const kpiWrap = el('div');
@@ -142,30 +126,30 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   ]);
   const btnAppend = el('button',{className:'btn',textContent:'Adicionar modelo'});
   const btnReplace= el('button',{className:'btn',textContent:'Substituir lista'});
-  const modelsRow = el('div',{className:'row',style:'gap:.5rem;align-items:center;margin:8px 0'},[
+  const modelsRow = el('div',{className:'row row--center row--gap-sm'},[
     modelsSelect, btnAppend, btnReplace
   ]);
 
   // Form de nova tarefa
-  const inTitle = el('input',{type:'text',placeholder:'Nova tarefa',style:'flex:1;padding:8px;border:1px solid #d0d7e2;border-radius:8px'});
-  const inResp  = el('input',{type:'text',placeholder:'Responsável',style:'width:180px;padding:8px;border:1px solid #d0d7e2;border-radius:8px'});
-  const inDate  = el('input',{type:'date',style:'width:160px;padding:8px;border:1px solid #d0d7e2;border-radius:8px'});
+  const inTitle = el('input',{type:'text',placeholder:'Nova tarefa',className:'miniapp__input miniapp__input--flex'});
+  const inResp  = el('input',{type:'text',placeholder:'Responsável',className:'miniapp__input w-180'});
+  const inDate  = el('input',{type:'date',className:'miniapp__input w-160'});
   const btnAdd  = el('button',{className:'btn',textContent:'Adicionar'});
-  const addRow  = el('div',{className:'row',style:'gap:.5rem;align-items:center;margin:8px 0'},[inTitle,inResp,inDate,btnAdd]);
+  const addRow  = el('div',{className:'row row--center row--gap-sm'},[inTitle,inResp,inDate,btnAdd]);
 
   // Tabela
-  const table = el('table',{className:'table',style:'width:100%;border-collapse:separate;border-spacing:0 8px;margin-top:8px'});
+  const table = el('table',{className:'miniapp__table'});
   const thead = el('thead',{},[ el('tr',{},[
-    el('th',{textContent:'Tarefa',style:'text-align:left;padding:8px 10px;font-size:12px;color:#555;border-bottom:0;background:transparent'}),
-    el('th',{textContent:'Responsável',style:'text-align:left;padding:8px 10px;font-size:12px;color:#555;border-bottom:0;background:transparent'}),
-    el('th',{textContent:'Status',style:'text-align:left;padding:8px 10px;font-size:12px;color:#555;border-bottom:0;background:transparent'}),
-    el('th',{textContent:'Prazo',style:'text-align:left;padding:8px 10px;font-size:12px;color:#555;border-bottom:0;background:transparent'}),
-    el('th',{textContent:'Ações',style:'text-align:left;padding:8px 10px;font-size:12px;color:#555;border-bottom:0;background:transparent'})
+    el('th',{textContent:'Tarefa'}),
+    el('th',{textContent:'Responsável'}),
+    el('th',{textContent:'Status'}),
+    el('th',{textContent:'Prazo'}),
+    el('th',{textContent:'Ações'})
   ])]);
   const tbody = el('tbody');
   table.append(thead, tbody);
 
-  root.append(header, kpiWrap, progWrap, modelsRow, addRow, table);
+  host.append(header, kpiWrap, progWrap, modelsRow, addRow, table);
 
   // ------- Estado local (derivado do projeto) -------
   let currentId = getCurrentId?.();
@@ -194,10 +178,10 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
     list.forEach((t,i)=>{
       const tr = el('tr',{},[]);
 
-      const ti = el('input',{type:'text',value:t.titulo,style:'width:100%'});
+      const ti = el('input',{type:'text',value:t.titulo,className:'miniapp__input w-100'});
       ti.addEventListener('change', async ()=>{ await saveList((normed)=>{ normed[i].titulo = ti.value; }); });
 
-      const ri = el('input',{type:'text',value:t.responsavel||'',style:'width:100%'});
+      const ri = el('input',{type:'text',value:t.responsavel||'',className:'miniapp__input w-100'});
       ri.addEventListener('change', async ()=>{ await saveList((normed)=>{ normed[i].responsavel = ri.value; }); });
 
       const si = el('select',{},[
@@ -216,7 +200,7 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
         await rerender();
       });
 
-      const di = el('input',{type:'date',value:(t.prazo||'').slice(0,10),style:'width:100%'});
+      const di = el('input',{type:'date',value:(t.prazo||'').slice(0,10),className:'miniapp__input w-100'});
       di.addEventListener('change', async ()=>{
         await saveList((normed)=>{
           normed[i].prazo = di.value;
@@ -225,7 +209,7 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
         await rerender();
       });
 
-      const del = el('button',{className:'btn btn--ghost',title:'Remover',style:'min-width:36px'},['🗑']);
+      const del = el('button',{className:'btn btn--ghost miniapp__icon-btn',title:'Remover'},['🗑']);
       del.addEventListener('click', async ()=>{ await saveList((normed)=>{ normed.splice(i,1); }); await rerender(); });
 
       tr.append(
