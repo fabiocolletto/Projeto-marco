@@ -8,6 +8,7 @@ Este documento fornece um rápido resumo para quem automatiza tarefas neste repo
 - Ao modificar `apps/eventos.html`, garanta que o carregamento use `loadSharedModule`/`loadSharedModules` e que novos widgets sejam registrados via `miniAppSync`.
 - Sempre que criar ou alterar miniapps, atualize `docs/arquitetura.md`, `readme.md` e `log.md` com o motivo, uso futuro e instruções de montagem.
 - Evite `<style>` inline: carregue a base visual com `ensureSharedStyle('styles/app.css')` e promova utilitários visuais para `tools/shared/styles/`.
+- Durante implantações em WordPress/Elementor, garanta que o loader saiba qual branch consumir configurando `window.__MARCO_BRANCH__` (ou `configureSharedRuntime({ branch })`) antes de montar os miniapps.
 
 ## Convenções de Estilo
 - Nomeie arquivos JavaScript em `tools/shared/miniapps/` como `vN.mjs`, mantendo versionamento explícito.

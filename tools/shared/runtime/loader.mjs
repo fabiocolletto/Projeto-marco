@@ -3,17 +3,102 @@
 // Mantém a estratégia "shared" pública para que os apps orquestradores possam
 // montar miniapps sem duplicar lógica de import dinâmico.
 
-const CDN_BASES = [
-  'https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main/tools/shared/',
-  'https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main/tools/shared/'
-];
+const DEFAULT_BRANCH = 'main';
 
-const LOCAL_BASES = [
-  '../',                  // raiz de `tools/shared/`
-  './',                   // mesma pasta (para submódulos)
-  '../../shared/',        // fallback quando servido de `/tools/`
-  '/tools/shared/'        // absoluto quando hospedado na raiz do repositório
-];
+const runtimeConfig = {
+  repo: 'fabiocolletto/Projeto-marco',
+  branch: null,
+  cdnPatterns: [
+    'https://rawcdn.githack.com/${repo}/${branch}/tools/shared/',
+    'https://cdn.jsdelivr.net/gh/${repo}@${branch}/tools/shared/'
+  ],
+  localBases: [
+    '../',                  // raiz de `tools/shared/`
+    './',                   // mesma pasta (para submódulos)
+    '../../shared/',        // fallback quando servido de `/tools/`
+    '/tools/shared/'        // absoluto quando hospedado na raiz do repositório
+  ]
+};
+
+export function configureSharedRuntime(options = {}) {
+  const { branch, repo, cdnPatterns, localBases } = options;
+
+  if (typeof branch === 'string' && branch.trim()) {
+    runtimeConfig.branch = branch.trim();
+  }
+
+  if (typeof repo === 'string' && repo.trim()) {
+    runtimeConfig.repo = repo.trim();
+  }
+
+  if (Array.isArray(cdnPatterns) && cdnPatterns.length) {
+    runtimeConfig.cdnPatterns = [...cdnPatterns];
+  }
+
+  if (Array.isArray(localBases) && localBases.length) {
+    runtimeConfig.localBases = [...localBases];
+  }
+
+  return getSharedRuntimeConfig();
+}
+
+export function getSharedRuntimeConfig() {
+  return { ...runtimeConfig, branch: resolveBranch(false) };
+}
+
+function resolveBranch(setCache = true) {
+  if (runtimeConfig.branch) return runtimeConfig.branch;
+
+  let branch;
+
+  if (typeof globalThis !== 'undefined') {
+    const globalBranch = globalThis.__MARCO_BRANCH__ || globalThis.MARCO_BRANCH;
+    if (typeof globalBranch === 'string' && globalBranch.trim()) {
+      branch = globalBranch.trim();
+    }
+  }
+
+  if (!branch && typeof document !== 'undefined') {
+    const current = document.currentScript?.dataset?.marcoBranch;
+    const declared = document.querySelector?.('script[data-marco-branch]')?.dataset?.marcoBranch;
+    branch = (current || declared || '').trim() || undefined;
+  }
+
+  if (!branch && typeof window !== 'undefined' && typeof window.location === 'object') {
+    const params = new URLSearchParams(window.location.search || '');
+    branch = (params.get('branch') || params.get('marco-branch') || '').trim() || undefined;
+  }
+
+  if (!branch) branch = DEFAULT_BRANCH;
+
+  if (setCache) runtimeConfig.branch = branch;
+  return branch;
+}
+
+function resolveCdnBases() {
+  const branch = resolveBranch();
+  return (runtimeConfig.cdnPatterns || [])
+    .map(pattern => {
+      if (typeof pattern === 'function') {
+        return pattern({ ...runtimeConfig, branch });
+      }
+
+      if (typeof pattern === 'string') {
+        return pattern
+          .replace(/\$\{\s*repo\s*\}/g, runtimeConfig.repo)
+          .replace(/\$\{\s*branch\s*\}/g, branch)
+          .replace(/\/+$/, '/');
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+}
+
+function resolveLocalBases(extra = []) {
+  const bases = Array.isArray(runtimeConfig.localBases) ? runtimeConfig.localBases : [];
+  return [...extra, ...bases];
+}
 
 const pendingStyles = new Map();
 
@@ -28,7 +113,7 @@ async function tryImport(url, { verbose } = {}) {
 
 function buildAttempts(file, extraBases = []) {
   const normalized = String(file || '').replace(/^\/+/, '');
-  const bases = [...extraBases, ...LOCAL_BASES, ...CDN_BASES];
+  const bases = [...resolveLocalBases(extraBases), ...resolveCdnBases()];
   const attempts = [];
 
   for (const base of bases) {
@@ -63,8 +148,6 @@ export async function loadSharedModule(file, options = {}) {
 export async function loadSharedModules(files, options = {}) {
   return Promise.all((files || []).map(file => loadSharedModule(file, options)));
 }
-
-export { CDN_BASES };
 
 function ensureDocument() {
   if (typeof document === 'undefined') {

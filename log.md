@@ -1,5 +1,8 @@
 # Histórico do Projeto
 
+## 2025-10-11
+- Loader do shared agora aceita configuração de branch durante implantações (query string, variável global ou `configureSharedRuntime`). Documentação geral, guia arquitetural, agent e README do catálogo foram atualizados com o passo a passo para apontar o app de Eventos ao branch em homologação.
+
 ## 2025-10-10
 - Unificação do CSS compartilhado em `styles/app.css`, substituindo as três folhas anteriores. `apps/eventos.html` agora carrega uma única folha via `ensureSharedStyle('styles/app.css')`, e a documentação (README, arquitetura, agent, catálogo de shared) foi atualizada para orientar novos miniapps a reutilizar essa base responsiva.
 

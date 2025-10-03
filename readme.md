@@ -47,6 +47,15 @@ Seguir essa metodologia garante que a equipe replique o mesmo modo de trabalhar 
 
 Para casos excepcionalmente específicos, crie o módulo em `tools/unique/` seguindo as regras descritas naquele README e registre o motivo na documentação.
 
+## Implantação apontando para um branch específico
+Durante homologações e implantações parciais em WordPress/Elementor, o loader precisa resolver os módulos diretamente do branch ativo para que CSS e miniapps reflitam as alterações em andamento. A partir de `tools/shared/runtime/loader.mjs` é possível informar o branch de três maneiras:
+
+1. **Query string** – acrescente `?branch=<nome-do-branch>` (ou `?marco-branch=`) ao URL que hospeda o aplicativo. O loader captura esse parâmetro automaticamente.
+2. **Variável global** – antes de carregar o loader, defina `window.__MARCO_BRANCH__ = '<nome-do-branch>';`. Esse padrão funciona bem em widgets Elementor onde controlamos um bloco `<script>` inicial.
+3. **Atributo no `<script>`** – ao importar o loader via `<script type="module" data-marco-branch="<nome>">`, o atributo `data-marco-branch` será lido como fonte da verdade.
+
+Caso nenhum mecanismo seja informado, o branch padrão continua sendo `main`. Utilize sempre o mesmo branch para folha de estilo e módulos JavaScript a fim de evitar versões desencontradas durante a implantação.
+
 ## Build e Testes
 1. **Instalação de dependências**: assegure-se de utilizar Node.js 18+ e execute `npm install` na raiz assim que o `package.json` estiver disponível. Até lá, os protótipos podem ser servidos com `npx serve apps` para desenvolvimento local.
 2. **Build**: utilize `npm run build` para gerar artefatos otimizados quando os pipelines forem configurados. Para protótipos estáticos, exporte a pasta `apps/` diretamente.

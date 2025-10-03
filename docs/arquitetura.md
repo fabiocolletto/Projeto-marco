@@ -41,6 +41,7 @@ Todos os miniapps devem receber essas dependências como parâmetros explícitos
 - O arquivo `tools/shared/runtime/loader.mjs` centraliza o algoritmo de import dinâmico. Ele tenta carregar primeiro dos caminhos locais (`../`, `./`, `/tools/shared/`) e, em seguida, das CDNs públicas (`rawcdn.githack` e `jsDelivr`).
 - Os orquestradores devem preferir `loadSharedModule('<subpasta/arquivo>')` para resolver dependências compartilhadas, evitando que cada app replique listas de URLs ou tratamentos de fallback.
 - O loader exporta também `loadSharedModules([...])`, útil para resolver pacotes em paralelo durante o bootstrap e manter o tempo de montagem previsível, e `ensureSharedStyle('styles/app.css')` para injetar a folha de estilo compartilhada sem duplicar `<style>` inline.
+- Durante implantações em um branch específico, informe o alvo via query string (`?branch=`/`?marco-branch=`), variável global (`window.__MARCO_BRANCH__`) ou atributo `data-marco-branch` no `<script type="module">`. O helper `configureSharedRuntime({ branch: 'feature-x' })` também pode ser chamado logo após importar o loader para fixar o branch em ambientes gerenciados.
 - Ao promover um módulo de `unique` para `shared`, lembre-se de atualizar o README do app orquestrador para apontar para o caminho canônico em `tools/shared/`.
 - Para coordenar a montagem única dos widgets, utilize `core/miniAppSync.mjs`, que expõe `ensureMiniApp` e `createMiniAppSync` e substitui flags manuais em `dataset`.
 

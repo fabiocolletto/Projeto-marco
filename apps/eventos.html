@@ -307,6 +307,8 @@
   </main>
 
   <script type="module">
+    // Para testar um branch específico durante a implantação, defina
+    // `window.__MARCO_BRANCH__` ou adicione `?branch=` à URL antes de carregar este módulo.
     import { loadSharedModule, ensureSharedStyle } from '../tools/shared/runtime/loader.mjs';
 
     await ensureSharedStyle('styles/app.css', { key: 'ac-shared-styles' });

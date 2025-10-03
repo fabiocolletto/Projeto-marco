@@ -10,6 +10,7 @@ Este diretório concentra os módulos reutilizáveis do Projeto Marco, organizad
 
 ## Convenções rápidas
 - Prefira `loadSharedModule('core/projectStore.js')` (ou caminhos equivalentes) para resolver dependências. O loader tenta caminhos locais e, em fallback, as CDNs oficiais (`rawcdn.githack`, `jsDelivr`).
+- Para implantações que apontam para um branch diferente de `main`, defina `window.__MARCO_BRANCH__ = '<branch>'` antes de carregar o loader, acrescente `?branch=<branch>` na URL do host ou invoque `configureSharedRuntime({ branch: '<branch>' })` após importar `runtime/loader.mjs`.
 - Miniapps devem depender apenas de `ac`, `store`, `bus` e `getCurrentId`, recebidos como parâmetros de `mount…MiniApp`.
 - Use `core/miniAppSync.mjs` (`createMiniAppSync` / `ensureMiniApp`) para evitar flags manuais (`dataset.mounted`) ao montar widgets a partir dos apps em `apps/`.
 - Qualquer duplicação encontrada em novos miniapps deve ser extraída para `utils/` e reaproveitada.
