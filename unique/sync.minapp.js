@@ -1,14 +1,15 @@
-// /unique/sync.minapp.js — v1.1 (adapters completos + credential gate modal)
+// /unique/sync.minapp.js — v1.2 (credential gate inline + prioridade de validação)
 // Mini‑App de Sincronização (Google Drive appDataFolder + OneDrive App Folder)
 // Exporta: mountSyncMiniApp(host, { ac, store, bus, getCurrentId })
 //
-// Principais ajustes desta v1.1:
-// - Mantém os adapters completos (Google GIS + MSAL) e PUSH/PULL originais.
-// - Adiciona "Credential Gate" com modal obrigatório quando há backup remoto
-//   e não existem credenciais locais (telefone BR + senha). Também pode ser
-//   aberto via botão. Não reduz funcionalidades da v1 original.
-// - Não realiza logout global ao "desativar" provedores — apenas para a
-//   sincronização do Mini‑App (conforme decisão do projeto).
+// O que mudou nesta v1.2 (ajuste pontual conforme prints):
+// 1) A PRIMEIRA validação agora é de credenciais (telefone BR + senha). Se não houver,
+//    o mini‑app revela um formulário inline (sem pop‑up) e bloqueia o login nos provedores
+//    até o usuário definir as credenciais.
+// 2) O formulário inline também aparece automaticamente quando já existe dado local ou
+//    backup remoto e não há credenciais salvas neste dispositivo.
+// 3) Removidos alerts para falhas comuns; o status/detalhe do card mostra os avisos.
+// 4) Mantidos adapters completos (GIS/MSAL) e fluxo de push/pull.
 
 // ======================== Config & Consts ========================
 const SYNC_CFG = (window.__SYNC_CONFIG && window.__SYNC_CONFIG.sync) || window.__SYNC_CONFIG || {};
@@ -50,7 +51,6 @@ function nowTs(){ return Date.now(); }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
 // ==================== KDF + AES‑GCM (WebCrypto) ====================
-// PBKDF2 MVP (telefone+senha). Futuro: Argon2id.
 async function deriveKeyPBKDF2(phone, password, saltB64, iters=310_000){
   const salt = saltB64? b64uToBytes(saltB64) : crypto.getRandomValues(new Uint8Array(16));
   const keyMaterial = await crypto.subtle.importKey("raw", txtenc((phone||"")+":"+password), "PBKDF2", false, ["deriveKey"]);
@@ -91,14 +91,15 @@ function phoneHint(phone){ return phone ? (phone.slice(0,2)+"•••••"+ph
 const State = {
   googleOn: false,
   msOn: false,
-  mode: "Desativado",     // "Ativo" | "Espelhando" | "Desativado" | "Standby" | "Atenção" | "Degradado" | "Atualizado…"
+  mode: "Desativado",     // "Ativo" | "Espelhando" | "Desativado" | "Standby" | "Atenção" | "Degradado" | "Atualizando…"
   detail: "—",
   lastPushAt: 0,
   pushing: false,
   pollingTimer: null,
   standbyTimer: null,
   phone: null,
-  kdf: null,              // { key, saltB64, iterations }
+  _passCache: null,        // senha em memória (nunca persistir)
+  kdf: null,               // { key, saltB64, iterations }
   lastSnapshotMeta: { updatedAt: 0, ownerDeviceId: null },
   google: { has: false, id:null, etag: null, modifiedTime: null, degraded: false },
   ms:     { has: false, etag: null, lastModified: null, degraded: false }
@@ -292,8 +293,9 @@ async function doPush(ui){
   State.pushing=true; setStatus(ui, "Atualizando…", "Publicando alterações");
   try{
     const snap = await buildSnapshotFromStore(ui.ctx.store); snap.ownerDeviceId=DEVICE_ID; State.lastSnapshotMeta={ updatedAt:snap.updatedAt, ownerDeviceId:snap.ownerDeviceId };
-    if(!State.kdf){ // exibe modal obrigatório
-      openCredsModal(ui, { mode: (State.google.has||State.ms.has)?'unlock':'create', reason:"CRIPTO_MISSING" });
+    if(!State.kdf){
+      // Sem credenciais → bloqueia e mostra formulário inline
+      revealCreds(ui, "Defina telefone e senha para cifrar.");
       throw new Error("CRIPTO_MISSING");
     }
     const { iv, ciphertext } = await aesEncryptJSON(snap, State.kdf.key);
@@ -313,7 +315,7 @@ async function doPush(ui){
     setStatus(ui, "Atualizado", "Sincronizado"); _lastPush = nowTs();
   }catch(err){
     if(String(err).includes("PAYLOAD_TOO_BIG")) setStatus(ui, "Atenção", "Limite de 5 MB excedido");
-    else if(String(err).includes("CRIPTO_MISSING")) setStatus(ui, "Atenção", "Defina telefone e senha para cifrar");
+    else if(String(err).includes("CRIPTO_MISSING")) setStatus(ui, "Atenção", "Credenciais necessárias");
     else setStatus(ui, "Degradado", "Erro no backup (ver console)");
     console.warn("[SYNC] doPush error:", err);
   }finally{ State.pushing=false; }
@@ -328,7 +330,15 @@ async function pullIfChanged(ui, { quick=false }={}){
   if(!newerThanLocal && quick) return;
   let text=null; if(newest.who==="google"){ const f = await Google.listAppFile(); if(!f) return; text = await Google.getFileContent(f.id); } else { text = await MS.getContent(); }
   const bundle = JSON.parse(text||"{}");
-  if(!State.kdf){ openCredsModal(ui, { mode:'unlock', reason:'NEED_CREDENTIALS' }); throw new Error("NEED_CREDENTIALS"); }
+
+  // Se não temos KDF ainda, tentamos derivar usando o salt remoto (precisa de phone+senha do form)
+  if(!State.kdf){
+    if(!State.phone || !State._passCache){ revealCreds(ui, "Informe telefone e senha para abrir o backup remoto."); throw new Error("NEED_CREDENTIALS"); }
+    const remoteSalt = bundle?.kdf?.salt; const iters = bundle?.kdf?.iterations || 310000;
+    const { key, saltB64, iterations } = await deriveKeyPBKDF2(State.phone, State._passCache, remoteSalt, iters);
+    State.kdf = { key, saltB64, iterations };
+  }
+
   const snap = await aesDecryptJSON(bundle, State.kdf.key);
   if(Array.isArray(snap.metas) && snap.map){
     const metasLocal = ui.ctx.store.listProjects?.() || [];
@@ -342,80 +352,60 @@ async function pullIfChanged(ui, { quick=false }={}){
   }
 }
 
-// =================== Credential Gate (modal) ===================
-function openCredsModal(ui, { mode='create', reason='' }={}){
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay';
-  overlay.innerHTML = `
-    <div class="modal-card">
-      <h3 style="margin:0 0 8px 0">${mode==='unlock'?'Desbloquear backup':'Criar proteção'}</h3>
-      <p class="small muted" style="margin:0 0 8px 0">Informe <strong>telefone (DDD+9 dígitos)</strong> e <strong>senha</strong>.
-        ${reason?`<br><em>${reason==='NEED_CREDENTIALS'?'Este dispositivo ainda não possui as credenciais.':'Credenciais ausentes para publicar.'}</em>`:''}
-      </p>
-      <div class="field"><label class="small">Telefone</label><input id="inPhone" type="tel" inputmode="numeric" maxlength="11" placeholder="41999999999" /></div>
-      <div class="field"><label class="small">Senha</label><input id="inPass" type="password" autocomplete="new-password" /></div>
-      <div class="row" style="gap:8px;justify-content:flex-end;margin-top:10px">
-        <button id="mCancel" class="btn btn--ghost" type="button">Cancelar</button>
-        <button id="mOk" class="btn" type="button">${mode==='unlock'?'Desbloquear':'Ativar proteção'}</button>
-      </div>
-      <div id="mErr" class="small" style="color:#b00020;margin-top:6px;display:none"></div>
-    </div>`;
-  Object.assign(overlay.style, {position:'fixed',inset:'0',background:'rgba(0,0,0,.35)',display:'grid',placeItems:'center',zIndex:9999});
-  const card = overlay.querySelector('.modal-card');
-  Object.assign(card.style, {background:'#fff',borderRadius:'12px',padding:'16px',minWidth:'min(480px, 96vw)',boxShadow:'0 10px 30px rgba(0,0,0,.2)'});
-  document.body.appendChild(overlay);
-  const mCancel=overlay.querySelector('#mCancel'); const mOk=overlay.querySelector('#mOk'); const inPhone=overlay.querySelector('#inPhone'); const inPass=overlay.querySelector('#inPass'); const mErr=overlay.querySelector('#mErr');
-  inPhone.focus();
-  mCancel.addEventListener('click', ()=> overlay.remove());
-  mOk.addEventListener('click', async()=>{
-    const phoneRaw = (inPhone.value||'').replace(/\D+/g,''); const pass = inPass.value||'';
-    if(!/^\d{11}$/.test(phoneRaw)){ mErr.textContent='Telefone deve ter 11 dígitos (DDD + 9).'; mErr.style.display='block'; return; }
-    if(pass.length<8){ mErr.textContent='Senha deve ter pelo menos 8 caracteres.'; mErr.style.display='block'; return; }
-    try{
-      overlay.style.pointerEvents='none'; overlay.style.opacity='.85';
-      // Deriva e/ou verifica
-      const { key, saltB64, iterations } = await deriveKeyPBKDF2(phoneRaw, pass);
-      // Se modo unlock e existir remoto, podemos validar pelo menos o formato do bundle ao decifrar depois.
-      State.phone = phoneRaw; State.kdf = { key, saltB64, iterations };
-      overlay.remove(); setStatus(ui, State.mode==="Espelhando"?"Espelhando":"Atualizado", "Credenciais definidas");
-    }catch(e){ mErr.textContent = (e&&e.message)||'Falha ao definir credenciais.'; mErr.style.display='block'; }
-  });
+// =================== Credential Gate (inline) ===================
+function revealCreds(ui, msg){ show(ui.lockWrap, true); setText(ui.lockMsg, msg||""); }
+async function setCredentials(ui){
+  try{
+    const phone = normalizePhoneBR(ui.inPhone.value);
+    const pass = String(ui.inPass.value||"");
+    if(pass.length < 8) throw new Error("Senha precisa de pelo menos 8 caracteres.");
+    State.phone = phone; State._passCache = pass;
+    // Deriva com salt local por enquanto; se abrirmos um backup remoto depois e o salt for outro,
+    // rederivamos no pull usando o salt do bundle.
+    const { key, saltB64, iterations } = await deriveKeyPBKDF2(phone, pass, null, 310000);
+    State.kdf = { key, saltB64, iterations };
+    show(ui.lockWrap, false);
+    setStatus(ui, State.mode==="Espelhando"?"Espelhando":"Atualizado", "Credenciais definidas");
+  }catch(e){ ui.lockErr.textContent = e.message||String(e); ui.lockErr.style.display='block'; }
 }
 
-// =================== Control takeover ===================
+// =================== “Tomar controle” (manual) ===================
 async function takeControl(ui){
   try{
     await pullIfChanged(ui, { quick:true });
     const snap = await buildSnapshotFromStore(ui.ctx.store); snap.ownerDeviceId = DEVICE_ID; snap.updatedAt = nowTs();
-    if(!State.kdf) { openCredsModal(ui, { mode:(State.google.has||State.ms.has)?'unlock':'create', reason:'NEED_CREDENTIALS' }); throw new Error('Defina telefone e senha.'); }
+    if(!State.kdf) { revealCreds(ui, "Defina telefone e senha."); throw new Error('NO_CREDS'); }
     const { iv, ciphertext } = await aesEncryptJSON(snap, State.kdf.key);
     const payload = JSON.stringify({ version:snap.version, kdf:{ algo:'PBKDF2', iterations: State.kdf.iterations, salt: State.kdf.saltB64 }, iv, ciphertext, phone_hint: phoneHint(State.phone), updatedAt: snap.updatedAt, ownerDeviceId: snap.ownerDeviceId });
     if(State.msOn){ const meta = await MS.getMeta(); await MS.putContent(payload, meta?.eTag); State.ms.etag = (await MS.getMeta())?.eTag || null; }
     if(State.googleOn){ const f = await Google.listAppFile(); await Google.createOrUpdate(payload, f?.id); }
     setStatus(ui, "Ativo", "Este dispositivo assumiu o controle"); stopPolling();
-  }catch(e){ if(String(e).includes("MS_PRECOND")) alert("Outro dispositivo alterou o arquivo agora há pouco. Tente novamente."); else alert("Não foi possível assumir o controle: "+(e.message||e)); }
+  }catch(e){ setStatus(ui, "Atenção", (e&&e.message)||"Não foi possível assumir o controle"); }
 }
 
-// =================== Providers ON/OFF ===================
+// =================== Providers ON/OFF (com guarda de credenciais) ===================
 async function toggleGoogle(ui){
+  // 1ª validação: se não há credenciais, mostrar campos e sair
+  if(!State.kdf && (!State.phone || !State._passCache)){ revealCreds(ui, "Informe telefone e senha para continuar com o Google Drive."); return; }
   if(!State.googleOn){
     try{
       await Google.tokenInteractive(); State.googleOn = true; markProvider(ui,"google",{on:true});
       setStatus(ui, State.mode==="Desativado"?"Espelhando":State.mode, "Google conectado");
-      const f = await Google.listAppFile(); if(f){ State.google.has=true; State.google.id=f.id; if(!State.kdf) openCredsModal(ui, { mode:'unlock' }); }
-    }catch(e){ alert("Google: não foi possível conectar."); }
+      try{ const f = await Google.listAppFile(); if(f){ State.google.has=true; State.google.id=f.id; } }catch{}
+    }catch(e){ setStatus(ui, "Atenção", "Google: não foi possível conectar"); }
   }else{
     State.googleOn = false; markProvider(ui,"google",{on:false}); setStatus(ui, "Atualizado", "Google desconectado deste Mini‑App");
   }
 }
 
 async function toggleMS(ui){
+  if(!State.kdf && (!State.phone || !State._passCache)){ revealCreds(ui, "Informe telefone e senha para continuar com o OneDrive."); return; }
   if(!State.msOn){
     try{
       await MS.tokenInteractive(); State.msOn = true; markProvider(ui,"ms",{on:true});
       setStatus(ui, State.mode==="Desativado"?"Espelhando":State.mode, "OneDrive conectado");
-      const m = await MS.getMeta(); if(m){ State.ms.has=true; if(!State.kdf) openCredsModal(ui, { mode:'unlock' }); }
-    }catch(e){ alert("OneDrive: não foi possível conectar."); }
+      try{ const m = await MS.getMeta(); if(m){ State.ms.has=true; } }catch{}
+    }catch(e){ setStatus(ui, "Atenção", "OneDrive: não foi possível conectar"); }
   }else{
     State.msOn = false; markProvider(ui,"ms",{on:false}); setStatus(ui, "Atualizado", "OneDrive desconectado deste Mini‑App");
   }
@@ -423,22 +413,32 @@ async function toggleMS(ui){
 
 // =================== Montagem ===================
 export function mountSyncMiniApp(host, ctx){
-  const ui = { ctx, card: host.closest(".mini.kpi") || null, statusEl:null, detailEl:null, gBtn:null, mBtn:null, takeBtn:null, gStatus:null, mStatus:null };
+  const ui = { ctx, card: host.closest(".mini.kpi") || null, statusEl:null, detailEl:null, gBtn:null, mBtn:null, takeBtn:null, gStatus:null, mStatus:null, lockWrap:null, lockMsg:null, inPhone:null, inPass:null, lockErr:null };
+
   // Layout (herda CSS do app)
   const statusRow = el("div", { class:"hbar-legend" }, el("span", { id:"sync_status" }, "Desativado"), el("span", { id:"sync_detail", class:"muted" }, "—") );
-  const providersRow = el("div", { style:"display:flex; gap:8px; alignItems:center; margin-top:8px" },
+  const providersRow = el("div", { style:"display:flex; gap:8px; align-items:center; margin-top:8px" },
     ui.gBtn = el("button", { class:"edit-btn", title:"Google Drive", onclick:()=>toggleGoogle(ui) }, "Google Drive"),
     ui.gStatus = el("span", { class:"small muted" }, "—"), el("span", { style:"width:12px" }),
     ui.mBtn = el("button", { class:"edit-btn", title:"OneDrive", onclick:()=>toggleMS(ui) }, "OneDrive"),
     ui.mStatus = el("span", { class:"small muted" }, "—")
   );
-  const actionsRow = el("div", { style:"display:flex; gap:8px; alignItems:center; margin-top:8px" },
+  const actionsRow = el("div", { style:"display:flex; gap:8px; align-items:center; margin-top:8px" },
     ui.takeBtn = el("button", { class:"edit-btn", title:"Tomar controle", onclick:()=>takeControl(ui) }, "Tomar controle"),
-    el("button", { class:"edit-btn", title:"Sincronizar agora", onclick:()=>doPush(ui) }, "Sincronizar agora"),
-    el("button", { class:"edit-btn", title:"Definir telefone e senha", onclick:()=>openCredsModal(ui, { mode:(State.google.has||State.ms.has)?'unlock':'create' }) }, "Definir telefone e senha")
+    el("button", { class:"edit-btn", title:"Sincronizar agora", onclick:()=>doPush(ui) }, "Sincronizar agora")
   );
-  host.appendChild(statusRow); host.appendChild(providersRow); host.appendChild(actionsRow);
-  ui.statusEl = statusRow.querySelector('#sync_status'); ui.detailEl = statusRow.querySelector('#sync_detail');
+  const lockBox = el("div", { style:"display:none; margin-top:10px; padding:8px; border:1px solid #eee; border-radius:8px; background:#fafafa" },
+    ui.lockMsg = el("div", { class:"small", style:"margin-bottom:6px" }, "Informe telefone e senha para abrir o backup."),
+    el("div", { style:"display:flex; gap:8px; flex-wrap:wrap; align-items:center" },
+      ui.inPhone = el("input", { type:"tel", placeholder:"Telefone (DDD+9 dígitos)", inputmode:"numeric", maxlength:"11" }),
+      ui.inPass  = el("input", { type:"password", placeholder:"Senha (mín. 8)", autocomplete:"new-password" }),
+      el("button", { class:"edit-btn", onclick:()=>setCredentials(ui) }, "Definir")
+    ),
+    ui.lockErr = el("div", { class:"small", style:"color:#b00020; margin-top:6px; display:none" }, "")
+  );
+
+  host.appendChild(statusRow); host.appendChild(providersRow); host.appendChild(actionsRow); host.appendChild(lockBox);
+  ui.statusEl = statusRow.querySelector('#sync_status'); ui.detailEl = statusRow.querySelector('#sync_detail'); ui.lockWrap = lockBox;
 
   // Estado inicial
   setStatus(ui, "Desativado", "Escolha um provedor para começar");
@@ -450,12 +450,14 @@ export function mountSyncMiniApp(host, ctx){
   // Standby quando ocioso/oculto
   setupStandby(ui);
 
-  // Estado local define modo inicial (local-first vs espelhando)
+  // Exibir gate de credenciais automaticamente se: já há dados locais OU encontrarmos remoto após conectar
   try{
     const metas = ctx.store.listProjects?.() || [];
     if(metas.length>0){
       State.lastSnapshotMeta.updatedAt = metas.reduce((mx,m)=> Math.max(mx, (ctx.store.getProject?.(m.id)?.updatedAt||0)), 0);
       setStatus(ui, "Ativo", "Local-first; conecte um provedor para espelhar");
+      // Se não há credenciais e já existe sistema em andamento, pedir já
+      if(!State.kdf){ revealCreds(ui, "Defina telefone e senha para cifrar."); }
     }else{
       setStatus(ui, "Espelhando", "Sem dados locais; conecte e abra do backup");
     }
