@@ -1,8 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
-import { createServer } from 'http';
 import { readFile } from 'fs/promises';
 import path from 'path';
-import type { Server } from 'http';
 import type { TestInfo } from '@playwright/test';
 
 type WeddingFixture = {
@@ -52,54 +50,6 @@ type WeddingFixture = {
   };
 };
 
-const contentTypes: Record<string, string> = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-};
-
-async function createStaticServer(): Promise<{ server: Server; url: string }>{
-  const rootDir = path.resolve(process.cwd());
-  const server = createServer(async (req, res) => {
-    const rawPath = decodeURIComponent(req.url?.split('?')[0] ?? '/');
-    try {
-      const relPath = rawPath === '/' ? 'apps/eventos.html' : rawPath.replace(/^\/+/, '');
-      const normalized = path.normalize(relPath);
-      const filePath = path.join(rootDir, normalized);
-      const relative = path.relative(rootDir, filePath);
-      if (relative.startsWith('..') || path.isAbsolute(relative)) {
-        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Forbidden');
-        return;
-      }
-      const data = await readFile(filePath);
-      const ext = path.extname(filePath).toLowerCase();
-      const contentType = contentTypes[ext] ?? 'application/octet-stream';
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(data);
-    } catch (error) {
-      res.writeHead(rawPath === '/' ? 500 : 404, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('Not found');
-    }
-  });
-
-  await new Promise<void>((resolve) => {
-    server.listen(0, '127.0.0.1', () => resolve());
-  });
-
-  const address = server.address();
-  if (!address || typeof address === 'string') {
-    server.close();
-    throw new Error('Servidor HTTP não pôde ser inicializado');
-  }
-
-  const url = `http://127.0.0.1:${address.port}/apps/eventos.html`;
-  return { server, url };
-}
-
 async function ensureBootstrap(page: Page): Promise<void> {
   await page.waitForSelector('#chipReady', { state: 'visible', timeout: 20000 });
   let optionCount = await page.locator('#switchEvent option').count();
@@ -128,44 +78,15 @@ async function ensureBootstrap(page: Page): Promise<void> {
 }
 
 test.describe('Eventos — fluxo visual', () => {
-  let server: Server;
-  let pageUrl: string;
   const fixturePath = path.resolve(__dirname, 'fixtures', 'casamento-evento.json');
-  const tarefasModulePath = path.resolve(__dirname, '..', '..', 'tools', 'unique', 'tarefas.mjs');
-  let tarefasPatchedBody: string | undefined;
-
-  test.beforeAll(async () => {
-    const handle = await createStaticServer();
-    server = handle.server;
-    pageUrl = handle.url;
-    const rawTarefas = await readFile(tarefasModulePath, 'utf-8');
-    const trimmed = rawTarefas.trimEnd();
-    tarefasPatchedBody = trimmed.endsWith('}') ? trimmed : `${trimmed}\n}\n`;
-  });
-
-  test.afterAll(async () => {
-    await new Promise<void>((resolve) => {
-      server.close(() => resolve());
-    });
-  });
-
   test('captura estados críticos e valida interações', async ({ page }, testInfo: TestInfo) => {
-    if (tarefasPatchedBody) {
-      await page.route('**/tools/unique/tarefas.mjs', async (route) => {
-        await route.fulfill({
-          status: 200,
-          contentType: 'text/javascript; charset=utf-8',
-          body: tarefasPatchedBody!,
-        });
-      });
-    }
     page.on('console', (msg) => {
       console.log(`[console] ${msg.type()}: ${msg.text()}`);
     });
     page.on('pageerror', (err) => {
       console.error(`[pageerror] ${err.message}`);
     });
-    await page.goto(pageUrl, { waitUntil: 'networkidle' });
+    await page.goto('/', { waitUntil: 'networkidle' });
 
     await expect(page.locator('#switchEvent')).toBeVisible();
     await ensureBootstrap(page);

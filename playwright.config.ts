@@ -10,6 +10,13 @@ export default defineConfig({
     headless: true,
     viewport: { width: 1280, height: 720 },
     ignoreHTTPSErrors: true,
+    baseURL: 'http://127.0.0.1:4173',
+  },
+  webServer: {
+    command: 'npm --workspace web run preview -- --host 0.0.0.0 --port 4173',
+    url: 'http://127.0.0.1:4173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120_000,
   },
   reporter: [['list']],
 });
