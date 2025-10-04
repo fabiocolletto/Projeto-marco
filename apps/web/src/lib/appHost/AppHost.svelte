@@ -1,9 +1,11 @@
+<svelte:options runes={false} />
+
 <script lang="ts">
   import { createEventDispatcher, onMount, setContext } from 'svelte';
   import type { ComponentType } from 'svelte';
   import { get } from 'svelte/store';
-import MiniAppBase from '$lib/components/miniAppBase/MiniAppBase.svelte';
-import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
+  import MiniAppBase from '$lib/components/miniAppBase/MiniAppBase.svelte';
+  import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   import { projectData } from '$lib/data/projects';
   import { bus } from '@marco/platform/bus';
   import manifestDefault, {
@@ -162,63 +164,60 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   <title>Gerenciar Eventos — Hub de Verticais</title>
 </svelte:head>
 
-<AppBaseLayout
-  class="app-host"
-  top={() => (
-    <div class="app-host__header">
-      <div>
-        <h1>Gestão de eventos</h1>
-        <p>Selecione um mini-app para continuar.</p>
-      </div>
+<AppBaseLayout className="app-host">
+  <div slot="top" class="app-host__header">
+    <div>
+      <h1>Gestão de eventos</h1>
+      <p>Selecione um mini-app para continuar.</p>
     </div>
-  )}
-  nav={() => (
-    <ul class="app-host__nav">
-      {#each manifestList as entry (entry.id)}
-        <li>
-          <button
-            type="button"
-            class:active={entry.id === activeId}
-            on:click={() => handleSelect(entry.id)}
-          >
-            <span class="icon" aria-hidden="true">{entry.icon}</span>
-            <span class="label">{entry.label}</span>
-          </button>
-        </li>
-      {/each}
-    </ul>
-  )}
-  app={() => (
-    <div class="app-host__canvas">
-      <div class="app-host__workspace">
-        <MiniAppBase class="app-host__miniapp-base" />
-        {#if loading}
-          <div class="app-host__stage app-host__stage--status">
-            <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
-          </div>
-        {:else if error}
-          <div class="app-host__stage app-host__stage--status">
-            <div class="app-host__error" role="alert">
-              <strong>Erro ao carregar módulo.</strong>
-              <pre>{error.message}</pre>
-            </div>
-          </div>
-        {:else if component}
-          <div class="app-host__stage app-host__stage--component">
-            <svelte:component this={component} {...componentProps} />
-          </div>
-        {:else}
-          <div class="app-host__stage app-host__stage--placeholder">
-            <div class="app-host__stage-placeholder">
-              <h2>Tela inicial dos mini apps</h2>
-              <p>Escolha uma vertical na navegação lateral para começar.</p>
-            </div>
-          </div>
-        {/if}
+  </div>
+
+  <ul slot="nav" class="app-host__nav">
+    {#each manifestList as entry (entry.id)}
+      <li>
+        <button
+          type="button"
+          class:active={entry.id === activeId}
+          onclick={() => handleSelect(entry.id)}
+        >
+          <span class="icon" aria-hidden="true">{entry.icon}</span>
+          <span class="label">{entry.label}</span>
+        </button>
+      </li>
+    {/each}
+  </ul>
+
+  <div slot="app" class="app-host__canvas">
+    <div class="app-host__workspace">
+      <div class="app-host__miniapp-base">
+        <MiniAppBase />
       </div>
+      {#if loading}
+        <div class="app-host__stage app-host__stage--status">
+          <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
+        </div>
+      {:else if error}
+        <div class="app-host__stage app-host__stage--status">
+          <div class="app-host__error" role="alert">
+            <strong>Erro ao carregar módulo.</strong>
+            <pre>{error.message}</pre>
+          </div>
+        </div>
+      {:else if component}
+        <div class="app-host__stage app-host__stage--component">
+          <svelte:component this={component} {...componentProps} />
+        </div>
+      {:else}
+        <div class="app-host__stage app-host__stage--placeholder">
+          <div class="app-host__stage-placeholder">
+            <h2>Tela inicial dos mini apps</h2>
+            <p>Escolha uma vertical na navegação lateral para começar.</p>
+          </div>
+        </div>
+      {/if}
     </div>
-  )}
-/>
+  </div>
+</AppBaseLayout>
 
 <style>
   .app-host__header {

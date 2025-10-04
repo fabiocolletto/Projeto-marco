@@ -11,10 +11,19 @@
     %sveltekit.head%
     <link rel="stylesheet" href="/bundle/app-base.css" data-app-base="local" />
     <script type="module" src="/bundle/app-host.js" defer data-app-base="local"></script>
+    <script>
+      window.addEventListener('sveltekit:start', () => {
+        document.querySelector('[data-app-base-fallback]')?.remove();
+      });
+    </script>
   </head>
   <body class="app-base-body" data-sveltekit-preload-data="hover">
     <div class="app-base-root">
-      <div class="app-base-layout grid min-h-screen grid-rows-[auto,1fr] bg-surface-muted text-ink">
+      %sveltekit.body%
+      <div
+        class="app-base-layout grid min-h-screen grid-rows-[auto,1fr] bg-surface-muted text-ink"
+        data-app-base-fallback
+      >
         <header class="app-base-layout__top border-b border-surface-muted bg-surface px-6 py-4 shadow-sm">
           <div class="app-base-topbar flex items-center justify-between gap-4">
             <div class="app-base-topbar__branding">

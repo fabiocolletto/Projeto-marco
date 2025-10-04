@@ -1,15 +1,17 @@
-<script lang="ts">
-        import '../app.css';
-        import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
-        import favicon from '$lib/assets/favicon.svg';
+<svelte:options runes={false} />
 
-        let { children } = $props();
+<script lang="ts">
+  import '../app.css';
+  import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
+  import favicon from '$lib/assets/favicon.svg';
 </script>
 
 <svelte:head>
-        <link rel="icon" href={favicon} />
+  <link rel="icon" href={favicon} />
 </svelte:head>
 
 <AppBaseLayout>
-        {@render children?.()}
+  <svelte:fragment slot="app">
+    <slot />
+  </svelte:fragment>
 </AppBaseLayout>

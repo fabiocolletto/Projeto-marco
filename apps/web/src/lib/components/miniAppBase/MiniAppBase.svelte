@@ -1,8 +1,10 @@
+<svelte:options runes={false} />
+
 <script lang="ts">
   import { userProfile } from '$lib/data/userProfile';
   import type { UserProfileState } from '$lib/data/userProfile';
 
-  let { class: className = '' } = $props();
+  export let className = '';
 
   const formatValue = (value: string) => (value?.trim() ? value.trim() : '—');
 
