@@ -1,13 +1,18 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { projectData } from '$lib/data/projects';
-  import { createSyncClient, type SyncProvider } from '@marco/platform/syncClient';
+  import type { ProjectDataApi } from '@ac/data/projectStore';
+  import { createSyncClient, type SyncProvider, type SyncClient } from '@marco/platform/syncClient';
 
-  const client = createSyncClient({
-    baseUrl: (import.meta.env.VITE_SYNC_API_URL as string | undefined) ?? '',
-    apiPath: (import.meta.env.VITE_SYNC_API_PATH as string | undefined) ?? '/api',
-    graphqlPath: (import.meta.env.VITE_SYNC_GRAPHQL_PATH as string | undefined) ?? '/graphql',
-  });
+  export let projectData: ProjectDataApi;
+  export let syncClient: SyncClient | null = null;
+
+  const client =
+    syncClient ??
+    createSyncClient({
+      baseUrl: (import.meta.env.VITE_SYNC_API_URL as string | undefined) ?? '',
+      apiPath: (import.meta.env.VITE_SYNC_API_PATH as string | undefined) ?? '/api',
+      graphqlPath: (import.meta.env.VITE_SYNC_GRAPHQL_PATH as string | undefined) ?? '/graphql',
+    });
 
   const status = client.status;
 
@@ -22,12 +27,19 @@
   let snapshots: { id: string; meta: { provider: SyncProvider; projectId: string; hash: string; updatedAt: number; size: number; deviceId: string } }[] = [];
 
   let currentProjectId: string | null = null;
-  const unsubProjectId = projectData.currentId.subscribe((value) => {
-    currentProjectId = value;
-  });
+  let unsubscribeProjectId: (() => void) | null = null;
+
+  $: {
+    unsubscribeProjectId?.();
+    if (projectData) {
+      unsubscribeProjectId = projectData.currentId.subscribe((value) => {
+        currentProjectId = value;
+      });
+    }
+  }
 
   onDestroy(() => {
-    unsubProjectId();
+    unsubscribeProjectId?.();
   });
 
   async function withBusy<T>(fn: () => Promise<T>): Promise<T | undefined> {
@@ -72,6 +84,11 @@
   }
 
   async function handlePush() {
+    if (!projectData) {
+      error = 'Dados de projeto indisponíveis.';
+      success = null;
+      return;
+    }
     if (!currentProjectId) {
       error = 'Selecione um evento para sincronizar.';
       success = null;
@@ -86,6 +103,11 @@
   }
 
   async function handlePull() {
+    if (!projectData) {
+      error = 'Dados de projeto indisponíveis.';
+      success = null;
+      return;
+    }
     if (!currentProjectId) {
       error = 'Selecione um evento para restaurar.';
       success = null;

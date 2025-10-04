@@ -33,8 +33,8 @@ export const manifestList: AppManifestEntry[] = [
     id: 'evento',
     label: 'Evento',
     icon: '🎉',
-    loader: './verticals/placeholder.svelte',
-    requires: ['projectData']
+    loader: '@marco/apps-eventos',
+    requires: ['projectData', 'bus', 'ac']
   },
   {
     id: 'anfitriao',
