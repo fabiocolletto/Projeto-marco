@@ -10,24 +10,36 @@
     <div class="container">
       <!-- ===================== TOP / RESUMO ===================== -->
       <section class="card" id="cardResumo">
-        <div class="row">
+        <div class="row" style="align-items:flex-start; gap:16px">
           <div>
             <h1 class="app-title">Gestão de eventos</h1>
             <h2 id="evTitle">—</h2>
-            <div class="small muted" id="updatedWrap">Atualizado: <span id="updatedAt">—</span></div>
+            <div class="small muted" id="updatedWrap">Atualizado: <span id="updatedAt">—</span>
+              <span id="storageWarn" class="pill pillwarn" style="display:none;margin-left:8px">Modo temporário (sem persistência)</span>
+            </div>
           </div>
 
-          <div class="select-block" style="margin-left:auto">
+          <div class="select-block" style="margin-left:auto; min-width:min(520px, 100%)">
             <label class="small" for="switchEvent">Selecionar evento</label>
             <select id="switchEvent"></select>
 
-            <div class="row" style="align-items:center">
+            <div class="row" id="hdrControlsRow" style="align-items:center; gap:8px; flex-wrap:wrap">
               <button id="btnNew" class="btn btn--ghost" type="button">Novo</button>
               <button id="btnDelete" class="btn btn--ghost danger" type="button">Excluir</button>
-              <!-- Pílulas de status ALINHADAS ao lado dos botões -->
-              <span id="chipReady"  class="pill pillok" style="margin-left:8px">Pronto</span>
-              <span id="chipDirty"  class="pill pillwarn"   style="display:none;margin-left:8px">Edição não salva</span>
-              <span id="chipSaving" class="pill pillsaving" style="display:none;margin-left:8px">Salvando…</span>
+              <!-- Pílulas de status -->
+              <span id="chipReady"  class="pill pillok">Pronto</span>
+              <span id="chipDirty"  class="pill pillwarn"   style="display:none">Edição não salva</span>
+              <span id="chipSaving" class="pill pillsaving" style="display:none">Salvando…</span>
+
+              <!-- Badge de Sync no topo (etiqueta com lápis) -->
+              <div class="hdr-sync" id="hdr_sync_wrap">
+                <span class="small-label">Sincronização</span>
+                <div class="badge" id="hdr_sync_badge">
+                  <span id="hdr_sync_status">Desativado</span>
+                  <button class="edit-btn" data-open="#secSync" aria-label="Abrir painel de sincronização" title="Abrir painel de sincronização">✎</button>
+                </div>
+                <span id="hdr_sync_detail" class="small muted">—</span>
+              </div>
             </div>
           </div>
         </div>
@@ -279,13 +291,7 @@
             <div class="small muted" id="kpi_guest_legend"></div>
           </div>
 
-          <!-- ===== 4) Mensagens ===== -->
-          <div class="mini kpi" id="kpi_msgs">
-            <div class="label"><h3 class="title">Mensagens — próximos 7 dias</h3></div>
-            <div class="actions"><button class="edit-btn" data-open="#secMensagens" aria-label="Editar mensagens" title="Em breve" disabled>✎</button></div>
-            <div class="progress progress--lg progress--segments"><div class="progress__track" id="kpi_msg_track"></div></div>
-            <div class="hbar-legend"><span id="kpi_msg_lbl1">Total na semana: 0</span><span id="kpi_msg_lbl2">Pico: 0/dia</span></div>
-          </div>
+          <!-- (Removido o KPI de Sincronização — agora no topo) -->
         </div>
 
         <!-- ===== MiniApp Tarefas ===== -->
@@ -298,10 +304,16 @@
           <div class="details-wrap"><div id="fornecedores_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
 
-        <!-- ===== MiniApp Convidados ===== -->
-        <details id="secConvidados"><summary>Convidados</summary>
-          <div class="details-wrap"><div id="guests_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        <!-- ===== MiniApp Convidados & Convites ===== -->
+        <details id="secConvidados"><summary>Convidados & Convites</summary>
+          <div class="details-wrap"><div id="convidados_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
+
+        <!-- ===== MiniApp Sincronização ===== -->
+        <details id="secSync"><summary>Sincronização</summary>
+          <div class="details-wrap"><div id="sync_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        </details>
+
       </section>
     </div>
   </main>
