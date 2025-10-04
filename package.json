@@ -1,0 +1,21 @@
+{
+  "name": "projeto-marco",
+  "version": "1.0.0",
+  "description": "Ferramentas auxiliares e mini-apps do Projeto Marco",
+  "scripts": {
+    "test": "playwright test",
+    "visual:test": "playwright test tests/visual"
+  },
+  "keywords": [
+    "projeto-marco",
+    "visual",
+    "playwright"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "serve": "^14.2.5"
+  }
+}
