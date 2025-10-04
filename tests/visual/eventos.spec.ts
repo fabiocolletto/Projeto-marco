@@ -64,16 +64,16 @@ async function ensureBootstrap(page: Page): Promise<void> {
   }
   expect(optionCount).toBeGreaterThan(0);
   await page.waitForFunction(() => {
-    const store = (window as typeof window & { sharedStore?: unknown }).sharedStore as
-      | { ping?: () => unknown; backupAll?: () => unknown }
-      | undefined;
-    return Boolean(store && typeof store.ping === 'function' && typeof store.backupAll === 'function');
+    const api = (window as typeof window & { __marcoData?: { projectData?: { ping?: () => unknown; backupAll?: () => unknown } } })
+      .__marcoData?.projectData;
+    return Boolean(api && typeof api.ping === 'function' && typeof api.backupAll === 'function');
   }, { timeout: 20000 });
   await page.evaluate(async () => {
-    const store = (window as typeof window & { sharedStore: { backupAll: () => Promise<unknown>; ping: () => Promise<unknown> } })
-      .sharedStore;
-    await store.backupAll();
-    await store.ping();
+    const api = (window as typeof window & {
+      __marcoData: { projectData: { backupAll: () => Promise<unknown>; ping: () => Promise<unknown> } };
+    }).__marcoData.projectData;
+    await api.backupAll();
+    await api.ping();
   });
 }
 
@@ -309,14 +309,14 @@ test.describe('Eventos — fluxo visual', () => {
     await page.waitForTimeout(300);
 
     const storeHealth = await page.evaluate(async () => {
-      const store = (window as typeof window & { sharedStore?: any }).sharedStore;
-      if (!store) {
-        throw new Error('sharedStore não disponível');
+      const api = (window as typeof window & { __marcoData?: { projectData?: any } }).__marcoData?.projectData;
+      if (!api) {
+        throw new Error('projectData não disponível');
       }
       const [backupResult, pingResult, metasMaybe] = await Promise.all([
-        store.backupAll?.(),
-        store.ping?.(),
-        Promise.resolve(store.listProjects?.()),
+        api.backupAll?.(),
+        api.ping?.(),
+        Promise.resolve(api.listProjects?.()),
       ]);
       return { backupResult, pingResult, metasMaybe };
     });

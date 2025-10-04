@@ -1,4 +1,6 @@
 // @ts-nocheck
+import { get } from 'svelte/store';
+import { projectData } from '$lib/data/projects';
 
 let initialized = false;
 
@@ -21,50 +23,16 @@ export async function initDashboard(): Promise<void> {
         remove(k){ try{ localStorage.removeItem(k); }catch{} }
       };
 
-      function makeFallbackStore(){
-        const KEY = 'ac:memstore:v1';
-        let MEM = { metas: [], map: {} };
-        function load(){ try{ const j=safeLS.get(KEY); if(j){ MEM=JSON.parse(j); } }catch{} }
-        function save(){ try{ safeLS.set(KEY, JSON.stringify(MEM)); }catch{} }
-        load();
-        const api = {
-          __fallback:true,
-          async init(){ return true; },
-          listProjects(){ return MEM.metas||[]; },
-          async createProject(obj){
-            const id = 'p_'+Math.random().toString(36).slice(2,9);
-            const nome = obj?.evento?.nome || 'Novo evento';
-            const meta = { id, nome };
-            MEM.map[id] = { ...(obj||{}), updatedAt: Date.now() };
-            MEM.metas = [meta, ...(MEM.metas||[])];
-            save();
-            return { meta, project: MEM.map[id] };
-          },
-          async getProject(id){ return MEM.map[id]||null; },
-          async updateProject(id, obj){ MEM.map[id]=obj; const m=(MEM.metas||[]).find(m=>m.id===id); if(m){ m.nome = obj?.evento?.nome || m.nome; } save(); return true; },
-          async deleteProject(id){ delete MEM.map[id]; MEM.metas=(MEM.metas||[]).filter(m=>m.id!==id); save(); }
-        };
-        return api;
+      await projectData.init();
+      let store = projectData.raw();
+      if(!store){
+        throw new Error('Store de projetos indisponível');
       }
-
-      // Tenta carregar store "real"; se falhar no iOS (IDB bloqueado), cai no fallback
-      let store = await loadShared('@tools/shared/projectStore.js');
-      let USING_FALLBACK = false;
-      try{
-        await store?.init?.();
-        // Prova rápida de IndexedDB (Safari privado costuma falhar aqui)
-        const idbOk = await new Promise(res=>{
-          try{ const name='ac-probe-'+Math.random().toString(36).slice(2); const req=indexedDB.open(name); req.onerror=()=>res(false); req.onblocked=()=>res(false); req.onsuccess=()=>{ try{ req.result.close(); indexedDB.deleteDatabase(name); }catch{} res(true); }; }
-          catch{ res(false); }
-        });
-        if(!idbOk){ throw new Error('IndexedDB indisponível'); }
-        store?.listProjects?.();
-      }catch(err){
-        console.warn('[STORE] Persistência indisponível, ativando fallback em memória/LocalStorage:', err?.message||err);
-        store = makeFallbackStore();
-        USING_FALLBACK = true;
-        await store.init();
-      }
+      let USING_FALLBACK = get(projectData.usingFallback);
+      projectData.usingFallback.subscribe(flag=>{
+        USING_FALLBACK = flag;
+        try{ renderStatus(); }catch{}
+      });
 
       const bus      = await loadShared('@tools/shared/marcoBus.js');
       const ac       = await loadShared('@tools/unique/eventos.mjs');
@@ -74,9 +42,6 @@ export async function initDashboard(): Promise<void> {
       if(!convidMod?.mountConvidadosMiniApp){ console.warn('[MiniApp Convidados] módulo não disponível em', '@tools/unique/convites.mjs'); }
       const syncMod  = await loadShared('@tools/shared/sync.minapp.js');
       if(!syncMod?.mountSyncMiniApp){ console.warn('[MiniApp Sync] módulo não disponível em', '@tools/shared/sync.minapp.js'); }
-
-      // Exponibiliza o store para testes e diagnósticos automatizados
-      try{ globalThis.sharedStore = store; }catch{}
 
       // ====================== Estado & helpers ======================
       const AUTO_SAVE_MS = 700;
@@ -161,7 +126,14 @@ export async function initDashboard(): Promise<void> {
         switchEvent.innerHTML = metas.map(m=>`<option value="${m.id}"${m.id===state.currentId?' selected':''}>${m.nome||m.id}</option>`).join('');
       }
       switchEvent.addEventListener('change', async ()=>{ const id=switchEvent.value; if(id){ await setCurrent(id); publishCurrent(); }});
-      async function renderSaved(){ try{ state.metas = store.listProjects?.()||[]; }catch{ state.metas=[]; } renderSwitcher(); }
+      async function renderSaved(){
+        try{
+          state.metas = await projectData.listProjects();
+        }catch{
+          state.metas=[];
+        }
+        renderSwitcher();
+      }
 
       // Form <-> State
       function fillForm(p){
@@ -193,8 +165,12 @@ export async function initDashboard(): Promise<void> {
         if(!state.currentId || !state.dirty) return;
         setSaving(true);
         let next = readForm(); next = applyDateTime(next); next.updatedAt = Date.now();
-        try{ await store.updateProject?.(state.currentId,next); }catch(e){ console.warn('Falha ao salvar no store:', e); }
-        try{ state.project = await store.getProject?.(state.currentId); }catch{ state.project = next; }
+        try{
+          state.project = await projectData.updateProject(state.currentId, next);
+        }catch(e){
+          console.warn('Falha ao salvar no store:', e);
+          state.project = next;
+        }
         setSaving(false); setDirty(false);
         await renderSaved(); fillForm(state.project); renderHeader(); renderIndicators();
         bus?.publish?.('ac:project-updated',{ id: state.currentId, updatedAt: next.updatedAt });
@@ -280,7 +256,7 @@ export async function initDashboard(): Promise<void> {
           evento:{ endereco:{}, anfitriao:{ endCorrespondencia:{}, endEntrega:{} } },
           fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
         });
-        const { meta } = await store.createProject?.(blank);
+        const { meta } = await projectData.createProject(blank);
         await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
       });
 
@@ -288,8 +264,7 @@ export async function initDashboard(): Promise<void> {
         if(!state.currentId) return;
         if(!confirm('Excluir este evento? Esta ação não pode ser desfeita.')) return;
         try{
-          if(store.deleteProject){ await store.deleteProject(state.currentId); }
-          else if(store.removeProject){ await store.removeProject(state.currentId); }
+          await projectData.deleteProject(state.currentId);
         }catch(e){ console.error(e); }
         state.currentId=null; await renderSaved();
         const nextId=(state.metas[0]&&state.metas[0].id)||null;
@@ -362,13 +337,21 @@ export async function initDashboard(): Promise<void> {
 
       async function loadCurrent(id){
         state.currentId=id||state.currentId;
-        try{ state.project = state.currentId? await store.getProject?.(state.currentId) : null; }catch{ state.project=null; }
+        if(!state.currentId){
+          state.project=null;
+        }else{
+          try{ state.project = await projectData.selectProject(state.currentId); }
+          catch{ state.project=null; }
+        }
         ac.model.ensureShape(state.project||{});
         fillForm(state.project||{}); setDirty(false); renderHeader(); renderIndicators();
         mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
       }
       async function setCurrent(id){
-        if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return; }
+        if(!id){
+          state.currentId=null; state.project=null; await projectData.selectProject(null);
+          await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
+        }
         await loadCurrent(id); safeLS.set('ac:lastId', id); renderSwitcher();
       }
 
@@ -378,7 +361,7 @@ export async function initDashboard(): Promise<void> {
           if(id){
             await renderSaved();
             if(id===state.currentId){
-              try{ state.project = await store.getProject?.(state.currentId); }catch{}
+              try{ state.project = await projectData.selectProject(state.currentId); }catch{}
               if(ts && updatedAt){ updatedAt.textContent = fmtDateTime(ts)||'—'; }
               renderIndicators(); updateFornecedoresProject();
             }
@@ -427,7 +410,7 @@ export async function initDashboard(): Promise<void> {
             evento:{ endereco:{}, anfitriao:{ endCorrespondencia:{}, endEntrega:{} } },
             fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
           });
-          const { meta } = await store.createProject?.(blank);
+          const { meta } = await projectData.createProject(blank);
           await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
         }
         const last = safeLS.get('ac:lastId');
@@ -448,9 +431,9 @@ export async function initDashboard(): Promise<void> {
       (function selfTests(){
         console.groupCollapsed('Self-tests MiniApps');
         try{
-          console.assert(typeof store.listProjects === 'function', 'store.listProjects disponível');
-          console.assert(typeof store.createProject === 'function', 'store.createProject disponível');
-          console.assert(typeof store.updateProject === 'function', 'store.updateProject disponível');
+          console.assert(typeof projectData.listProjects === 'function', 'projectData.listProjects disponível');
+          console.assert(typeof projectData.createProject === 'function', 'projectData.createProject disponível');
+          console.assert(typeof projectData.updateProject === 'function', 'projectData.updateProject disponível');
           console.assert(!!document.querySelector('#secSync'),     '#secSync existe');
           console.assert(!!document.querySelector('#hdr_sync_status'), '#hdr_sync_status no topo');
         } finally {

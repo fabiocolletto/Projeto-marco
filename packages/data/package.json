@@ -1,0 +1,14 @@
+{
+  "name": "@ac/data",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./projectStore": "./src/projectStore.ts",
+    "./adapters/localStorage": "./src/adapters/localStorage.ts",
+    "./adapters/inMemory": "./src/adapters/inMemory.ts"
+  },
+  "dependencies": {
+    "dexie": "^3.2.5"
+  }
+}
