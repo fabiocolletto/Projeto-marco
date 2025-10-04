@@ -24,8 +24,19 @@ const routes = {
   relatorio: () => import('./views/relatorio_pdf.mjs'),
 };
 
-let current = { destroy: null };
-let currentTab = 'convites';
+function pickElement(ref, fallbacks){
+  if(ref instanceof Element) return ref;
+  if(typeof ref === 'string'){ try{ return document.querySelector(ref); }catch{ return null; } }
+  if(Array.isArray(fallbacks)){
+    for(const sel of fallbacks){
+      try{
+        const el = document.querySelector(sel);
+        if(el) return el;
+      }catch{}
+    }
+  }
+  return null;
+}
 
 async function render(root) {
   await ensureStore();
@@ -37,49 +48,38 @@ async function render(root) {
   bindHeaderNav();
 }
 
-function injectBaseStyles(){
-  if (document.getElementById('ac-base-styles')) return;
-  const style = document.createElement('style');
-  style.id = 'ac-base-styles';
-  style.textContent = cssBase();
-  document.head.appendChild(style);
+function formatMetaDate(meta){
+  if(!meta) return '';
+  const dataISO = meta.dataISO || meta.data || '';
+  const hora = meta.hora || '';
+  if(!dataISO && !hora) return '';
+  return formatDateLabel({ dataISO, hora });
 }
 
-function mountShell(root) {
-  const html = `
-    <div class="ac-shell">
-      <header class="ac-header">
-        <h2>Assistente Cerimonial — V5</h2>
-        <nav class="ac-tabs">
-          <a href="#convites" data-tab="convites" class="active">Convites</a>
-          <a href="#evento" data-tab="evento">Evento</a>
-          <a href="#agenda" data-tab="agenda">Mensagens & Agenda</a>
-          <a href="#relatorio" data-tab="relatorio">Relatório</a>
-        </nav>
-        <div class="ac-status" id="ac-status">Pronto</div>
-      </header>
-      <main id="ac-main" aria-live="polite">${spinner()}</main>
-    </div>
-  `;
-  root.innerHTML = html;
+function extractList(payload){
+  if(!payload || typeof payload !== 'object') return [];
+  if(Array.isArray(payload.lista)) return payload.lista;
+  if(Array.isArray(payload.convidados)) return payload.convidados;
+  return [];
 }
 
-function getTabFromHash() {
-  if (location.hash) return location.hash.replace('#','');
-  return null;
+function countConfirmed(list){
+  let confirmed = 0;
+  for(const item of list){
+    if(!item) continue;
+    const status = String(item.status ?? item.confirmacao ?? item.rsvp ?? '').toLowerCase();
+    const truthy = item.confirmado ?? item.confirmada ?? item.presenca ?? item.presença;
+    if(truthy === true){ confirmed++; continue; }
+    if(typeof truthy === 'string' && /^(sim|yes|y|confirmad[ao]|ok|1)$/.test(truthy.toLowerCase())){ confirmed++; continue; }
+    if(['confirmado','confirmada','presença confirmada','confirmada'].includes(status)) confirmed++;
+  }
+  return confirmed;
 }
 
-function bindHeaderNav() {
-  on(document, 'click', 'a[data-tab]', async (e) => {
-    e.preventDefault();
-    const tab = e.target.getAttribute('data-tab');
-    history.replaceState(null, '', '#' + tab);
-    await navigate(tab);
-  });
-  window.addEventListener('hashchange', async () => {
-    const tab = getTabFromHash();
-    if (tab) await navigate(tab);
-  });
+function extractEvento(payload){
+  if(!payload || typeof payload !== 'object') return {};
+  if(payload.evento && typeof payload.evento === 'object') return payload.evento;
+  return {};
 }
 
 async function navigate(tab) {
@@ -105,10 +105,11 @@ async function navigate(tab) {
   }
 }
 
-function setActiveTab(tab) {
-  document.querySelectorAll('.ac-tabs a').forEach(a => {
-    a.classList.toggle('active', a.dataset.tab === tab);
-  });
+function extractEndereco(payload){
+  const evento = extractEvento(payload);
+  if(evento.endereco && typeof evento.endereco === 'object') return evento.endereco;
+  if(payload.endereco && typeof payload.endereco === 'object') return payload.endereco;
+  return {};
 }
 
 async function ensureProjectId() {
@@ -124,4 +125,4 @@ async function ensureProjectId() {
   return p?.id || p?.payload?.id;
 }
 
-export { render };
+export default { createHeaderController };
