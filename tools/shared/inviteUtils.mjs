@@ -1,4 +1,4 @@
-// shared/inviteUtils.js
+// shared/inviteUtils.mjs
 // Converte LINHAS em "convites" estruturados (titular, acompanhantes, telefone, total).
 // Regras:
 // - Cada **linha** = 1 convite.
@@ -6,7 +6,7 @@
 // - Telefone pode estar em qualquer lugar na linha; é detectado e padronizado (BR 10/11 dígitos).
 // - Sequências com 2+ dígitos não são consideradas parte do nome.
 
-import { normalizeName, stripNumbersFromName } from "./listUtils.js";
+import { normalizeName, stripNumbersFromName } from "./listUtils.mjs";
 
 // Telefones soltos: aceita +55, DDD, espaços, hífens e parênteses
 const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g;
@@ -86,3 +86,5 @@ export function invitesToCSV(invites = []) {
   });
   return [header, ...rows].join("\n");
 }
+
+export { normalizeName, stripNumbersFromName };

@@ -140,6 +140,18 @@ test.describe('Eventos — fluxo visual', () => {
       contentType: 'image/png',
     });
 
+    await page.locator('[data-open="#secConvidados"]').click();
+    const guestsPanel = page.locator('#secConvidados');
+    await expect(guestsPanel).toHaveJSProperty('open', true);
+    const guestApp = page.locator('#convidados_host .ac-convidados');
+    await expect(guestApp).toBeVisible();
+    const guestRows = page.locator('#convidados_host .row');
+    const initialGuests = await guestRows.count();
+    await page.locator('#convidados_host #btnAdd').click();
+    await expect(guestRows).toHaveCount(initialGuests + 1);
+    await page.keyboard.press('Escape');
+    await expect(guestsPanel).toHaveJSProperty('open', false);
+
     await page.evaluate(() => {
       const ready = document.getElementById('chipReady');
       const saving = document.getElementById('chipSaving');
