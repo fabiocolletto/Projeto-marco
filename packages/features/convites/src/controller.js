@@ -1,3 +1,13 @@
+import {
+  formatMoney,
+  formatDateBR,
+  parseDateBR,
+  maskTelefoneBR,
+  ensureGuests,
+  createGuest,
+  computeGuestsKpi
+} from '@marco/domain-convites';
+
 // shared/acConvidados.v1.mjs
 // Mini‑App Convidados & Convites — módulo único (sem dependências externas)
 // Uso: import { mountConvidadosMiniApp } from "/shared/acConvidados.v1.mjs";
@@ -9,10 +19,10 @@ export function mountConvidadosMiniApp(host, deps={}){
   const $$   = (sel,root=document)=> [...root.querySelectorAll(sel)];
   const uid  = ()=> 'g_'+Math.random().toString(36).slice(2,9);
 
-  const fmtMoney   = (v)=> ac?.format?.money ? ac.format.money(+v||0) : (new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(+v||0));
-  const fmtDateBR  = (d)=> ac?.format?.fmtDateBR ? ac.format.fmtDateBR(d) : (d? String(d).split('-').reverse().join('/') : '');
-  const parseDateBR= (s)=>{ if(!s) return ''; const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if(!m) return s; const [_,dd,mm,yy] = m; const yyyy = (yy.length===2?('20'+yy):yy); return `${yyyy.padStart(4,'0')}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`; };
-  const maskPhone  = (v)=>{ const d=String(v||'').replace(/\D+/g,'').slice(0,11); if(d.length<=10) return d.replace(/(\d{0,2})(\d{0,4})(\d{0,4}).*/, (m,a,b,c)=> [a&&`(${a})`,b&&` ${b}`,c&&`-${c}`].filter(Boolean).join('')); return d.replace(/(\d{0,2})(\d{0,5})(\d{0,4}).*/, (m,a,b,c)=> [a&&`(${a})`,b&&` ${b}`,c&&`-${c}`].filter(Boolean).join('')); };
+  const fmtMoney   = (v)=> formatMoney(v, ac?.format?.money);
+  const fmtDate    = (d)=> formatDateBR(d, ac?.format?.fmtDateBR);
+  const parseDate  = (s)=> parseDateBR(s);
+  const maskPhone  = (v)=> maskTelefoneBR(v);
 
   // --- State ---
   const state = {
@@ -92,22 +102,10 @@ export function mountConvidadosMiniApp(host, deps={}){
   fStatus.addEventListener('change', ()=>{ state.filter.status=fStatus.value; renderList(); });
 
   // --- Data helpers ---
-  const ensure = (p)=>{ ac?.model?.ensureShape?.(p); p.convidados ||= []; return p.convidados; };
+  const ensure = (p)=>{ ac?.model?.ensureShape?.(p); return ensureGuests(p); };
 
   function defaultItem(){
-    return {
-      id: uid(),
-      nome: '',
-      telefone: '',
-      email: '',
-      grupo: '',
-      mesa: '',
-      qtd: 1,
-      convite: { enviadoEm: '', metodo: '' },
-      rsvp: 'pendente', // pendente|confirmado|recusado
-      presenca: false,
-      obs: ''
-    };
+    return createGuest({ id: uid() });
   }
 
   // --- Persistence ---
@@ -147,7 +145,7 @@ export function mountConvidadosMiniApp(host, deps={}){
 
   function rowTemplate(it){
     const contato = [it.telefone&&maskPhone(it.telefone), it.email].filter(Boolean).join(' • ');
-    const convite = it.convite?.enviadoEm ? `Enviado ${fmtDateBR(it.convite.enviadoEm)}` : '<span class="muted">—</span>';
+    const convite = it.convite?.enviadoEm ? `Enviado ${fmtDate(it.convite.enviadoEm)}` : '<span class="muted">—</span>';
     const presença = it.presenca? '✓' : '<span class="muted">—</span>';
     const obs = it.obs? escapeHtml(String(it.obs).slice(0,40)) : '<span class="muted">—</span>';
     return `
@@ -180,7 +178,7 @@ export function mountConvidadosMiniApp(host, deps={}){
           <label>Grupo<input data-bind="grupo" value="${escapeHtml(it.grupo||'')}"/></label>
           <label>Mesa<input data-bind="mesa" value="${escapeHtml(it.mesa||'')}"/></label>
           <label>Qtd<input type="number" min="1" data-bind="qtd" value="${it.qtd||1}"/></label>
-          <label>Convite — enviado em<input placeholder="dd/mm/aaaa" data-bind="convite.enviadoEm" value="${escapeHtml(fmtDateBR(it.convite?.enviadoEm||''))}"/></label>
+          <label>Convite — enviado em<input placeholder="dd/mm/aaaa" data-bind="convite.enviadoEm" value="${escapeHtml(fmtDate(it.convite?.enviadoEm||''))}"/></label>
           <label>Método do convite<select data-bind="convite.metodo">
             ${['','WhatsApp','E‑mail','Impresso','Ligação'].map(m=>`<option ${m===(it.convite?.metodo||'')?'selected':''}>${m}</option>`).join('')}
           </select></label>
@@ -271,7 +269,7 @@ export function mountConvidadosMiniApp(host, deps={}){
     let val = inp.value;
     if(bind==='telefone'){ val = maskPhone(val); inp.value = val; }
     if(bind==='qtd'){ val = Math.max(1, parseInt(val||'1',10)); inp.value = val; }
-    if(bind==='convite.enviadoEm'){ val = parseDateBR(val); }
+    if(bind==='convite.enviadoEm'){ val = parseDate(val); }
     if(bind==='presenca'){ val = (val==='true' || val===true); }
     ref[path.at(-1)] = val;
     scheduleSave();
@@ -299,5 +297,11 @@ export function mountConvidadosMiniApp(host, deps={}){
   // initial
   load();
 
-  return { reload: load, setProject };
+  return {
+    reload: load,
+    setProject,
+    destroy(){
+      host.innerHTML = '';
+    }
+  };
 }

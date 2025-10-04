@@ -1,3 +1,11 @@
+import {
+  ensureMensagens,
+  inferMensagemStatus,
+  createMensagem,
+  sortMensagens,
+  formatMensagemData
+} from '@marco/domain-mensagens';
+
 // AC — Mini‑App de Mensagens (v1)
 // Padrão de montagem: mountMensagensMiniApp(host, { ac, store, bus, getCurrentId })
 // Mantém compatibilidade com o ecossistema (autosave via store, eventos via bus).
@@ -18,16 +26,16 @@ export function mountMensagensMiniApp(host, deps){
   const $$ = (sel, root = host) => [...root.querySelectorAll(sel)];
   const uid = () => (Date.now().toString(36) + Math.random().toString(36).slice(2,7));
 
-  const fmtDateBR = (d) => ac?.format?.fmtDateBR ? ac.format.fmtDateBR(d) : (d ? d.split('-').reverse().join('/') : '');
+  const fmtDateBR = (d) => formatMensagemData(d, ac?.format?.fmtDateBR);
   const fmtDateTime = (d,h) => [fmtDateBR(d), (h||'').slice(0,5)].filter(Boolean).join(' ');
   const nowIsoDate = () => new Date(Date.now() - (new Date()).getTimezoneOffset()*60000).toISOString().slice(0,10);
   const today = nowIsoDate();
 
-  function ensureShape(p){
-    if(!p || typeof p !== 'object') p = {};
-    p.mensagens ||= [];
-    return p;
-  }
+  const ensureShape = (p)=>{
+    const base = p && typeof p === 'object' ? p : {};
+    ensureMensagens(base);
+    return base;
+  };
 
   function scheduleSave(){
     if(saveTimer) clearTimeout(saveTimer);
@@ -55,32 +63,9 @@ export function mountMensagensMiniApp(host, deps){
   }
 
   function ensureMsgShape(m){
-    m.id ||= uid();
-    m.titulo ||= '';
-    m.canal ||= 'WhatsApp';
-    // manter padrão core: campos `data` e `hora`
-    if(!m.data) m.data = '';
-    if(!m.hora) m.hora = '';
-    m.alvo ||= 'Todos convidados'; // Confirmados, Pendentes, Fornecedores, Personalizado
-    m.destinatarios ||= ''; // quando Personalizado
-    m.status ||= inferStatus(m); // rascunho, agendado, enviado, cancelado
-    m.nota ||= '';
-    return m;
-  }
-
-  function inferStatus(m){
-    if(!m?.data) return 'rascunho';
-    const when = new Date(`${m.data}T${(m.hora||'00:00')}:00`);
-    const now = new Date();
-    if(isNaN(when.getTime())) return 'rascunho';
-    return (when.getTime() <= now.getTime()) ? 'enviado' : 'agendado';
-  }
-
-  function sortMensagens(a,b){
-    const ad = a?.data || ''; const bd = b?.data || '';
-    if(ad !== bd) return (ad < bd ? -1 : 1);
-    const ah = (a?.hora||''); const bh = (b?.hora||'');
-    return (ah < bh ? -1 : (ah > bh ? 1 : 0));
+    const base = createMensagem(m);
+    base.status = base.status || inferMensagemStatus(base);
+    return Object.assign(m, base);
   }
 
   // ===== UI =====
@@ -356,6 +341,12 @@ export function mountMensagensMiniApp(host, deps){
 
   // carregar inicial
   loadProject(projectId);
+
+  return {
+    destroy(){
+      host.innerHTML = '';
+    }
+  };
 }
 
 // Utilidades simples de escape para não quebrar o HTML dos templates

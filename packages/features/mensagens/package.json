@@ -1,0 +1,16 @@
+{
+  "name": "@marco/features-mensagens",
+  "version": "0.1.0",
+  "type": "module",
+  "svelte": "./src/MensagensMiniApp.svelte",
+  "exports": {
+    ".": {
+      "svelte": "./src/MensagensMiniApp.svelte",
+      "import": "./src/index.js",
+      "require": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@marco/domain-mensagens": "0.1.0"
+  }
+}

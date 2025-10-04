@@ -21,6 +21,16 @@
                 "vite": "^7.1.7"
         },
         "dependencies": {
-                "@ac/data": "file:../../packages/data"
+                "@ac/data": "file:../../packages/data",
+                "@marco/domain-convites": "0.1.0",
+                "@marco/domain-eventos": "0.1.0",
+                "@marco/domain-fornecedores": "0.1.0",
+                "@marco/domain-mensagens": "0.1.0",
+                "@marco/domain-tarefas": "0.1.0",
+                "@marco/features-convites": "0.1.0",
+                "@marco/features-fornecedores": "0.1.0",
+                "@marco/features-mensagens": "0.1.0",
+                "@marco/features-tarefas": "0.1.0",
+                "@marco/platform": "0.1.0"
         }
 }

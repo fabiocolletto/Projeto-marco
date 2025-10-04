@@ -1,0 +1,16 @@
+{
+  "name": "@marco/features-tarefas",
+  "version": "0.1.0",
+  "type": "module",
+  "svelte": "./src/TarefasMiniApp.svelte",
+  "exports": {
+    ".": {
+      "svelte": "./src/TarefasMiniApp.svelte",
+      "import": "./src/index.js",
+      "require": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@marco/domain-tarefas": "0.1.0"
+  }
+}
