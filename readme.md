@@ -62,3 +62,14 @@ Caso nenhum mecanismo seja informado, o branch padrão continua sendo `main`. Ut
 3. **Testes**: adote `npm test` e `npm run lint` como comandos padrão. Enquanto os testes automatizados não forem implementados, execute validações manuais abrindo `apps/eventos.html` no navegador e verificando os fluxos críticos.
 
 Manter essa rotina garante que as entregas evoluam de protótipos para uma versão 3.0 pronta para consumo executivo.
+Este repositório...
+
+## Testes visuais
+
+Execute os cenários automatizados de interface com:
+
+```bash
+npm run test:visual
+```
+
+O script inicia um servidor estático para `apps/eventos.html`, faz a instrumentação necessária para carregar os módulos locais e captura os estados **Pronto**, **Edição** e **Salvando** da aplicação. As imagens ficam anexadas ao relatório do Playwright em `test-results/` (ignorado pelo Git), evitando binários no repositório.

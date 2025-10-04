@@ -20,5 +20,6 @@ Este documento fornece um rápido resumo para quem automatiza tarefas neste repo
 2. Atualizar README(s) relevantes com instruções de uso e dependências.
 3. Registrar a alteração em `log.md`, incluindo objetivo, impacto e próximos passos.
 4. Validar manualmente o fluxo "clique no lápis → painel → persistência" após qualquer mudança em miniapps.
+1. Antes de finalizar qualquer alteração que afete a interface, execute `npm run test:visual` para garantir que os cenários visuais continuam funcionando.
 
 Seguir estas orientações ajuda a manter o código consistente e facilita o trabalho colaborativo entre agentes e desenvolvedores humanos.
