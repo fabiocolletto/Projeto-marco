@@ -2,7 +2,8 @@
   import { createEventDispatcher, onMount, setContext } from 'svelte';
   import type { ComponentType } from 'svelte';
   import { get } from 'svelte/store';
-  import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
+import MiniAppBase from '$lib/components/miniAppBase/MiniAppBase.svelte';
+import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   import { projectData } from '$lib/data/projects';
   import { bus } from '@marco/platform/bus';
   import manifestDefault, {
@@ -189,18 +190,32 @@
   )}
   app={() => (
     <div class="app-host__canvas">
-      {#if loading}
-        <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
-      {:else if error}
-        <div class="app-host__error" role="alert">
-          <strong>Erro ao carregar módulo.</strong>
-          <pre>{error.message}</pre>
-        </div>
-      {:else if component}
-        <svelte:component this={component} {...componentProps} />
-      {:else}
-        <p class="app-host__status">Selecione uma vertical para iniciar.</p>
-      {/if}
+      <div class="app-host__workspace">
+        <MiniAppBase class="app-host__miniapp-base" />
+        {#if loading}
+          <div class="app-host__stage app-host__stage--status">
+            <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
+          </div>
+        {:else if error}
+          <div class="app-host__stage app-host__stage--status">
+            <div class="app-host__error" role="alert">
+              <strong>Erro ao carregar módulo.</strong>
+              <pre>{error.message}</pre>
+            </div>
+          </div>
+        {:else if component}
+          <div class="app-host__stage app-host__stage--component">
+            <svelte:component this={component} {...componentProps} />
+          </div>
+        {:else}
+          <div class="app-host__stage app-host__stage--placeholder">
+            <div class="app-host__stage-placeholder">
+              <h2>Tela inicial dos mini apps</h2>
+              <p>Escolha uma vertical na navegação lateral para começar.</p>
+            </div>
+          </div>
+        {/if}
+      </div>
     </div>
   )}
 />
@@ -257,25 +272,106 @@
     line-height: 1;
   }
   .app-host__canvas {
-    min-height: 360px;
+    position: relative;
+    min-height: 480px;
+    display: flex;
+    justify-content: center;
+    padding: 3rem 2.5rem 2.5rem;
+  }
+  .app-host__workspace {
+    position: relative;
+    flex: 1;
+    max-width: 960px;
+    border-radius: 2rem;
+    background: rgb(var(--color-surface));
+    color: rgb(var(--color-ink));
+    padding: 3.5rem 2.75rem 2.75rem;
+    box-shadow: 0 25px 50px -24px rgba(15, 23, 42, 0.35);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    display: flex;
+  }
+  .app-host__miniapp-base {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    width: min(320px, 32%);
+    z-index: 2;
+  }
+  .app-host__stage {
+    flex: 1;
+    min-height: 320px;
     display: flex;
     align-items: center;
     justify-content: center;
+    text-align: center;
+  }
+  .app-host__stage--status {
+    padding: 2rem 1.5rem;
+  }
+  .app-host__stage--placeholder {
+    padding: 2rem 1.5rem;
+  }
+  .app-host__stage--component {
+    align-items: stretch;
+    justify-content: flex-start;
+    text-align: initial;
+  }
+  .app-host__stage--component :global(> *) {
+    flex: 1;
+    min-width: 0;
+  }
+  .app-host__stage-placeholder {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .app-host__stage-placeholder h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+  .app-host__stage-placeholder p {
+    margin: 0;
+    font-size: 1rem;
+    color: rgba(15, 23, 42, 0.65);
   }
   .app-host__status {
     font-size: 0.95rem;
     color: rgba(15, 23, 42, 0.7);
   }
   .app-host__error {
-    border-radius: 1rem;
-    padding: 1.25rem;
+    width: min(100%, 520px);
+    border-radius: 1.5rem;
+    padding: 1.75rem;
     background: rgba(248, 113, 113, 0.12);
     color: #b91c1c;
-    max-width: 480px;
+    box-shadow: inset 0 0 0 1px rgba(185, 28, 28, 0.18);
+    text-align: left;
   }
   .app-host__error pre {
-    margin: 0.5rem 0 0;
+    margin: 0.75rem 0 0;
     white-space: pre-wrap;
     word-break: break-word;
+  }
+  @media (max-width: 1024px) {
+    .app-host__canvas {
+      padding: 1.75rem 1.25rem;
+    }
+    .app-host__workspace {
+      padding: 2.5rem 1.75rem 1.75rem;
+      border-radius: 1.5rem;
+    }
+    .app-host__miniapp-base {
+      position: static;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+  }
+  @media (max-width: 640px) {
+    .app-host__stage {
+      min-height: 260px;
+    }
+    .app-host__stage-placeholder h2 {
+      font-size: 1.25rem;
+    }
   }
 </style>

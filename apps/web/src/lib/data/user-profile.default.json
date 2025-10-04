@@ -1,0 +1,10 @@
+{
+  "profile": {
+    "nomeCompleto": "",
+    "telefone": "",
+    "email": "",
+    "cep": ""
+  },
+  "signedIn": false,
+  "lastLoginAt": null
+}
