@@ -431,6 +431,9 @@
     const syncMod  = await loadShared(PATH_SYNC);
     if(!syncMod?.mountSyncMiniApp){ console.warn('[MiniApp Sync] módulo não disponível em', PATH_SYNC); }
 
+    // Exponibiliza o store para testes e diagnósticos automatizados
+    try{ globalThis.sharedStore = store; }catch{}
+
     // ====================== Estado & helpers ======================
     const AUTO_SAVE_MS = 700;
     const state = { currentId:null, project:null, metas:[], dirty:false, saving:false, timer:null };
