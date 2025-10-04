@@ -3,812 +3,679 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gestão de Eventos — Central</title>
-  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
+  <title>Gerenciar Eventos — AC (v2) + Mini‑App Fornecedores</title>
+  <!-- Estilos locais, mínimos e escopados -->
+  <style>
+    /* ===== KPIs / MiniApps ===== */
+    #cardIndicadores .mini.kpi{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:150px}
+    #cardIndicadores .mini.kpi .label{font-weight:600;margin-bottom:8px;display:flex;align-items:center;justify-content:flex-start}
+    #cardIndicadores .mini.kpi .label .title{color:#0b65c2}
+    /* h3 nos títulos dos KPIs para padronizar com os badges acima */
+    #cardIndicadores .mini.kpi .label h3{margin:0 48px 2px 0;font-size:14px;line-height:1.2;color:#0b65c2;display:flex;align-items:center}
+    /* Destaque laranja quando o mini-app estiver expandido */
+    #cardIndicadores .mini.kpi.active{border-color:#ffa245;background:#fff7ed;box-shadow:0 0 0 1px #ffa245 inset}
+    #cardIndicadores #secTarefas[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
+    #cardIndicadores #secFornecedores[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
+    #cardIndicadores .mini.kpi .actions{position:absolute;top:10px;right:10px}
+    #cardIndicadores .mini.kpi .edit-btn{border:1px solid #cccccc;background:#ffffff;border-radius:10px;padding:4px 8px;cursor:pointer;line-height:1}
+
+    #cardIndicadores .progress.progress--lg .progress__track{height:10px;border-radius:6px;background:#eef2f6}
+    #cardIndicadores .progress.progress--lg .progress__bar{height:10px;border-radius:6px;background:#0b65c2;transition:width .25s ease}
+    #cardIndicadores .hbar-legend{display:flex;justify-content:space-between;gap:8px;margin-top:8px;font-size:.875rem;color:#555}
+    #cardIndicadores .progress--segments .progress__track{display:flex;gap:2px;align-items:center}
+    #cardIndicadores .progress--segments .seg{height:10px;border-radius:4px;background:#0b65c2;flex:0 0 auto}
+    #cardIndicadores .muted{opacity:.75}
+    #cardIndicadores details>summary{display:none}
+    @media (max-width:640px){#cardIndicadores .mini.kpi{min-height:140px}}
+  </style>
 </head>
 <body>
   <main class="ac">
     <div class="container">
-      <div class="app-hero">
-        <h1>Gestão de Eventos</h1>
-        <p class="small muted">Centralize o acompanhamento do evento, acesse rapidamente cada ferramenta e gere um relatório operacional completo.</p>
-        <div class="app-status-line">
-          <span id="app_status" class="pill warn">Nenhum evento selecionado</span>
-          <span>ID: <strong id="app_summaryId">—</strong></span>
-          <span>Atualizado em <strong id="app_summaryUpdated">—</strong></span>
-        </div>
-      </div>
+      <!-- ===================== TOP / RESUMO ===================== -->
+      <section class="card" id="cardResumo">
+        <div class="row">
+          <div>
+            <h1 class="app-title">Gestão de eventos</h1>
+            <h2 id="evTitle">—</h2>
+            <div class="small muted" id="updatedWrap">Atualizado: <span id="updatedAt">—</span></div>
+          </div>
 
-      <section class="card">
-        <div class="card__header">
-          <h2>Selecionar evento</h2>
-          <div class="row">
-            <button id="app_btnRefresh" class="btn btn--ghost" type="button">Atualizar lista</button>
-            <button id="app_btnOpenEventos" class="btn" type="button">Gerenciar eventos</button>
-          </div>
-        </div>
-        <div class="twocol">
-          <div class="field">
-            <label for="app_selEvento"><h3>Evento ativo</h3></label>
-            <select id="app_selEvento">
-              <option value="">Selecione um evento salvo…</option>
-            </select>
-          </div>
-          <div class="field">
-            <label><h3>Resumo rápido</h3></label>
-            <div id="app_overviewSummary" class="small">Nenhum evento carregado.</div>
-          </div>
-        </div>
-      </section>
+          <div class="select-block" style="margin-left:auto">
+            <label class="small" for="switchEvent">Selecionar evento</label>
+            <select id="switchEvent"></select>
 
-      <section class="card">
-        <div class="card__header"><h2>Visão geral</h2></div>
-        <div>
-          <strong id="app_summaryName">—</strong>
-          <div class="small" id="app_summaryDate">—</div>
-          <div class="small" id="app_summaryVenue">—</div>
-          <div class="small" id="app_summaryHost">—</div>
-          <div class="small" id="app_summaryCerimonial">—</div>
-        </div>
-        <div class="kpi-cards" style="margin-top:12px">
-          <div class="mini-card">
-            <h3>Convidados</h3>
-            <div class="mini-grid">
-              <div><strong id="app_kpiConvites">0</strong><div class="small">Convites</div></div>
-              <div><strong id="app_kpiConfirmados">0</strong><div class="small">Confirmados</div></div>
-              <div><strong id="app_kpiPendentes">0</strong><div class="small">Pendentes</div></div>
-              <div><strong id="app_kpiPessoas">0</strong><div class="small">Pessoas</div></div>
-              <div><strong id="app_kpiTelefones">0</strong><div class="small">Telefones prontos</div></div>
-            </div>
-          </div>
-          <div class="mini-card">
-            <h3>Financeiro</h3>
-            <div class="mini-grid">
-              <div><strong id="app_kpiFornecedores">0</strong><div class="small">Fornecedores</div></div>
-              <div><strong id="app_kpiPrevisto">R$ 0,00</strong><div class="small">Previsto</div></div>
-              <div><strong id="app_kpiPago">R$ 0,00</strong><div class="small">Pago</div></div>
-              <div><strong id="app_kpiPendente">R$ 0,00</strong><div class="small">Pendente</div></div>
-            </div>
-          </div>
-          <div class="mini-card">
-            <h3>Execução</h3>
-            <div class="mini-grid">
-              <div><strong id="app_kpiTarefasTotal">0</strong><div class="small">Tarefas</div></div>
-              <div><strong id="app_kpiTarefasConcluidas">0</strong><div class="small">Concluídas</div></div>
-              <div><strong id="app_kpiMensagens">0</strong><div class="small">Mensagens</div></div>
-              <div><strong id="app_kpiProximoEnvio">—</strong><div class="small">Próximo envio</div></div>
+            <div class="row" style="align-items:center">
+              <button id="btnNew" class="btn btn--ghost" type="button">Novo</button>
+              <button id="btnDelete" class="btn btn--ghost danger" type="button">Excluir</button>
+              <!-- Pílulas de status ALINHADAS ao lado dos botões -->
+              <span id="chipReady"  class="pill pillok" style="margin-left:8px">Pronto</span>
+              <span id="chipDirty"  class="pill pillwarn"   style="display:none;margin-left:8px">Edição não salva</span>
+              <span id="chipSaving" class="pill pillsaving" style="display:none;margin-left:8px">Salvando…</span>
             </div>
           </div>
         </div>
-      </section>
 
-      <section class="card">
-        <div class="card__header"><h2>Atalhos rápidos</h2></div>
-        <div class="app-shortcuts" id="app_shortcuts">
-          <button class="shortcut-card" data-tool="eventos" type="button">
-            <strong>Eventos</strong>
-            <span>Dados gerais, anfitriões e locais.</span>
-          </button>
-          <button class="shortcut-card" data-tool="convidados" type="button">
-            <strong>Convidados</strong>
-            <span>Convites, mesas e confirmações.</span>
-          </button>
-          <button class="shortcut-card" data-tool="fornecedores" type="button">
-            <strong>Fornecedores</strong>
-            <span>Contratos, pagamentos e contatos.</span>
-          </button>
-          <button class="shortcut-card" data-tool="mensagens" type="button">
-            <strong>Mensagens</strong>
-            <span>Programação de envios e templates.</span>
-          </button>
-          <button class="shortcut-card" data-tool="tarefas" type="button">
-            <strong>Tarefas</strong>
-            <span>Checklist operacional.</span>
-          </button>
-          <button class="shortcut-card" data-tool="relatorio" type="button">
-            <strong>Relatório</strong>
-            <span>Visualizar resumo completo.</span>
-          </button>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="card__header"><h2>Eventos salvos</h2></div>
-        <div id="app_savedList" class="list"></div>
-        <div id="app_savedEmpty" class="app-empty">Nenhum evento cadastrado até o momento.</div>
-      </section>
-
-      <section class="card" id="app_reportCard">
-        <div class="card__header"><h2>Relatório operacional</h2></div>
-        <div class="app-report-actions">
-          <div class="row">
-            <button id="app_reportRefresh" class="btn btn--ghost" type="button">Atualizar dados</button>
-            <button id="app_reportCopy" class="btn btn--ghost" type="button">Copiar texto</button>
-            <button id="app_reportPrint" class="btn" type="button">Imprimir</button>
+        <!-- BADGES -->
+        <div class="badge-grid" aria-label="Resumo do evento">
+          <div class="badge" id="badgeEvento">
+            <h3>Evento</h3>
+            <div><dl class="kv" id="kvEvento"></dl></div>
+            <div class="actions"><button class="edit-btn" data-open="#secEvento" aria-label="Editar">✎</button></div>
           </div>
-          <div id="app_reportStatus" class="small muted"></div>
+
+          <div class="badge" id="badgeAnfitriao">
+            <h3>Anfitrião</h3>
+            <div><dl class="kv" id="kvAnfitriao"></dl></div>
+            <div class="actions"><button class="edit-btn" data-open="#secAnfitriao" aria-label="Editar">✎</button></div>
+          </div>
+
+          <div class="badge" id="badgeCerimonial">
+            <h3>Cerimonialista</h3>
+            <div><dl class="kv" id="kvCerimonial"></dl></div>
+            <div class="actions"><button class="edit-btn" data-open="#secCerimonial" aria-label="Editar">✎</button></div>
+          </div>
         </div>
-        <div id="app_report" class="report"></div>
+
+        <!-- EDIÇÃO (um aberto por vez) -->
+        <details id="secEvento"><summary>Evento</summary>
+          <div class="details-wrap">
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">Nome do evento</span></label>
+                <input data-bind="evento.nome" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Tipo</span></label>
+                <select data-bind="evento.tipo">
+                  <option value=""></option>
+                  <option>Casamento</option><option>Aniversário</option><option>Formatura</option>
+                  <option>Debutante</option><option>Corporativo</option><option>Batizado</option>
+                  <option>Chá de Panela</option><option>Chá de Bebê</option><option>Bodas</option><option>Outro</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">Quando</span></label>
+                <input id="ev-datetime" type="datetime-local" />
+              </div>
+              <div class="field">
+                <label><span class="small">Local</span></label>
+                <input data-bind="evento.local" type="text" />
+              </div>
+            </div>
+
+            <div><strong class="small">Endereço do evento</strong></div>
+
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">CEP</span></label>
+                <input data-bind="evento.endereco.cep" type="text" inputmode="numeric" maxlength="9" data-cep="evento.endereco" />
+              </div>
+              <div class="field">
+                <label><span class="small">Logradouro</span></label>
+                <input data-bind="evento.endereco.logradouro" type="text" />
+              </div>
+            </div>
+
+            <div class="threecol">
+              <div class="field">
+                <label><span class="small">Número</span></label>
+                <input data-bind="evento.endereco.numero" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Bairro</span></label>
+                <input data-bind="evento.endereco.bairro" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Cidade</span></label>
+                <input data-bind="evento.endereco.cidade" type="text" />
+              </div>
+            </div>
+
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">UF</span></label>
+                <input data-bind="evento.endereco.uf" type="text" maxlength="2" />
+              </div>
+              <div class="field">
+                <label><span class="small">Complemento / Referência</span></label>
+                <input data-bind="evento.endereco.complemento" type="text" />
+              </div>
+            </div>
+
+            <div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div>
+          </div>
+        </details>
+
+        <details id="secAnfitriao"><summary>Anfitrião</summary>
+          <div class="details-wrap">
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">Nome</span></label>
+                <input data-bind="evento.anfitriao.nome" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Telefone</span></label>
+                <input data-bind="evento.anfitriao.telefone" type="text" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label><span class="small">Rede social / contato</span></label>
+              <input data-bind="evento.anfitriao.redeSocial" type="text" />
+            </div>
+
+            <div><strong class="small">Endereço para correspondência</strong></div>
+
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">CEP</span></label>
+                <input data-bind="evento.anfitriao.endCorrespondencia.cep" type="text" inputmode="numeric" maxlength="9" data-cep="evento.anfitriao.endCorrespondencia" />
+              </div>
+              <div class="field">
+                <label><span class="small">Logradouro</span></label>
+                <input data-bind="evento.anfitriao.endCorrespondencia.logradouro" type="text" />
+              </div>
+            </div>
+
+            <div class="threecol">
+              <div class="field">
+                <label><span class="small">Número</span></label>
+                <input data-bind="evento.anfitriao.endCorrespondencia.numero" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Bairro</span></label>
+                <input data-bind="evento.anfitriao.endCorrespondencia.bairro" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Cidade</span></label>
+                <input data-bind="evento.anfitriao.endCorrespondencia.cidade" type="text" />
+              </div>
+            </div>
+
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">UF</span></label>
+                <input data-bind="evento.anfitriao.endCorrespondencia.uf" type="text" maxlength="2" />
+              </div>
+              <div class="field">
+                <label><span class="small">Complemento</span></label>
+                <input data-bind="evento.anfitriao.endCorrespondencia.complemento" type="text" />
+              </div>
+            </div>
+
+            <div><strong class="small">Endereço para entrega de presentes</strong></div>
+
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">CEP</span></label>
+                <input data-bind="evento.anfitriao.endEntrega.cep" type="text" inputmode="numeric" maxlength="9" data-cep="evento.anfitriao.endEntrega" />
+              </div>
+              <div class="field">
+                <label><span class="small">Logradouro</span></label>
+                <input data-bind="evento.anfitriao.endEntrega.logradouro" type="text" />
+              </div>
+            </div>
+
+            <div class="threecol">
+              <div class="field">
+                <label><span class="small">Número</span></label>
+                <input data-bind="evento.anfitriao.endEntrega.numero" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Bairro</span></label>
+                <input data-bind="evento.anfitriao.endEntrega.bairro" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Cidade</span></label>
+                <input data-bind="evento.anfitriao.endEntrega.cidade" type="text" />
+              </div>
+            </div>
+
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">UF</span></label>
+                <input data-bind="evento.anfitriao.endEntrega.uf" type="text" maxlength="2" />
+              </div>
+              <div class="field">
+                <label><span class="small">Complemento</span></label>
+                <input data-bind="evento.anfitriao.endEntrega.complemento" type="text" />
+              </div>
+            </div>
+
+            <div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div>
+          </div>
+        </details>
+
+        <details id="secCerimonial"><summary>Cerimonialista</summary>
+          <div class="details-wrap">
+            <div class="twocol">
+              <div class="field">
+                <label><span class="small">Nome</span></label>
+                <input data-bind="cerimonialista.nomeCompleto" type="text" />
+              </div>
+              <div class="field">
+                <label><span class="small">Telefone</span></label>
+                <input data-bind="cerimonialista.telefone" type="text" />
+              </div>
+            </div>
+
+            <div class="field">
+              <label><span class="small">Rede social</span></label>
+              <input data-bind="cerimonialista.redeSocial" type="text" />
+            </div>
+
+            <div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div>
+          </div>
+        </details>
       </section>
 
-      <section class="card">
-        <div class="card__header"><h2>Ferramentas detalhadas</h2></div>
-        <div class="app-module-tabs">
-          <button class="btn btn--ghost" data-tool-open="eventos" type="button">Eventos</button>
-          <button class="btn btn--ghost" data-tool-open="convidados" type="button">Convidados</button>
-          <button class="btn btn--ghost" data-tool-open="fornecedores" type="button">Fornecedores</button>
-          <button class="btn btn--ghost" data-tool-open="mensagens" type="button">Mensagens</button>
-          <button class="btn btn--ghost" data-tool-open="tarefas" type="button">Tarefas</button>
+      <!-- ===================== INDICADORES (v2, unificados) ===================== -->
+      <section class="card" id="cardIndicadores">
+        <h2>Indicadores do evento</h2>
+        <div class="mini-grid">
+          <!-- ===== 1) Tarefas (Checklist unificado) ===== -->
+          <div class="mini kpi" id="kpi_tasks">
+            <div class="label"><h3 class="title" id="kpi_task_title">Tarefas</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secTarefas" aria-label="Editar tarefas" title="Abrir painel de tarefas">✎</button></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_task_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="hbar-legend"><span id="kpi_task_lbl1">0 concluídas — 0%</span><span id="kpi_task_lbl2">Total: 0</span></div>
+          </div>
+
+          <!-- ===== 2) Fornecedores ===== -->
+          <div class="mini kpi" id="kpi_for">
+            <div class="label"><h3 class="title" id="kpi_for_title">Fornecedores</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secFornecedores" aria-label="Editar fornecedores" title="Abrir painel de fornecedores">✎</button></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_for_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="hbar-legend"><span id="kpi_for_lbl1">R$ 0,00 pagos — 0%</span><span id="kpi_for_lbl2">Total: R$ 0,00</span></div>
+          </div>
+
+          <!-- ===== 3) Convidados & Convites ===== -->
+          <div class="mini kpi" id="kpi_guests">
+            <div class="label"><h3 class="title" id="kpi_guest_title">Convidados &amp; Convites</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secConvidados" aria-label="Editar convidados" title="Em breve" disabled>✎</button></div>
+            <div class="progress progress--lg"><div class="progress__track"><div id="kpi_guest_bar" class="progress__bar" style="width:0%"></div></div></div>
+            <div class="hbar-legend"><span id="kpi_guest_lbl1">0 confirmados — 0%</span><span id="kpi_guest_lbl2">Total: 0</span></div>
+            <div class="progress progress--lg progress--segments" aria-label="Distribuição por mesas/grupos"><div class="progress__track" id="kpi_guest_bands"></div></div>
+            <div class="small muted" id="kpi_guest_legend"></div>
+          </div>
+
+          <!-- ===== 4) Mensagens ===== -->
+          <div class="mini kpi" id="kpi_msgs">
+            <div class="label"><h3 class="title">Mensagens — próximos 7 dias</h3></div>
+            <div class="actions"><button class="edit-btn" data-open="#secMensagens" aria-label="Editar mensagens" title="Em breve" disabled>✎</button></div>
+            <div class="progress progress--lg progress--segments"><div class="progress__track" id="kpi_msg_track"></div></div>
+            <div class="hbar-legend"><span id="kpi_msg_lbl1">Total na semana: 0</span><span id="kpi_msg_lbl2">Pico: 0/dia</span></div>
+          </div>
         </div>
-        <iframe id="app_frame" class="app-frame" title="Ferramenta selecionada" loading="lazy"></iframe>
+
+        <!-- ===== MiniApp Tarefas ===== -->
+        <details id="secTarefas"><summary>Tarefas</summary>
+          <div class="details-wrap"><div id="tasks_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        </details>
+
+        <!-- ===== MiniApp Fornecedores ===== -->
+        <details id="secFornecedores"><summary>Fornecedores</summary>
+          <div class="details-wrap"><div id="fornecedores_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
+        </details>
       </section>
     </div>
   </main>
 
   <script type="module">
-    const parentChannel = (() => {
-      const canMessage = () => window.parent && window.parent !== window && typeof window.parent.postMessage === 'function';
-      let hasCompleted = false;
-      let hasFailed = false;
+    // ====================== Shared Modules ======================
+    const PATH_BUS    = "/shared/marcoBus.js";
+    const PATH_STORE  = "/shared/projectStore.js";
+    const PATH_CORE   = "/shared/acEventsCore.v2.mjs";
+    const PATH_TASKS  = "/shared/acTasks.v1.mjs";            // MiniApp tarefas
+    const PATH_FORNEC = "/tools/gestao-de-fornecedores/fornecedores.minapp.js"; // MiniApp fornecedores (tools minúsculo)
 
-      const emit = (type, detail = {}) => {
-        if (!canMessage()) {
-          return;
-        }
-        window.parent.postMessage({ type, ...detail, href: window.location.href }, '*');
-      };
-
-      return {
-        loading() {
-          if (hasCompleted || hasFailed) return;
-          emit('gestao-eventos-app:loading');
-        },
-        ready() {
-          if (hasCompleted || hasFailed) return;
-          hasCompleted = true;
-          emit('gestao-eventos-app:ready');
-        },
-        error(message) {
-          if (hasCompleted || hasFailed) return;
-          hasFailed = true;
-          emit('gestao-eventos-app:error', { message });
-        }
-      };
-    })();
-
-    parentChannel.loading();
-
-    window.addEventListener('error', (event) => {
-      if (!(event instanceof ErrorEvent)) {
-        return;
-      }
-      const message = event?.error?.message || event?.message || 'Erro desconhecido';
-      parentChannel.error(message);
-    });
-
-    window.addEventListener('unhandledrejection', (event) => {
-      const reason = event?.reason;
-      const message = typeof reason === 'string' ? reason : reason?.message || 'Erro desconhecido';
-      parentChannel.error(message);
-    });
-
-    const PATH_BUS = "/shared/marcoBus.js";
-    const PATH_STORE = "/shared/projectStore.js";
-    const PATH_INV = "/shared/inviteUtils.js";
-    const CDN_BASES = [
-      (() => {
-        try {
-          const url = new URL(import.meta.url);
-          return url.origin.startsWith('http') ? url.origin : null;
-        } catch {
-          return null;
-        }
-      })(),
+    const CANDIDATES = [
       "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
       "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-    ].filter(Boolean);
-
-    const buildUrl = (base, rel) => {
-      if (!base) return rel;
-      const cleanRel = rel.startsWith('/') ? rel.slice(1) : rel;
-      const normalized = base.endsWith('/') ? base : base + '/';
-      return normalized + cleanRel;
-    };
-
-    async function loadShared(rel) {
-      const attempts = [rel, ...CDN_BASES.map(base => buildUrl(base, rel))];
-      for (const url of attempts) {
-        try {
-          const mod = await import(url);
-          if (mod) return mod;
-        } catch (err) {
-          console.warn('[app] Falha ao importar', url, err);
-        }
+    ];
+    async function tryImport(url){
+      try{ return await import(url); }
+      catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; }
       }
-      return null;
     }
+    async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
 
-    const store = await loadShared(PATH_STORE);
-    const bus = await loadShared(PATH_BUS);
-    const inviteUtils = await loadShared(PATH_INV);
+    const store    = await loadShared(PATH_STORE);
+    const bus      = await loadShared(PATH_BUS);
+    const ac       = await loadShared(PATH_CORE);
+    const tasksMod = await loadShared(PATH_TASKS);
+    await loadShared(PATH_FORNEC); // importa e registra <ac-fornecedores>
     await store?.init?.();
 
-    if (!store || !bus || !inviteUtils) {
-      const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
-      const main = document.querySelector('main.ac');
-      if (main) {
-        main.innerHTML = `<div class="container"><section class="card"><h2>Carregamento interrompido</h2><p>${errorMessage}</p></section></div>`;
-      }
-      parentChannel.error(errorMessage);
-      throw new Error(errorMessage);
+    // ====================== Estado & helpers ======================
+    const AUTO_SAVE_MS = 700;
+    const state = { currentId:null, project:null, metas:[], dirty:false, saving:false, timer:null };
+    const $  = (s)=> document.querySelector(s);
+    const $$ = (s)=> [...document.querySelectorAll(s)];
+
+    // Header UI refs
+    const evTitle   = $('#evTitle');
+    const updatedAt = $('#updatedAt');
+    const switchEvent = $('#switchEvent');
+    const btnNew    = $('#btnNew');
+    const btnDelete = $('#btnDelete');
+
+    // Pills
+    const chipReady = $('#chipReady');
+    const chipDirty = $('#chipDirty');
+    const chipSaving= $('#chipSaving');
+
+    // Form bind
+    const dtInput = $('#ev-datetime');
+    const boundInputs = $$('[data-bind]');
+
+    // KPI refs
+    const kpiForTitle = $('#kpi_for_title');
+    const kpiForBar   = $('#kpi_for_bar');
+    const kpiForLbl1  = $('#kpi_for_lbl1');
+    const kpiForLbl2  = $('#kpi_for_lbl2');
+
+    const kpiTaskTitle= $('#kpi_task_title');
+    const kpiTaskBar  = $('#kpi_task_bar');
+    const kpiTaskLbl1 = $('#kpi_task_lbl1');
+    const kpiTaskLbl2 = $('#kpi_task_lbl2');
+
+    const kpiGuestTitle  = $('#kpi_guest_title');
+    const kpiGuestBar    = $('#kpi_guest_bar');
+    const kpiGuestLbl1   = $('#kpi_guest_lbl1');
+    const kpiGuestLbl2   = $('#kpi_guest_lbl2');
+    const kpiGuestBands  = $('#kpi_guest_bands');
+    const kpiGuestLegend = $('#kpi_guest_legend');
+
+    const kpiMsgTrack = $('#kpi_msg_track');
+
+    function renderStatus(){
+      chipReady.style.display = (!state.dirty && !state.saving)? 'inline-block':'none';
+      chipDirty.style.display = (state.dirty && !state.saving)? 'inline-block':'none';
+      chipSaving.style.display= state.saving? 'inline-block':'none';
+    }
+    function setDirty(v){ state.dirty=!!v; renderStatus(); }
+    function setSaving(v){ state.saving=!!v; renderStatus(); }
+
+    const fmtDateTime   = (ts)=> ac.format.fmtDateTime(ts);
+    const fmtDateBR     = (d)=> ac.format?.fmtDateBR ? ac.format.fmtDateBR(d) : (d? d.split('-').reverse().join('/') : '');
+    const fmtDateCompact= (d,h)=>{ const ddmmyyyy = fmtDateBR(d); const hhmm = (h||'').slice(0,5); return [ddmmyyyy, hhmm].filter(Boolean).join(' '); };
+    function setKV(sel, pairs){ const el=$(sel); if(!el) return; el.innerHTML = (pairs&&pairs.length)? pairs.map(([k,v])=>`<dt>${k}</dt><dd>${v}</dd>`).join(''):''; }
+
+    function renderBadges(){
+      const p = ac.model.ensureShape(state.project||{});
+      const ev = p.evento||{};
+      const rowsEv=[];
+      if(ev.nome) rowsEv.push(['Evento', ev.nome]);
+      if(ev.tipo) rowsEv.push(['Tipo', ev.tipo]);
+      const dStr = fmtDateCompact(ev.data, ev.hora); if(dStr) rowsEv.push(['Data', dStr]);
+      if(ev.local) rowsEv.push(['Local', ev.local]);
+      setKV('#kvEvento', rowsEv);
+
+      const a=ev.anfitriao||{}; const rowsA=[];
+      if(a.nome) rowsA.push(['Nome', a.nome]);
+      if(a.telefone) rowsA.push(['Telefone', a.telefone]);
+      if(a.redeSocial) rowsA.push(['Contato', a.redeSocial]);
+      setKV('#kvAnfitriao', rowsA);
+
+      const c=p.cerimonialista||{}; const rowsC=[]; const nomeC=c.nomeCompleto||c.nome;
+      if(nomeC) rowsC.push(['Nome', nomeC]);
+      if(c.telefone) rowsC.push(['Telefone', c.telefone]);
+      if(c.redeSocial) rowsC.push(['Rede social', c.redeSocial]);
+      setKV('#kvCerimonial', rowsC);
     }
 
-    const state = {
-      metas: [],
-      currentId: null,
-      project: null,
-      activeTool: null
-    };
-
-    const $ = (sel) => document.querySelector(sel);
-    const statusPill = $('#app_status');
-    const summaryId = $('#app_summaryId');
-    const summaryUpdated = $('#app_summaryUpdated');
-    const overviewSummary = $('#app_overviewSummary');
-    const summaryName = $('#app_summaryName');
-    const summaryDate = $('#app_summaryDate');
-    const summaryVenue = $('#app_summaryVenue');
-    const summaryHost = $('#app_summaryHost');
-    const summaryCerimonial = $('#app_summaryCerimonial');
-    const kpiConvites = $('#app_kpiConvites');
-    const kpiConfirmados = $('#app_kpiConfirmados');
-    const kpiPendentes = $('#app_kpiPendentes');
-    const kpiPessoas = $('#app_kpiPessoas');
-    const kpiTelefones = $('#app_kpiTelefones');
-    const kpiFornecedores = $('#app_kpiFornecedores');
-    const kpiPrevisto = $('#app_kpiPrevisto');
-    const kpiPago = $('#app_kpiPago');
-    const kpiPendente = $('#app_kpiPendente');
-    const kpiTarefasTotal = $('#app_kpiTarefasTotal');
-    const kpiTarefasConcluidas = $('#app_kpiTarefasConcluidas');
-    const kpiMensagens = $('#app_kpiMensagens');
-    const kpiProximoEnvio = $('#app_kpiProximoEnvio');
-    const selEvento = $('#app_selEvento');
-    const btnRefresh = $('#app_btnRefresh');
-    const btnOpenEventos = $('#app_btnOpenEventos');
-    const savedList = $('#app_savedList');
-    const savedEmpty = $('#app_savedEmpty');
-    const reportEl = $('#app_report');
-    const reportStatus = $('#app_reportStatus');
-    const reportCard = $('#app_reportCard');
-    const btnReportRefresh = $('#app_reportRefresh');
-    const btnReportCopy = $('#app_reportCopy');
-    const btnReportPrint = $('#app_reportPrint');
-    const toolFrame = $('#app_frame');
-    const shortcutButtons = [...document.querySelectorAll('.shortcut-card[data-tool]')];
-    const tabButtons = [...document.querySelectorAll('[data-tool-open]')];
-
-    const TOOL_PATHS = {
-      eventos: 'eventos.html',
-      convidados: 'convidados.html',
-      fornecedores: 'fornecedores.html',
-      mensagens: 'mensagens.html',
-      tarefas: 'tarefas.html'
-    };
-
-    const MSG_LABELS = {
-      save: 'Save the Date',
-      convite: 'Convite Formal',
-      lembrete7: 'Lembrete (7 dias)',
-      lembrete24: 'Lembrete (24h)',
-      agradecimento: 'Agradecimento'
-    };
-
-    const fmtDate = (val) => {
-      if (!val) return '—';
-      const [y, m, d] = String(val).split('-');
-      if (!y || !m || !d) return val;
-      return `${d}/${m}/${y}`;
-    };
-
-    const fmtDateTime = (ts) => ts ? new Date(ts).toLocaleString() : '—';
-    const money = (v) => (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
-
-    const onlyDigits = (s) => String(s || '').replace(/\D+/g, '');
-    const validDDD = (ddd) => /^(1[1-9]|[2-9]\d)$/.test(String(ddd || ''));
-    const parseBR = (digits) => {
-      const nd = onlyDigits(digits);
-      if (!(nd.length === 10 || nd.length === 11)) return null;
-      const ddd = nd.slice(0, 2);
-      const local = nd.slice(2);
-      if (!validDDD(ddd)) return null;
-      return { ddd, local };
-    };
-    const toE164IfBR = (raw) => {
-      const nd = onlyDigits(raw);
-      if (nd.startsWith('55') && (nd.length === 12 || nd.length === 13)) return '+' + nd;
-      const br = parseBR(nd);
-      return br ? '+55' + br.ddd + br.local : null;
-    };
-    const isE164 = (s) => /^\+[1-9]\d{7,14}$/.test(String(s || ''));
-    const normalizeToE164 = (raw) => {
-      const viaMod = inviteUtils?.normalizePhone?.(raw || '') || '';
-      if (isE164(viaMod)) return viaMod;
-      const viaBR = toE164IfBR(raw);
-      return isE164(viaBR || '') ? viaBR : null;
-    };
-
-    function ensureShape(p) {
-      const base = p ? JSON.parse(JSON.stringify(p)) : {};
-      base.cerimonialista = base.cerimonialista || { nomeCompleto: '', telefone: '', redeSocial: '' };
-      base.evento = base.evento || { nome: '', data: '', hora: '', local: '', tipo: '', endereco: {}, anfitriao: {} };
-      base.evento.endereco = base.evento.endereco || {};
-      base.evento.anfitriao = base.evento.anfitriao || {};
-      base.lista = Array.isArray(base.lista) ? base.lista : [];
-      base.fornecedores = Array.isArray(base.fornecedores) ? base.fornecedores : [];
-      if (!base.plano || typeof base.plano !== 'object') base.plano = {};
-      base.plano.checklist = Array.isArray(base.plano.checklist) ? base.plano.checklist : [];
-      base.mensagens = Array.isArray(base.mensagens) ? base.mensagens : [];
-      return base;
+    function renderHeader(){
+      const p = state.project||{}; const ev=p.evento||{};
+      evTitle.textContent = ev.nome || '—';
+      updatedAt.textContent = fmtDateTime(p.updatedAt)||'—';
+      renderBadges();
     }
 
-    function guestStats(list) {
-      const rows = Array.isArray(list) ? list : [];
-      const convites = rows.length;
-      const pessoas = rows.reduce((acc, item) => acc + (Number(item.total) || (1 + (item.acompanhantes || []).length)), 0);
-      const confirmados = rows.filter((r) => r.confirmacao === 'confirmado').length;
-      const pendentes = rows.filter((r) => !r.confirmacao || r.confirmacao === 'pendente').length;
-      const telValidos = rows.filter((r) => normalizeToE164(r.telefone)).length;
-      return { rows, convites, pessoas, confirmados, pendentes, telValidos };
+    function renderSwitcher(){
+      const metas=state.metas||[];
+      switchEvent.innerHTML = metas.map(m=>`<option value="${m.id}"${m.id===state.currentId?' selected':''}>${m.nome||m.id}</option>`).join('');
+    }
+    switchEvent.addEventListener('change', async ()=>{ const id=switchEvent.value; if(id){ await setCurrent(id); publishCurrent(); }});
+    async function renderSaved(){ state.metas = store.listProjects?.()||[]; renderSwitcher(); }
+
+    // Form <-> State
+    function fillForm(p){
+      ac.model.ensureShape(p);
+      boundInputs.forEach(inp=>{
+        const path=inp.dataset.bind;
+        const val=path.split('.').reduce((a,k)=>a? a[k] : undefined,p)??'';
+        inp.value = val;
+      });
+      const ev=p?.evento||{}; const hh=(ev.hora||'').slice(0,5); const hasDate=!!ev.data;
+      if(dtInput){ dtInput.value = hasDate? `${ev.data}T${hh||'00:00'}`: ''; }
+    }
+    function readForm(){
+      const p=ac.model.ensureShape(JSON.parse(JSON.stringify(state.project||{})));
+      boundInputs.forEach(inp=>{
+        const path=inp.dataset.bind.split('.'); let ref=p;
+        for(let i=0;i<path.length-1;i++){ const k=path[i]; if(typeof ref[k]!=='object'||ref[k]===null) ref[k]={}; ref=ref[k]; }
+        ref[path.at(-1)] = inp.value;
+      });
+      return p;
+    }
+    function applyDateTime(prj){
+      const v=dtInput?.value?.trim();
+      if(!v){ prj.evento ||= {}; if(!prj.evento.hora) prj.evento.hora=''; if(!prj.evento.data) prj.evento.data=''; return prj; }
+      const [date,time]=v.split('T'); prj.evento ||= {}; prj.evento.data=date||''; prj.evento.hora=(time||'').slice(0,5); return prj;
     }
 
-    function supplierStats(items) {
-      const rows = Array.isArray(items) ? items : [];
-      let previsto = 0;
-      let pago = 0;
-      let pend = 0;
-      for (const f of rows) {
-        const prev = Number(f.previsto) || 0;
-        const paid = Number(f.pago) || 0;
-        previsto += prev;
-        pago += paid;
-        const diff = prev - paid;
-        pend += diff > 0 ? diff : 0;
-      }
-      return { rows, total: rows.length, previsto, pago, pend };
+    async function doSave(){
+      if(!state.currentId || !state.dirty) return;
+      setSaving(true);
+      let next = readForm(); next = applyDateTime(next); next.updatedAt = Date.now();
+      await store.updateProject?.(state.currentId,next);
+      state.project = await store.getProject?.(state.currentId);
+      setSaving(false); setDirty(false);
+      await renderSaved(); fillForm(state.project); renderHeader(); renderIndicators();
+      bus.publish('ac:project-updated',{ id: state.currentId, updatedAt: next.updatedAt });
+      updateFornecedoresProject();
+    }
+    function scheduleSave(){ if(state.timer) clearTimeout(state.timer); state.timer = setTimeout(doSave, AUTO_SAVE_MS); }
+
+    document.addEventListener('input', (ev)=>{
+      const inp=ev.target.closest('[data-bind]'); if(!inp) return;
+      setDirty(true); if(inp.dataset.bind==='evento.nome'){ evTitle.textContent = inp.value.trim()||'—'; }
+      scheduleSave(); renderBadges();
+    });
+    if(dtInput){ dtInput.addEventListener('input', ()=>{ setDirty(true); scheduleSave(); renderBadges(); }); }
+
+    // CEP
+    function wireCepInputs(){
+      document.querySelectorAll('[data-cep]').forEach(inp=>{
+        inp.addEventListener('input', ()=>{ inp.value = ac.cep.maskCep(inp.value); });
+        inp.addEventListener('blur', async ()=>{
+          const prefix=inp.getAttribute('data-cep'); const data=await ac.cep.fetchCep(inp.value); if(!data) return;
+          const map={logradouro:'logradouro',bairro:'bairro',cidade:'cidade',uf:'uf'};
+          for(const [k,v] of Object.entries(map)){
+            const el=document.querySelector(`[data-bind="${prefix}.${k}"]`); if(el && data[v]) el.value=data[v];
+          }
+          setDirty(true); scheduleSave(); renderBadges();
+        });
+      });
     }
 
-    function taskStats(items) {
-      const rows = Array.isArray(items) ? items.slice().sort((a, b) => (a.prazoISO || '').localeCompare(b.prazoISO || '')) : [];
-      const total = rows.length;
-      const concluidas = rows.filter((t) => t.status === 'feito').length;
-      return { rows, total, concluidas };
-    }
+    // ====================== KPIs (v2) ======================
+    function syncTasksKpiActive(){ try{ const kpi=document.querySelector('#kpi_tasks'); const det=document.querySelector('#secTarefas'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
+    function syncForKpiActive(){ try{ const kpi=document.querySelector('#kpi_for'); const det=document.querySelector('#secFornecedores'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
 
-    function messageStats(items) {
-      const rows = Array.isArray(items) ? items.slice().sort((a, b) => (a.whenISO || '').localeCompare(b.whenISO || '')) : [];
-      const now = Date.now();
-      const next = rows.find((r) => {
-        if (!r.whenISO) return false;
-        const ms = Date.parse(r.whenISO);
-        return !Number.isNaN(ms) && ms >= now;
-      }) || null;
-      return { rows, total: rows.length, next };
-    }
+    function clearChildren(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
+    function pushSeg(container, pct, title){ const seg=document.createElement('div'); seg.className='seg'; seg.style.width=Math.max(0,Math.min(100,pct)).toFixed(2)+'%'; if(title) seg.title=title; container.appendChild(seg); }
 
-    function eventSummary(project) {
-      if (!project) return 'Nenhum evento carregado.';
-      const ev = project.evento || {};
-      const parts = [ev.tipo, fmtDate(ev.data), ev.hora].filter(Boolean).join(' • ');
-      const conv = guestStats(project.lista);
-      return `${ev.nome || 'Evento sem nome'} • ${parts || 'Data a definir'} • ${conv.convites} convites / ${conv.confirmados} confirmados`;
-    }
+    function renderIndicators(){
+      const p = ac.model.ensureShape(state.project||{});
 
-    async function refreshMetas() {
-      state.metas = store?.listProjects?.() || [];
-      renderSavedList();
-      renderSelectOptions();
-    }
+      // Fornecedores
+      const kFor = ac.stats.kpiFornecedores(p.fornecedores||[]);
+      if(kpiForTitle) kpiForTitle.textContent = `Fornecedores (${ac.format.money(kFor.pendente)} pendentes)`;
+      if(kpiForBar)   kpiForBar.style.width = Math.min(100, Math.max(0, kFor.pctPago)) + '%';
+      if(kpiForLbl1)  kpiForLbl1.textContent = `${ac.format.money(kFor.pago)} pagos — ${kFor.pctPago}%`;
+      if(kpiForLbl2)  kpiForLbl2.textContent = `Total: ${ac.format.money(kFor.total)}`;
 
-    async function loadProject(id) {
-      if (!id) {
-        state.project = null;
-        return;
-      }
-      const proj = await store?.getProject?.(id);
-      state.project = ensureShape(proj || {});
-    }
+      // Tarefas (checklist)
+      const kTk = ac.stats.kpiTarefas(p.checklist||[]);
+      if(kpiTaskTitle) kpiTaskTitle.textContent = `Tarefas (${kTk.pendentes} pendentes)`;
+      if(kpiTaskBar)   kpiTaskBar.style.width = Math.min(100, Math.max(0, kTk.pctConcluidas)) + '%';
+      if(kpiTaskLbl1)  kpiTaskLbl1.textContent = `${kTk.concluidas} concluídas — ${kTk.pctConcluidas}%`;
+      if(kpiTaskLbl2)  kpiTaskLbl2.textContent = `Total: ${kTk.total}`;
 
-    function renderSelectOptions() {
-      if (!selEvento) return;
-      const current = selEvento.value;
-      selEvento.innerHTML = '<option value="">Selecione um evento salvo…</option>' + state.metas.map((meta) => {
-        const selected = meta.id === current || meta.id === state.currentId ? ' selected' : '';
-        const label = esc(meta.nome || meta.id);
-        return `<option value="${esc(meta.id)}"${selected}>${label}</option>`;
-      }).join('');
-    }
-
-    function renderSavedList() {
-      if (!savedList || !savedEmpty) return;
-      if (!state.metas.length) {
-        savedList.innerHTML = '';
-        savedEmpty.style.display = 'block';
-        return;
-      }
-      savedEmpty.style.display = 'none';
-      savedList.innerHTML = state.metas.map((meta) => {
-        const label = esc(meta.nome || 'Evento sem nome');
-        const upd = fmtDateTime(meta.updatedAt);
-        const isActive = meta.id === state.currentId;
-        return `<div class="item" data-id="${esc(meta.id)}">
-          <div>
-            <div><strong>${label}</strong>${isActive ? ' <span class="pill ok">Ativo</span>' : ''}</div>
-            <div class="meta">Atualizado: ${esc(upd)}</div>
-          </div>
-          <div class="row">
-            <button class="btn btn--ghost" data-act="open" type="button">Abrir</button>
-          </div>
-        </div>`;
-      }).join('');
-    }
-
-    function renderOverview() {
-      const project = state.project;
-      const has = !!project && !!state.currentId;
-      statusPill.textContent = has ? 'Evento carregado' : 'Nenhum evento selecionado';
-      statusPill.className = 'pill ' + (has ? 'ok' : 'warn');
-      summaryId.textContent = has ? state.currentId : '—';
-      summaryUpdated.textContent = has ? fmtDateTime(project.updatedAt) : '—';
-      overviewSummary.textContent = eventSummary(project);
-
-      if (!has) {
-        summaryName.textContent = '—';
-        summaryDate.textContent = '—';
-        summaryVenue.textContent = '—';
-        summaryHost.textContent = '—';
-        summaryCerimonial.textContent = '—';
-        kpiConvites.textContent = '0';
-        kpiConfirmados.textContent = '0';
-        kpiPendentes.textContent = '0';
-        kpiPessoas.textContent = '0';
-        kpiTelefones.textContent = '0';
-        kpiFornecedores.textContent = '0';
-        kpiPrevisto.textContent = money(0);
-        kpiPago.textContent = money(0);
-        kpiPendente.textContent = money(0);
-        kpiTarefasTotal.textContent = '0';
-        kpiTarefasConcluidas.textContent = '0';
-        kpiMensagens.textContent = '0';
-        kpiProximoEnvio.textContent = '—';
-        return;
+      // Convidados & Convites
+      const kG = ac.stats.kpiConvidados(p.convidados||[]);
+      const kpiGuestBar    = $('#kpi_guest_bar');
+      const kpiGuestLbl1   = $('#kpi_guest_lbl1');
+      const kpiGuestLbl2   = $('#kpi_guest_lbl2');
+      const kpiGuestBands  = $('#kpi_guest_bands');
+      const kpiGuestLegend = $('#kpi_guest_legend');
+      if($('#kpi_guest_title')) $('#kpi_guest_title').textContent = `Convidados & Convites (${kG.pendentes} pendentes)`;
+      if(kpiGuestBar)   kpiGuestBar.style.width = Math.min(100, Math.max(0, kG.pctConfirmados)) + '%';
+      if(kpiGuestLbl1)  kpiGuestLbl1.textContent = `${kG.confirmados} confirmados — ${kG.pctConfirmados}%`;
+      if(kpiGuestLbl2)  kpiGuestLbl2.textContent = `Total: ${kG.total}`;
+      if(kpiGuestBands){
+        clearChildren(kpiGuestBands);
+        const bands = (kG.mesas && kG.mesas.some(x=>x[1]>0)) ? kG.mesas : (kG.grupos||[]);
+        const sum = Math.max(1, bands.reduce((a,[,v])=>a+(v||0),0));
+        const top = bands.slice(0,10);
+        top.forEach(([name,val])=> pushSeg(kpiGuestBands, (val/sum)*100, `${name||'—'}: ${val}`));
+        if(kpiGuestLegend){ kpiGuestLegend.textContent = top.length ? top.map(([n,v])=>`${(n||'—').slice(0,12)}: ${v}`).join(' • ') : 'Sem distribuição registrada'; }
       }
 
-      const ev = project.evento || {};
-      const end = ev.endereco || {};
-      const anf = ev.anfitriao || {};
-      const cer = project.cerimonialista || {};
-      const guests = guestStats(project.lista);
-      const suppliers = supplierStats(project.fornecedores);
-      const tasks = taskStats(project.plano?.checklist);
-      const messages = messageStats(project.mensagens);
-
-      const dateParts = [ev.tipo, fmtDate(ev.data), ev.hora].filter(Boolean).join(' • ');
-      const addressParts = [end.logradouro, end.numero, end.bairro, end.cidade, end.uf].filter(Boolean).join(', ');
-
-      summaryName.textContent = ev.nome || 'Evento sem nome';
-      summaryDate.textContent = dateParts || 'Data não definida';
-      summaryVenue.textContent = addressParts ? `Endereço: ${addressParts}` : 'Endereço não informado';
-      summaryHost.textContent = anf.nome ? `Anfitrião: ${anf.nome}${anf.telefone ? ' • ' + anf.telefone : ''}` : 'Anfitrião não informado';
-      summaryCerimonial.textContent = cer.nomeCompleto ? `Cerimonial: ${cer.nomeCompleto}${cer.telefone ? ' • ' + cer.telefone : ''}` : 'Cerimonial não informado';
-
-      kpiConvites.textContent = String(guests.convites);
-      kpiConfirmados.textContent = String(guests.confirmados);
-      kpiPendentes.textContent = String(guests.pendentes);
-      kpiPessoas.textContent = String(guests.pessoas);
-      kpiTelefones.textContent = String(guests.telValidos);
-
-      kpiFornecedores.textContent = String(suppliers.total);
-      kpiPrevisto.textContent = money(suppliers.previsto);
-      kpiPago.textContent = money(suppliers.pago);
-      kpiPendente.textContent = money(suppliers.pend);
-
-      kpiTarefasTotal.textContent = String(tasks.total);
-      kpiTarefasConcluidas.textContent = String(tasks.concluidas);
-      kpiMensagens.textContent = String(messages.total);
-      kpiProximoEnvio.textContent = messages.next?.whenISO ? new Date(messages.next.whenISO).toLocaleString() : '—';
-    }
-
-    function renderReport() {
-      if (!reportEl) return;
-      if (!state.project || !state.currentId) {
-        reportEl.innerHTML = '<p class="report__empty">Selecione um evento para gerar o relatório operacional.</p>';
-        return;
+      // Mensagens próximos 7 dias
+      const kM = ac.stats.kpiMensagens(p.mensagens||[]);
+      const kpiMsgLbl1  = $('#kpi_msg_lbl1');
+      const kpiMsgLbl2  = $('#kpi_msg_lbl2');
+      if(kpiMsgTrack){
+        clearChildren(kpiMsgTrack);
+        const arr = Array.isArray(kM.perDay)? kM.perDay.slice(0,7) : [0,0,0,0,0,0,0];
+        const total = arr.reduce((a,b)=>a+b,0);
+        if(total===0){ for(let i=0;i<7;i++) pushSeg(kpiMsgTrack, 100/7, `D${i}: 0`); }
+        else{ arr.forEach((v,i)=> pushSeg(kpiMsgTrack, (v/total)*100, `D${i}: ${v}`)); }
       }
-
-      const project = state.project;
-      const ev = project.evento || {};
-      const end = ev.endereco || {};
-      const anf = ev.anfitriao || {};
-      const cer = project.cerimonialista || {};
-      const guests = guestStats(project.lista);
-      const suppliers = supplierStats(project.fornecedores);
-      const tasks = taskStats(project.plano?.checklist);
-      const messages = messageStats(project.mensagens);
-
-      const addressParts = [end.logradouro, end.numero, end.bairro, end.cidade, end.uf, end.complemento].filter(Boolean).join(', ');
-      const hostLine = [anf.nome, anf.telefone, anf.redeSocial].filter(Boolean).join(' • ');
-      const cerLine = [cer.nomeCompleto, cer.telefone, cer.redeSocial].filter(Boolean).join(' • ');
-
-      const suppliersTable = suppliers.rows.length ? suppliers.rows.map((f, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${esc([f.nome, f.servico].filter(Boolean).join(' — ') || 'Sem nome')}</td>
-          <td>${money(f.previsto)}</td>
-          <td>${money(f.pago)}</td>
-          <td>${esc(f.status || (Number(f.pago) >= Number(f.previsto) ? 'Pago' : 'Pendente'))}</td>
-          <td>${esc(f.contato || '')}</td>
-        </tr>`).join('') : '<tr><td colspan="6" class="small">Nenhum fornecedor cadastrado.</td></tr>';
-
-      const tasksTable = tasks.rows.length ? tasks.rows.map((t, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${esc(t.titulo || 'Sem título')}</td>
-          <td>${esc(t.responsavel || '—')}</td>
-          <td>${t.prazoISO ? new Date(t.prazoISO).toLocaleString() : '—'}</td>
-          <td>${esc(t.status === 'feito' ? 'Concluído' : t.status === 'andamento' ? 'Em andamento' : 'Pendente')}</td>
-        </tr>`).join('') : '<tr><td colspan="5" class="small">Nenhum item na checklist.</td></tr>';
-
-      const messagesTable = messages.rows.length ? messages.rows.map((m, i) => `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${esc(MSG_LABELS[m.cat] || m.cat || 'Mensagem')}</td>
-          <td>${esc(m.message || '')}</td>
-          <td>${m.whenISO ? new Date(m.whenISO).toLocaleString() : '—'}</td>
-        </tr>`).join('') : '<tr><td colspan="4" class="small">Nenhuma mensagem programada.</td></tr>';
-
-      reportEl.innerHTML = `
-        <section class="report__header">
-          <h3>${esc(ev.nome || 'Evento sem nome')}</h3>
-          <div class="small">${esc([ev.tipo, fmtDate(ev.data), ev.hora].filter(Boolean).join(' • ') || 'Data/Hora não definidas')}</div>
-          <div class="small">Local: ${esc(ev.local || addressParts || 'A definir')}</div>
-          ${addressParts ? `<div class="small">Endereço: ${esc(addressParts)}</div>` : ''}
-          ${hostLine ? `<div class="small">Anfitrião: ${esc(hostLine)}</div>` : ''}
-          ${cerLine ? `<div class="small">Cerimonial: ${esc(cerLine)}</div>` : ''}
-        </section>
-        <section class="report__section">
-          <h3>Indicadores rápidos</h3>
-          <div class="report__grid">
-            <div>
-              <strong>${guests.convites}</strong>
-              <div class="small">Convites cadastrados</div>
-            </div>
-            <div>
-              <strong>${guests.confirmados}</strong>
-              <div class="small">Convites confirmados</div>
-            </div>
-            <div>
-              <strong>${guests.pessoas}</strong>
-              <div class="small">Total de pessoas previstas</div>
-            </div>
-            <div>
-              <strong>${suppliers.total}</strong>
-              <div class="small">Fornecedores cadastrados</div>
-            </div>
-            <div>
-              <strong>${money(suppliers.previsto)}</strong>
-              <div class="small">Valor previsto</div>
-            </div>
-            <div>
-              <strong>${money(suppliers.pago)}</strong>
-              <div class="small">Valor já pago</div>
-            </div>
-            <div>
-              <strong>${tasks.total}</strong>
-              <div class="small">Itens na checklist</div>
-            </div>
-            <div>
-              <strong>${tasks.concluidas}</strong>
-              <div class="small">Itens concluídos</div>
-            </div>
-            <div>
-              <strong>${messages.total}</strong>
-              <div class="small">Mensagens programadas</div>
-            </div>
-            <div>
-              <strong>${messages.next?.whenISO ? new Date(messages.next.whenISO).toLocaleString() : '—'}</strong>
-              <div class="small">Próximo envio previsto</div>
-            </div>
-          </div>
-        </section>
-        <section class="report__section">
-          <h3>Fornecedores</h3>
-          <table class="report__table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Fornecedor / Serviço</th>
-                <th>Previsto</th>
-                <th>Pago</th>
-                <th>Status</th>
-                <th>Contato</th>
-              </tr>
-            </thead>
-            <tbody>${suppliersTable}</tbody>
-          </table>
-        </section>
-        <section class="report__section">
-          <h3>Checklist</h3>
-          <table class="report__table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Tarefa</th>
-                <th>Responsável</th>
-                <th>Prazo</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>${tasksTable}</tbody>
-          </table>
-        </section>
-        <section class="report__section">
-          <h3>Mensagens e comunicação</h3>
-          <table class="report__table">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Categoria</th>
-                <th>Conteúdo</th>
-                <th>Envio</th>
-              </tr>
-            </thead>
-            <tbody>${messagesTable}</tbody>
-          </table>
-        </section>`;
+      if(kpiMsgLbl1) kpiMsgLbl1.textContent = `Total na semana: ${kM.total}`;
+      if(kpiMsgLbl2) kpiMsgLbl2.textContent = `Pico: ${kM.pico}/dia`;
     }
 
-    async function setCurrent(id, opts = {}) {
-      state.currentId = id || null;
-      await loadProject(state.currentId);
-      renderOverview();
-      renderReport();
-      renderSelectOptions();
-      renderSavedList();
-      if (!opts.silent && state.currentId && bus?.publish) {
-        bus.publish('ac:open-event', { id: state.currentId, from: 'app' });
+    // ====================== Novo / Excluir ======================
+    btnNew.addEventListener('click', async ()=>{
+      const blank = ac.model.ensureShape({
+        cerimonialista:{},
+        evento:{ endereco:{}, anfitriao:{ endCorrespondencia:{}, endEntrega:{} } },
+        fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
+      });
+      const { meta } = await store.createProject?.(blank);
+      await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject();
+    });
+
+    btnDelete.addEventListener('click', async ()=>{
+      if(!state.currentId) return;
+      if(!confirm('Excluir este evento? Esta ação não pode ser desfeita.')) return;
+      try{
+        if(store.deleteProject){ await store.deleteProject(state.currentId); }
+        else if(store.removeProject){ await store.removeProject(state.currentId); }
+      }catch(e){ console.error(e); }
+      state.currentId=null; await renderSaved();
+      const nextId=(state.metas[0]&&state.metas[0].id)||null;
+      await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject();
+    });
+
+    function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'eventos' }); }
+
+    function mountTasksIfNeeded(){
+      const host = document.querySelector('#tasks_host');
+      if(host && !host?.dataset?.mounted && tasksMod?.mountTasksMiniApp){
+        tasksMod.mountTasksMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+        host.dataset.mounted = '1';
       }
     }
 
-    function openTool(tool) {
-      if (!toolFrame) return;
-      if (tool === 'relatorio') {
-        reportCard?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
+    function mountFornecedoresIfNeeded(){
+      const host = document.querySelector('#fornecedores_host');
+      if(host && !host.dataset.mounted){
+        const el = document.createElement('ac-fornecedores');
+        if(state.currentId) el.setAttribute('project-id', state.currentId);
+        host.appendChild(el);
+        host.dataset.mounted = '1';
       }
-      const rel = TOOL_PATHS[tool];
-      if (!rel) return;
-      state.activeTool = tool;
-      const url = new URL(rel, import.meta.url).href;
-      if (toolFrame.src !== url) {
-        toolFrame.src = url;
-      }
-      tabButtons.forEach((btn) => {
-        btn.classList.toggle('btn', true);
-        btn.classList.toggle('btn--ghost', btn.dataset.toolOpen !== tool);
-        if (btn.dataset.toolOpen === tool) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
+    }
+    function updateFornecedoresProject(){
+      const el = document.querySelector('#fornecedores_host ac-fornecedores');
+      if(el){ const pid = state.currentId || ''; if(pid) el.setAttribute('project-id', pid); }
+    }
+
+    async function loadCurrent(id){
+      state.currentId=id||state.currentId;
+      state.project = state.currentId? await store.getProject?.(state.currentId) : null;
+      ac.model.ensureShape(state.project);
+      fillForm(state.project||{}); setDirty(false); renderHeader(); renderIndicators();
+      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject();
+    }
+    async function setCurrent(id){
+      if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject(); return; }
+      await loadCurrent(id); localStorage.setItem('ac:lastId', id); renderSwitcher();
+    }
+
+    // BUS: refletir atualizações externas (com refresh do projeto atual)
+    bus.subscribe('ac:project-updated', async ({ id, updatedAt:ts })=>{
+      try{
+        if(id){
+          await renderSaved();
+          if(id===state.currentId){
+            state.project = await store.getProject?.(state.currentId);
+            if(ts && updatedAt){ updatedAt.textContent = fmtDateTime(ts)||'—'; }
+            renderIndicators(); updateFornecedoresProject();
+          }
         }
-      });
-      shortcutButtons.forEach((btn) => {
-        btn.classList.toggle('active', btn.dataset.tool === tool);
+      }catch(err){ console.error(err); }
+    });
+
+    // Abrir/fechar seções
+    function updateEditActives(){
+      document.querySelectorAll('[data-open]')?.forEach(b=>b.classList.remove('active'));
+      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores'].forEach(sel=>{
+        const d=document.querySelector(sel); if(d && d.open){ const btn=document.querySelector(`[data-open="${sel}"]`); if(btn) btn.classList.add('active'); }
       });
     }
+    function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
+    function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); }
+    document.addEventListener('click', (ev)=>{ const btn = ev.target.closest('[data-open]'); if(!btn) return; const sel = btn.getAttribute('data-open'); if(sel) toggleSection(sel); });
+    window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeAll(); }});
+    ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); }); });
 
-    selEvento?.addEventListener('change', async (ev) => {
-      const id = ev.target.value || null;
-      await setCurrent(id);
-    });
-
-    btnRefresh?.addEventListener('click', async () => {
-      await refreshMetas();
-      reportStatus.textContent = 'Lista de eventos atualizada.';
-      setTimeout(() => { reportStatus.textContent = ''; }, 2500);
-    });
-
-    btnOpenEventos?.addEventListener('click', () => openTool('eventos'));
-
-    savedList?.addEventListener('click', async (ev) => {
-      const btn = ev.target.closest('button[data-act]');
-      if (!btn) return;
-      const id = btn.closest('.item')?.getAttribute('data-id');
-      if (!id) return;
-      if (btn.dataset.act === 'open') {
-        selEvento.value = id;
-        await setCurrent(id);
+    // ====================== Boot ======================
+    async function bootstrap(){
+      await renderSaved();
+      wireCepInputs();
+      const metas = store.listProjects?.()||[];
+      if(!metas.length){
+        const blank = ac.model.ensureShape({
+          cerimonialista:{},
+          evento:{ endereco:{}, anfitriao:{ endCorrespondencia:{}, endEntrega:{} } },
+          fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
+        });
+        const { meta } = await store.createProject?.(blank);
+        await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); updateFornecedoresProject(); return;
       }
-    });
-
-    shortcutButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const tool = btn.dataset.tool;
-        openTool(tool);
-      });
-    });
-
-    tabButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        openTool(btn.dataset.toolOpen);
-      });
-    });
-
-    btnReportRefresh?.addEventListener('click', () => {
-      renderReport();
-      reportStatus.textContent = 'Relatório atualizado.';
-      setTimeout(() => { reportStatus.textContent = ''; }, 2500);
-    });
-
-    btnReportCopy?.addEventListener('click', async () => {
-      if (!reportEl) return;
-      const text = reportEl.innerText || '';
-      try {
-        await navigator.clipboard.writeText(text);
-        reportStatus.textContent = 'Relatório copiado para a área de transferência!';
-      } catch (err) {
-        console.warn('Falha ao copiar', err);
-        reportStatus.textContent = 'Não foi possível copiar automaticamente. Selecione o texto e copie manualmente.';
-      }
-      setTimeout(() => { reportStatus.textContent = ''; }, 4000);
-    });
-
-    btnReportPrint?.addEventListener('click', () => {
-      window.print();
-    });
-
-    if (bus?.subscribe) {
-      bus.subscribe('ac:open-event', async ({ id, from }) => {
-        if (from === 'app') return;
-        if (!id) {
-          await setCurrent(null, { silent: true });
-          return;
-        }
-        if (id !== state.currentId) {
-          await setCurrent(id, { silent: true });
-        }
-      });
-
-      bus.subscribe('ac:project-updated', async ({ id, updatedAt }) => {
-        await refreshMetas();
-        if (id && id === state.currentId) {
-          await loadProject(id);
-          state.project.updatedAt = updatedAt || state.project.updatedAt;
-          renderOverview();
-          renderReport();
-        }
-      });
-
-      bus.subscribe('ac:request-current', () => {
-        if (state.currentId) {
-          bus.publish('ac:open-event', { id: state.currentId, from: 'app' });
-        }
-      });
+      const last = localStorage.getItem('ac:lastId');
+      const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
+      await setCurrent(initial); if(initial) publishCurrent();
+      closeAll();
+      renderStatus();
+      mountTasksIfNeeded();
+      mountFornecedoresIfNeeded();
+      updateFornecedoresProject();
     }
-
-    await refreshMetas();
-    if (state.metas.length) {
-      const firstId = state.metas[0].id;
-      selEvento.value = firstId;
-      await setCurrent(firstId);
-    } else {
-      renderOverview();
-      renderReport();
-    }
-
-    openTool('eventos');
-    parentChannel.ready();
+    await bootstrap();
+    // garantir estado visual correto no carregamento
+    syncTasksKpiActive();
+    syncForKpiActive();
   </script>
 </body>
 </html>
