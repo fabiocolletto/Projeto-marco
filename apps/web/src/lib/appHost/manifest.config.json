@@ -14,6 +14,13 @@
     "requires": ["projectData", "bus", "ac"]
   },
   {
+    "id": "tarefas",
+    "label": "Tarefas",
+    "icon": "✅",
+    "loader": "@marco/features-tarefas",
+    "requires": ["projectData", "bus", "ac"]
+  },
+  {
     "id": "anfitriao",
     "label": "Anfitrião",
     "icon": "🤝",
@@ -26,13 +33,6 @@
     "icon": "📝",
     "loader": "./verticals/placeholder.svelte",
     "requires": ["projectData"]
-  },
-  {
-    "id": "tarefas",
-    "label": "Tarefas",
-    "icon": "✅",
-    "loader": "@marco/features-tarefas",
-    "requires": ["projectData", "bus", "ac"]
   },
   {
     "id": "fornecedores",
