@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ferramenta – Processador de Convites</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Inter", "Segoe UI", Tahoma, sans-serif;
+        background: #f6f6f6;
+        color: #141414;
+      }
+
+      .ip-app,
+      .ip-app * {
+        box-sizing: border-box;
+      }
+
+      .ip-app {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 40px 20px 64px;
+      }
+
+      .ip-header {
+        background: #111;
+        color: #fff;
+        border-radius: 24px;
+        padding: 28px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .ip-header::before,
+      .ip-header::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 10px;
+        background-image: repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.36) 0,
+          rgba(255, 255, 255, 0.36) 6px,
+          transparent 6px,
+          transparent 12px
+        );
+        pointer-events: none;
+      }
+
+      .ip-header::before {
+        left: 0;
+      }
+
+      .ip-header::after {
+        right: 0;
+      }
+
+      .ip-header__top {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 20px;
+      }
+
+      .ip-title {
+        margin: 0;
+        font-size: clamp(1.6rem, 2vw + 1rem, 2.6rem);
+        letter-spacing: -0.01em;
+      }
+
+      .ip-description {
+        margin: 6px 0 0;
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.75);
+        max-width: 560px;
+      }
+
+      .ip-actions {
+        margin-left: auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .ip-button {
+        appearance: none;
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+      }
+
+      .ip-button[data-variant="primary"] {
+        background: #f8f8f8;
+        color: #111;
+      }
+
+      .ip-button[data-variant="primary"]:hover,
+      .ip-button[data-variant="primary"]:focus-visible {
+        background: #fff;
+        outline: none;
+      }
+
+      .ip-button[data-variant="ghost"] {
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+      }
+
+      .ip-button[data-variant="ghost"]:hover,
+      .ip-button[data-variant="ghost"]:focus-visible {
+        background: rgba(255, 255, 255, 0.28);
+        outline: none;
+      }
+
+      .ip-button:active {
+        transform: translateY(1px);
+      }
+
+      .ip-main {
+        display: grid;
+        gap: 18px;
+      }
+
+      .ip-card {
+        background: #fff;
+        border-radius: 24px;
+        padding: 28px;
+        position: relative;
+        box-shadow: 0 18px 40px rgba(17, 17, 17, 0.08);
+        overflow: hidden;
+      }
+
+      .ip-card::before,
+      .ip-card::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 12px;
+        background-image: repeating-linear-gradient(
+          180deg,
+          rgba(17, 17, 17, 0.18) 0,
+          rgba(17, 17, 17, 0.18) 6px,
+          transparent 6px,
+          transparent 12px
+        );
+        pointer-events: none;
+      }
+
+      .ip-card::before {
+        left: 0;
+      }
+
+      .ip-card::after {
+        right: 0;
+      }
+
+      .ip-card__title {
+        margin: 0 0 16px;
+        font-size: 1.3rem;
+        letter-spacing: -0.01em;
+      }
+
+      .ip-card__subtitle {
+        margin: 0 0 24px;
+        font-size: 0.95rem;
+        color: #4c4c4c;
+      }
+
+      .ip-field {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .ip-label {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #2a2a2a;
+      }
+
+      .ip-textarea {
+        width: 100%;
+        min-height: 200px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        border: 1px solid rgba(17, 17, 17, 0.16);
+        font: inherit;
+        resize: vertical;
+        background: rgba(17, 17, 17, 0.02);
+      }
+
+      .ip-helper {
+        font-size: 0.9rem;
+        color: #5a5a5a;
+      }
+
+      .ip-helper strong {
+        font-weight: 600;
+      }
+
+      .ip-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .ip-stat {
+        border-radius: 16px;
+        padding: 16px;
+        border: 1px solid rgba(17, 17, 17, 0.12);
+        background: rgba(17, 17, 17, 0.03);
+      }
+
+      .ip-stat__label {
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6a6a6a;
+        margin-bottom: 6px;
+      }
+
+      .ip-stat__value {
+        font-size: 1.35rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .ip-issues {
+        margin-top: 12px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: rgba(251, 191, 36, 0.16);
+        border: 1px solid rgba(217, 119, 6, 0.4);
+        color: #7c2d12;
+      }
+
+      .ip-issues__title {
+        margin: 0 0 8px;
+        font-weight: 700;
+        font-size: 1rem;
+      }
+
+      .ip-issues__list {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 0.95rem;
+      }
+
+      .ip-table-wrap {
+        margin-top: 12px;
+        border-radius: 18px;
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        overflow: hidden;
+      }
+
+      .ip-table-scroll {
+        overflow-x: auto;
+      }
+
+      table.ip-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+      }
+
+      .ip-table th,
+      .ip-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+        text-align: left;
+        vertical-align: top;
+        font-size: 0.95rem;
+      }
+
+      .ip-table thead th {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #6a6a6a;
+        background: rgba(17, 17, 17, 0.04);
+      }
+
+      .ip-table tbody tr:nth-child(even) {
+        background: rgba(17, 17, 17, 0.02);
+      }
+
+      .ip-table tbody tr.ip-row--alert td,
+      .ip-table tbody tr.ip-row--alert th {
+        background: rgba(239, 68, 68, 0.08);
+      }
+
+      .ip-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(239, 68, 68, 0.14);
+        color: #991b1b;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin: 0 6px 6px 0;
+      }
+
+      .ip-empty {
+        margin: 0;
+        font-size: 0.95rem;
+        color: #5a5a5a;
+      }
+
+      .ip-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        max-width: 320px;
+        padding: 14px 18px;
+        border-radius: 16px;
+        box-shadow: 0 16px 40px rgba(17, 17, 17, 0.22);
+        background: #111;
+        color: #fff;
+        font-size: 0.95rem;
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        z-index: 40;
+      }
+
+      .ip-toast[data-visible="true"] {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .ip-toast[data-variant="warning"] {
+        background: #f97316;
+      }
+
+      .ip-toast[data-variant="success"] {
+        background: #15803d;
+      }
+
+      @media (max-width: 720px) {
+        .ip-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+        .ip-button {
+          flex: 1 1 auto;
+        }
+        .ip-table {
+          min-width: 600px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ip-app">
+      <header class="ip-header">
+        <div class="ip-header__top">
+          <div>
+            <h1 class="ip-title">Processador de Convites</h1>
+            <p class="ip-description">
+              Cole convites bagunçados, normalize telefones e gere uma lista estruturada em segundos. Ideal para fluxos de RSVP
+              sem back-end.
+            </p>
+          </div>
+          <div class="ip-actions" data-role="actions">
+            <button type="button" class="ip-button" data-variant="primary" data-action="processar">Processar convites</button>
+            <button type="button" class="ip-button" data-variant="ghost" data-action="limpar">Limpar</button>
+            <button type="button" class="ip-button" data-variant="ghost" data-action="copiar-csv">Copiar CSV</button>
+            <button type="button" class="ip-button" data-variant="ghost" data-action="copiar-nomes">Copiar nomes</button>
+            <button type="button" class="ip-button" data-variant="ghost" data-action="baixar-json">Baixar JSON</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="ip-main">
+        <section class="ip-card" aria-labelledby="ip-input-title">
+          <h2 class="ip-card__title" id="ip-input-title">Entrada rápida</h2>
+          <p class="ip-card__subtitle">
+            Cada linha representa um convite. O algoritmo entende telefones com ou sem código do país, convidados adicionais e
+            evita duplicados automaticamente.
+          </p>
+          <div class="ip-field">
+            <label class="ip-label" for="ip-textarea">Convites brutos</label>
+            <textarea
+              id="ip-textarea"
+              class="ip-textarea"
+              spellcheck="false"
+              placeholder="Maria Silva, João - (41) 98888-0000&#10;Pedro - 41 97777-1111 - Ana e Lucas&#10;..."
+            ></textarea>
+            <p class="ip-helper">
+              Exemplos aceitos: <strong>"Fabio 41 99999-0000 Lud e Leo"</strong>, <strong>"Marina, Gustavo - +55 11 98888-7766"</strong>,
+              <strong>"Roberta / Daniel 21 99999 0000"</strong>.
+            </p>
+          </div>
+        </section>
+
+        <section class="ip-card" aria-labelledby="ip-summary-title">
+          <h2 class="ip-card__title" id="ip-summary-title">Resumo</h2>
+          <div class="ip-stats" data-role="stats"></div>
+          <p class="ip-empty" data-role="stats-empty">Nenhum dado processado ainda.</p>
+          <div class="ip-issues" data-role="issues" hidden>
+            <h3 class="ip-issues__title">Linhas com alertas</h3>
+            <ul class="ip-issues__list" data-role="issues-list"></ul>
+          </div>
+        </section>
+
+        <section class="ip-card" aria-labelledby="ip-table-title">
+          <h2 class="ip-card__title" id="ip-table-title">Convites estruturados</h2>
+          <p class="ip-card__subtitle">Revise titulares, acompanhantes, telefones e avisos gerados automaticamente.</p>
+          <div class="ip-table-wrap" data-role="table-wrap" hidden>
+            <div class="ip-table-scroll">
+              <table class="ip-table" aria-describedby="ip-table-title">
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Titular</th>
+                    <th scope="col">Acompanhantes</th>
+                    <th scope="col">Telefone</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Avisos</th>
+                  </tr>
+                </thead>
+                <tbody data-role="table-body"></tbody>
+              </table>
+            </div>
+          </div>
+          <p class="ip-empty" data-role="table-empty">Processar os convites para ver a tabela.</p>
+        </section>
+      </main>
+    </div>
+
+    <div class="ip-toast" role="status" aria-live="polite" data-role="toast"></div>
+
+    <script type="module">
+      import {
+        analyzeInvites,
+        invitesToCSV,
+        invitesToJSON,
+        createEmptyAnalysis,
+      } from "./inviteProcessor.js";
+
+      const dom = {
+        textarea: document.getElementById("ip-textarea"),
+        actions: document.querySelector("[data-role=\"actions\"]"),
+        stats: document.querySelector("[data-role=\"stats\"]"),
+        statsEmpty: document.querySelector("[data-role=\"stats-empty\"]"),
+        issues: document.querySelector("[data-role=\"issues\"]"),
+        issuesList: document.querySelector("[data-role=\"issues-list\"]"),
+        tableWrap: document.querySelector("[data-role=\"table-wrap\"]"),
+        tableBody: document.querySelector("[data-role=\"table-body\"]"),
+        tableEmpty: document.querySelector("[data-role=\"table-empty\"]"),
+        toast: document.querySelector("[data-role=\"toast\"]"),
+      };
+
+      const state = {
+        raw: "",
+        convites: [],
+        analise: createEmptyAnalysis(),
+      };
+
+      let toastTimer = null;
+
+      function escapeHtml(value) {
+        const text = value == null ? "" : String(value);
+        return text.replace(/[&<>"']/g, (char) => {
+          switch (char) {
+            case "&":
+              return "&amp;";
+            case "<":
+              return "&lt;";
+            case ">":
+              return "&gt;";
+            case '"':
+              return "&quot;";
+            case "'":
+              return "&#39;";
+            default:
+              return char;
+          }
+        });
+      }
+
+      function showToast(message, variant = "default") {
+        if (!dom.toast) return;
+        dom.toast.textContent = message;
+        dom.toast.dataset.variant = variant;
+        dom.toast.dataset.visible = "true";
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+          dom.toast.dataset.visible = "false";
+          toastTimer = setTimeout(() => {
+            dom.toast.textContent = "";
+          }, 260);
+        }, 3200);
+      }
+
+      function copyToClipboard(text) {
+        if (!text) return Promise.reject(new Error("Nada para copiar"));
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text);
+        }
+        return new Promise((resolve, reject) => {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "true");
+          textarea.style.position = "absolute";
+          textarea.style.left = "-9999px";
+          document.body.appendChild(textarea);
+          textarea.select();
+          try {
+            document.execCommand("copy");
+            resolve();
+          } catch (err) {
+            reject(err);
+          } finally {
+            document.body.removeChild(textarea);
+          }
+        });
+      }
+
+      function downloadFile(content, filename, type) {
+        const blob = new Blob([content], { type });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      function getAllNames(invites = []) {
+        const names = [];
+        invites.forEach((invite) => {
+          if (invite.titular) names.push(invite.titular);
+          if (Array.isArray(invite.acompanhantes)) {
+            invite.acompanhantes.forEach((nome) => names.push(nome));
+          }
+        });
+        return names.join("\n");
+      }
+
+      function renderStats() {
+        if (!dom.stats) return;
+        const { analise, convites } = state;
+        const totalPessoas = convites.reduce((acc, convite) => acc + (Number.isFinite(Number(convite.total)) ? Number(convite.total) : 1), 0);
+        const comTelefone = convites.filter((convite) => Boolean(convite.telefone)).length;
+        const items = [
+          { label: "Linhas informadas", value: analise.totalLinhas },
+          { label: "Convites válidos", value: analise.processadas },
+          { label: "Ignoradas", value: analise.ignoradas.length },
+          { label: "Duplicadas", value: analise.duplicadas.length },
+          { label: "Sem telefone", value: analise.semTelefone },
+          { label: "Com telefone", value: comTelefone },
+          { label: "Total estimado de pessoas", value: totalPessoas },
+        ];
+
+        const hasData = analise.totalLinhas > 0 || convites.length > 0;
+        dom.stats.hidden = !hasData;
+        dom.statsEmpty.hidden = hasData;
+
+        if (!hasData) return;
+
+        dom.stats.innerHTML = items
+          .map(
+            (item) => `
+              <div class="ip-stat">
+                <span class="ip-stat__label">${escapeHtml(item.label)}</span>
+                <span class="ip-stat__value">${escapeHtml(String(item.value ?? "0"))}</span>
+              </div>
+            `
+          )
+          .join("");
+      }
+
+      function renderIssues() {
+        if (!dom.issues || !dom.issuesList) return;
+        const { analise } = state;
+        const entries = [];
+
+        analise.ignoradas.forEach((item) => {
+          entries.push(`Linha ${item.linha}: ${escapeHtml(item.conteudo)}`);
+        });
+        analise.duplicadas.forEach((item) => {
+          entries.push(`Duplicado na linha ${item.linha}: ${escapeHtml(item.titular)}`);
+        });
+
+        if (!entries.length) {
+          dom.issues.hidden = true;
+          dom.issuesList.innerHTML = "";
+          return;
+        }
+
+        dom.issues.hidden = false;
+        dom.issuesList.innerHTML = entries.map((entry) => `<li>${entry}</li>`).join("");
+      }
+
+      function renderTable() {
+        if (!dom.tableBody || !dom.tableWrap || !dom.tableEmpty) return;
+        const { convites } = state;
+
+        if (!convites.length) {
+          dom.tableWrap.hidden = true;
+          dom.tableEmpty.hidden = false;
+          dom.tableBody.innerHTML = "";
+          return;
+        }
+
+        dom.tableWrap.hidden = false;
+        dom.tableEmpty.hidden = true;
+
+        dom.tableBody.innerHTML = convites
+          .map((convite, index) => {
+            const acompanhantes = convite.acompanhantes?.length
+              ? convite.acompanhantes.map((nome) => `<div>${escapeHtml(nome)}</div>`).join("")
+              : "—";
+            const avisos = convite.avisos?.length
+              ? convite.avisos.map((aviso) => `<span class=\"ip-tag\">${escapeHtml(aviso)}</span>`).join("")
+              : "—";
+            const telefone = convite.telefone ? escapeHtml(convite.telefone) : "—";
+            const classes = convite.avisos?.length ? "ip-row--alert" : "";
+            return `
+              <tr class="${classes}">
+                <th scope="row">${index + 1}</th>
+                <td>
+                  <div>${escapeHtml(convite.titular || "—")}</div>
+                  <small style="display:block;color:#6b7280;font-size:0.8rem;">Linha ${convite.linha ?? "—"}</small>
+                </td>
+                <td>${acompanhantes}</td>
+                <td>${telefone}</td>
+                <td>${escapeHtml(String(convite.total ?? "—"))}</td>
+                <td>${avisos}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      function renderAll() {
+        renderStats();
+        renderIssues();
+        renderTable();
+      }
+
+      function processInput() {
+        const raw = dom.textarea.value || "";
+        state.raw = raw;
+        if (!raw.trim()) {
+          state.convites = [];
+          state.analise = createEmptyAnalysis();
+          renderAll();
+          showToast("Cole algumas linhas antes de processar.", "warning");
+          return;
+        }
+
+        const { convites, analise } = analyzeInvites(raw);
+        state.convites = convites;
+        state.analise = analise;
+        renderAll();
+        showToast(`Processamos ${convites.length} convite(s).`, "success");
+      }
+
+      function clearAll() {
+        dom.textarea.value = "";
+        state.raw = "";
+        state.convites = [];
+        state.analise = createEmptyAnalysis();
+        renderAll();
+        showToast("Entrada limpa.", "default");
+      }
+
+      async function handleCopyCSV() {
+        if (!state.convites.length) {
+          showToast("Nada para copiar. Procese os convites primeiro.", "warning");
+          return;
+        }
+        try {
+          const csv = invitesToCSV(state.convites);
+          await copyToClipboard(csv);
+          showToast("CSV copiado com sucesso!", "success");
+        } catch (err) {
+          showToast("Não foi possível copiar o CSV.", "warning");
+        }
+      }
+
+      async function handleCopyNames() {
+        if (!state.convites.length) {
+          showToast("Nada para copiar. Procese os convites primeiro.", "warning");
+          return;
+        }
+        try {
+          const names = getAllNames(state.convites);
+          await copyToClipboard(names);
+          showToast("Lista de nomes copiada!", "success");
+        } catch (err) {
+          showToast("Não foi possível copiar os nomes.", "warning");
+        }
+      }
+
+      function handleDownloadJSON() {
+        if (!state.convites.length) {
+          showToast("Nada para exportar. Procese os convites primeiro.", "warning");
+          return;
+        }
+        const json = invitesToJSON(state.convites);
+        const stamp = new Date().toISOString().slice(0, 10);
+        downloadFile(json, `convites-estruturados-${stamp}.json`, "application/json");
+        showToast("JSON baixado!", "success");
+      }
+
+      function handleAction(event) {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+        const { action } = button.dataset;
+        switch (action) {
+          case "processar":
+            processInput();
+            break;
+          case "limpar":
+            clearAll();
+            break;
+          case "copiar-csv":
+            handleCopyCSV();
+            break;
+          case "copiar-nomes":
+            handleCopyNames();
+            break;
+          case "baixar-json":
+            handleDownloadJSON();
+            break;
+          default:
+            break;
+        }
+      }
+
+      function bindEvents() {
+        dom.actions?.addEventListener("click", handleAction);
+        dom.textarea?.addEventListener("keydown", (event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+            event.preventDefault();
+            processInput();
+          }
+        });
+      }
+
+      function init() {
+        renderAll();
+        bindEvents();
+      }
+
+      init();
+    </script>
+  </body>
+</html>
