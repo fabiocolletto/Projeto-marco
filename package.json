@@ -3,9 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:visual": "playwright test"
+    "test:visual": "playwright test",
+    "pretest:visual": "npm --workspace web run build",
+    "build:web": "npm --workspace web run build",
+    "preview:web": "npm --workspace web run preview",
+    "dev:web": "npm --workspace web run dev"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.1"
-  }
+  },
+  "workspaces": [
+    "apps/web"
+  ]
 }
