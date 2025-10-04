@@ -33,7 +33,8 @@ const normalizeStatus = (s)=>{
   return map[k] || '';
 };
 const computeStatus = (t)=>{
-  try{ if(window.__ac_core_tasks_compute__) return window.__ac_core_tasks_compute__(t); }catch{}
+  try{ if(window.__ac_core_tasks_compute__) return window.__ac_core_tasks_compute__(t); }
+  catch(_err){}
   const prazo = t?.prazo || t?.due || '';
   if(prazo){ const d = new Date(prazo); const ref = new Date(); ref.setHours(0,0,0,0); if(!Number.isNaN(+d) && d < ref) return 'late'; }
   return normalizeStatus(t?.status) || 'todo';
@@ -124,7 +125,8 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   if(!root) throw new Error('root inválido');
 
   // Expor computeStatus do core para os helpers locais, se existir
-  try{ window.__ac_core_tasks_compute__ = ac?.tasks?.computeStatus; }catch{}
+  try{ window.__ac_core_tasks_compute__ = ac?.tasks?.computeStatus; }
+  catch(_err){}
 
   const header = el('div',{className:'row',style:'justify-content:space-between;align-items:center;margin-bottom:8px'},[
     el('h3',{textContent:'Tarefas', style:'margin:0;color:#0b65c2;font-size:1rem'}),
@@ -274,3 +276,4 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   rerender();
 
   return { refresh: rerender };
+}

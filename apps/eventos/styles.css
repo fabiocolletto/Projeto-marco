@@ -1,0 +1,106 @@
+/* ===== KPIs / MiniApps ===== */
+#cardIndicadores .mini.kpi {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 150px;
+}
+#cardIndicadores .mini.kpi .label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+#cardIndicadores .mini.kpi .label .title {
+  color: #0b65c2;
+}
+/* h3 nos títulos dos KPIs para padronizar com os badges acima */
+#cardIndicadores .mini.kpi .label h3 {
+  margin: 0 48px 2px 0;
+  font-size: 14px;
+  line-height: 1.2;
+  color: #0b65c2;
+  display: flex;
+  align-items: center;
+}
+/* Destaque laranja quando o mini-app estiver expandido */
+#cardIndicadores .mini.kpi.active {
+  border-color: #ffa245;
+  background: #fff7ed;
+  box-shadow: 0 0 0 1px #ffa245 inset;
+}
+#cardIndicadores #secTarefas[open] .details-wrap {
+  border: 1px solid #ffa245;
+  border-radius: 12px;
+  background: #fff7ed;
+  padding: 12px;
+}
+#cardIndicadores #secFornecedores[open] .details-wrap {
+  border: 1px solid #ffa245;
+  border-radius: 12px;
+  background: #fff7ed;
+  padding: 12px;
+}
+#cardIndicadores #secConvidados[open] .details-wrap {
+  border: 1px solid #ffa245;
+  border-radius: 12px;
+  background: #fff7ed;
+  padding: 12px;
+}
+#cardIndicadores .mini.kpi .actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+#cardIndicadores .mini.kpi .edit-btn {
+  border: 1px solid #cccccc;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 4px 8px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+#cardIndicadores .progress.progress--lg .progress__track {
+  height: 10px;
+  border-radius: 6px;
+  background: #eef2f6;
+}
+#cardIndicadores .progress.progress--lg .progress__bar {
+  height: 10px;
+  border-radius: 6px;
+  background: #0b65c2;
+  transition: width 0.25s ease;
+}
+#cardIndicadores .hbar-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.875rem;
+  color: #555;
+}
+#cardIndicadores .progress--segments .progress__track {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+#cardIndicadores .progress--segments .seg {
+  height: 10px;
+  border-radius: 4px;
+  background: #0b65c2;
+  flex: 0 0 auto;
+}
+#cardIndicadores .muted {
+  opacity: 0.75;
+}
+#cardIndicadores details > summary {
+  display: none;
+}
+@media (max-width: 640px) {
+  #cardIndicadores .mini.kpi {
+    min-height: 140px;
+  }
+}

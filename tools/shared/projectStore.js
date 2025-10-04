@@ -217,6 +217,9 @@ export async function deleteProject(id) {
   await kvSet(INDEX_KEY, indexCache);
 }
 
+// Alias mantido para compatibilidade com versões anteriores
+export const removeProject = deleteProject;
+
 export async function exportProject(id) {
   const p = await getProject(id);
   if (!p) throw new Error("Projeto não encontrado");
