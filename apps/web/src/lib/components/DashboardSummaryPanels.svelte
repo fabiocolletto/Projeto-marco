@@ -1,45 +1,83 @@
-<details id="secEvento">
-  <summary>Evento</summary>
-  <div class="details-wrap">
-    <div class="twocol">
-      <div class="field">
-        <label for="evento-nome"><span class="small">Nome do evento</span></label>
-        <input id="evento-nome" data-bind="evento.nome" type="text" />
-      </div>
-      <div class="field">
-        <label for="evento-tipo"><span class="small">Tipo</span></label>
-        <select id="evento-tipo" data-bind="evento.tipo">
-          <option value=""></option>
-          <option>Casamento</option>
-          <option>Aniversário</option>
-          <option>Formatura</option>
-          <option>Debutante</option>
-          <option>Corporativo</option>
-          <option>Batizado</option>
-          <option>Chá de Panela</option>
-          <option>Chá de Bebê</option>
-          <option>Bodas</option>
-          <option>Outro</option>
-        </select>
-      </div>
+<script lang="ts">
+  import { activePanel, openPanel } from '$lib/stores/ui';
+</script>
+
+<section
+  class="card space-y-6"
+  id="panel-evento"
+  data-panel="evento"
+  hidden={$activePanel !== 'evento'}
+>
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-ink">Informações do evento</h2>
+      <p class="text-sm text-ink-muted">Defina nome, tipo, data e endereço do encontro.</p>
     </div>
+    <button
+      class="rounded-lg border border-transparent bg-surface-muted px-3 py-1 text-xs font-semibold text-ink transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+      on:click={() => openPanel('overview')}
+    >
+      Voltar
+    </button>
+  </div>
 
-    <div class="twocol">
-      <div class="field">
-        <label for="ev-datetime"><span class="small">Quando</span></label>
-        <input id="ev-datetime" type="datetime-local" />
-      </div>
-      <div class="field">
-        <label for="evento-local"><span class="small">Local</span></label>
-        <input id="evento-local" data-bind="evento.local" type="text" />
-      </div>
-    </div>
+  <div class="grid gap-4 md:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-nome">
+      Nome do evento
+      <input
+        id="evento-nome"
+        data-bind="evento.nome"
+        type="text"
+        class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-tipo">
+      Tipo
+      <select
+        id="evento-tipo"
+        data-bind="evento.tipo"
+        class="form-select rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      >
+        <option value=""></option>
+        <option>Casamento</option>
+        <option>Aniversário</option>
+        <option>Formatura</option>
+        <option>Debutante</option>
+        <option>Corporativo</option>
+        <option>Batizado</option>
+        <option>Chá de Panela</option>
+        <option>Chá de Bebê</option>
+        <option>Bodas</option>
+        <option>Outro</option>
+      </select>
+    </label>
+  </div>
 
-    <div><strong class="small">Endereço do evento</strong></div>
+  <div class="grid gap-4 md:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="ev-datetime">
+      Quando
+      <input
+        id="ev-datetime"
+        type="datetime-local"
+        class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-local">
+      Local
+      <input
+        id="evento-local"
+        data-bind="evento.local"
+        type="text"
+        class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      />
+    </label>
+  </div>
 
-    <div class="twocol">
-      <div class="field">
-        <label for="evento-endereco-cep"><span class="small">CEP</span></label>
+  <div class="space-y-3 rounded-2xl bg-surface-muted/80 p-4">
+    <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-muted">Endereço do evento</h3>
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-cep">
+        CEP
         <input
           id="evento-endereco-cep"
           data-bind="evento.endereco.cep"
@@ -47,68 +85,129 @@
           inputmode="numeric"
           maxlength="9"
           data-cep="evento.endereco"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
         />
-      </div>
-      <div class="field">
-        <label for="evento-endereco-logradouro"><span class="small">Logradouro</span></label>
-        <input id="evento-endereco-logradouro" data-bind="evento.endereco.logradouro" type="text" />
-      </div>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-logradouro">
+        Logradouro
+        <input
+          id="evento-endereco-logradouro"
+          data-bind="evento.endereco.logradouro"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
 
-    <div class="threecol">
-      <div class="field">
-        <label for="evento-endereco-numero"><span class="small">Número</span></label>
-        <input id="evento-endereco-numero" data-bind="evento.endereco.numero" type="text" />
-      </div>
-      <div class="field">
-        <label for="evento-endereco-bairro"><span class="small">Bairro</span></label>
-        <input id="evento-endereco-bairro" data-bind="evento.endereco.bairro" type="text" />
-      </div>
-      <div class="field">
-        <label for="evento-endereco-cidade"><span class="small">Cidade</span></label>
-        <input id="evento-endereco-cidade" data-bind="evento.endereco.cidade" type="text" />
-      </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-numero">
+        Número
+        <input
+          id="evento-endereco-numero"
+          data-bind="evento.endereco.numero"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-bairro">
+        Bairro
+        <input
+          id="evento-endereco-bairro"
+          data-bind="evento.endereco.bairro"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-cidade">
+        Cidade
+        <input
+          id="evento-endereco-cidade"
+          data-bind="evento.endereco.cidade"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
 
-    <div class="twocol">
-      <div class="field">
-        <label for="evento-endereco-uf"><span class="small">UF</span></label>
-        <input id="evento-endereco-uf" data-bind="evento.endereco.uf" type="text" maxlength="2" />
-      </div>
-      <div class="field">
-        <label for="evento-endereco-complemento"><span class="small">Complemento / Referência</span></label>
-        <input id="evento-endereco-complemento" data-bind="evento.endereco.complemento" type="text" />
-      </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-uf">
+        UF
+        <input
+          id="evento-endereco-uf"
+          data-bind="evento.endereco.uf"
+          type="text"
+          maxlength="2"
+          class="form-input rounded-xl border-slate-300 uppercase focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-complemento">
+        Complemento / Referência
+        <input
+          id="evento-endereco-complemento"
+          data-bind="evento.endereco.complemento"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
-
-    <div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div>
   </div>
-</details>
+</section>
 
-<details id="secAnfitriao">
-  <summary>Anfitrião</summary>
-  <div class="details-wrap">
-    <div class="twocol">
-      <div class="field">
-        <label for="anfitriao-nome"><span class="small">Nome</span></label>
-        <input id="anfitriao-nome" data-bind="evento.anfitriao.nome" type="text" />
-      </div>
-      <div class="field">
-        <label for="anfitriao-telefone"><span class="small">Telefone</span></label>
-        <input id="anfitriao-telefone" data-bind="evento.anfitriao.telefone" type="text" />
-      </div>
+<section
+  class="card space-y-6"
+  id="panel-anfitriao"
+  data-panel="anfitriao"
+  hidden={$activePanel !== 'anfitriao'}
+>
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-ink">Dados do anfitrião</h2>
+      <p class="text-sm text-ink-muted">Preencha os contatos principais e endereços para correspondências.</p>
     </div>
+    <button
+      class="rounded-lg border border-transparent bg-surface-muted px-3 py-1 text-xs font-semibold text-ink transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+      on:click={() => openPanel('overview')}
+    >
+      Voltar
+    </button>
+  </div>
 
-    <div class="field">
-      <label for="anfitriao-rede"><span class="small">Rede social / contato</span></label>
-      <input id="anfitriao-rede" data-bind="evento.anfitriao.redeSocial" type="text" />
-    </div>
+  <div class="grid gap-4 md:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="anfitriao-nome">
+      Nome
+      <input
+        id="anfitriao-nome"
+        data-bind="evento.anfitriao.nome"
+        type="text"
+        class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="anfitriao-telefone">
+      Telefone
+      <input
+        id="anfitriao-telefone"
+        data-bind="evento.anfitriao.telefone"
+        type="text"
+        class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      />
+    </label>
+  </div>
 
-    <div><strong class="small">Endereço para correspondência</strong></div>
+  <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="anfitriao-rede">
+    Rede social / contato
+    <input
+      id="anfitriao-rede"
+      data-bind="evento.anfitriao.redeSocial"
+      type="text"
+      class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+    />
+  </label>
 
-    <div class="twocol">
-      <div class="field">
-        <label for="correspondencia-cep"><span class="small">CEP</span></label>
+  <div class="space-y-3 rounded-2xl bg-surface-muted/80 p-4">
+    <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-muted">Endereço para correspondência</h3>
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-cep">
+        CEP
         <input
           id="correspondencia-cep"
           data-bind="evento.anfitriao.endCorrespondencia.cep"
@@ -116,45 +215,78 @@
           inputmode="numeric"
           maxlength="9"
           data-cep="evento.anfitriao.endCorrespondencia"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
         />
-      </div>
-      <div class="field">
-        <label for="correspondencia-logradouro"><span class="small">Logradouro</span></label>
-        <input id="correspondencia-logradouro" data-bind="evento.anfitriao.endCorrespondencia.logradouro" type="text" />
-      </div>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-logradouro">
+        Logradouro
+        <input
+          id="correspondencia-logradouro"
+          data-bind="evento.anfitriao.endCorrespondencia.logradouro"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
 
-    <div class="threecol">
-      <div class="field">
-        <label for="correspondencia-numero"><span class="small">Número</span></label>
-        <input id="correspondencia-numero" data-bind="evento.anfitriao.endCorrespondencia.numero" type="text" />
-      </div>
-      <div class="field">
-        <label for="correspondencia-bairro"><span class="small">Bairro</span></label>
-        <input id="correspondencia-bairro" data-bind="evento.anfitriao.endCorrespondencia.bairro" type="text" />
-      </div>
-      <div class="field">
-        <label for="correspondencia-cidade"><span class="small">Cidade</span></label>
-        <input id="correspondencia-cidade" data-bind="evento.anfitriao.endCorrespondencia.cidade" type="text" />
-      </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-numero">
+        Número
+        <input
+          id="correspondencia-numero"
+          data-bind="evento.anfitriao.endCorrespondencia.numero"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-bairro">
+        Bairro
+        <input
+          id="correspondencia-bairro"
+          data-bind="evento.anfitriao.endCorrespondencia.bairro"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-cidade">
+        Cidade
+        <input
+          id="correspondencia-cidade"
+          data-bind="evento.anfitriao.endCorrespondencia.cidade"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
 
-    <div class="twocol">
-      <div class="field">
-        <label for="correspondencia-uf"><span class="small">UF</span></label>
-        <input id="correspondencia-uf" data-bind="evento.anfitriao.endCorrespondencia.uf" type="text" maxlength="2" />
-      </div>
-      <div class="field">
-        <label for="correspondencia-complemento"><span class="small">Complemento</span></label>
-        <input id="correspondencia-complemento" data-bind="evento.anfitriao.endCorrespondencia.complemento" type="text" />
-      </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-uf">
+        UF
+        <input
+          id="correspondencia-uf"
+          data-bind="evento.anfitriao.endCorrespondencia.uf"
+          type="text"
+          maxlength="2"
+          class="form-input rounded-xl border-slate-300 uppercase focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-complemento">
+        Complemento
+        <input
+          id="correspondencia-complemento"
+          data-bind="evento.anfitriao.endCorrespondencia.complemento"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
+  </div>
 
-    <div><strong class="small">Endereço para entrega de presentes</strong></div>
-
-    <div class="twocol">
-      <div class="field">
-        <label for="entrega-cep"><span class="small">CEP</span></label>
+  <div class="space-y-3 rounded-2xl bg-surface-muted/80 p-4">
+    <h3 class="text-sm font-semibold uppercase tracking-wide text-ink-muted">Endereço para entrega de presentes</h3>
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-cep">
+        CEP
         <input
           id="entrega-cep"
           data-bind="evento.anfitriao.endEntrega.cep"
@@ -162,63 +294,121 @@
           inputmode="numeric"
           maxlength="9"
           data-cep="evento.anfitriao.endEntrega"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
         />
-      </div>
-      <div class="field">
-        <label for="entrega-logradouro"><span class="small">Logradouro</span></label>
-        <input id="entrega-logradouro" data-bind="evento.anfitriao.endEntrega.logradouro" type="text" />
-      </div>
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-logradouro">
+        Logradouro
+        <input
+          id="entrega-logradouro"
+          data-bind="evento.anfitriao.endEntrega.logradouro"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
 
-    <div class="threecol">
-      <div class="field">
-        <label for="entrega-numero"><span class="small">Número</span></label>
-        <input id="entrega-numero" data-bind="evento.anfitriao.endEntrega.numero" type="text" />
-      </div>
-      <div class="field">
-        <label for="entrega-bairro"><span class="small">Bairro</span></label>
-        <input id="entrega-bairro" data-bind="evento.anfitriao.endEntrega.bairro" type="text" />
-      </div>
-      <div class="field">
-        <label for="entrega-cidade"><span class="small">Cidade</span></label>
-        <input id="entrega-cidade" data-bind="evento.anfitriao.endEntrega.cidade" type="text" />
-      </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-numero">
+        Número
+        <input
+          id="entrega-numero"
+          data-bind="evento.anfitriao.endEntrega.numero"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-bairro">
+        Bairro
+        <input
+          id="entrega-bairro"
+          data-bind="evento.anfitriao.endEntrega.bairro"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-cidade">
+        Cidade
+        <input
+          id="entrega-cidade"
+          data-bind="evento.anfitriao.endEntrega.cidade"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
 
-    <div class="twocol">
-      <div class="field">
-        <label for="entrega-uf"><span class="small">UF</span></label>
-        <input id="entrega-uf" data-bind="evento.anfitriao.endEntrega.uf" type="text" maxlength="2" />
-      </div>
-      <div class="field">
-        <label for="entrega-complemento"><span class="small">Complemento</span></label>
-        <input id="entrega-complemento" data-bind="evento.anfitriao.endEntrega.complemento" type="text" />
-      </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-uf">
+        UF
+        <input
+          id="entrega-uf"
+          data-bind="evento.anfitriao.endEntrega.uf"
+          type="text"
+          maxlength="2"
+          class="form-input rounded-xl border-slate-300 uppercase focus:border-brand focus:ring-brand"
+        />
+      </label>
+      <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-complemento">
+        Complemento
+        <input
+          id="entrega-complemento"
+          data-bind="evento.anfitriao.endEntrega.complemento"
+          type="text"
+          class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        />
+      </label>
     </div>
-
-    <div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div>
   </div>
-</details>
+</section>
 
-<details id="secCerimonial">
-  <summary>Cerimonialista</summary>
-  <div class="details-wrap">
-    <div class="twocol">
-      <div class="field">
-        <label for="cerimonial-nome"><span class="small">Nome</span></label>
-        <input id="cerimonial-nome" data-bind="cerimonialista.nomeCompleto" type="text" />
-      </div>
-      <div class="field">
-        <label for="cerimonial-telefone"><span class="small">Telefone</span></label>
-        <input id="cerimonial-telefone" data-bind="cerimonialista.telefone" type="text" />
-      </div>
+<section
+  class="card space-y-6"
+  id="panel-cerimonial"
+  data-panel="cerimonial"
+  hidden={$activePanel !== 'cerimonial'}
+>
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-ink">Cerimonialista</h2>
+      <p class="text-sm text-ink-muted">Guarde os contatos da equipe responsável pelo cerimonial.</p>
     </div>
-
-    <div class="field">
-      <label for="cerimonial-rede"><span class="small">Rede social</span></label>
-      <input id="cerimonial-rede" data-bind="cerimonialista.redeSocial" type="text" />
-    </div>
-
-    <div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div>
+    <button
+      class="rounded-lg border border-transparent bg-surface-muted px-3 py-1 text-xs font-semibold text-ink transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+      on:click={() => openPanel('overview')}
+    >
+      Voltar
+    </button>
   </div>
-</details>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="cerimonial-nome">
+      Nome
+      <input
+        id="cerimonial-nome"
+        data-bind="cerimonialista.nomeCompleto"
+        type="text"
+        class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      />
+    </label>
+    <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="cerimonial-telefone">
+      Telefone
+      <input
+        id="cerimonial-telefone"
+        data-bind="cerimonialista.telefone"
+        type="text"
+        class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      />
+    </label>
+  </div>
+
+  <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="cerimonial-rede">
+    Rede social
+    <input
+      id="cerimonial-rede"
+      data-bind="cerimonialista.redeSocial"
+      type="text"
+      class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+    />
+  </label>
+</section>
