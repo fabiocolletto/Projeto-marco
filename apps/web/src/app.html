@@ -1,11 +1,96 @@
 <!doctype html>
 <html lang="pt-br">
-        <head>
-                <meta charset="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                %sveltekit.head%
-        </head>
-        <body class="app-base-body" data-sveltekit-preload-data="hover">
-                <div class="app-base-root">%sveltekit.body%</div>
-        </body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    %sveltekit.head%
+    <link rel="stylesheet" href="/bundle/app-base.css" />
+    <script type="module" src="/bundle/app-host.js" defer></script>
+  </head>
+  <body class="app-base-body" data-sveltekit-preload-data="hover">
+    <div class="app-base-root">
+      <div class="app-base-layout grid min-h-screen grid-rows-[auto,1fr] bg-surface-muted text-ink">
+        <header class="app-base-layout__top border-b border-surface-muted bg-surface px-6 py-4 shadow-sm">
+          <div class="app-base-topbar flex items-center justify-between gap-4">
+            <div class="app-base-topbar__branding">
+              <p class="app-base-topbar__subtitle">Hub institucional</p>
+              <h1 class="app-base-topbar__title">Gestão de eventos</h1>
+            </div>
+            <div class="app-base-topbar__actions flex items-center gap-3">
+              <a class="app-base-topbar__link" href="https://marco.app/ajuda">Central de ajuda</a>
+              <button class="app-base-topbar__cta" type="button">Abrir painel</button>
+            </div>
+          </div>
+        </header>
+        <div class="app-base-layout__canvas flex min-h-0 flex-1 overflow-hidden">
+          <nav class="app-base-layout__nav w-72 shrink-0 border-r border-surface-muted bg-surface px-4 py-6">
+            <h2 class="app-base-nav__heading text-sm font-semibold uppercase tracking-wide text-ink-muted">
+              Verticais
+            </h2>
+            <ul class="app-host__nav mt-4 space-y-2" data-app-nav>
+              <li>
+                <button class="active" data-app="overview" type="button">
+                  <span class="icon" aria-hidden="true">📊</span>
+                  <span class="label">Visão geral</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="evento" type="button">
+                  <span class="icon" aria-hidden="true">🎉</span>
+                  <span class="label">Evento</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="anfitriao" type="button">
+                  <span class="icon" aria-hidden="true">🤝</span>
+                  <span class="label">Anfitrião</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="cerimonial" type="button">
+                  <span class="icon" aria-hidden="true">📝</span>
+                  <span class="label">Cerimonial</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="tarefas" type="button">
+                  <span class="icon" aria-hidden="true">✅</span>
+                  <span class="label">Tarefas</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="fornecedores" type="button">
+                  <span class="icon" aria-hidden="true">🏷️</span>
+                  <span class="label">Fornecedores</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="convidados" type="button">
+                  <span class="icon" aria-hidden="true">💌</span>
+                  <span class="label">Convidados</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="mensagens" type="button">
+                  <span class="icon" aria-hidden="true">💬</span>
+                  <span class="label">Mensagens</span>
+                </button>
+              </li>
+              <li>
+                <button data-app="sync" type="button">
+                  <span class="icon" aria-hidden="true">☁️</span>
+                  <span class="label">Sincronização</span>
+                </button>
+              </li>
+            </ul>
+          </nav>
+          <main class="app-base-layout__workspace flex-1 overflow-hidden bg-surface px-6 py-6">
+            <div class="app-base-layout__app h-full overflow-auto">
+              <div id="app-host" class="app-host__canvas" data-state="marco-0"></div>
+            </div>
+          </main>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
