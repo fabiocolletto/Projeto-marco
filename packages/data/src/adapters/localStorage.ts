@@ -29,7 +29,9 @@ const getStorage = (custom?: Storage): Storage | undefined => {
     if (typeof localStorage !== 'undefined') {
       return localStorage;
     }
-  } catch {}
+  } catch {
+    /* noop */
+  }
   return undefined;
 };
 

@@ -8,7 +8,15 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "marco-format check src/**/*.{ts,js} README.md",
+    "format:fix": "marco-format write src/**/*.{ts,js} README.md",
+    "test": "npm run test:unit",
+    "test:unit": "node ../../tools/scripts/run-tests.mjs unit --skip --scope=@marco/api",
+    "test:visual": "node ../../tools/scripts/run-tests.mjs visual --skip",
+    "package": "npm run build && marco-package api dist"
   },
   "dependencies": {
     "cors": "^2.8.5",

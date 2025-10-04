@@ -9,5 +9,15 @@
     "./syncClient": {
       "import": "./syncClient.ts"
     }
+  },
+  "scripts": {
+    "build": "echo 'Nenhum build dedicado para @marco/platform'",
+    "lint": "eslint . --ext .ts",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "marco-format check *.ts",
+    "format:fix": "marco-format write *.ts",
+    "test": "npm run test:unit",
+    "test:unit": "node ../../tools/scripts/run-tests.mjs unit --skip --scope=@marco/platform",
+    "test:visual": "node ../../tools/scripts/run-tests.mjs visual --skip"
   }
 }

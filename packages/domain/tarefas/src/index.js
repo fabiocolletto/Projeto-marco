@@ -38,7 +38,7 @@ export function normalizeStatus(status){
 
 export function computeStatus(task, computeOverride){
   if(typeof computeOverride === 'function'){
-    try{ return computeOverride(task); }catch{}
+    try{ return computeOverride(task); }catch{ /* noop */ }
   }
   const prazo = task?.prazo || task?.due || '';
   if(prazo){

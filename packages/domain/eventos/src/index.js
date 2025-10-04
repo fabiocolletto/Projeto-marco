@@ -105,7 +105,7 @@ function fornecedorPago(f){
 
 function taskDone(t){
   // respeita boolean legacy e status derivado
-  if(!!(t?.done ?? t?.concluida ?? t?.feito)) return true;
+  if(t?.done ?? t?.concluida ?? t?.feito) return true;
   try{ return tasks.computeStatus(t)==='done'; }catch{ return false; }
 }
 

@@ -10,6 +10,16 @@
       "require": "./src/index.js"
     }
   },
+  "scripts": {
+    "build": "echo 'Nenhum build dedicado para @marco/features-tarefas'",
+    "lint": "eslint src --ext .js,.svelte",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "marco-format check src/**/*.{js,svelte}",
+    "format:fix": "marco-format write src/**/*.{js,svelte}",
+    "test": "npm run test:unit",
+    "test:unit": "node ../../../tools/scripts/run-tests.mjs unit --skip --scope=@marco/features-tarefas",
+    "test:visual": "node ../../../tools/scripts/run-tests.mjs visual --skip"
+  },
   "dependencies": {
     "@marco/domain-tarefas": "0.1.0"
   }

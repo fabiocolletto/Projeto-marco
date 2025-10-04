@@ -202,7 +202,9 @@ export const createProjectStore = (): ProjectStore => {
       if (typeof alert === 'function') {
         try {
           alert('Uma nova versão dos dados está disponível. Recarregue a página.');
-        } catch {}
+        } catch {
+          /* noop */
+        }
       }
     });
 
