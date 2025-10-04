@@ -11,6 +11,7 @@
     type AppManifestEntry,
     type AppId
   } from './manifest';
+  import { loadVertical, mergeManifest, resolveActiveId } from './logic.js';
 
   const PROJECT_DATA_CONTEXT = Symbol('appHost:projectData');
   const BUS_CONTEXT = Symbol('appHost:bus');
@@ -18,13 +19,17 @@
 
   export { PROJECT_DATA_CONTEXT, BUS_CONTEXT, AC_CONTEXT };
 
-  export let manifest: AppManifest = manifestDefault;
+  export let manifest: Partial<AppManifest> = manifestDefault;
   export let appId: AppId | null = null;
 
   const dispatch = createEventDispatcher<{ select: { id: AppId } }>();
 
-  let manifestList: AppManifestEntry[] = defaultManifestList.map((entry) => manifest[entry.id] ?? entry);
-  $: manifestList = defaultManifestList.map((entry) => manifest[entry.id] ?? entry);
+  let manifestState = mergeManifest(defaultManifestList, manifest);
+  let manifestList: AppManifestEntry[] = manifestState.list;
+  let manifestMap = manifestState.map;
+  $: manifestState = mergeManifest(defaultManifestList, manifest);
+  $: manifestList = manifestState.list;
+  $: manifestMap = manifestState.map;
 
   let activeId: AppId | null = null;
   let component: ComponentType | null = null;
@@ -44,8 +49,8 @@
   });
 
   $: {
-    const incoming = appId && manifest[appId] ? appId : null;
-    if (incoming && incoming !== activeId) {
+    const incoming = resolveActiveId(appId, manifestMap, manifestList);
+    if (incoming !== activeId) {
       activeId = incoming;
     }
   }
@@ -98,7 +103,7 @@
   }
 
   async function loadApp(id: AppId): Promise<void> {
-    const entry = manifest[id];
+    const entry = manifestMap[id];
     if (!entry) {
       component = null;
       error = new Error(`Vertical desconhecida: ${id}`);
@@ -127,14 +132,10 @@
         if (currentToken !== token) return;
       }
 
-      const module = await import(/* @vite-ignore */ entry.loader);
+      const candidate = await loadVertical(entry, (loader) => import(/* @vite-ignore */ loader));
       if (currentToken !== token) return;
-      const candidate: ComponentType | undefined = module?.default ?? Object.values(module).find((value) => typeof value === 'function') as ComponentType | undefined;
-      if (!candidate) {
-        throw new Error(`Loader para ${id} não exporta um componente Svelte padrão.`);
-      }
-      cache.set(id, candidate);
-      component = candidate;
+      cache.set(id, candidate as ComponentType);
+      component = candidate as ComponentType;
       componentProps = resolveProps(entry);
     } catch (err) {
       const reason = err instanceof Error ? err : new Error(String(err));
@@ -189,7 +190,7 @@
   app={() => (
     <div class="app-host__canvas">
       {#if loading}
-        <p class="app-host__status">Carregando {activeId ? manifest[activeId]?.label : 'mini-app'}…</p>
+        <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
       {:else if error}
         <div class="app-host__error" role="alert">
           <strong>Erro ao carregar módulo.</strong>

@@ -17,7 +17,7 @@
     "test": "npm run test:unit",
     "test:unit": "node ../../tools/scripts/run-tests.mjs unit",
     "test:visual": "node ../../tools/scripts/run-tests.mjs visual",
-    "package": "npm run build && marco-package web build"
+    "package": "npm run build && marco-package web build && node ../../tools/scripts/package-verticals.mjs build"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^6.1.0",
