@@ -2,10 +2,11 @@
   import { createEventDispatcher, onMount, setContext } from 'svelte';
   import type { ComponentType } from 'svelte';
   import { get } from 'svelte/store';
-import MiniAppBase from '$lib/components/miniAppBase/MiniAppBase.svelte';
-import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
+  import MiniAppBase from '$lib/components/miniAppBase/MiniAppBase.svelte';
+  import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   import { projectData } from '$lib/data/projects';
   import { bus } from '@marco/platform/bus';
+  import type { PersistenceResult } from '@ac/data/projectStore';
   import manifestDefault, {
     manifestList as defaultManifestList,
     type AppManifest,
@@ -19,6 +20,14 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   const AC_CONTEXT = Symbol('appHost:ac');
 
   export { PROJECT_DATA_CONTEXT, BUS_CONTEXT, AC_CONTEXT };
+
+  type HostMessageTone = 'info' | 'warning' | 'danger';
+
+  interface HostMessage {
+    id: string;
+    text: string;
+    tone: HostMessageTone;
+  }
 
   export let manifest: Partial<AppManifest> = manifestDefault;
   export let appId: AppId | null = null;
@@ -40,14 +49,111 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   const cache = new Map<AppId, ComponentType>();
   let acModule: any = null;
   let token = 0;
+  let fallbackActive = false;
+  let persistenceInfo: PersistenceResult | null = null;
+  let persistenceCheckFailed = false;
+  let initError: string | null = null;
+  let hostMessages: HostMessage[] = [];
 
   setContext(PROJECT_DATA_CONTEXT, projectData);
   setContext(BUS_CONTEXT, bus);
   setContext(AC_CONTEXT, async () => ensureAc());
 
   onMount(() => {
-    projectData.init().catch((err) => console.error('[AppHost] Falha ao inicializar dados do projeto', err));
+    let destroyed = false;
+
+    const unsubscribeFallback = projectData.usingFallback.subscribe((flag) => {
+      fallbackActive = flag;
+      if (flag) {
+        console.warn(
+          '[AppHost] IndexedDB indisponível; utilizando adaptador sem persistência garantida.',
+        );
+      }
+    });
+
+    const boot = async () => {
+      try {
+        await projectData.init();
+        if (destroyed) return;
+        console.info('[AppHost] Dados do projeto inicializados.');
+        initError = null;
+        persistenceCheckFailed = false;
+        try {
+          const result = await projectData.ensurePersistence();
+          if (!destroyed) {
+            persistenceInfo = result ?? null;
+          }
+          if (!destroyed && result) {
+            if (!result.supported) {
+              console.warn('[AppHost] Persistência ampliada não é suportada neste navegador.');
+            } else if (!result.persisted) {
+              console.warn(
+                '[AppHost] Persistência não concedida; o navegador pode limpar os dados automaticamente.',
+              );
+            } else {
+              console.info('[AppHost] Persistência do armazenamento confirmada.');
+            }
+          }
+        } catch (err) {
+          persistenceCheckFailed = true;
+          console.warn('[AppHost] Falha ao verificar persistência do armazenamento', err);
+        }
+      } catch (err) {
+        console.error('[AppHost] Falha ao inicializar dados do projeto', err);
+        if (!destroyed) {
+          initError =
+            'Não foi possível inicializar o armazenamento local. Algumas funcionalidades podem ficar indisponíveis.';
+        }
+      }
+    };
+
+    void boot();
+
+    return () => {
+      destroyed = true;
+      unsubscribeFallback();
+    };
   });
+
+  $: {
+    const messages: HostMessage[] = [];
+    if (initError) {
+      messages.push({
+        id: 'init-error',
+        text: initError,
+        tone: 'danger',
+      });
+    }
+    if (fallbackActive) {
+      messages.push({
+        id: 'fallback-warning',
+        text: 'Estamos usando um modo de armazenamento temporário. Mantenha backups para não perder alterações.',
+        tone: 'warning',
+      });
+    }
+    if (persistenceCheckFailed) {
+      messages.push({
+        id: 'persistence-check-failed',
+        text: 'Não foi possível verificar a persistência do navegador. Faça backups periódicos para evitar perdas.',
+        tone: 'warning',
+      });
+    } else if (persistenceInfo) {
+      if (!persistenceInfo.supported) {
+        messages.push({
+          id: 'persistence-unsupported',
+          text: 'Este navegador não oferece suporte a persistência estendida. Recomendamos exportar os dados regularmente.',
+          tone: 'warning',
+        });
+      } else if (!persistenceInfo.persisted) {
+        messages.push({
+          id: 'persistence-not-granted',
+          text: 'Conceda permissão de armazenamento permanente ao site para reduzir o risco de limpeza automática dos dados.',
+          tone: 'warning',
+        });
+      }
+    }
+    hostMessages = messages;
+  }
 
   $: {
     const incoming = resolveActiveId(appId, manifestMap, manifestList);
@@ -192,29 +298,40 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
     <div class="app-host__canvas">
       <div class="app-host__workspace">
         <MiniAppBase class="app-host__miniapp-base" />
-        {#if loading}
-          <div class="app-host__stage app-host__stage--status">
-            <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
-          </div>
-        {:else if error}
-          <div class="app-host__stage app-host__stage--status">
-            <div class="app-host__error" role="alert">
-              <strong>Erro ao carregar módulo.</strong>
-              <pre>{error.message}</pre>
+        <div class="app-host__content">
+          {#if hostMessages.length}
+            <div class="app-host__alerts" role="status" aria-live="polite">
+              {#each hostMessages as message (message.id)}
+                <div class={`app-host__alert app-host__alert--${message.tone}`}>
+                  {message.text}
+                </div>
+              {/each}
             </div>
-          </div>
-        {:else if component}
-          <div class="app-host__stage app-host__stage--component">
-            <svelte:component this={component} {...componentProps} />
-          </div>
-        {:else}
-          <div class="app-host__stage app-host__stage--placeholder">
-            <div class="app-host__stage-placeholder">
-              <h2>Tela inicial dos mini apps</h2>
-              <p>Escolha uma vertical na navegação lateral para começar.</p>
+          {/if}
+          {#if loading}
+            <div class="app-host__stage app-host__stage--status">
+              <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
             </div>
-          </div>
-        {/if}
+          {:else if error}
+            <div class="app-host__stage app-host__stage--status">
+              <div class="app-host__error" role="alert">
+                <strong>Erro ao carregar módulo.</strong>
+                <pre>{error.message}</pre>
+              </div>
+            </div>
+          {:else if component}
+            <div class="app-host__stage app-host__stage--component">
+              <svelte:component this={component} {...componentProps} />
+            </div>
+          {:else}
+            <div class="app-host__stage app-host__stage--placeholder">
+              <div class="app-host__stage-placeholder">
+                <h2>Tela inicial dos mini apps</h2>
+                <p>Escolha uma vertical na navegação lateral para começar.</p>
+              </div>
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
   )}
@@ -297,6 +414,12 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
     width: min(320px, 32%);
     z-index: 2;
   }
+  .app-host__content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    flex: 1;
+  }
   .app-host__stage {
     flex: 1;
     min-height: 320px;
@@ -338,6 +461,29 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
     font-size: 0.95rem;
     color: rgba(15, 23, 42, 0.7);
   }
+  .app-host__alerts {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .app-host__alert {
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    background: rgba(59, 130, 246, 0.12);
+    color: rgba(30, 64, 175, 0.92);
+  }
+  .app-host__alert--warning {
+    background: rgba(234, 179, 8, 0.12);
+    color: #92400e;
+    border-color: rgba(217, 119, 6, 0.3);
+  }
+  .app-host__alert--danger {
+    background: rgba(248, 113, 113, 0.15);
+    color: #991b1b;
+    border-color: rgba(185, 28, 28, 0.35);
+  }
   .app-host__error {
     width: min(100%, 520px);
     border-radius: 1.5rem;
@@ -364,6 +510,9 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
       position: static;
       width: 100%;
       margin-bottom: 1.5rem;
+    }
+    .app-host__content {
+      gap: 1rem;
     }
   }
   @media (max-width: 640px) {

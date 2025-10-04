@@ -15,38 +15,297 @@
     category: string;
   }
 
-  const TASK_TEMPLATES: TaskTemplate[] = [
-    {
-      id: 'briefing',
-      title: 'Reunião inicial com anfitrião',
-      description: 'Mapeie expectativas, orçamento e estilo do evento.',
-      category: 'Planejamento',
-    },
-    {
-      id: 'orcamento',
-      title: 'Definir orçamento macro',
-      description: 'Distribua valores por categoria (local, buffet, decoração).',
-      category: 'Planejamento',
-    },
-    {
-      id: 'checklist-fornecedores',
-      title: 'Listar fornecedores prioritários',
-      description: 'Buffet, espaço, decoração, fotografia e entretenimento.',
-      category: 'Fornecedores',
-    },
-    {
-      id: 'comunicacao',
-      title: 'Planejar comunicação com convidados',
-      description: 'Defina canais, templates e cronograma de convites.',
-      category: 'Comunicação',
-    },
-    {
-      id: 'cronograma',
-      title: 'Criar cronograma do dia do evento',
-      description: 'Inclua horários-chave, entradas e alinhamentos com equipe.',
-      category: 'Operacional',
-    },
-  ];
+  const CHECKLIST_TEMPLATES = {
+    default: [
+      {
+        id: 'default-briefing',
+        title: 'Reunião inicial com anfitrião',
+        description: 'Mapeie expectativas, orçamento e estilo do evento.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'default-orcamento',
+        title: 'Definir orçamento macro',
+        description: 'Distribua valores por categoria (local, buffet, decoração).',
+        category: 'Planejamento',
+      },
+      {
+        id: 'default-fornecedores-prioritarios',
+        title: 'Listar fornecedores prioritários',
+        description: 'Buffet, espaço, decoração, fotografia e entretenimento.',
+        category: 'Fornecedores',
+      },
+      {
+        id: 'default-comunicacao',
+        title: 'Planejar comunicação com convidados',
+        description: 'Defina canais, templates e cronograma de convites.',
+        category: 'Comunicação',
+      },
+      {
+        id: 'default-cronograma',
+        title: 'Criar cronograma do dia do evento',
+        description: 'Inclua horários-chave, entradas e alinhamentos com equipe.',
+        category: 'Operacional',
+      },
+    ],
+    casamento: [
+      {
+        id: 'casamento-cerimonia',
+        title: 'Reservar local da cerimônia e recepção',
+        description: 'Garanta disponibilidade dos espaços desejados na data escolhida.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'casamento-buffet',
+        title: 'Selecionar buffet e degustação',
+        description: 'Marque degustações e alinhe cardápio com restrições dos convidados.',
+        category: 'Fornecedores',
+      },
+      {
+        id: 'casamento-figurino',
+        title: 'Definir traje dos noivos e padrinhos',
+        description: 'Liste prazos de prova, ajustes e retirada de vestidos ou ternos.',
+        category: 'Experiência',
+      },
+      {
+        id: 'casamento-cerimonial',
+        title: 'Planejar roteiro da cerimônia',
+        description: 'Organize entradas, música e votos com o celebrante.',
+        category: 'Operacional',
+      },
+      {
+        id: 'casamento-chuva',
+        title: 'Criar plano B para clima',
+        description: 'Defina alternativas cobertas ou locação de tendas.',
+        category: 'Logística',
+      },
+    ],
+    corporativo: [
+      {
+        id: 'corporativo-objetivos',
+        title: 'Alinhar objetivos do evento',
+        description: 'Registre metas com a diretoria e áreas envolvidas.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'corporativo-venue',
+        title: 'Reservar espaço com infraestrutura',
+        description: 'Confirme palco, projeção, internet e acessibilidade.',
+        category: 'Logística',
+      },
+      {
+        id: 'corporativo-palestrantes',
+        title: 'Selecionar palestrantes e agenda',
+        description: 'Convide participantes e defina temas por bloco.',
+        category: 'Conteúdo',
+      },
+      {
+        id: 'corporativo-divulgacao',
+        title: 'Planejar divulgação e inscrições',
+        description: 'Configure landing page, formulários e fluxos de confirmação.',
+        category: 'Comunicação',
+      },
+      {
+        id: 'corporativo-kit',
+        title: 'Organizar brindes e material de apoio',
+        description: 'Inclua itens promocionais, crachás e impressos.',
+        category: 'Operacional',
+      },
+    ],
+    aniversario: [
+      {
+        id: 'aniversario-tema',
+        title: 'Definir tema e identidade visual',
+        description: 'Selecione cores, convite e elementos decorativos.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'aniversario-cardapio',
+        title: 'Montar cardápio e bolo',
+        description: 'Inclua opções para restrições alimentares dos convidados.',
+        category: 'Fornecedores',
+      },
+      {
+        id: 'aniversario-atracoes',
+        title: 'Contratar atrações e recreação',
+        description: 'Planeje música, brincadeiras e cronograma de atividades.',
+        category: 'Experiência',
+      },
+      {
+        id: 'aniversario-lista',
+        title: 'Atualizar lista de convidados',
+        description: 'Confirme contatos e faixas etárias para ambientação.',
+        category: 'Comunicação',
+      },
+      {
+        id: 'aniversario-lembrancinhas',
+        title: 'Produzir lembrancinhas personalizadas',
+        description: 'Defina fornecedor, orçamento e prazo de entrega.',
+        category: 'Operacional',
+      },
+    ],
+    formatura: [
+      {
+        id: 'formatura-comissao',
+        title: 'Formalizar comissão de formatura',
+        description: 'Distribua responsabilidades e canais de comunicação.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'formatura-colacao',
+        title: 'Confirmar local da colação',
+        description: 'Garanta estrutura de palco, som e projeção para turmas.',
+        category: 'Logística',
+      },
+      {
+        id: 'formatura-fotos',
+        title: 'Contratar foto e vídeo oficiais',
+        description: 'Defina formatos de entrega e pacotes individuais.',
+        category: 'Fornecedores',
+      },
+      {
+        id: 'formatura-ensaio',
+        title: 'Agendar ensaio geral',
+        description: 'Planeje cronograma com mestres de cerimônia e turma.',
+        category: 'Operacional',
+      },
+      {
+        id: 'formatura-financeiro',
+        title: 'Organizar plano financeiro',
+        description: 'Defina mensalidades, prazos e indicadores de pagamento.',
+        category: 'Financeiro',
+      },
+    ],
+    debutante: [
+      {
+        id: 'debutante-coreografia',
+        title: 'Definir coreografia das valsas',
+        description: 'Escolha músicas e organize ensaios com o grupo.',
+        category: 'Experiência',
+      },
+      {
+        id: 'debutante-dresscode',
+        title: 'Planejar dress code dos convidados',
+        description: 'Oriente padrinhos, damas e equipe de apoio.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'debutante-roteiro',
+        title: 'Montar roteiro da noite',
+        description: 'Inclua entradas, troca de vestidos e homenagens.',
+        category: 'Operacional',
+      },
+      {
+        id: 'debutante-fotos',
+        title: 'Agendar sessão de fotos pré-evento',
+        description: 'Defina locações, figurinos e estilo das imagens.',
+        category: 'Fornecedores',
+      },
+      {
+        id: 'debutante-interativo',
+        title: 'Criar experiências interativas',
+        description: 'Planeje ativações e lembranças digitais para convidados.',
+        category: 'Experiência',
+      },
+    ],
+    cha: [
+      {
+        id: 'cha-lista-presentes',
+        title: 'Montar lista de presentes',
+        description: 'Inclua itens essenciais com diferentes faixas de preço.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'cha-dinamicas',
+        title: 'Planejar dinâmicas e brincadeiras',
+        description: 'Defina roteiro, materiais e anfitriões para cada atividade.',
+        category: 'Experiência',
+      },
+      {
+        id: 'cha-cardapio',
+        title: 'Organizar cardápio enxuto',
+        description: 'Combine itens doces e salgados de preparo rápido.',
+        category: 'Fornecedores',
+      },
+      {
+        id: 'cha-lembrancas',
+        title: 'Separar lembrancinhas personalizadas',
+        description: 'Produza etiquetas, embalagens e mensagem especial.',
+        category: 'Operacional',
+      },
+      {
+        id: 'cha-convidados',
+        title: 'Confirmar lista de convidados',
+        description: 'Envie convites digitais e registre confirmações.',
+        category: 'Comunicação',
+      },
+    ],
+    bodas: [
+      {
+        id: 'bodas-retrospectiva',
+        title: 'Preparar retrospectiva do casal',
+        description: 'Reúna fotos, vídeos e depoimentos para a celebração.',
+        category: 'Experiência',
+      },
+      {
+        id: 'bodas-renovacao',
+        title: 'Organizar renovação de votos',
+        description: 'Defina celebrante, textos e participação da família.',
+        category: 'Planejamento',
+      },
+      {
+        id: 'bodas-jantar',
+        title: 'Planejar jantar especial',
+        description: 'Crie menu harmonizado com bebidas preferidas do casal.',
+        category: 'Fornecedores',
+      },
+      {
+        id: 'bodas-musica',
+        title: 'Selecionar trilha sonora afetiva',
+        description: 'Monte playlist com momentos marcantes da história.',
+        category: 'Comunicação',
+      },
+      {
+        id: 'bodas-homenagens',
+        title: 'Coordenar homenagens dos convidados',
+        description: 'Reserve tempo no roteiro para discursos e brindes.',
+        category: 'Operacional',
+      },
+    ],
+  } satisfies Record<string, TaskTemplate[]>;
+
+  type ChecklistKey = keyof typeof CHECKLIST_TEMPLATES;
+
+  interface ChecklistItem extends TaskTemplate {
+    selected: boolean;
+  }
+
+  const normalizeType = (value: string | null | undefined): string => {
+    if (!value) return '';
+    return value
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .toLowerCase()
+      .trim();
+  };
+
+  const resolveChecklistKey = (value: string | null | undefined): ChecklistKey => {
+    const slug = normalizeType(value);
+    if (slug.includes('casamento')) return 'casamento';
+    if (slug.includes('corpor')) return 'corporativo';
+    if (slug.includes('aniversario')) return 'aniversario';
+    if (slug.includes('formatura')) return 'formatura';
+    if (slug.includes('debut')) return 'debutante';
+    if (slug.includes('cha')) return 'cha';
+    if (slug.includes('boda')) return 'bodas';
+    return 'default';
+  };
+
+  const createChecklist = (key: ChecklistKey): ChecklistItem[] =>
+    (CHECKLIST_TEMPLATES[key] ?? CHECKLIST_TEMPLATES.default).map((task) => ({
+      ...task,
+      selected: true,
+    }));
 
   interface DraftAddress {
     cep: string;
@@ -112,7 +371,16 @@
     },
   };
 
-  let checklist = TASK_TEMPLATES.map((task) => ({ ...task, selected: true }));
+  let checklistKey: ChecklistKey = resolveChecklistKey('');
+  let checklist: ChecklistItem[] = createChecklist(checklistKey);
+
+  $: {
+    const nextKey = resolveChecklistKey(draft.tipo);
+    if (nextKey !== checklistKey) {
+      checklistKey = nextKey;
+      checklist = createChecklist(checklistKey);
+    }
+  }
 
   const totalSteps = 3;
 
@@ -167,10 +435,19 @@
     };
   });
 
+  const handleChecklistToggle = (id: string, event: Event) => {
+    const target = event.currentTarget as HTMLInputElement | null;
+    const selected = Boolean(target?.checked);
+    checklist = checklist.map((task) =>
+      task.id === id ? { ...task, selected } : task,
+    );
+  };
+
   const selectedTasks = () =>
     checklist
       .filter((item) => item.selected)
       .map((item) => ({
+        id: item.id,
         titulo: item.title,
         descricao: item.description,
         categoria: item.category,
@@ -575,7 +852,7 @@
           <section class="space-y-4">
             <h2 class="text-lg font-semibold text-ink">Monte o checklist inicial</h2>
             <p class="text-sm text-ink-muted">
-              Selecione os itens que melhor representam as atividades iniciais do evento. Você poderá ajustar tudo depois.
+              As recomendações se adaptam ao tipo escolhido. Revise os itens sugeridos e selecione o que faz sentido para começar.
             </p>
             <div class="grid gap-3 md:grid-cols-2">
               {#each checklist as item (item.id)}
@@ -583,7 +860,8 @@
                   <div class="flex items-start gap-3">
                     <input
                       type="checkbox"
-                      bind:checked={item.selected}
+                      checked={item.selected}
+                      on:change={(event) => handleChecklistToggle(item.id, event)}
                       class="mt-1 h-4 w-4 rounded border-slate-300 text-brand focus:ring-brand"
                     />
                     <div class="space-y-1">
