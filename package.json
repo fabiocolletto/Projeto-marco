@@ -13,6 +13,7 @@
     "build": "turbo run build",
     "build:web": "turbo run build --filter=web",
     "build:api": "turbo run build --filter=@marco/api",
+    "build:widget": "npm --workspace web run build:widget && node ./tools/scripts/build-widget-html.mjs",
     "dev:web": "turbo run dev --filter=web",
     "dev:api": "turbo run dev --filter=@marco/api",
     "preview:web": "npm --workspace web run preview",

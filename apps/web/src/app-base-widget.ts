@@ -30,11 +30,13 @@ const ensureRoot = () => {
   const existing = document.getElementById(rootId);
 
   if (existing) {
+    existing.classList.add('app-base-widget');
     return existing;
   }
 
   const element = document.createElement('div');
   element.id = rootId;
+  element.classList.add('app-base-widget');
   document.body.appendChild(element);
 
   return element;
