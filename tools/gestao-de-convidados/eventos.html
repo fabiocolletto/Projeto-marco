@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gerenciar Eventos</title>
+  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
+</head>
+<body>
+<main class="ac">
+  <div class="container">
+    <h1>Gerenciar Eventos</h1>
+
+    <!-- CARD 1: Resumo do evento + CTA Novo -->
+    <section class="card" id="cardResumo">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div>
+          <h2 id="evTitle">—</h2>
+          <div id="resTipoData" class="small muted">—</div>
+        </div>
+        <button id="btnNew" class="btn">Novo evento</button>
+      </div>
+      <div class="summary-line" id="resEndereco">Endereço</div>
+      <div class="summary-line" id="resAnfitriao">Anfitrião</div>
+      <div class="summary-line" id="resCerimonial">Cerimonialista</div>
+    </section>
+
+    <!-- CARD 2: Lista de eventos salvos -->
+    <section class="card">
+      <div class="card__header"><h2>Eventos salvos</h2></div>
+      <div id="savedList" class="list"></div>
+    </section>
+
+    <!-- CARD 3+: Campos de edição -->
+    <section class="card">
+      <div class="card__header"><h2>Dados do evento</h2></div>
+      <div class="twocol">
+        <div class="field"><label for="ev-nome"><h3>Nome do evento</h3></label><input id="ev-nome" data-bind="evento.nome" type="text" placeholder="Ex.: Casamento Gabi & Bruno"/></div>
+        <div class="field"><label for="ev-tipo"><h3>Tipo</h3></label><input id="ev-tipo" data-bind="evento.tipo" type="text" placeholder="Ex.: Casamento, Aniversário, Formatura"/></div>
+      </div>
+      <div class="threecol" style="margin-top:8px">
+        <div class="field"><label for="ev-data"><h3>Data</h3></label><input id="ev-data" data-bind="evento.data" type="date"/></div>
+        <div class="field"><label for="ev-hora"><h3>Hora</h3></label><input id="ev-hora" data-bind="evento.hora" type="time"/></div>
+        <div class="field"><label for="ev-local"><h3>Local</h3></label><input id="ev-local" data-bind="evento.local" type="text" placeholder="Ex.: Buffet Jardins"/></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2>Detalhes</h2></div>
+      <details id="sec-endereco">
+        <summary><strong>Endereço</strong></summary>
+        <div class="threecol" style="margin-top:8px">
+          <div class="field"><label><h3>Logradouro</h3></label><input data-bind="evento.endereco.logradouro" type="text" placeholder="Rua/Av."/></div>
+          <div class="field"><label><h3>Número</h3></label><input data-bind="evento.endereco.numero" type="text" placeholder="123"/></div>
+          <div class="field"><label><h3>Bairro</h3></label><input data-bind="evento.endereco.bairro" type="text" placeholder="Centro"/></div>
+        </div>
+        <div class="threecol" style="margin-top:8px">
+          <div class="field"><label><h3>Cidade</h3></label><input data-bind="evento.endereco.cidade" type="text" placeholder="Curitiba"/></div>
+          <div class="field"><label><h3>UF</h3></label><input data-bind="evento.endereco.uf" type="text" maxlength="2" placeholder="PR"/></div>
+          <div class="field"><label><h3>CEP</h3></label><input data-bind="evento.endereco.cep" type="text" placeholder="80000-000"/></div>
+        </div>
+        <div class="field" style="margin-top:8px"><label><h3>Complemento / Referência</h3></label><input data-bind="evento.endereco.complemento" type="text" placeholder="Salão principal, entrada pela Rua X"/></div>
+      </details>
+
+      <details id="sec-anfitriao">
+        <summary><strong>Anfitrião</strong></summary>
+        <div class="twocol" style="margin-top:8px">
+          <div class="field"><label><h3>Nome</h3></label><input data-bind="evento.anfitriao.nome" type="text" placeholder="Nome completo"/></div>
+          <div class="field"><label><h3>Telefone (BR ou +INTL)</h3></label><input data-bind="evento.anfitriao.telefone" type="text" placeholder="(41) 9.... ou +351..."/></div>
+        </div>
+        <div class="field" style="margin-top:8px"><label><h3>Rede social / contato</h3></label><input data-bind="evento.anfitriao.redeSocial" type="text" placeholder="@perfil ou URL"/></div>
+      </details>
+
+      <details id="sec-cerimonial">
+        <summary><strong>Cerimonialista</strong></summary>
+        <div class="twocol" style="margin-top:8px">
+          <div class="field"><label><h3>Nome</h3></label><input data-bind="cerimonialista.nomeCompleto" type="text" placeholder="Seu nome"/></div>
+          <div class="field"><label><h3>Telefone</h3></label><input data-bind="cerimonialista.telefone" type="text" placeholder="(41) 9...."/></div>
+        </div>
+        <div class="field" style="margin-top:8px"><label><h3>Rede social</h3></label><input data-bind="cerimonialista.redeSocial" type="text" placeholder="@seuusuario"/></div>
+      </details>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2>Estado</h2></div>
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="small muted">Projeto: <span id="estadoMetaId">—</span></div>
+          <div class="small muted">Atualizado em: <span id="estadoMetaUpd">—</span></div>
+        </div>
+        <div class="row">
+          <span id="pillLink" class="pill warn">Sem evento</span>
+          <span id="pillDirty" class="pill ok">Pronto</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+  const PATH_BUS   = "/shared/marcoBus.js";
+  const PATH_STORE = "/shared/projectStore.js";
+  const CANDIDATES = [
+    "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+    "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+  ];
+  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
+  const buildUrl = (base, rel)=>{ if(!base) return rel; const cleanRel = rel.startsWith('/') ? rel.slice(1) : rel; const normalized = base.endsWith('/') ? base : base + '/'; return normalized + cleanRel; };
+  async function loadShared(rel){
+    try{
+      const mod = await import(rel);
+      if(mod) return mod;
+    }catch(err){
+      console.warn('[eventos] Falha ao importar local', rel, err);
+    }
+    for(const base of CANDIDATES){
+      const url = buildUrl(base, rel);
+      const mod = await tryImport(url);
+      if(mod) return mod;
+    }
+    return null;
+  }
+
+  function showLoadError(message){
+    const main = document.querySelector('main.ac');
+    if(main){
+      main.innerHTML = `<div class="container"><section class="card"><h2>Carregamento interrompido</h2><p>${message}</p></section></div>`;
+    }
+  }
+
+  const store = await loadShared(PATH_STORE);
+  const bus   = await loadShared(PATH_BUS);
+
+  if(!store || !bus){
+    const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+    showLoadError(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  await store.init?.();
+
+  const AUTO_SAVE_MS = 700;
+  const state = { currentId:null, project:null, metas:[], dirty:false, saving:false, timer:null };
+  const $ = (s)=> document.querySelector(s);
+  const $$ = (s)=> [...document.querySelectorAll(s)];
+  const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
+
+  const evTitle = $('#evTitle');
+  const resTipoData = $('#resTipoData');
+  const resEndereco = $('#resEndereco');
+  const resAnfitriao = $('#resAnfitriao');
+  const resCerimonial = $('#resCerimonial');
+  const estadoMetaId = $('#estadoMetaId');
+  const estadoMetaUpd = $('#estadoMetaUpd');
+  const pillLink = $('#pillLink');
+  const pillDirty = $('#pillDirty');
+  const savedList = $('#savedList');
+  const btnNew = $('#btnNew');
+
+  const boundInputs = $$('[data-bind]');
+  const fmtDateTime = (ts)=> ts? new Date(ts).toLocaleString() : '—';
+  function ensureShape(o){ o ||= {}; o.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" }; o.evento ||= { nome:"", data:"", hora:"", local:"", tipo:"", endereco:{}, anfitriao:{} }; o.evento.endereco ||= {}; o.evento.anfitriao ||= {}; return o; }
+  function setDirty(v){ state.dirty=!!v; setPill(pillDirty, v? 'warn':'ok', v? 'Alterações não salvas':'Pronto'); }
+  function setSaving(v){ state.saving=!!v; if(v) setPill(pillDirty,'saving','Salvando…'); }
+
+  function renderResumo(){
+    const p = state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{};
+    evTitle.textContent = ev.nome||'—';
+    resTipoData.textContent = [ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—';
+    resEndereco.textContent = 'Endereço' + (end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):'');
+    resAnfitriao.textContent = 'Anfitrião' + (anf.nome? ': '+anf.nome:'');
+    resCerimonial.textContent = 'Cerimonialista' + (cer.nomeCompleto? ': '+cer.nomeCompleto:'');
+    estadoMetaId.textContent = state.currentId||'—';
+    estadoMetaUpd.textContent = fmtDateTime(p.updatedAt);
+    setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento');
+  }
+
+  function renderSaved(){
+    state.metas = store.listProjects?.()||[];
+    savedList.innerHTML = state.metas.map(m=>{
+      const label = m.nome||m.id; const upd=fmtDateTime(m.updatedAt);
+      return `<div class="item" data-id="${m.id}">
+        <div>
+          <div><strong>${label}</strong></div>
+          <div class="meta">Atualizado: ${upd}</div>
+        </div>
+        <div class="row">
+          <button class="btn btn--ghost small" data-act="open">Abrir</button>
+          <button class="btn btn--ghost small danger" data-act="del">Excluir</button>
+        </div>
+      </div>`
+    }).join('');
+  }
+
+  savedList.addEventListener('click', async ev=>{
+    const btn = ev.target.closest('button[data-act]'); if(!btn) return;
+    const id = btn.closest('.item')?.getAttribute('data-id'); if(!id) return;
+    if(btn.dataset.act==='open'){ await setCurrent(id); publishCurrent(); }
+    if(btn.dataset.act==='del'){
+      if(!confirm('Excluir este evento?')) return;
+      await store.deleteProject?.(id); await bootstrap();
+      if(state.currentId===id){ state.currentId=null; publishCurrent(); }
+    }
+  });
+
+  function fillForm(p){ ensureShape(p); boundInputs.forEach(inp=>{ const path=inp.dataset.bind; const val=path.split('.').reduce((a,k)=>a? a[k] : undefined,p)??''; inp.value=val; }); }
+  function readForm(){ const p=ensureShape(JSON.parse(JSON.stringify(state.project||{}))); boundInputs.forEach(inp=>{ const path=inp.dataset.bind.split('.'); let ref=p; for(let i=0;i<path.length-1;i++){ const k=path[i]; if(typeof ref[k]!== 'object'||ref[k]===null) ref[k]={}; ref=ref[k]; } ref[path.at(-1)] = inp.value; }); return p; }
+
+  async function doSave(){
+    if(!state.currentId || !state.dirty) return;
+    setSaving(true);
+    const next = readForm(); next.updatedAt = Date.now();
+    await store.updateProject?.(state.currentId,next);
+    state.project = await store.getProject?.(state.currentId);
+    setSaving(false); setDirty(false);
+    renderSaved(); fillForm(state.project); renderResumo();
+    // >>> PUBLICA timestamp universal para outras abas
+    bus.publish('ac:project-updated',{ id: state.currentId, updatedAt: next.updatedAt });
+  }
+  function scheduleSave(){ if(state.timer) clearTimeout(state.timer); state.timer = setTimeout(doSave, AUTO_SAVE_MS); }
+
+  boundInputs.forEach(inp=>{
+    inp.addEventListener('input', ()=>{ setDirty(true); if(inp.dataset.bind==='evento.nome'){ evTitle.textContent = inp.value.trim()||'—'; } scheduleSave(); });
+  });
+
+  // ——— CTA: novo evento em branco (sem duplicar / excluir aqui) ———
+  btnNew.addEventListener('click', async ()=>{ await createBlankAndOpen(); });
+  async function createBlankAndOpen(){
+    const blank = ensureShape({ cerimonialista:{}, evento:{ endereco:{}, anfitriao:{} }, lista:[], tipos:[], modelos:{}, vars:{} });
+    const { meta } = await store.createProject?.(blank);
+    await setCurrent(meta.id); renderSaved(); publishCurrent();
+  }
+
+  // BUS
+  function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'eventos' }); }
+  async function loadCurrent(id){ state.currentId=id||state.currentId; state.project = state.currentId? await store.getProject?.(state.currentId) : null; fillForm(state.project||{}); setDirty(false); renderResumo(); }
+  async function setCurrent(id){ if(!id){ state.currentId=null; state.project=null; renderSaved(); fillForm(ensureShape({})); renderResumo(); setDirty(false); return; } await loadCurrent(id); localStorage.setItem('ac:lastId', id); }
+
+  // Atualiza "Eventos salvos" e o card Estado quando qualquer aba salvar
+  bus.subscribe('ac:project-updated', ({ id, updatedAt }) => {
+    try{
+      if(updatedAt){
+        const m = (state.metas||[]).find(x=>x.id===id); if(m) m.updatedAt = updatedAt;
+        const el = savedList.querySelector('.item[data-id="'+id+'"] .meta');
+        if(el) el.textContent = 'Atualizado: ' + fmtDateTime(updatedAt);
+      }
+      if(id && id===state.currentId && updatedAt){ estadoMetaUpd.textContent = fmtDateTime(updatedAt); }
+      if(!savedList.querySelector('.item[data-id="'+id+'"]')) renderSaved();
+    }catch(e){}
+  });
+
+  // Bootstrap com fallback: se não houver eventos, cria um em branco
+  async function bootstrap(){
+    renderSaved();
+    const metas = store.listProjects?.()||[];
+    if(!metas.length){ await createBlankAndOpen(); return; }
+    const last = localStorage.getItem('ac:lastId');
+    const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
+    await setCurrent(initial); if(initial) publishCurrent();
+  }
+  await bootstrap();
+</script>
+</body>
+</html>
