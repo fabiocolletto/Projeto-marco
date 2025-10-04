@@ -270,6 +270,14 @@ export async function render(rootEl){
     $(root, "#ev-host-contato").textContent = [ phoneDisplay(tel), (ev?.anfitriao?.email||"") ].filter(Boolean).join(" • ") || "—";
   }
 
+  /**
+   * Evento personalizado "ac:project-change" disparado sempre que o projeto ativo muda.
+   * Módulos externos podem escutar com window.addEventListener("ac:project-change", handler) para atualizar suas UIs.
+   */
+  const notifyProjectChange = () => {
+    window.dispatchEvent(new CustomEvent("ac:project-change", { detail: { id: ativo?.id } }));
+  };
+
   // preencher e renderizar
   fillSelect(); renderUserPanel(); renderEvento();
 
@@ -277,6 +285,7 @@ export async function render(rootEl){
   sel.addEventListener("change", (e)=>{
     const i = parseInt(e.target.value,10);
     ativo = lista[i] || ativo;
+    notifyProjectChange();
     renderEvento();
     setStatus("Evento carregado");
   });
@@ -321,6 +330,7 @@ export async function render(rootEl){
     if(b){
       const i = parseInt(b.getAttribute("data-load"),10);
       ativo = lista[i] || ativo;
+      notifyProjectChange();
       sel.value = String(i);
       renderEvento();
       $(root, "#modal").hidden = true;
@@ -352,7 +362,12 @@ export async function render(rootEl){
     // seleciona a cópia como ativa
     const novoId = res?.meta?.id;
     const idx = lista.findIndex(e => e?.id === novoId);
-    if(idx >= 0){ ativo = lista[idx]; sel.value = String(idx); await renderEvento(); }
+    if(idx >= 0){
+      ativo = lista[idx];
+      notifyProjectChange();
+      sel.value = String(idx);
+      await renderEvento();
+    }
   }
 
   async function deleteActive(){
@@ -363,6 +378,7 @@ export async function render(rootEl){
     setStatus("Excluído");
     await refreshIndex();
     ativo = lista[0] || null;
+    notifyProjectChange();
     await renderEvento();
   }
 
@@ -374,6 +390,7 @@ export async function render(rootEl){
     const idx = lista.findIndex(e => e?.id === novoId);
     if(idx >= 0){
       ativo = lista[idx];
+      notifyProjectChange();
       sel.value = String(idx);
       await renderEvento();
     }
