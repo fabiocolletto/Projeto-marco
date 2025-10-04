@@ -88,12 +88,38 @@
   // Módulos compartilhados
   const PATH_BUS   = "/shared/marcoBus.js";
   const PATH_STORE = "/shared/projectStore.js";
-  const CANDIDATES = [
+  const CDN_BASES = [
+    (() => {
+      try {
+        const url = new URL(import.meta.url);
+        return url.origin.startsWith('http') ? url.origin : null;
+      } catch {
+        return null;
+      }
+    })(),
     "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
     "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-  ];
-  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
-  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+  ].filter(Boolean);
+
+  const buildUrl = (base, rel) => {
+    if (!base) return rel;
+    const cleanRel = rel.startsWith('/') ? rel.slice(1) : rel;
+    const normalized = base.endsWith('/') ? base : base + '/';
+    return normalized + cleanRel;
+  };
+
+  async function loadShared(rel){
+    const attempts = [rel, ...CDN_BASES.map((base) => buildUrl(base, rel))];
+    for (const url of attempts) {
+      try {
+        const mod = await import(url);
+        if (mod) return mod;
+      } catch (err) {
+        console.warn('[tarefas] Falha ao importar', url, err);
+      }
+    }
+    return null;
+  }
 
   const store = await loadShared(PATH_STORE);
   const bus   = await loadShared(PATH_BUS);
