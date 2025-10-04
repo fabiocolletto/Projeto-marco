@@ -21,9 +21,9 @@
 
   const dispatch = createEventDispatcher<{ select: { id: AppId } }>();
 
-  const manifestState = $derived(mergeManifest(defaultManifestList, manifest ?? manifestDefault));
-  const manifestList = $derived($manifestState.list);
-  const manifestMap = $derived($manifestState.map);
+  const manifestComputed = $derived(mergeManifest(defaultManifestList, manifest ?? manifestDefault));
+  const manifestList = $derived(manifestComputed.list);
+  const manifestMap = $derived(manifestComputed.map);
 
   const activeId = $state<AppId | null>(null);
   const component = $state<ComponentType | null>(null);
