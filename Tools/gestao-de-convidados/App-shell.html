@@ -35,8 +35,9 @@
 
   <script type="module">
     const CANDIDATES = [
+      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main",
       "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+      "https://cdn.statically.io/gh/fabiocolletto/Projeto-marco/main"
     ];
     const BASE_PATH = "/Tools/gestao-de-convidados/";
     const PAGES = {
@@ -46,22 +47,104 @@
       relatorio: "relatorio.html"
     };
     const WIDGET = "Widget-card-resumo.html";
+    const PATH_BUS = "/shared/marcoBus.js";
 
     const $ = (s)=> document.querySelector(s);
     const framesWrap = $('#frames');
 
-    const state = { base:null, iframes:{}, widgetSrc:null };
+    const state = { base:null, iframes:{}, widgetSrc:null, bus:null, lastEventId:null };
+
+    const seenImports = new Set();
+
+    function preferredBases(){
+      if(!state.base) return [...CANDIDATES];
+      const rest = CANDIDATES.filter(b => b !== state.base);
+      return [state.base, ...rest];
+    }
+
+    async function tryImport(url){
+      if(seenImports.has(url)) return null;
+      seenImports.add(url);
+      try {
+        return await import(url);
+      } catch (e1) {
+        try {
+          const bust = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now();
+          return await import(bust);
+        } catch (e2) {
+          return null;
+        }
+      }
+    }
+
+    async function loadShared(rel){
+      for(const base of preferredBases()){
+        const mod = await tryImport(base + rel);
+        if(mod) return mod;
+      }
+      return null;
+    }
 
     async function resolveBase(){
       for(const base of CANDIDATES){
         try{
-          const url = base+BASE_PATH+"ac.css" + (base.includes('?')?"&":"?") + "t="+Date.now();
-          const ok = await fetch(url, { method:'HEAD', mode:'no-cors' });
-          state.base = base; break;
+          const htmlOk = await candidateHasHtml(base);
+          if(htmlOk){
+            state.base = base;
+            break;
+          }
         }catch(e){ /* tenta próxima */ }
       }
       if(!state.base) state.base = CANDIDATES[0];
       state.widgetSrc = state.base + BASE_PATH + WIDGET;
+    }
+
+    function addCacheBuster(url, stamp){
+      return url + (url.includes('?') ? '&' : '?') + 't=' + stamp;
+    }
+
+    function isHtml(contentType){
+      return !!contentType && contentType.includes('text/html');
+    }
+
+    function isPlain(contentType){
+      return !!contentType && contentType.includes('text/plain');
+    }
+
+    async function fetchContentType(url, method){
+      try{
+        const res = await fetch(url, { method, cache:'no-store', redirect:'follow' });
+        const contentType = (res.headers.get('content-type') || '').toLowerCase();
+        if(method !== 'HEAD'){
+          try{ res.body && res.body.cancel && res.body.cancel(); }catch(_){}
+        }
+        return { ok: res.ok, contentType };
+      }catch(e){
+        return { ok:false, contentType:'' };
+      }
+    }
+
+    async function candidateHasHtml(base){
+      const now = Date.now();
+      const htmlUrl = addCacheBuster(base + BASE_PATH + PAGES.home, now);
+
+      const headCheck = await fetchContentType(htmlUrl, 'HEAD');
+      if(headCheck.ok){
+        if(isHtml(headCheck.contentType)) return true;
+        if(isPlain(headCheck.contentType)) return false;
+      }
+
+      const getCheck = await fetchContentType(htmlUrl, 'GET');
+      if(getCheck.ok && isHtml(getCheck.contentType)) return true;
+      if(isPlain(getCheck.contentType)) return false;
+
+      return false;
+    }
+
+    function announceCurrentEvent(){
+      if(state.lastEventId && state.bus?.publish){
+        state.bus.publish('ac:open-event', { id: state.lastEventId });
+      }
     }
 
     function makeIframe(src){
@@ -72,6 +155,7 @@
       f.style.border = '0';
       f.style.minHeight = '1200px';
       f.setAttribute('referrerpolicy', 'no-referrer');
+      f.addEventListener('load', ()=> setTimeout(announceCurrentEvent, 50));
       return f;
     }
 
@@ -82,7 +166,6 @@
         wrap.dataset.tab = tab;
         wrap.style.display = 'none';
         wrap.style.gap = '12px';
-        wrap.style.display = 'grid';
         wrap.style.gridTemplateColumns = '1fr';
 
         // 1) Widget fixo no topo
@@ -105,10 +188,20 @@
       history.replaceState({}, '', '#'+tab);
     }
 
+    function openTab(tab, { fromBus=false } = {}){
+      if(!PAGES[tab]) return;
+      ensureView(tab);
+      activate(tab);
+      if(!fromBus){
+        state.bus?.publish?.('ac:navigate', { tab });
+      }
+    }
+
     function onNav(e){
       const btn = e.target.closest && e.target.closest('.tab');
       if(!btn) return;
-      const tab = btn.dataset.tab; ensureView(tab); activate(tab);
+      const tab = btn.dataset.tab;
+      openTab(tab);
     }
 
     document.querySelector('.tabs').addEventListener('click', onNav);
@@ -116,10 +209,12 @@
     // deep-link / hash
     (async function init(){
       await resolveBase();
+      state.bus = await loadShared(PATH_BUS);
+      state.bus?.subscribe?.('ac:navigate', ({ tab }) => { if(tab) openTab(tab, { fromBus:true }); });
+      state.bus?.subscribe?.('ac:open-event', ({ id }) => { if(id) state.lastEventId = id; });
       const hash = (location.hash||'').replace('#','');
       const first = PAGES[hash] ? hash : 'home';
-      ensureView(first);
-      activate(first);
+      openTab(first, { fromBus:true });
     })();
 
     // opcional: rolar para topo ao trocar aba
