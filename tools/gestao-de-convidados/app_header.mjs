@@ -5,6 +5,41 @@ import * as store from "../../shared/projectStore.js";   // init, listProjects, 
 import * as inviteUtils from "../../shared/inviteUtils.js"; // opcional (reserva para futuras ações)
 import * as listUtils   from "../../shared/listUtils.js";   // opcional (reserva para futuras ações)
 
+let menuPanelRef = null;
+let menuButtonRef = null;
+let listenersBound = false;
+
+const toggleMenu = (state) => {
+  if(!menuPanelRef || !menuButtonRef) return;
+  const visible = (typeof state === "boolean") ? state : menuPanelRef.hidden;
+  menuPanelRef.hidden = !visible;
+  menuButtonRef.setAttribute("aria-expanded", String(visible));
+};
+
+const handleDocumentClick = (event) => {
+  if(!event.target.closest(".ac-dd")) toggleMenu(false);
+};
+
+const handleDocumentKeydown = (event) => {
+  if(event.key === "Escape") toggleMenu(false);
+};
+
+const bindGlobalMenuListeners = () => {
+  if(listenersBound) return;
+  document.addEventListener("click", handleDocumentClick);
+  document.addEventListener("keydown", handleDocumentKeydown);
+  listenersBound = true;
+};
+
+const updateMenuRefs = (panel, button) => {
+  menuPanelRef = panel;
+  menuButtonRef = button;
+  if(menuPanelRef && menuButtonRef){
+    menuPanelRef.hidden = true;
+    menuButtonRef.setAttribute("aria-expanded", "false");
+  }
+};
+
 // ---------- helpers mínimos de UI ----------
 const $ = (root, sel) => root.querySelector(sel);
 const esc = (s) => (s ?? "").replace(/[&<>]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;" }[c]));
@@ -248,11 +283,11 @@ export async function render(rootEl){
   });
 
   // menu
-  const panel = $(root, "#menu-panel"); const btn = $(root, "#btn-menu");
-  const toggleMenu = (s) => { const v = (typeof s==="boolean") ? s : panel.hidden; panel.hidden = !v; btn.setAttribute("aria-expanded", String(v)); };
+  const panel = $(root, "#menu-panel");
+  const btn = $(root, "#btn-menu");
+  updateMenuRefs(panel, btn);
+  bindGlobalMenuListeners();
   btn.addEventListener("click", ()=>toggleMenu());
-  document.addEventListener("click",(e)=>{ if(!e.target.closest(".ac-dd")) toggleMenu(false); });
-  document.addEventListener("keydown",(e)=>{ if(e.key==="Escape") toggleMenu(false); });
 
   // modal carregar
   function openModal(){
