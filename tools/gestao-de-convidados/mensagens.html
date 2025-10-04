@@ -129,7 +129,14 @@
   }
   const store = await loadShared(PATH_STORE);
   const bus   = await loadShared(PATH_BUS);
-  await store?.init?.();
+
+  if(!store || !bus){
+    const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+    showLoadError(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  await store.init?.();
 
   const AUTO_SAVE_MS = 700;
   const state = { currentId:null, project:null, programacao:[], dirty:false, saving:false, timer:null, metas:[] };

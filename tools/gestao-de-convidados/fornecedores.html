@@ -145,7 +145,14 @@
 
   const store = await loadShared(PATH_STORE);
   const bus   = await loadShared(PATH_BUS);
-  await store?.init?.();
+
+  if(!store || !bus){
+    const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+    showLoadError(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  await store.init?.();
 
   // Estado e utilitários (nomes/ids exclusivos com prefixo f2_)
   const AUTO_SAVE_MS = 700;

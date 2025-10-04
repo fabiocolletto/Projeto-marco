@@ -156,7 +156,14 @@
   const store = await loadShared(PATH_STORE);
   const bus   = await loadShared(PATH_BUS);
   const inv   = await loadShared(PATH_INV);  // { parseInvites, normalizePhone }
-  await store?.init?.();
+
+  if(!store || !bus || !inv){
+    const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+    showLoadError(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  await store.init?.();
 
   // Estado e utilitários
   const AUTO_SAVE_MS = 700;
