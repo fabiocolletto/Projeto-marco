@@ -1,0 +1,71 @@
+name: Deploy AppBase Widget
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types:
+      - published
+
+jobs:
+  deploy-widget:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      WIDGET_PREFIX: widgets/app-base
+      S3_BUCKET: ${{ secrets.WIDGET_AWS_S3_BUCKET }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build widget bundle
+        run: npm run build:widget
+
+      - name: Resolve widget version
+        id: widget-version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Widget version: ${VERSION}"
+          echo "widget_version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.WIDGET_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.WIDGET_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.WIDGET_AWS_REGION }}
+
+      - name: Upload widget artifacts (latest)
+        run: |
+          aws s3 cp apps/web/dist/app-base-widget.css "s3://${S3_BUCKET}/${WIDGET_PREFIX}/latest/app-base-widget.css" --cache-control "max-age=300,public"
+          aws s3 cp apps/web/dist/app-base-widget.js "s3://${S3_BUCKET}/${WIDGET_PREFIX}/latest/app-base-widget.js" --cache-control "max-age=300,public"
+          aws s3 cp dist/app-base-widget.html "s3://${S3_BUCKET}/${WIDGET_PREFIX}/latest/app-base-widget.html" --cache-control "max-age=60,public"
+
+      - name: Upload widget artifacts (versioned)
+        env:
+          WIDGET_VERSION: ${{ steps.widget-version.outputs.widget_version }}
+        run: |
+          VERSION_PREFIX="${WIDGET_PREFIX}/v${WIDGET_VERSION}"
+          aws s3 cp apps/web/dist/app-base-widget.css "s3://${S3_BUCKET}/${VERSION_PREFIX}/app-base-widget.css" --cache-control "max-age=31536000,public,immutable"
+          aws s3 cp apps/web/dist/app-base-widget.js "s3://${S3_BUCKET}/${VERSION_PREFIX}/app-base-widget.js" --cache-control "max-age=31536000,public,immutable"
+          aws s3 cp dist/app-base-widget.html "s3://${S3_BUCKET}/${VERSION_PREFIX}/app-base-widget.html" --cache-control "max-age=31536000,public,immutable"
+
+      - name: Invalidate CDN cache
+        env:
+          WIDGET_VERSION: ${{ steps.widget-version.outputs.widget_version }}
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.WIDGET_CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/${WIDGET_PREFIX}/latest/*" "/${WIDGET_PREFIX}/v${WIDGET_VERSION}/*"
