@@ -1,4 +1,4 @@
-:root {
+:where(:root, #app-base-widget-root) {
   --color-surface: 255 255 255;
   --color-surface-muted: 243 246 251;
   --color-brand: 11 101 194;
