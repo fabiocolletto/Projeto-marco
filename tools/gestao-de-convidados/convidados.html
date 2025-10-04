@@ -132,6 +132,11 @@
   const inv   = await loadShared(PATH_INV);  // { parseInvites, normalizePhone }
   await store?.init?.();
 
+  if (inv) {
+    console.assert(typeof inv.normalizeName === 'function', '[smoke] inviteUtils.normalizeName indisponível');
+    console.assert(typeof inv.stripNumbersFromName === 'function', '[smoke] inviteUtils.stripNumbersFromName indisponível');
+  }
+
   // Estado e utilitários
   const AUTO_SAVE_MS = 700;
   const state = { currentId:null, project:null, lista:[], dirty:false, saving:false, timer:null };

@@ -233,6 +233,11 @@
     const inviteUtils = await loadShared(PATH_INV);
     await store?.init?.();
 
+    if (inviteUtils) {
+      console.assert(typeof inviteUtils.normalizeName === 'function', '[smoke] inviteUtils.normalizeName indisponível');
+      console.assert(typeof inviteUtils.stripNumbersFromName === 'function', '[smoke] inviteUtils.stripNumbersFromName indisponível');
+    }
+
     if (!store || !bus || !inviteUtils) {
       const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
       const main = document.querySelector('main.ac');

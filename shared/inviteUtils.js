@@ -7,6 +7,7 @@
 // - Sequências com 2+ dígitos não são consideradas parte do nome.
 
 import { normalizeName, stripNumbersFromName } from "./listUtils.js";
+export { normalizeName, stripNumbersFromName } from "./listUtils.js";
 
 // Telefones soltos: aceita +55, DDD, espaços, hífens e parênteses
 const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g;
