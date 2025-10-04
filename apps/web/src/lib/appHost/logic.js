@@ -130,9 +130,12 @@ function normalizeOverrides(overrides) {
  * @param {Partial<AppManifestEntry> | undefined} override
  */
 function mergeEntry(base, override) {
-  const requires = new Set(base.requires);
-  if (override?.requires) {
-    for (const dep of override.requires) {
+  const baseDeps = Array.isArray(base.requires) ? base.requires : [];
+  const overrideDeps = Array.isArray(override?.requires) ? override.requires : [];
+
+  const requires = new Set(baseDeps);
+  if (overrideDeps.length > 0) {
+    for (const dep of overrideDeps) {
       requires.add(dep);
     }
   }

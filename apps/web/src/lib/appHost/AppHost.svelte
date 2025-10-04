@@ -76,13 +76,14 @@
   }
 
   function resolveProps(entry: AppManifestEntry): Record<string, unknown> {
+    const requires = entry.requires ?? [];
     const props: Record<string, unknown> = {
       id: entry.id,
       label: entry.label,
       icon: entry.icon
     };
 
-    if (entry.requires.includes('projectData')) {
+    if (requires.includes('projectData')) {
       props.projectData = projectData;
       const store = projectData.raw();
       if (store) {
@@ -92,11 +93,11 @@
       props.getCurrentId = () => get(projectData.currentId);
     }
 
-    if (entry.requires.includes('bus')) {
+    if (requires.includes('bus')) {
       props.bus = bus;
     }
 
-    if (entry.requires.includes('ac')) {
+    if (requires.includes('ac')) {
       props.ac = $acModule;
     }
 
@@ -125,12 +126,14 @@
     $error = null;
 
     try {
-      if (entry.requires.includes('projectData')) {
+      const requires = entry.requires ?? [];
+
+      if (requires.includes('projectData')) {
         await projectData.init();
         if (currentToken !== $token) return;
       }
 
-      if (entry.requires.includes('ac') && !$acModule) {
+      if (requires.includes('ac') && !$acModule) {
         await ensureAc();
         if (currentToken !== $token) return;
       }
