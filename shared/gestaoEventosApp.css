@@ -1,11 +1,21 @@
 /*
-  AC — CSS Base + App (v1.1)
-  Conteúdo unificado para os estilos do Assistente Cerimonial.
-  Inclui tokens de tema (claro/escuro), fundações (app.base.css) e componentes do app (gestaoEventosApp.css),
-  já com as correções para modo escuro e remoção de cores fixas em favor de variáveis CSS.
-  Regra de formatação: uma propriedade por linha; comentários apenas neste cabeçalho.
+  AC — CSS Base + App (v1.2)
+  Arquivo único para publicação (equivale a /shared/app.base.css + /shared/gestaoEventosApp.css).
+  ──────────────────────────────────────────────────────────────────────────────
+  LOG DE EDIÇÃO
+  - 2025-10-04 v1.2
+    • Details fechados não ocupam espaço: details:not([open]) .details-wrap {display:none}
+    • Remoção de margem padrão dos <details>
+    • Barra de ações fixa no topo direito dos painéis (.details-actions)
+    • Destaque visual quando um painel está aberto (#sec* [open] .details-wrap)
+    • Tokens e componentes permanecem referenciando variáveis (tema claro/escuro)
+  - 2025-10-04 v1.1
+    • Introdução dos tokens de tema (light/dark) e revisão de componentes para usar var(--*)
 */
 
+/* ───────────────────────────
+   TOKENS DE TEMA (LIGHT/DARK)
+   ─────────────────────────── */
 :root{
   color-scheme: light;
   --text: #111111;
@@ -45,9 +55,7 @@ html[data-theme="dark"]{
 }
 
 html.theme-transition *{
-  transition: background-color .2s;
-  transition: color .2s;
-  transition: border-color .2s;
+  transition: background-color .2s, color .2s, border-color .2s;
 }
 
 body{
@@ -55,13 +63,8 @@ body{
   color: var(--text);
 }
 
-.small{
-  font-size: .85rem;
-}
-
-.muted{
-  color: var(--muted);
-}
+.small{ font-size: .85rem; }
+.muted{ color: var(--muted); }
 
 .container{
   max-width: 1140px;
@@ -71,183 +74,91 @@ body{
 }
 
 .app-title{
-  margin: 0 0 4px 0;
-  line-height: 1.2;
+  margin: 0 0 4px 0; line-height: 1.2;
 }
 
-.row{
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-}
+.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
 
 .badge-grid{
-  display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
-  gap: 12px;
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px;
 }
 
 .card{
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 16px;
+  background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:16px;
 }
 
 .badge{
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  padding: 12px;
+  background:var(--card); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); padding:12px;
 }
 
 .details-wrap{
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
+  background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px; position:relative;
 }
 
-.hdr-sync{
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
+/* NEW v1.2 — Details sem espaço quando fechados */
+/* Oculta o conteúdo quando o <details> está fechado */
+.details > .details-wrap{ /* segurança caso haja HTML divergente */ }
+
+details{ margin:0; }
+
+details:not([open]) .details-wrap{ display:none; }
+
+/* Barra de ações (ex.: botão Fechar) alinhada no topo direito */
+.details-actions{ position:absolute; top:12px; right:12px; display:flex; gap:8px; }
+
+/* Destaque leve quando um painel está aberto */
+#secControle[open] .details-wrap,
+#secEvento[open] .details-wrap,
+#secAnfitriao[open] .details-wrap,
+#secCerimonial[open] .details-wrap{
+  border-color: var(--warn-600);
+  background: var(--warn-50);
 }
+
+.hdr-sync{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
 #hdr_sync_badge{
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 2px 8px;
-  background: var(--surface);
+  display:flex; align-items:center; gap:6px; border:1px solid var(--border); border-radius:12px; padding:2px 8px; background:var(--surface);
 }
+#hdr_sync_badge.active{ background:var(--warn-50); border-color:var(--warn-600); }
 
-#hdr_sync_badge.active{
-  background: var(--warn-50);
-  border-color: var(--warn-600);
-}
+.twocol{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.threecol{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
 
-.twocol{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.threecol{
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-}
-
-.field label{
-  display: block;
-  margin-bottom: 4px;
-}
+.field label{ display:block; margin-bottom:4px; }
 
 .field input,
 .field select,
 .field textarea{
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--surface);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
+  width:100%; box-sizing:border-box; background:var(--surface); color:var(--text);
+  border:1px solid var(--border); border-radius:10px; padding:10px 12px;
 }
 
-.kv{
-  display: grid;
-  grid-template-columns: auto 1fr;
-  column-gap: 12px;
-  row-gap: 4px;
-}
-
-.kv dt{
-  margin: 0;
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.kv dd{
-  margin: 0;
-}
+.kv{ display:grid; grid-template-columns:auto 1fr; column-gap:12px; row-gap:4px; }
+.kv dt{ margin:0; color:var(--muted); font-weight:600; }
+.kv dd{ margin:0; }
 
 .btn{
-  appearance: none;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 8px 12px;
-  cursor: pointer;
-  line-height: 1;
+  appearance:none; border:1px solid var(--border); background:var(--surface); color:var(--text);
+  border-radius:10px; padding:8px 12px; cursor:pointer; line-height:1;
 }
-
-.btn--ghost{
-  background: transparent;
-}
-
-.btn.danger{
-  color: var(--danger-600);
-}
+.btn--ghost{ background:transparent; }
+.btn.danger{ color:var(--danger-600); }
 
 .edit-btn{
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
-  border-radius: 10px;
-  padding: 4px 8px;
-  cursor: pointer;
-  line-height: 1;
+  border:1px solid var(--border); background:var(--surface); color:var(--text);
+  border-radius:10px; padding:4px 8px; cursor:pointer; line-height:1;
 }
+.btn:focus,.edit-btn:focus{ outline:2px solid var(--focus); outline-offset:2px; }
 
-.btn:focus,
-.edit-btn:focus{
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
-.pill{
-  display: inline-block;
-  border-radius: 999px;
-  padding: 4px 10px;
-  font-size: .85rem;
-}
-
-.pillok{
-  background: var(--ok-50);
-  color: var(--ok-600);
-}
-
-.pillwarn{
-  background: var(--warn-50);
-  color: var(--warn-600);
-}
-
-.pillsaving{
-  background: var(--accent-600);
-  color: #ffffff;
-}
+.pill{ display:inline-block; border-radius:999px; padding:4px 10px; font-size:.85rem; }
+.pillok{ background:var(--ok-50); color:var(--ok-600); }
+.pillwarn{ background:var(--warn-50); color:var(--warn-600); }
+.pillsaving{ background:var(--accent-600); color:#ffffff; }
 
 .sync-host{
-  width: min(33.333%,460px);
-  min-width: 280px;
-  box-sizing: border-box;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--surface);
+  width:min(33.333%,460px); min-width:280px; box-sizing:border-box; border:1px solid var(--border);
+  border-radius:12px; padding:12px; background:var(--surface);
 }
 
-.close-hint{
-  margin-top: 8px;
-  color: var(--muted);
-  font-size: .85rem;
-}
+.close-hint{ margin-top:8px; color:var(--muted); font-size:.85rem; }
