@@ -26,17 +26,29 @@ O script `npm run package --workspace web` agora gera:
 
 ## AppBase no Elementor
 
-> ⚠️ **Importante:** o arquivo [`apps/web/src/app.html`](apps/web/src/app.html) é apenas o template interno do SvelteKit. Ele **não** deve ser colado no WordPress/Elementor. Qualquer erro 404 para `/bundle/app-host.js` indica que o snippet utilizado não é o `dist/app-base-widget.html` exportado pelo build.
+> ⚠️ **Importante:** o arquivo [`apps/web/src/app.html`](apps/web/src/app.html) é apenas o template interno do SvelteKit. Ele **não** deve ser colado no WordPress/Elementor. Utilize sempre o snippet hospedado no CDN; qualquer 404 para `app-base-widget.{css,js}` indica caminho incorreto ou bloqueio de permissão.
 
-### Copiando o HTML gerado
+### Snippet CDN pronto para uso
 
-1. Execute `npm run build:widget` na raiz do repositório. O comando compila o bundle do widget (`apps/web/dist/app-base-widget.{css,js}`) e gera o arquivo consolidado [`dist/app-base-widget.html`](dist/app-base-widget.html).
-2. Abra o arquivo HTML em um editor de texto e copie **apenas o conteúdo entre as tags `<body>...</body>`**. Esse trecho contém o container `<div id="app-base-widget-root">`, o estilo injetado e o `<script type="module">` necessário para inicializar o shell.
-3. No Elementor, adicione um widget **HTML personalizado** e cole o trecho copiado. Nenhum ajuste adicional é necessário — o bundle já encapsula CSS e JavaScript.
+O snippet oficial distribuído via CDN fica versionado em [`docs/embed/app-base-snippet.html`](docs/embed/app-base-snippet.html). Ele já referencia os artefatos publicados em `widgets/app-base/latest/` e pode ser colado diretamente em um widget **HTML personalizado** do Elementor.
+
+```html
+<link rel="stylesheet" href="https://cdn.5horas.app/widgets/app-base/latest/app-base-widget.css" />
+<div id="app-base-widget-root"></div>
+<script type="module" src="https://cdn.5horas.app/widgets/app-base/latest/app-base-widget.js"></script>
+```
+
+> Caso o projeto precise de uma versão fixada, clone o arquivo, substitua o caminho `latest/` pelo carimbo desejado e publique o snippet em outro local.
+
+### Build local (opcional)
+
+Se for necessário gerar o HTML inline (por exemplo, para depuração offline), execute `npm run build:widget`. O comando compila o bundle do widget (`apps/web/dist/app-base-widget.{css,js}`) e gera o arquivo consolidado [`dist/app-base-widget.html`](dist/app-base-widget.html).
+
+> Para facilitar o consumo por terceiros, considere empacotar o snippet em um pacote NPM (`app-base-widget-snippet`) ou publicar uma tag no GitHub Releases apontando para o mesmo conteúdo de `docs/embed/app-base-snippet.html`.
 
 ### Arquivos a serem hospedados
 
-- Hospede o próprio [`dist/app-base-widget.html`](dist/app-base-widget.html) em um local acessível (CDN, biblioteca de mídia do WordPress ou servidor estático). Ele é auto contido e pode ser incorporado via `<iframe>` caso a equipe prefira não colar o código manualmente.
+- O CDN oficial publica os artefatos individuais (`app-base-widget.css` e `app-base-widget.js`) em `widgets/app-base/latest/`. Para uso interno, basta consumir o snippet pronto (`docs/embed/app-base-snippet.html`).
 - Preserve os artefatos gerados em `artifacts/`. Cada `web-<id>.tar.gz` contém o build da vertical e um `manifest/active.json`; eles serão publicados futuramente para liberar mini-apps individuais.
 
 ### Ativação de mini-apps
@@ -60,6 +72,12 @@ O script `npm run package --workspace web` agora gera:
    ```
 
 3. Sempre que o shell solicitar um módulo (`app-base:request-module`), responda com o manifest apropriado (o host dispara `app-base:module-pending` automaticamente). Assim que o JSON estiver disponível, o AppBase importará a vertical com base no `loader` informado.
+
+### Checklist rápido pós-incorporação
+
+1. Abra a página publicada, inspecione o console do navegador e confirme que **não há erros 404** nas solicitações de `app-base-widget.{css,js}`.
+2. Valide se o header institucional e a navegação lateral renderizam com o tema oficial.
+3. Capture uma evidência visual ou execute `npm run test:visual` apontando para o ambiente incorporado, quando aplicável.
 
 ## Testes visuais
 

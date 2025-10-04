@@ -1,11 +1,10 @@
 # Marco zero — AppBase sem mini-app
 
-> ⚠️ **Atenção:** [`apps/web/src/app.html`](../src/app.html) é apenas o template do SvelteKit e não deve ser embutido diretamente no WordPress/Elementor. Sempre use o HTML gerado em `dist/app-base-widget.html`. Um 404 para `/bundle/app-host.js` normalmente indica que o snippet colado não corresponde ao widget exportado.
+> ⚠️ **Atenção:** [`apps/web/src/app.html`](../src/app.html) é apenas o template do SvelteKit e não deve ser embutido diretamente no WordPress/Elementor. Use o snippet publicado em [`docs/embed/app-base-snippet.html`](../../../docs/embed/app-base-snippet.html), que aponta para `widgets/app-base/latest/` no CDN institucional. Qualquer 404 para `app-base-widget.{css,js}` indica problema de permissão ou caminho incorreto.
 
 Checklist rápido antes de publicar:
 
-- [ ] Confirme que o HTML embutido contém o `<div id="app-base-widget-root">`.
-- [ ] Verifique se o `<script type="module">` do widget está presente (geralmente aponta para `app-base-widget.js`).
+- [ ] Confirme que o HTML embutido corresponde ao snippet oficial e contém o `<link rel="stylesheet">`, o `<div id="app-base-widget-root">` e o `<script type="module">` apontando para o CDN.
 
 
 ## Contexto atual
@@ -16,17 +15,17 @@ Checklist rápido antes de publicar:
 
 ## Dependências obrigatórias
 
-1. **Build do widget** — `npm run build:widget` gera `dist/app-base-widget.html`, `apps/web/dist/app-base-widget.css` e `apps/web/dist/app-base-widget.js`.
+1. **Snippet CDN ativo** — garantir acesso ao endpoint `https://cdn.5horas.app/widgets/app-base/latest/` (ou domínio equivalente usado pelo time).
 2. **WordPress com Elementor** — necessário para inserir o trecho HTML em uma página ou template.
 3. **Permissão para scripts personalizados** — o Elementor precisa aceitar `<script type="module">` dentro do widget HTML (verificar política de segurança do site). Caso contrário, incorporar via `<iframe src=".../app-base-widget.html">`.
 
 ## Checklist de carregamento no WordPress
 
-1. **Gerar o HTML** — executar `npm run build:widget` e garantir que `dist/app-base-widget.html` foi atualizado na branch atual.
-2. **Incorporar no Elementor** — colar o conteúdo entre `<body>...</body>` em um widget HTML ou apontar um `<iframe>` para o arquivo hospedado.
+1. **Selecionar o snippet** — copie [`docs/embed/app-base-snippet.html`](../../../docs/embed/app-base-snippet.html) ou referencie-o diretamente no Elementor.
+2. **Incorporar no Elementor** — adicione um widget HTML personalizado e cole o snippet. Verifique se o WordPress permite `<script type="module">`.
 3. **Carregamento do shell** — publicar a página, recarregar no navegador limpo e confirmar:
    - Header e navegação institucional renderizados sem mensagens de erro no console.
    - Placeholder do canvas exibindo o texto padrão do AppHost.
-   - Ausência de solicitações de rede 404 para `manifest/active.json` (nenhum mini-app ativo).
+   - Ausência de solicitações de rede 404 para `app-base-widget.{css,js}` e `manifest/active.json` (nenhum mini-app ativo).
 4. **Evidência visual** — capturar uma screenshot manual ou via Playwright apontando para a URL do WordPress. Validar que o layout ocupa 100% da largura disponível e que o canvas está vazio.
 5. **Logs futuros** — documentar qualquer script extra adicionado para registrar manifests quando mini-apps forem liberados.
