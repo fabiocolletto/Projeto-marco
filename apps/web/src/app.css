@@ -1,23 +1,16 @@
+@import './lib/styles/tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --color-surface: 255 255 255;
-    --color-surface-muted: 243 246 251;
-    --color-brand: 11 101 194;
-    --color-brand-foreground: 255 255 255;
-    --color-ink: 31 41 55;
-    --color-ink-muted: 100 116 139;
-    --color-success: 16 185 129;
-    --color-warning: 245 158 11;
-    --color-danger: 220 38 38;
-    --color-accent: 14 165 233;
-  }
-
   body {
-    @apply bg-surface-muted text-ink font-sans antialiased;
+    background-color: var(--app-body-background);
+    color: var(--app-body-text-color);
+    font-family: var(--app-body-font-family);
+    font-weight: var(--app-body-font-weight);
+    @apply antialiased;
   }
 
   h1,
@@ -26,7 +19,8 @@
   h4,
   h5,
   h6 {
-    @apply text-ink font-semibold;
+    color: var(--app-heading-text-color);
+    font-weight: var(--app-heading-font-weight);
   }
 
   button {
