@@ -144,29 +144,30 @@
 </main>
 
 <script type="module">
-  // Módulos compartilhados
-  const PATH_BUS   = "/shared/marcoBus.js";
-  const PATH_STORE = "/shared/projectStore.js";
-  const CANDIDATES = [
-    "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-    "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-  ];
-  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
-  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+  const {
+    loadAppModules,
+    dom,
+    text: textUtils,
+    format,
+    ensureProjectWithProviders,
+    applyEventSummary,
+    busSync
+  } = await import('/shared/gestaoEventosApp.js');
 
-  const store = await loadShared(PATH_STORE);
-  const bus   = await loadShared(PATH_BUS);
+  const { $, setPill } = dom;
+  const { esc, escAttr } = textUtils;
+  const { fmtDateTime, fmtCurrency } = format;
+  const ensureProject = ensureProjectWithProviders;
+  const { requestCurrentProject } = busSync;
+
+  const { store, bus } = await loadAppModules();
   await store?.init?.();
 
-  // Estado e utilitários (nomes/ids exclusivos com prefixo f2_)
+  const money = (v)=> fmtCurrency(v);
+
+  // Estado
   const AUTO_SAVE_MS = 700;
   const state = { currentId:null, project:null, fornecedores:[], dirty:false, saving:false, timer:null };
-  const $ = (s)=> document.querySelector(s);
-  const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
-  const esc = (s)=> String(s==null?'':s).replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
-  const escAttr = (s)=> String(s==null?'':s).replace(/[&<>"'`]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;','`':'&#96;' }[m]));
-  const fmtDateTime = (ts)=> ts? new Date(ts).toLocaleString() : '—';
-  const money = (v)=> (Number(v)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 
   // Resumo
   const evTitle = $('#f2_evTitle');
@@ -201,13 +202,6 @@
   const estadoMetaUpd = $('#f2_estadoMetaUpd');
   const pillSaving = $('#f2_pillSaving');
 
-  function ensureShape(o){
-    o ||= {}; o.fornecedores ||= [];
-    o.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" };
-    o.evento ||= { nome:"", data:"", hora:"", local:"", tipo:"", endereco:{}, anfitriao:{} };
-    o.evento.endereco ||= {}; o.evento.anfitriao ||= {};
-    return o;
-  }
 
   function setDirty(v){ state.dirty=!!v; if(!state.saving){ setPill(pillSaving, v? 'warn':'ok', v? 'Alterações não salvas':'Pronto'); } }
   function setSaving(v){ state.saving=!!v; setPill(pillSaving, v? 'saving':'ok', v? 'Salvando…':'Pronto'); }
@@ -241,17 +235,20 @@
   }
 
   // ======= Render =======
-  function renderResumo(){
-    const p=state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{};
-    evTitle.textContent=ev.nome||'—';
-    resTipoData.textContent=[ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—';
-    resEndereco.textContent='Endereço'+(end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):'');
-    resAnfitriao.textContent='Anfitrião'+(anf.nome? ': '+anf.nome:'');
-    resCerimonial.textContent='Cerimonialista'+(cer.nomeCompleto? ': '+cer.nomeCompleto:'');
-    setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento');
-    estadoMetaId.textContent=state.currentId||'—';
-    estadoMetaUpd.textContent=fmtDateTime(p.updatedAt);
-  }
+  const renderResumo = ()=> applyEventSummary({
+    project: state.project,
+    currentId: state.currentId,
+    elements: {
+      title: evTitle,
+      tipoData: resTipoData,
+      endereco: resEndereco,
+      anfitriao: resAnfitriao,
+      cerimonial: resCerimonial,
+      linkPill: pillLink,
+      metaId: estadoMetaId,
+      metaAtualizado: estadoMetaUpd
+    }
+  });
 
   function renderList(){
     const rows = state.fornecedores||[];
@@ -328,7 +325,7 @@
   async function doSave(){
     if(!state.currentId) return;
     setSaving(true);
-    const next = ensureShape(JSON.parse(JSON.stringify(state.project||{})));
+    const next = ensureProject(JSON.parse(JSON.stringify(state.project||{})));
     next.fornecedores = state.fornecedores;
     next.updatedAt = Date.now();
     await store.updateProject?.(state.currentId,next);
@@ -348,26 +345,15 @@
   async function loadCurrent(id){
     state.currentId = id;
     state.project = id? await store.getProject?.(id) : null;
-    ensureShape(state.project);
+    ensureProject(state.project);
     state.fornecedores = [...(state.project.fornecedores||[])];
     setDirty(false); setSaving(false);
-    // resumo
-    const p = state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{};
-    evTitle.textContent = ev.nome||'—';
-    resTipoData.textContent = [ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—';
-    resEndereco.textContent = 'Endereço' + (end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):'');
-    resAnfitriao.textContent = 'Anfitrião' + (anf.nome? ': '+anf.nome:'');
-    resCerimonial.textContent = 'Cerimonialista' + (cer.nomeCompleto? ': '+cer.nomeCompleto:'');
-    setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento');
-    estadoMetaId.textContent = state.currentId||'—';
-    estadoMetaUpd.textContent = fmtDateTime(p.updatedAt);
+    renderResumo();
     renderList(); updateKPIs();
   }
   async function setCurrent(id){ await loadCurrent(id); }
 
-  async function trySyncWithEventos(maxTries=8, interval=400){
-    return new Promise(resolve=>{ let tries=0; const ask=()=>{ try{ bus.publish('ac:request-current'); }catch{} tries++; if(state.currentId){ resolve(true); return; } if(tries<maxTries){ setTimeout(ask,interval);} else { resolve(false);} }; ask(); });
-  }
+  const trySyncWithEventos = (maxTries=8, interval=400)=> requestCurrentProject(bus, ()=>state.currentId, { maxTries, interval });
 
   (async function bootstrap(){
     const synced = await trySyncWithEventos();
@@ -376,7 +362,7 @@
     const last = localStorage.getItem('ac:lastId');
     const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
     if(initial){ await setCurrent(initial); }
-    if(!initial){ ensureShape(state.project); /* render vazio */ }
+    if(!initial){ ensureProject(state.project); /* render vazio */ }
   })();
 </script>
 </body>

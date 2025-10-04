@@ -120,22 +120,27 @@
 </main>
 
 <script type="module">
-  const PATH_BUS   = "/shared/marcoBus.js";
-  const PATH_STORE = "/shared/projectStore.js";
-  const CANDIDATES = [
-    "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-    "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-  ];
-  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
-  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
-  const store = await loadShared(PATH_STORE);
-  const bus   = await loadShared(PATH_BUS);
+  const {
+    loadAppModules,
+    dom,
+    text: textUtils,
+    format,
+    ensureProjectWithMessages,
+    applyEventSummary,
+    busSync
+  } = await import('/shared/gestaoEventosApp.js');
+
+  const { $, setPill } = dom;
+  const { esc } = textUtils;
+  const { fmtDate, fmtDateTime, fmtWhen } = format;
+  const ensureProject = ensureProjectWithMessages;
+  const { requestCurrentProject } = busSync;
+
+  const { store, bus } = await loadAppModules();
   await store?.init?.();
 
   const AUTO_SAVE_MS = 700;
   const state = { currentId:null, project:null, programacao:[], dirty:false, saving:false, timer:null, metas:[] };
-  const $ = (s)=> document.querySelector(s);
-  const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
 
   const evTitle      = $('#m_evTitle');
   const resTipoData  = $('#m_resTipoData');
@@ -162,12 +167,7 @@
   function canAdd(){ return !!(state.currentId && sendWhen.value && document.querySelector('input[name="tpl"]:checked')); }
   function updateAddState(){ btnAdd.disabled = !canAdd(); }
 
-  const fmtDate     = (d)=>{ if(!d) return ''; const p=d.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]}` : ''; };
-  const fmtDateTime = (ts)=> ts? new Date(ts).toLocaleString() : '—';
-  const fmtWhen     = (iso)=>{ if(!iso) return ''; const [d,t='00:00:00'] = iso.split('T'); const p=d.split('-'); return p.length===3? `${p[2]}/${p[1]}/${p[0]} ${t.slice(0,5)}` : ''; };
-  const esc = (s)=> String(s==null?'':s).replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
 
-  function ensureShape(o){ o ||= {}; o.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" }; o.evento ||= { nome:"", data:"", hora:"", local:"", tipo:"", endereco:{}, anfitriao:{} }; o.evento.endereco ||= {}; o.evento.anfitriao ||= {}; return o; }
   function setDirty(v){ state.dirty=!!v; if(!state.saving) setPill(pillSaving, v? 'warn':'ok', v? 'Alterações não salvas':'Pronto'); }
   function setSaving(v){ state.saving=!!v; setPill(pillSaving, v? 'saving':'ok', v? 'Salvando…':'Pronto'); }
 
@@ -304,23 +304,36 @@
   }
   function scheduleSave(){ if(state.timer) clearTimeout(state.timer); state.timer = setTimeout(doSave, AUTO_SAVE_MS); }
 
-  function renderResumo(){
-    const p = state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{};
-    evTitle.textContent = ev.nome||'—';
-    resTipoData.textContent = [ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—';
-    resEndereco.textContent = 'Endereço' + (end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):'');
-    resAnfitriao.textContent = 'Anfitrião' + (anf.nome? ': '+anf.nome:'');
-    resCerimonial.textContent = 'Cerimonialista' + (cer.nomeCompleto? ': '+cer.nomeCompleto:'');
-    estadoMetaId.textContent = state.currentId||'—';
-    estadoMetaUpd.textContent = fmtDateTime(p.updatedAt);
-    setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento');
+  const renderResumo = ()=> {
+    const p = state.project||{};
+    applyEventSummary({
+      project: p,
+      currentId: state.currentId,
+      elements: {
+        title: evTitle,
+        tipoData: resTipoData,
+        endereco: resEndereco,
+        anfitriao: resAnfitriao,
+        cerimonial: resCerimonial,
+        linkPill: pillLink,
+        metaId: estadoMetaId,
+        metaAtualizado: estadoMetaUpd
+      }
+    });
+    const ev = p.evento || {};
+    const nome = (ev?.nome || p?.nome || 'Evento').trim() || 'Evento';
+    const rows = state.programacao || [];
+    evTitle.textContent = nome;
+    const soonest = rows.filter(r=>r.whenISO).map(r=>r.whenISO).sort()[0]||'';
+    kpiTotal.textContent = String(rows.length);
+    kpiProx.textContent = fmtWhen(soonest);
     updateAddState();
-  }
+  };
 
   function renderTemplatesSafe(){ try{ renderTemplates(); }catch(e){} }
 
   function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'mensagens' }); }
-  async function loadCurrent(id){ state.currentId=id||state.currentId; state.project = state.currentId? await store.getProject?.(state.currentId):null; state.programacao = Array.isArray(state.project?.mensagens)? [...state.project.mensagens] : []; setDirty(false); renderResumo(); renderTemplatesSafe(); renderSchedule(); }
+  async function loadCurrent(id){ state.currentId=id||state.currentId; state.project = state.currentId? await store.getProject?.(state.currentId):null; ensureProject(state.project); state.programacao = Array.isArray(state.project?.mensagens)? [...state.project.mensagens] : []; setDirty(false); renderResumo(); renderTemplatesSafe(); renderSchedule(); }
   async function setCurrent(id){ if(!id){ state.currentId=null; state.project=null; state.programacao=[]; renderResumo(); renderTemplatesSafe(); renderSchedule(); setDirty(false); return; }
     state.currentId=id; setPill(pillLink,'ok','Vinculado');
     await loadCurrent(id); localStorage.setItem('ac:lastId', id); }
@@ -346,17 +359,7 @@
   btnExport.addEventListener('click', exportReport);
 
   // Handshake idêntico ao das Tarefas + fallback
-  async function trySyncWithEventos(maxTries=8, interval=400){
-    return new Promise(resolve=>{
-      let tries = 0;
-      const ask = ()=>{ try{ bus.publish('ac:request-current'); }catch{}
-        tries++;
-        if(state.currentId){ resolve(true); return; }
-        if(tries<maxTries){ setTimeout(ask, interval); } else { resolve(false); }
-      };
-      ask();
-    });
-  }
+  const trySyncWithEventos = (maxTries=8, interval=400)=> requestCurrentProject(bus, ()=>state.currentId, { maxTries, interval });
 
   async function bootstrap(){
     // 1) tenta sincronizar com outra aba

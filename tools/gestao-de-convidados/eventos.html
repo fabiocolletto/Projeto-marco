@@ -124,24 +124,23 @@
 </main>
 
 <script type="module">
-  const PATH_BUS   = "/shared/marcoBus.js";
-  const PATH_STORE = "/shared/projectStore.js";
-  const CANDIDATES = [
-    "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-    "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-  ];
-  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
-  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+  const {
+    loadAppModules,
+    dom,
+    format,
+    ensureProjectBase,
+    applyEventSummary
+  } = await import('/shared/gestaoEventosApp.js');
 
-  const store = await loadShared(PATH_STORE);
-  const bus   = await loadShared(PATH_BUS);
+  const { $, $$, setPill } = dom;
+  const { fmtDateTime } = format;
+  const ensureProject = ensureProjectBase;
+
+  const { store, bus } = await loadAppModules();
   await store?.init?.();
 
   const AUTO_SAVE_MS = 700;
   const state = { currentId:null, project:null, metas:[], dirty:false, saving:false, timer:null };
-  const $ = (s)=> document.querySelector(s);
-  const $$ = (s)=> [...document.querySelectorAll(s)];
-  const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
 
   const evTitle = $('#evTitle');
   const resTipoData = $('#resTipoData');
@@ -156,22 +155,24 @@
   const btnNew = $('#btnNew');
 
   const boundInputs = $$('[data-bind]');
-  const fmtDateTime = (ts)=> ts? new Date(ts).toLocaleString() : '—';
-  function ensureShape(o){ o ||= {}; o.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" }; o.evento ||= { nome:"", data:"", hora:"", local:"", tipo:"", endereco:{}, anfitriao:{} }; o.evento.endereco ||= {}; o.evento.anfitriao ||= {}; return o; }
+
+  const renderResumo = ()=> applyEventSummary({
+    project: state.project,
+    currentId: state.currentId,
+    elements: {
+      title: evTitle,
+      tipoData: resTipoData,
+      endereco: resEndereco,
+      anfitriao: resAnfitriao,
+      cerimonial: resCerimonial,
+      linkPill: pillLink,
+      metaId: estadoMetaId,
+      metaAtualizado: estadoMetaUpd
+    }
+  });
+
   function setDirty(v){ state.dirty=!!v; setPill(pillDirty, v? 'warn':'ok', v? 'Alterações não salvas':'Pronto'); }
   function setSaving(v){ state.saving=!!v; if(v) setPill(pillDirty,'saving','Salvando…'); }
-
-  function renderResumo(){
-    const p = state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{};
-    evTitle.textContent = ev.nome||'—';
-    resTipoData.textContent = [ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—';
-    resEndereco.textContent = 'Endereço' + (end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):'');
-    resAnfitriao.textContent = 'Anfitrião' + (anf.nome? ': '+anf.nome:'');
-    resCerimonial.textContent = 'Cerimonialista' + (cer.nomeCompleto? ': '+cer.nomeCompleto:'');
-    estadoMetaId.textContent = state.currentId||'—';
-    estadoMetaUpd.textContent = fmtDateTime(p.updatedAt);
-    setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento');
-  }
 
   function renderSaved(){
     state.metas = store.listProjects?.()||[];
@@ -201,8 +202,8 @@
     }
   });
 
-  function fillForm(p){ ensureShape(p); boundInputs.forEach(inp=>{ const path=inp.dataset.bind; const val=path.split('.').reduce((a,k)=>a? a[k] : undefined,p)??''; inp.value=val; }); }
-  function readForm(){ const p=ensureShape(JSON.parse(JSON.stringify(state.project||{}))); boundInputs.forEach(inp=>{ const path=inp.dataset.bind.split('.'); let ref=p; for(let i=0;i<path.length-1;i++){ const k=path[i]; if(typeof ref[k]!== 'object'||ref[k]===null) ref[k]={}; ref=ref[k]; } ref[path.at(-1)] = inp.value; }); return p; }
+  function fillForm(p){ ensureProject(p); boundInputs.forEach(inp=>{ const path=inp.dataset.bind; const val=path.split('.').reduce((a,k)=>a? a[k] : undefined,p)??''; inp.value=val; }); }
+  function readForm(){ const p=ensureProject(JSON.parse(JSON.stringify(state.project||{}))); boundInputs.forEach(inp=>{ const path=inp.dataset.bind.split('.'); let ref=p; for(let i=0;i<path.length-1;i++){ const k=path[i]; if(typeof ref[k]!== 'object'||ref[k]===null) ref[k]={}; ref=ref[k]; } ref[path.at(-1)] = inp.value; }); return p; }
 
   async function doSave(){
     if(!state.currentId || !state.dirty) return;
@@ -224,7 +225,7 @@
   // ——— CTA: novo evento em branco (sem duplicar / excluir aqui) ———
   btnNew.addEventListener('click', async ()=>{ await createBlankAndOpen(); });
   async function createBlankAndOpen(){
-    const blank = ensureShape({ cerimonialista:{}, evento:{ endereco:{}, anfitriao:{} }, lista:[], tipos:[], modelos:{}, vars:{} });
+    const blank = ensureProject({ cerimonialista:{}, evento:{ endereco:{}, anfitriao:{} }, lista:[], tipos:[], modelos:{}, vars:{} });
     const { meta } = await store.createProject?.(blank);
     await setCurrent(meta.id); renderSaved(); publishCurrent();
   }
@@ -232,7 +233,7 @@
   // BUS
   function publishCurrent(){ if(state.currentId) bus.publish('ac:open-event',{ id: state.currentId, from:'eventos' }); }
   async function loadCurrent(id){ state.currentId=id||state.currentId; state.project = state.currentId? await store.getProject?.(state.currentId) : null; fillForm(state.project||{}); setDirty(false); renderResumo(); }
-  async function setCurrent(id){ if(!id){ state.currentId=null; state.project=null; renderSaved(); fillForm(ensureShape({})); renderResumo(); setDirty(false); return; } await loadCurrent(id); localStorage.setItem('ac:lastId', id); }
+  async function setCurrent(id){ if(!id){ state.currentId=null; state.project=null; renderSaved(); fillForm(ensureProject({})); renderResumo(); setDirty(false); return; } await loadCurrent(id); localStorage.setItem('ac:lastId', id); }
 
   // Atualiza "Eventos salvos" e o card Estado quando qualquer aba salvar
   bus.subscribe('ac:project-updated', ({ id, updatedAt }) => {

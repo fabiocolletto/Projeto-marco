@@ -119,74 +119,46 @@
 </main>
 
 <script type="module">
-  // Módulos compartilhados
-  const PATH_BUS   = "/shared/marcoBus.js";
-  const PATH_STORE = "/shared/projectStore.js";
-  const CANDIDATES = [
-    "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-    "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-  ];
-  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
-  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+  const {
+    loadAppModules,
+    dom,
+    text: textUtils,
+    format,
+    ensureProjectWithChecklist,
+    applyEventSummary,
+    busSync
+  } = await import('/shared/gestaoEventosApp.js');
 
-  const store = await loadShared(PATH_STORE);
-  const bus   = await loadShared(PATH_BUS);
+  const { $, setPill } = dom;
+  const { esc } = textUtils;
+  const { fmtDateTime } = format;
+  const ensureProject = ensureProjectWithChecklist;
+  const { requestCurrentProject } = busSync;
+
+  const { store, bus } = await loadAppModules();
   await store?.init?.();
 
   // Estado
   const AUTO_SAVE_MS = 700;
   const state = { currentId:null, project:null, checklist:[], dirty:false, saving:false, timer:null };
-  const $ = (s)=> document.querySelector(s);
-  const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
-  const esc = (s)=> String(s==null?'':s).replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
-
-  // Resumo
-  const evTitle = $('#t_evTitle');
-  const resTipoData = $('#t_resTipoData');
-  const resEndereco = $('#t_resEndereco');
-  const resAnfitriao = $('#t_resAnfitriao');
-  const resCerimonial = $('#t_resCerimonial');
-  const pillLink = $('#t_pillLink');
-
-  // Painel
-  const pnItens=$('#t_pnItens'), pnPend=$('#t_pnPend'), pnAnd=$('#t_pnAnd'), pnFeitos=$('#t_pnFeitos'), pnBar=$('#t_pnBar'), pnPct=$('#t_pnPct');
-
-  // Tabela
-  const tasksBody = $('#t_tasksBody');
-  const tasksMeta = $('#t_tasksMeta');
-  const btnLoadTemplate = $('#t_btnLoadTemplate');
-  const btnAddTask = $('#t_btnAddTask');
-  const pillDirty = $('#t_pillDirty');
-
-  // Estado (rodapé)
-  const estadoMetaId = $('#t_estadoMetaId');
-  const estadoMetaUpd = $('#t_estadoMetaUpd');
-  const pillSaving = $('#t_pillSaving');
-
-  const fmtDateTime = (ts)=> ts? new Date(ts).toLocaleString() : '—';
-
-  function ensureShape(o){
-    o ||= {}; o.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" };
-    o.evento ||= { nome:"", data:"", hora:"", local:"", tipo:"", endereco:{}, anfitriao:{} };
-    o.evento.endereco ||= {}; o.evento.anfitriao ||= {};
-    o.plano ||= {}; o.plano.checklist ||= [];
-    return o;
-  }
 
   function setDirty(v){ state.dirty=!!v; if(!state.saving){ setPill(pillSaving, v? 'warn':'ok', v? 'Alterações não salvas':'Pronto'); } }
   function setSaving(v){ state.saving=!!v; setPill(pillSaving, v? 'saving':'ok', v? 'Salvando…':'Pronto'); }
 
-  function renderResumo(){
-    const p = state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{};
-    evTitle.textContent = ev.nome||'—';
-    resTipoData.textContent = [ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—';
-    resEndereco.textContent = 'Endereço' + (end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):'');
-    resAnfitriao.textContent = 'Anfitrião' + (anf.nome? ': '+anf.nome:'');
-    resCerimonial.textContent = 'Cerimonialista' + (cer.nomeCompleto? ': '+cer.nomeCompleto:'');
-    setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento');
-    estadoMetaId.textContent = state.currentId||'—';
-    estadoMetaUpd.textContent = fmtDateTime(p.updatedAt);
-  }
+  const renderResumo = ()=> applyEventSummary({
+    project: state.project,
+    currentId: state.currentId,
+    elements: {
+      title: evTitle,
+      tipoData: resTipoData,
+      endereco: resEndereco,
+      anfitriao: resAnfitriao,
+      cerimonial: resCerimonial,
+      linkPill: pillLink,
+      metaId: estadoMetaId,
+      metaAtualizado: estadoMetaUpd
+    }
+  });
 
   function checklistStats(rows){
     let feitos=0, pend=0, and=0; for(const r of (rows||[])){
@@ -245,7 +217,7 @@
   async function doSave(){
     if(!state.currentId) return;
     setSaving(true);
-    const next = ensureShape(JSON.parse(JSON.stringify(state.project||{})));
+    const next = ensureProject(JSON.parse(JSON.stringify(state.project||{})));
     next.plano.checklist = state.checklist;
     next.updatedAt = Date.now();
     await store.updateProject?.(state.currentId,next);
@@ -306,7 +278,7 @@
   async function loadCurrent(id){
     state.currentId = id;
     state.project = id? await store.getProject?.(id) : null;
-    ensureShape(state.project);
+    ensureProject(state.project);
     state.checklist = [...(state.project.plano.checklist||[])];
     setDirty(false); setSaving(false);
     renderResumo(); renderTasks(); updatePanel();
@@ -315,18 +287,7 @@
   async function setCurrent(id){ await loadCurrent(id); }
 
   // Handshake com a aba Eventos + fallback
-async function trySyncWithEventos(maxTries=8, interval=400){
-  return new Promise(resolve=>{
-    let tries = 0; let got = false;
-    const ask = ()=>{ try{ bus.publish('ac:request-current'); }catch{}
-      tries++;
-      if(state.currentId){ got=true; resolve(true); return; }
-      if(tries<maxTries){ setTimeout(ask, interval); } else { resolve(false); }
-    };
-    // já está ouvindo 'ac:open-event' acima, então basta perguntar em loop
-    ask();
-  });
-}
+const trySyncWithEventos = (maxTries=8, interval=400)=> requestCurrentProject(bus, ()=>state.currentId, { maxTries, interval });
 
 async function bootstrap(){
   // 1) tentar sincronizar com a aba Eventos (se ela já estiver carregada)
@@ -338,7 +299,7 @@ async function bootstrap(){
   const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
   if(initial){ await setCurrent(initial); }
   // 3) se ainda não houver nada, apenas renderiza vazio aguardando um 'ac:open-event'
-  if(!initial){ ensureShape(state.project); renderResumo(); renderTasks(); updatePanel(); }
+  if(!initial){ ensureProject(state.project); renderResumo(); renderTasks(); updatePanel(); }
 }
 await bootstrap();
 </script>
