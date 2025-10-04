@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Lint e Prettier
+        run: npm run lint
+
+      - name: Testes unitários
+        run: npm run test:unit
+
+      - name: Testes visuais
+        run: npm run test:visual:ci
+
+      - name: Publicar relatório visual
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+
+      - name: Build workspaces
+        run: npm run build
+
+      - name: Empacotar artefatos
+        run: npm run package
+
+      - name: Publicar builds
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: artifacts
+          if-no-files-found: warn

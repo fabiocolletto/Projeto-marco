@@ -2,7 +2,8 @@ import {
   taskModels as domainTaskModels,
   normalizeTask,
   computeStatus as computeTaskStatus,
-  computeTasksKpi
+  computeTasksKpi,
+  normalizeStatus,
 } from '@marco/domain-tarefas';
 
 // ===============================
@@ -30,7 +31,7 @@ const uid = (p='t')=> p + Math.random().toString(36).slice(2,10);
 
 // ---------- Helpers internos ----------
 const computeStatus = (task)=>{
-  try{ if(window.__ac_core_tasks_compute__) return window.__ac_core_tasks_compute__(task); }catch{}
+  try{ if(window.__ac_core_tasks_compute__) return window.__ac_core_tasks_compute__(task); }catch{ /* noop */ }
   return computeTaskStatus(task);
 };
 
@@ -85,7 +86,7 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   if(!root) throw new Error('root inválido');
 
   // Expor computeStatus do core para os helpers locais, se existir
-  try{ window.__ac_core_tasks_compute__ = ac?.tasks?.computeStatus; }catch{}
+  try{ window.__ac_core_tasks_compute__ = ac?.tasks?.computeStatus; }catch{ /* noop */ }
 
   const header = el('div',{className:'row',style:'justify-content:space-between;align-items:center;margin-bottom:8px'},[
     el('h3',{textContent:'Tarefas', style:'margin:0;color:#0b65c2;font-size:1rem'}),

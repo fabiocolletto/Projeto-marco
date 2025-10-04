@@ -23,7 +23,6 @@ export function mountMensagensMiniApp(host, deps){
 
   // ===== Helpers =====
   const $  = (sel, root = host) => root.querySelector(sel);
-  const $$ = (sel, root = host) => [...root.querySelectorAll(sel)];
   const uid = () => (Date.now().toString(36) + Math.random().toString(36).slice(2,7));
 
   const fmtDateBR = (d) => formatMensagemData(d, ac?.format?.fmtDateBR);
@@ -278,7 +277,7 @@ export function mountMensagensMiniApp(host, deps){
         if(k==='data' || k==='hora'){
           const mm = mensagens[idx];
           if(mm && (mm.status==='rascunho' || mm.status==='agendado')){
-            mm.status = inferStatus(mm);
+            mm.status = inferMensagemStatus(mm);
           }
         }
         scheduleSave();
@@ -304,7 +303,6 @@ export function mountMensagensMiniApp(host, deps){
     clone.id = uid();
     // empurrar ligeiramente a hora para evitar colisão visual
     if(clone.hora){
-      const [H,M] = clone.hora.split(':').map(n=>parseInt(n||'0',10));
       const d = new Date(`${clone.data||today}T${clone.hora}:00`);
       d.setMinutes(d.getMinutes()+5);
       clone.data = d.toISOString().slice(0,10);

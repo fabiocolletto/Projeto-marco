@@ -4,7 +4,8 @@ import {
   formatBRLCurrency,
   formatDateBR,
   maskTelefoneBR,
-  computeFornecedoresKpi
+  computeFornecedoresKpi,
+  computeStatus,
 } from '@marco/domain-fornecedores';
 
 // ===============================
@@ -91,7 +92,7 @@ function kpiRow(ac, list){
 }
 
 function progress(ac, list){
-  const { total, pctPago } = computeFornecedoresKpi(list);
+  const { pctPago } = computeFornecedoresKpi(list);
   const track = el('div',{className:'progress__track',style:'height:10px;border-radius:6px;background:#eef2f6;overflow:hidden'});
   const bar = el('div',{className:'progress__bar',style:`height:10px;border-radius:6px;background:#0b65c2;width:${pctPago}%;transition:width .25s ease`});
   track.appendChild(bar);

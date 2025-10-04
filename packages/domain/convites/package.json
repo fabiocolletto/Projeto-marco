@@ -4,5 +4,15 @@
   "type": "module",
   "exports": {
     ".": "./src/index.js"
+  },
+  "scripts": {
+    "build": "echo 'Nenhum build dedicado para @marco/domain-convites'",
+    "lint": "eslint src --ext .js",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "marco-format check src/**/*.js",
+    "format:fix": "marco-format write src/**/*.js",
+    "test": "npm run test:unit",
+    "test:unit": "node ../../../tools/scripts/run-tests.mjs unit --skip --scope=@marco/domain-convites",
+    "test:visual": "node ../../../tools/scripts/run-tests.mjs visual --skip"
   }
 }

@@ -25,7 +25,7 @@ export function parseDateBR(value){
   const s = String(value);
   const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if(m){
-    const [_, dd, mm, yy] = m;
+    const [, dd, mm, yy] = m;
     const yyyy = yy.length === 2 ? `20${yy}` : yy;
     return `${yyyy.padStart(4,'0')}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
   }
