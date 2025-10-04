@@ -71,6 +71,7 @@ const html = `
             </button>
             <div class="ac-dd__panel" id="menu-panel" role="menu" hidden>
               <div class="ac-dd__item" data-action="carregar">Carregar…</div>
+              <div class="ac-dd__item" data-action="novo">Novo evento</div>
               <div class="ac-dd__item" data-action="duplicar">Duplicar evento</div>
               <div class="ac-dd__item" data-action="deletar">Excluir evento</div>
               <div class="ac-dd__item" data-action="imprimir">Imprimir</div>
@@ -276,6 +277,7 @@ export async function render(rootEl){
     if(it){
       const act = it.getAttribute("data-action");
       if(act==="carregar") openModal();
+      if(act==="novo") createNew().catch(console.error);
       if(act==="duplicar") duplicateActive().catch(console.error);
       if(act==="deletar")  deleteActive().catch(console.error);
       if(act==="imprimir") window.print();
@@ -318,6 +320,21 @@ export async function render(rootEl){
     const novoId = res?.meta?.id;
     const idx = lista.findIndex(e => e?.id === novoId);
     if(idx >= 0){ ativo = lista[idx]; sel.value = String(idx); await renderEvento(); }
+  }
+
+  async function createNew(){
+    const res = await store.createProject?.({});
+    await refreshIndex();
+    const novoId = res?.meta?.id;
+    if(novoId){
+      const idx = lista.findIndex(e => e?.id === novoId);
+      if(idx >= 0){
+        ativo = lista[idx];
+        sel.value = String(idx);
+        await renderEvento();
+      }
+    }
+    setStatus("Evento criado");
   }
 
   async function deleteActive(){
