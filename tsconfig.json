@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  },
+  "ts-node": {
+    "esm": true
+  },
+  "include": [
+    "tests/**/*.ts",
+    "playwright.config.ts",
+    "playwright.widget.config.ts",
+    "tools/**/*.ts"
+  ]
+}

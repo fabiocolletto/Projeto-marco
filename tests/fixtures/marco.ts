@@ -1,6 +1,6 @@
 import { expect, test as base } from '@playwright/test';
 
-import { loadWeddingFixture } from './wedding.js';
+import { loadWeddingFixture } from './wedding.cjs';
 import type { WeddingFixture } from './types.js';
 
 export type { WeddingFixture } from './types.js';
