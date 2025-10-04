@@ -6,7 +6,8 @@ Esta pasta contém os módulos compartilhados utilizados pelos widgets da ferram
 - `marcoBus.js`: barramento de eventos para comunicação entre widgets.
 - `projectStore.js`: camada de persistência e sincronização de projetos.
 - `inviteUtils.js`: utilitários usados por múltiplos widgets.
-- `listUtils.js`: helpers de normalização de nomes utilizados pelo módulo de convites.
+- `listUtils.js`: funções `normalizeName` e `stripNumbersFromName` para tratar nomes antes da criação dos convites.
+- `higienizarLista.mjs`: camada de compatibilidade que reexporta os utilitários de nomes e provê `deriveTelefone`.
 - `gestaoEventosApp.css`: estilos globais reutilizados.
 
 ## Boas práticas

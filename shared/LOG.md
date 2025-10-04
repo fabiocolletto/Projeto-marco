@@ -6,3 +6,7 @@
 
 ## 2024-04-09
 - Extraído utilitários de normalização de nomes para `listUtils.js` para consumo compartilhado.
+
+## 2025-10-04
+- Reimplementadas `normalizeName` e `stripNumbersFromName` em `listUtils.js` usando exports ESM nomeados.
+- Adicionada camada de compatibilidade `higienizarLista.mjs` reexportando os novos utilitários e expondo `deriveTelefone`.

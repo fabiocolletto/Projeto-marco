@@ -334,9 +334,17 @@
     const PATH_FORNEC = "/tools/gestao-de-fornecedores/fornecedores.minapp.js"; // MiniApp fornecedores (tools minúsculo)
 
     const CANDIDATES = [
+      (() => {
+        try {
+          const current = new URL(window.location.href);
+          return current.origin.startsWith("http") ? current.origin : null;
+        } catch {
+          return null;
+        }
+      })(),
       "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
       "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-    ];
+    ].filter(Boolean);
     async function tryImport(url){
       try{ return await import(url); }
       catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; }
