@@ -17,7 +17,6 @@
     #cardIndicadores #secTarefas[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
     #cardIndicadores #secFornecedores[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
     #cardIndicadores #secConvidados[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
-    #cardIndicadores #secMensagens[open] .details-wrap{border:1px solid #ffa245;border-radius:12px;background:#fff7ed;padding:12px}
     #cardIndicadores .mini.kpi .actions{position:absolute;top:10px;right:10px}
     #cardIndicadores .mini.kpi .edit-btn{border:1px solid #cccccc;background:#ffffff;border-radius:10px;padding:4px 8px;cursor:pointer;line-height:1}
 
@@ -341,11 +340,6 @@
           <div class="details-wrap"><div id="convidados_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
         </details>
 
-        <!-- ===== MiniApp Mensagens ===== -->
-        <details id="secMensagens"><summary>Mensagens</summary>
-          <div class="details-wrap"><div id="msgs_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
-        </details>
-
         <!-- ===== MiniApp Sincronização ===== -->
         <details id="secSync"><summary>Sincronização</summary>
           <div class="details-wrap"><div id="sync_host"></div><div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div></div>
@@ -363,7 +357,6 @@
     const PATH_TASKS  = "/shared/acTasks.v1.mjs";            // MiniApp tarefas
     const PATH_FORNEC = "/tools/gestao-de-fornecedores/fornecedores.minapp.js"; // MiniApp fornecedores (custom element)
     const PATH_CONVID = "/shared/acConvidados.v1.mjs";       // MiniApp convidados
-    const PATH_MSGS   = "/shared/acMensagens.v1.mjs";        // MiniApp mensagens
     const PATH_SYNC   = "/unique/sync.minapp.js";            // MiniApp sincronização (Unique)
 
     const CANDIDATES = [
@@ -435,10 +428,11 @@
     await loadShared(PATH_FORNEC); // registra <ac-fornecedores>
     const convidMod= await loadShared(PATH_CONVID);
     if(!convidMod?.mountConvidadosMiniApp){ console.warn('[MiniApp Convidados] módulo não disponível em', PATH_CONVID); }
-    const msgsMod  = await loadShared(PATH_MSGS);
-    if(!msgsMod?.mountMensagensMiniApp){ console.warn('[MiniApp Mensagens] módulo não disponível em', PATH_MSGS); }
     const syncMod  = await loadShared(PATH_SYNC);
     if(!syncMod?.mountSyncMiniApp){ console.warn('[MiniApp Sync] módulo não disponível em', PATH_SYNC); }
+
+    // Exponibiliza o store para testes e diagnósticos automatizados
+    try{ globalThis.sharedStore = store; }catch{}
 
     // ====================== Estado & helpers ======================
     const AUTO_SAVE_MS = 700;
@@ -473,8 +467,6 @@
     const kpiTaskBar  = $('#kpi_task_bar');
     const kpiTaskLbl1 = $('#kpi_task_lbl1');
     const kpiTaskLbl2 = $('#kpi_task_lbl2');
-
-    const kpiMsgTrack = $('#kpi_msg_track');
 
     function renderStatus(){
       chipReady.style.display = (!state.dirty && !state.saving)? 'inline-block':'none';
@@ -592,7 +584,6 @@
     function syncTasksKpiActive(){ try{ const kpi=document.querySelector('#kpi_tasks'); const det=document.querySelector('#secTarefas'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
     function syncForKpiActive(){ try{ const kpi=document.querySelector('#kpi_for'); const det=document.querySelector('#secFornecedores'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
     function syncGuestsKpiActive(){ try{ const kpi=document.querySelector('#kpi_guests'); const det=document.querySelector('#secConvidados'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
-    function syncMsgsKpiActive(){ try{ const kpi=document.querySelector('#kpi_msgs'); const det=document.querySelector('#secMensagens'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
     function syncSyncHeaderActive(){ try{ const badge=document.querySelector('#hdr_sync_badge'); const det=document.querySelector('#secSync'); if(badge&&det){ badge.classList.toggle('active', !!det.open); } }catch{} }
 
     function clearChildren(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
@@ -636,19 +627,6 @@
         if(kpiGuestLegend){ kpiGuestLegend.textContent = top.length ? top.map(([n,v])=>`${(n||'—').slice(0,12)}: ${v}`).join(' • ') : 'Sem distribuição registrada'; }
       }
 
-      // Mensagens próximos 7 dias
-      const kM = ac.stats.kpiMensagens(p.mensagens||[]);
-      const kpiMsgLbl1  = document.querySelector('#kpi_msg_lbl1');
-      const kpiMsgLbl2  = document.querySelector('#kpi_msg_lbl2');
-      if(kpiMsgTrack){
-        clearChildren(kpiMsgTrack);
-        const arr = Array.isArray(kM.perDay)? kM.perDay.slice(0,7) : [0,0,0,0,0,0,0];
-        const total = arr.reduce((a,b)=>a+b,0);
-        if(total===0){ for(let i=0;i<7;i++) pushSeg(kpiMsgTrack, 100/7, `D${i}: 0`); }
-        else{ arr.forEach((v,i)=> pushSeg(kpiMsgTrack, (v/total)*100, `D${i}: ${v}`)); }
-      }
-      if(kpiMsgLbl1) kpiMsgLbl1.textContent = `Total na semana: ${kM.total}`;
-      if(kpiMsgLbl2) kpiMsgLbl2.textContent = `Pico: ${kM.pico}/dia`;
     }
 
     // ====================== Novo / Excluir ======================
@@ -659,7 +637,7 @@
         fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
       });
       const { meta } = await store.createProject?.(blank);
-      await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+      await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
     });
 
     btnDelete.addEventListener('click', async ()=>{
@@ -671,7 +649,7 @@
       }catch(e){ console.error(e); }
       state.currentId=null; await renderSaved();
       const nextId=(state.metas[0]&&state.metas[0].id)||null;
-      await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+      await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
     });
 
     function publishCurrent(){ if(state.currentId) bus?.publish?.('ac:open-event',{ id: state.currentId, from:'eventos' }); }
@@ -705,16 +683,6 @@
         host.dataset.mounted = '1';
       } else if(host && !convidMod?.mountConvidadosMiniApp){
         host.innerHTML = '<div class="muted">Módulo de Convidados não encontrado. Verifique /shared/acConvidados.v1.mjs.</div>';
-      }
-    }
-
-    function mountMensagensIfNeeded(){
-      const host = document.querySelector('#msgs_host');
-      if(host && !host?.dataset?.mounted && msgsMod?.mountMensagensMiniApp){
-        msgsMod.mountMensagensMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
-        host.dataset.mounted = '1';
-      } else if(host && !msgsMod?.mountMensagensMiniApp){
-        host.innerHTML = '<div class="muted">Módulo de Mensagens não encontrado. Verifique /shared/acMensagens.v1.mjs.</div>';
       }
     }
 
@@ -753,10 +721,10 @@
       try{ state.project = state.currentId? await store.getProject?.(state.currentId) : null; }catch{ state.project=null; }
       ac.model.ensureShape(state.project||{});
       fillForm(state.project||{}); setDirty(false); renderHeader(); renderIndicators();
-      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+      mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
     }
     async function setCurrent(id){
-      if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return; }
+      if(!id){ state.currentId=null; state.project=null; await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return; }
       await loadCurrent(id); safeLS.set('ac:lastId', id); renderSwitcher();
     }
 
@@ -790,15 +758,15 @@
     // Abrir/fechar seções
     function updateEditActives(){
       document.querySelectorAll('[data-open]')?.forEach(b=>b.classList.remove('active'));
-      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{
+      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secSync'].forEach(sel=>{
         const d=document.querySelector(sel); if(d && d.open){ const btn=document.querySelector(`[data-open="${sel}"]`); if(btn) btn.classList.add('active'); }
       });
     }
-    function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
-    function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } if(selector==='#secConvidados'){ mountConvidadosIfNeeded(); } if(selector==='#secMensagens'){ mountMensagensIfNeeded(); } if(selector==='#secSync'){ mountSyncIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncMsgsKpiActive(); syncSyncHeaderActive(); }
+    function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secSync'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
+    function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } if(selector==='#secConvidados'){ mountConvidadosIfNeeded(); } if(selector==='#secSync'){ mountSyncIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }
     document.addEventListener('click', (ev)=>{ const btn = ev.target.closest('[data-open]'); if(!btn) return; const sel = btn.getAttribute('data-open'); if(sel) toggleSection(sel); });
     window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeAll(); }});
-    ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncMsgsKpiActive(); syncSyncHeaderActive(); }); });
+    ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secSync'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }); });
 
     // ====================== Boot ======================
     async function bootstrap(){
@@ -816,7 +784,7 @@
           fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
         });
         const { meta } = await store.createProject?.(blank);
-        await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
+        await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
       }
       const last = safeLS.get('ac:lastId');
       const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
@@ -826,7 +794,6 @@
       mountTasksIfNeeded();
       mountFornecedoresIfNeeded();
       mountConvidadosIfNeeded();
-      mountMensagensIfNeeded();
       mountSyncIfNeeded();
       updateFornecedoresProject();
       syncSyncHeaderActive();
@@ -837,11 +804,9 @@
     (function selfTests(){
       console.groupCollapsed('Self-tests MiniApps');
       try{
-        console.assert(typeof syncMsgsKpiActive === 'function', 'syncMsgsKpiActive definido');
         console.assert(typeof store.listProjects === 'function', 'store.listProjects disponível');
         console.assert(typeof store.createProject === 'function', 'store.createProject disponível');
         console.assert(typeof store.updateProject === 'function', 'store.updateProject disponível');
-        console.assert(!!document.querySelector('#secMensagens'), '#secMensagens existe');
         console.assert(!!document.querySelector('#secSync'),     '#secSync existe');
         console.assert(!!document.querySelector('#hdr_sync_status'), '#hdr_sync_status no topo');
       } finally {
