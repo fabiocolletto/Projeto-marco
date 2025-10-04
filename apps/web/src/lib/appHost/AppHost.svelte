@@ -279,12 +279,13 @@
     </div>
   )}
   nav={() => (
-    <ul class="app-host__nav">
+    <ul class="app-host__nav" role="list">
       {#each manifestList as entry (entry.id)}
         <li>
           <button
             type="button"
             class:active={entry.id === activeId}
+            aria-current={entry.id === activeId ? 'page' : undefined}
             on:click={() => handleSelect(entry.id)}
           >
             <span class="icon" aria-hidden="true">{entry.icon}</span>
@@ -318,6 +319,15 @@
                 <strong>Erro ao carregar módulo.</strong>
                 <pre>{error.message}</pre>
               </div>
+        {#if loading}
+          <div class="app-host__stage app-host__stage--status" aria-live="polite" aria-busy="true">
+            <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
+          </div>
+        {:else if error}
+          <div class="app-host__stage app-host__stage--status" aria-live="assertive">
+            <div class="app-host__error" role="alert">
+              <strong>Erro ao carregar módulo.</strong>
+              <pre>{error.message}</pre>
             </div>
           {:else if component}
             <div class="app-host__stage app-host__stage--component">
