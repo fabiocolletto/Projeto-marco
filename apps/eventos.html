@@ -351,24 +351,21 @@
 
   <script type="module">
     // ====================== Shared Modules ======================
-    const PATH_BUS    = "/shared/marcoBus.js";
-    const PATH_STORE  = "/shared/projectStore.js";
-    const PATH_CORE   = "/shared/acEventsCore.v2.mjs";
-    const PATH_TASKS  = "/shared/acTasks.v1.mjs";            // MiniApp tarefas
-    const PATH_FORNEC = "/tools/gestao-de-fornecedores/fornecedores.minapp.js"; // MiniApp fornecedores (custom element)
-    const PATH_CONVID = "/shared/acConvidados.v1.mjs";       // MiniApp convidados
-    const PATH_SYNC   = "/unique/sync.minapp.js";            // MiniApp sincronização (Unique)
+    const PATH_BUS    = new URL('../tools/shared/marcoBus.js', import.meta.url).href;
+    const PATH_STORE  = new URL('../tools/shared/projectStore.js', import.meta.url).href;
+    const PATH_CORE   = new URL('../tools/unique/eventos.mjs', import.meta.url).href;
+    const PATH_TASKS  = new URL('../tools/unique/tarefas.mjs', import.meta.url).href;            // MiniApp tarefas
+    const PATH_FORNEC = new URL('../tools/unique/fornecedores.mjs', import.meta.url).href;       // MiniApp fornecedores (custom element)
+    const PATH_CONVID = new URL('../tools/unique/convites.mjs', import.meta.url).href;           // MiniApp convidados
+    const PATH_SYNC   = new URL('../tools/shared/sync.minapp.js', import.meta.url).href;         // MiniApp sincronização
 
-    const CANDIDATES = [
-      "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
-      "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
-    ];
-    async function tryImport(url){
-      try{ return await import(url); }
-      catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; }
+    async function loadShared(path){
+      try{ return await import(path); }
+      catch(err){
+        console.error('[loadShared] Falha ao importar módulo:', path, err);
+        throw err;
       }
     }
-    async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
 
     // ===== Helpers: storage seguro + fallback =====
     const safeLS = {

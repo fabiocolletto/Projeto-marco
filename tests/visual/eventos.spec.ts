@@ -3,7 +3,6 @@ import { createServer } from 'http';
 import { readFile } from 'fs/promises';
 import path from 'path';
 import type { Server } from 'http';
-import type { Route } from '@playwright/test';
 import type { TestInfo } from '@playwright/test';
 
 const contentTypes: Record<string, string> = {
@@ -18,23 +17,15 @@ const contentTypes: Record<string, string> = {
 
 async function createStaticServer(): Promise<{ server: Server; url: string }>{
   const rootDir = path.resolve(process.cwd());
-  const alias: Record<string, string> = {
-    '/shared/marcoBus.js': 'tools/shared/marcoBus.js',
-    '/shared/projectStore.js': 'tools/shared/projectStore.js',
-    '/shared/acEventsCore.v2.mjs': 'tools/unique/eventos.mjs',
-    '/shared/acTasks.v1.mjs': 'tools/unique/tarefas.mjs',
-    '/shared/acConvidados.v1.mjs': 'tools/unique/convites.mjs',
-    '/tools/gestao-de-fornecedores/fornecedores.minapp.js': 'tools/unique/fornecedores.mjs',
-    '/unique/sync.minapp.js': 'tools/shared/sync.minapp.js',
-  };
   const server = createServer(async (req, res) => {
+    const rawPath = decodeURIComponent(req.url?.split('?')[0] ?? '/');
     try {
-      const rawPath = decodeURIComponent(req.url?.split('?')[0] ?? '/');
-      const relPath = rawPath === '/' ? '/apps/eventos.html' : rawPath;
-      const mapped = alias[relPath] ?? relPath.replace(/^\//, '');
-      const filePath = path.join(rootDir, mapped);
-      if (!filePath.startsWith(rootDir)) {
-        res.writeHead(403).end('Forbidden');
+      const relPath = rawPath === '/' ? 'apps/eventos.html' : rawPath.replace(/^\/+/, '');
+      const normalized = path.normalize(relPath);
+      const filePath = path.join(rootDir, normalized);
+      const relative = path.relative(rootDir, filePath);
+      if (relative.startsWith('..') || path.isAbsolute(relative)) {
+        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Forbidden');
         return;
       }
       const data = await readFile(filePath);
@@ -79,44 +70,6 @@ test.describe('Eventos — fluxo visual', () => {
   });
 
   test('captura estados críticos e valida interações', async ({ page }, testInfo: TestInfo) => {
-    const moduleMap: Record<string, string> = {
-      '/shared/marcoBus.js': 'tools/shared/marcoBus.js',
-      '/shared/projectStore.js': 'tools/shared/projectStore.js',
-      '/shared/acEventsCore.v2.mjs': 'tools/unique/eventos.mjs',
-      '/shared/acTasks.v1.mjs': 'tools/unique/tarefas.mjs',
-      '/shared/acConvidados.v1.mjs': 'tools/unique/convites.mjs',
-      '/tools/gestao-de-fornecedores/fornecedores.minapp.js': 'tools/unique/fornecedores.mjs',
-      '/unique/sync.minapp.js': 'tools/shared/sync.minapp.js',
-    };
-    const interceptModule = async (url: string) => {
-      const relMatch = url.match(/Projeto-marco(?:@main|\/main)(\/.*)/);
-      if (!relMatch) return null;
-      const rel = relMatch[1];
-      const local = moduleMap[rel];
-      if (!local) return null;
-      const filePath = path.join(process.cwd(), local);
-      let body: string | Buffer;
-      if (rel === '/shared/projectStore.js') {
-        const source = await readFile(filePath, 'utf-8');
-        body = `${source}\nif (typeof window !== 'undefined') { window.sharedStore = { init, listProjects, createProject, getProject, updateProject, deleteProject, wipeAll, backupAll, restoreBackup, closeDB, ping }; }`;
-      } else {
-        body = await readFile(filePath);
-      }
-      const ext = path.extname(filePath).toLowerCase();
-      const contentType = contentTypes[ext] ?? 'text/javascript; charset=utf-8';
-      return { body, contentType } as const;
-    };
-    const routeHandler = async (route: Route) => {
-      const payload = await interceptModule(route.request().url());
-      if (!payload) {
-        await route.fallback();
-        return;
-      }
-      await route.fulfill(payload);
-    };
-    await page.route('**/Projeto-marco@main/**', routeHandler);
-    await page.route('**/Projeto-marco/main/**', routeHandler);
-
     page.on('console', (msg) => {
       console.log(`[console] ${msg.type()}: ${msg.text()}`);
     });
