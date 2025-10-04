@@ -82,22 +82,14 @@
       ].filter(Boolean);
 
       const buildUrl = (base, rel) => {
-        if (!base) return rel;
+        if (!base || base === "null") return rel;
         const cleanRel = rel.startsWith("/") ? rel.slice(1) : rel;
         const normalized = base.endsWith("/") ? base : `${base}/`;
         return `${normalized}${cleanRel}`;
       };
 
-      const resolveLocalApp = () => {
-        try {
-          return new URL("app.html", window.location.href).href;
-        } catch {
-          return "app.html";
-        }
-      };
-
       const APP_SOURCES = [
-        resolveLocalApp(),
+        buildUrl(window.location.origin, APP_REPO_PATH),
         ...CDN_BASES.map((base) => buildUrl(base, APP_REPO_PATH))
       ].reduce((list, src) => {
         if (src && !list.includes(src)) list.push(src);
