@@ -1,38 +1,37 @@
-# sv
+# Web — App Host
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Interface Svelte que orquestra as verticais de gestão de eventos dentro do AppBase.
 
-## Creating a project
+## Setup rápido
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```sh
+```bash
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+O host fica disponível em `http://localhost:5173/` (ou `4173` durante os testes). Utilize a query `?app=<id>` para abrir uma vertical específica.
 
-To create a production version of your app:
+## Como registrar uma nova vertical
 
-```sh
-npm run build
-```
+1. **Manifesto**: adicione a entrada em [`src/lib/appHost/manifest.config.json`](src/lib/appHost/manifest.config.json).
+2. **Tipos**: inclua o novo identificador na união `AppId` em [`src/lib/appHost/types.ts`](src/lib/appHost/types.ts).
+3. **Implementação**:
+   - Verticais locais podem viver em `src/lib/appHost/verticals/`. Use `placeholder.svelte` como base quando ainda não houver funcionalidade.
+   - Se o loader apontar para um pacote (`@marco/*`), garanta que o workspace correspondente exporte um componente Svelte padrão.
+4. **Design-system**:
+   - Labels devem seguir Title Case e ícones aprovados pelo time de UI (normalmente emojis até a biblioteca definitiva).
+   - Respeite o grid fornecido pelo `AppBaseLayout`; evite redefinir tipografia/cores fora dos tokens globais.
+   - Caso a vertical exija loading próprio, mantenha a mensagem principal no componente e deixe o host controlar o skeleton padrão.
+5. **Rotas**: confirme que `/?app=<id>` redireciona corretamente e que a navegação lateral mantém o estado ativo.
 
-You can preview the production build with `npm run preview`.
+## Testes
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- `npm run test:unit` — cobre utilidades do host (merge de manifesto, fallback de navegação e tratamento de loaders).
+- `npm run test:visual` — executa [`tests/visual/app-base.spec.ts`](../../tests/visual/app-base.spec.ts) alternando entre verticais e rodando o fluxo completo da vertical de eventos.
+
+## Empacotamento
+
+`npm run package` gera os artefatos no diretório `artifacts/`:
+
+- `web.tar.gz` com o build completo.
+- `web-<id>.tar.gz` para cada vertical, contendo um `manifest/active.json` com os metadados utilizados pelo host.
