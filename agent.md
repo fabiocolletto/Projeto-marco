@@ -16,5 +16,6 @@ Este documento fornece um rápido resumo para quem automatiza tarefas neste repo
 2. Executar `projectStore.ping()` e `projectStore.backupAll()`, salvando logs que comprovem sucesso antes da entrega.
 3. Confirmar que o processo de bootstrap cria o documento local esperado e anexar a evidência correspondente.
 4. Atualizar o diário de QA com data, responsável e links das evidências coletadas.
+1. Antes de finalizar qualquer alteração que afete a interface, execute `npm run test:visual` para garantir que os cenários visuais continuam funcionando.
 
 Seguir estas orientações ajuda a manter o código consistente e facilita o trabalho colaborativo entre agentes e desenvolvedores humanos.
