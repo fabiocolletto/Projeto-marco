@@ -53,6 +53,7 @@ const css = `
 @media (max-width:560px){ .ac-kpis{grid-template-columns:1fr} .ac-event-select select{min-width:180px;max-width:55vw} }
 `;
 
+// TODO: Reintroduzir item de ajuda no menu quando houver URL/arquivo de suporte disponível.
 const html = `
   <div class="ac-top">
     <div class="ac-wrap">
@@ -74,7 +75,6 @@ const html = `
               <div class="ac-dd__item" data-action="duplicar">Duplicar evento</div>
               <div class="ac-dd__item" data-action="deletar">Excluir evento</div>
               <div class="ac-dd__item" data-action="imprimir">Imprimir</div>
-              <div class="ac-dd__item" data-action="ajuda">Ajuda</div>
             </div>
           </div>
         </div>
@@ -279,7 +279,6 @@ export async function render(rootEl){
       if(act==="duplicar") duplicateActive().catch(console.error);
       if(act==="deletar")  deleteActive().catch(console.error);
       if(act==="imprimir") window.print();
-      if(act==="ajuda") setStatus("Abrindo ajuda…");
       toggleMenu(false);
     }
     const b = e.target.closest("[data-load]");
