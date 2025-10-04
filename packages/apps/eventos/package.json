@@ -1,0 +1,32 @@
+{
+  "name": "@marco/apps-eventos",
+  "version": "0.1.0",
+  "type": "module",
+  "svelte": "./src/EventosApp.svelte",
+  "exports": {
+    ".": {
+      "svelte": "./src/EventosApp.svelte",
+      "import": "./src/index.ts",
+      "require": "./src/index.ts"
+    },
+    "./controller": "./src/controller.ts"
+  },
+  "scripts": {
+    "build": "echo 'Nenhum build dedicado para @marco/apps-eventos'",
+    "lint": "eslint src --ext .ts,.svelte",
+    "lint:fix": "npm run lint -- --fix",
+    "format": "marco-format check src/**/*.{ts,svelte}",
+    "format:fix": "marco-format write src/**/*.{ts,svelte}",
+    "test": "npm run test:unit",
+    "test:unit": "node ../../../tools/scripts/run-tests.mjs unit --skip --scope=@marco/apps-eventos",
+    "test:visual": "node ../../../tools/scripts/run-tests.mjs visual --skip"
+  },
+  "dependencies": {
+    "@marco/domain-eventos": "0.1.0",
+    "@marco/features-convites": "0.1.0",
+    "@marco/features-fornecedores": "0.1.0",
+    "@marco/features-mensagens": "0.1.0",
+    "@marco/features-tarefas": "0.1.0",
+    "@marco/platform": "0.1.0"
+  }
+}

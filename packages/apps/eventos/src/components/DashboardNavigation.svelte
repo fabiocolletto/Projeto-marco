@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { activePanel, openPanel, panelDefinitions } from '$lib/stores/ui';
-  import type { PanelId } from '$lib/stores/ui';
+  import { activePanel, openPanel, panelDefinitions } from '../stores/ui';
+  import type { PanelId } from '../stores/ui';
 
   const selectPanel = (panel: PanelId) => () => openPanel(panel);
 </script>

@@ -1,12 +1,35 @@
 <script lang="ts">
-  import { activePanel, openPanel } from '$lib/stores/ui';
+  import type { PanelId } from '../stores/ui';
+
+  export let activePanel: PanelId = 'overview';
+  export let openPanel: (panel: PanelId) => void;
+  export let getValue: (path: string) => string = () => '';
+  export let setValue: (path: string, value: string) => void = () => {};
+  export let dateTimeValue = '';
+  export let setDateTime: (value: string) => void = () => {};
+  export let handleCepInput: (value: string) => string = (value) => value;
+  export let handleCepBlur: (prefix: string, value: string) => Promise<void> | void = () => {};
+
+  const cepInputHandler = (path: string) => (event: Event) => {
+    const target = event.currentTarget as HTMLInputElement | null;
+    if (!target) return;
+    const masked = handleCepInput(target.value ?? '');
+    target.value = masked;
+    setValue(path, masked);
+  };
+
+  const cepBlurHandler = (path: string) => async (event: Event) => {
+    const target = event.currentTarget as HTMLInputElement | null;
+    if (!target) return;
+    await handleCepBlur(path.replace(/\.cep$/, ''), target.value ?? '');
+  };
 </script>
 
 <section
   class="card space-y-6"
   id="panel-evento"
   data-panel="evento"
-  hidden={$activePanel !== 'evento'}
+  hidden={activePanel !== 'evento'}
 >
   <div class="flex items-start justify-between">
     <div>
@@ -15,7 +38,8 @@
     </div>
     <button
       class="rounded-lg border border-transparent bg-surface-muted px-3 py-1 text-xs font-semibold text-ink transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
-      on:click={() => openPanel('overview')}
+      on:click={() => openPanel?.('overview')}
+      type="button"
     >
       Voltar
     </button>
@@ -29,6 +53,8 @@
         data-bind="evento.nome"
         type="text"
         class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={getValue('evento.nome')}
+        on:input={(event) => setValue('evento.nome', (event.currentTarget as HTMLInputElement)?.value ?? '')}
       />
     </label>
     <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-tipo">
@@ -37,6 +63,8 @@
         id="evento-tipo"
         data-bind="evento.tipo"
         class="form-select rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={getValue('evento.tipo')}
+        on:change={(event) => setValue('evento.tipo', (event.currentTarget as HTMLSelectElement)?.value ?? '')}
       >
         <option value=""></option>
         <option>Casamento</option>
@@ -60,6 +88,8 @@
         id="ev-datetime"
         type="datetime-local"
         class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={dateTimeValue}
+        on:input={(event) => setDateTime((event.currentTarget as HTMLInputElement)?.value ?? '')}
       />
     </label>
     <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-local">
@@ -69,6 +99,8 @@
         data-bind="evento.local"
         type="text"
         class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={getValue('evento.local')}
+        on:input={(event) => setValue('evento.local', (event.currentTarget as HTMLInputElement)?.value ?? '')}
       />
     </label>
   </div>
@@ -84,8 +116,10 @@
           type="text"
           inputmode="numeric"
           maxlength="9"
-          data-cep="evento.endereco"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.endereco.cep')}
+          on:input={cepInputHandler('evento.endereco.cep')}
+          on:blur={cepBlurHandler('evento.endereco.cep')}
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-logradouro">
@@ -95,6 +129,8 @@
           data-bind="evento.endereco.logradouro"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.endereco.logradouro')}
+          on:input={(event) => setValue('evento.endereco.logradouro', (event.currentTarget as HTMLInputElement)?.value ?? '')}
         />
       </label>
     </div>
@@ -107,6 +143,8 @@
           data-bind="evento.endereco.numero"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.endereco.numero')}
+          on:input={(event) => setValue('evento.endereco.numero', (event.currentTarget as HTMLInputElement)?.value ?? '')}
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-bairro">
@@ -116,6 +154,8 @@
           data-bind="evento.endereco.bairro"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.endereco.bairro')}
+          on:input={(event) => setValue('evento.endereco.bairro', (event.currentTarget as HTMLInputElement)?.value ?? '')}
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-cidade">
@@ -125,6 +165,8 @@
           data-bind="evento.endereco.cidade"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.endereco.cidade')}
+          on:input={(event) => setValue('evento.endereco.cidade', (event.currentTarget as HTMLInputElement)?.value ?? '')}
         />
       </label>
     </div>
@@ -138,6 +180,8 @@
           type="text"
           maxlength="2"
           class="form-input rounded-xl border-slate-300 uppercase focus:border-brand focus:ring-brand"
+          value={getValue('evento.endereco.uf')}
+          on:input={(event) => setValue('evento.endereco.uf', (event.currentTarget as HTMLInputElement)?.value ?? '')}
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="evento-endereco-complemento">
@@ -147,6 +191,8 @@
           data-bind="evento.endereco.complemento"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.endereco.complemento')}
+          on:input={(event) => setValue('evento.endereco.complemento', (event.currentTarget as HTMLInputElement)?.value ?? '')}
         />
       </label>
     </div>
@@ -157,7 +203,7 @@
   class="card space-y-6"
   id="panel-anfitriao"
   data-panel="anfitriao"
-  hidden={$activePanel !== 'anfitriao'}
+  hidden={activePanel !== 'anfitriao'}
 >
   <div class="flex items-start justify-between">
     <div>
@@ -166,7 +212,8 @@
     </div>
     <button
       class="rounded-lg border border-transparent bg-surface-muted px-3 py-1 text-xs font-semibold text-ink transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
-      on:click={() => openPanel('overview')}
+      on:click={() => openPanel?.('overview')}
+      type="button"
     >
       Voltar
     </button>
@@ -180,6 +227,8 @@
         data-bind="evento.anfitriao.nome"
         type="text"
         class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={getValue('evento.anfitriao.nome')}
+        on:input={(event) => setValue('evento.anfitriao.nome', (event.currentTarget as HTMLInputElement)?.value ?? '')}
       />
     </label>
     <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="anfitriao-telefone">
@@ -189,6 +238,8 @@
         data-bind="evento.anfitriao.telefone"
         type="text"
         class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={getValue('evento.anfitriao.telefone')}
+        on:input={(event) => setValue('evento.anfitriao.telefone', (event.currentTarget as HTMLInputElement)?.value ?? '')}
       />
     </label>
   </div>
@@ -200,6 +251,8 @@
       data-bind="evento.anfitriao.redeSocial"
       type="text"
       class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      value={getValue('evento.anfitriao.redeSocial')}
+      on:input={(event) => setValue('evento.anfitriao.redeSocial', (event.currentTarget as HTMLInputElement)?.value ?? '')}
     />
   </label>
 
@@ -214,8 +267,10 @@
           type="text"
           inputmode="numeric"
           maxlength="9"
-          data-cep="evento.anfitriao.endCorrespondencia"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endCorrespondencia.cep')}
+          on:input={cepInputHandler('evento.anfitriao.endCorrespondencia.cep')}
+          on:blur={cepBlurHandler('evento.anfitriao.endCorrespondencia.cep')}
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-logradouro">
@@ -225,6 +280,10 @@
           data-bind="evento.anfitriao.endCorrespondencia.logradouro"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endCorrespondencia.logradouro')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endCorrespondencia.logradouro', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
     </div>
@@ -237,6 +296,10 @@
           data-bind="evento.anfitriao.endCorrespondencia.numero"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endCorrespondencia.numero')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endCorrespondencia.numero', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-bairro">
@@ -246,6 +309,10 @@
           data-bind="evento.anfitriao.endCorrespondencia.bairro"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endCorrespondencia.bairro')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endCorrespondencia.bairro', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-cidade">
@@ -255,6 +322,10 @@
           data-bind="evento.anfitriao.endCorrespondencia.cidade"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endCorrespondencia.cidade')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endCorrespondencia.cidade', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
     </div>
@@ -268,6 +339,10 @@
           type="text"
           maxlength="2"
           class="form-input rounded-xl border-slate-300 uppercase focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endCorrespondencia.uf')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endCorrespondencia.uf', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="correspondencia-complemento">
@@ -277,6 +352,10 @@
           data-bind="evento.anfitriao.endCorrespondencia.complemento"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endCorrespondencia.complemento')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endCorrespondencia.complemento', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
     </div>
@@ -293,8 +372,10 @@
           type="text"
           inputmode="numeric"
           maxlength="9"
-          data-cep="evento.anfitriao.endEntrega"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endEntrega.cep')}
+          on:input={cepInputHandler('evento.anfitriao.endEntrega.cep')}
+          on:blur={cepBlurHandler('evento.anfitriao.endEntrega.cep')}
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-logradouro">
@@ -304,6 +385,10 @@
           data-bind="evento.anfitriao.endEntrega.logradouro"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endEntrega.logradouro')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endEntrega.logradouro', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
     </div>
@@ -316,6 +401,10 @@
           data-bind="evento.anfitriao.endEntrega.numero"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endEntrega.numero')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endEntrega.numero', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-bairro">
@@ -325,6 +414,10 @@
           data-bind="evento.anfitriao.endEntrega.bairro"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endEntrega.bairro')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endEntrega.bairro', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-cidade">
@@ -334,6 +427,10 @@
           data-bind="evento.anfitriao.endEntrega.cidade"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endEntrega.cidade')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endEntrega.cidade', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
     </div>
@@ -347,6 +444,10 @@
           type="text"
           maxlength="2"
           class="form-input rounded-xl border-slate-300 uppercase focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endEntrega.uf')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endEntrega.uf', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
       <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="entrega-complemento">
@@ -356,6 +457,10 @@
           data-bind="evento.anfitriao.endEntrega.complemento"
           type="text"
           class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+          value={getValue('evento.anfitriao.endEntrega.complemento')}
+          on:input={(event) =>
+            setValue('evento.anfitriao.endEntrega.complemento', (event.currentTarget as HTMLInputElement)?.value ?? '')
+          }
         />
       </label>
     </div>
@@ -366,7 +471,7 @@
   class="card space-y-6"
   id="panel-cerimonial"
   data-panel="cerimonial"
-  hidden={$activePanel !== 'cerimonial'}
+  hidden={activePanel !== 'cerimonial'}
 >
   <div class="flex items-start justify-between">
     <div>
@@ -375,7 +480,8 @@
     </div>
     <button
       class="rounded-lg border border-transparent bg-surface-muted px-3 py-1 text-xs font-semibold text-ink transition hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
-      on:click={() => openPanel('overview')}
+      on:click={() => openPanel?.('overview')}
+      type="button"
     >
       Voltar
     </button>
@@ -389,6 +495,8 @@
         data-bind="cerimonialista.nomeCompleto"
         type="text"
         class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={getValue('cerimonialista.nomeCompleto')}
+        on:input={(event) => setValue('cerimonialista.nomeCompleto', (event.currentTarget as HTMLInputElement)?.value ?? '')}
       />
     </label>
     <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="cerimonial-telefone">
@@ -398,17 +506,21 @@
         data-bind="cerimonialista.telefone"
         type="text"
         class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+        value={getValue('cerimonialista.telefone')}
+        on:input={(event) => setValue('cerimonialista.telefone', (event.currentTarget as HTMLInputElement)?.value ?? '')}
       />
     </label>
   </div>
 
   <label class="flex flex-col gap-1 text-sm font-medium text-ink" for="cerimonial-rede">
-    Rede social
+    Rede social / contato
     <input
       id="cerimonial-rede"
       data-bind="cerimonialista.redeSocial"
       type="text"
       class="form-input rounded-xl border-slate-300 focus:border-brand focus:ring-brand"
+      value={getValue('cerimonialista.redeSocial')}
+      on:input={(event) => setValue('cerimonialista.redeSocial', (event.currentTarget as HTMLInputElement)?.value ?? '')}
     />
   </label>
 </section>
