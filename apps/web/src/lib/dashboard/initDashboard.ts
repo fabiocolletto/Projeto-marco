@@ -42,9 +42,6 @@ export async function initDashboard(): Promise<void> {
       const convidMod      = await loadShared('@marco/features-convites');
       const mensagensMod   = await loadShared('@marco/features-mensagens');
       if(!convidMod?.mountConvidadosMiniApp){ console.warn('[MiniApp Convidados] módulo não disponível em', '@marco/features-convites'); }
-      const syncMod  = await loadShared('@tools/shared/sync.minapp.js');
-      if(!syncMod?.mountSyncMiniApp){ console.warn('[MiniApp Sync] módulo não disponível em', '@tools/shared/sync.minapp.js'); }
-
       // ====================== Estado & helpers ======================
       const AUTO_SAVE_MS = 700;
       const state = { currentId:null, project:null, metas:[], dirty:false, saving:false, timer:null };
@@ -319,19 +316,10 @@ export async function initDashboard(): Promise<void> {
         }
       }
 
-      function mountSyncIfNeeded(){
-        const host = document.querySelector('#sync_host');
-        if(host && !host?.dataset?.mounted && syncMod?.mountSyncMiniApp){
-          syncMod.mountSyncMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
-          host.dataset.mounted = '1';
-          wireSyncHeaderMirror(); // espelha status do mini-app para a etiqueta do topo
-        } else if(host && !syncMod?.mountSyncMiniApp){
-          host.innerHTML = '<div class="muted">Módulo de Sincronização não encontrado. Verifique /unique/sync.minapp.js.</div>';
-        }
-      }
-
       // ===== Espelhar status do mini-app (#sync_host) para a etiqueta do topo
+      let syncMirrorWired = false;
       function wireSyncHeaderMirror(){
+        if(syncMirrorWired) return;
         const mirror = ()=>{
           const s = document.querySelector('#sync_host #sync_status');
           const d = document.querySelector('#sync_host #sync_detail');
@@ -340,13 +328,16 @@ export async function initDashboard(): Promise<void> {
           if(s && hs) hs.textContent = (s.textContent||'').trim() || '—';
           if(d && hd) hd.textContent = (d.textContent||'').trim() || '—';
         };
-        mirror();
         const hostEl = document.querySelector('#sync_host');
         if(!hostEl) return;
+        syncMirrorWired = true;
+        mirror();
         try{
           const mo = new MutationObserver(()=> mirror());
           mo.observe(hostEl, { childList:true, subtree:true, characterData:true });
-        }catch{}
+        }catch{
+          syncMirrorWired = false;
+        }
       }
 
       async function loadCurrent(id){
@@ -359,12 +350,12 @@ export async function initDashboard(): Promise<void> {
         }
         ac.model.ensureShape(state.project||{});
         fillForm(state.project||{}); setDirty(false); renderHeader(); renderIndicators();
-        mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+        mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); updateFornecedoresProject(); wireSyncHeaderMirror();
       }
       async function setCurrent(id){
         if(!id){
           state.currentId=null; state.project=null; await projectData.selectProject(null);
-          await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
+          await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); updateFornecedoresProject(); wireSyncHeaderMirror(); return;
         }
         await loadCurrent(id); safeLS.set('ac:lastId', id); renderSwitcher();
       }
