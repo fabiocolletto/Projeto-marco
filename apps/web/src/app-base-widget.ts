@@ -1,3 +1,4 @@
+import { mount } from 'svelte';
 import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
 import './app.css';
 
@@ -51,7 +52,7 @@ if (typeof window !== 'undefined') {
 }
 
 const appBaseWidget = typeof document !== 'undefined'
-  ? new AppBaseLayout({
+  ? mount(AppBaseLayout, {
       target: ensureRoot()
     })
   : undefined;

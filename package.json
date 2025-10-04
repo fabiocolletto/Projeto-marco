@@ -27,7 +27,8 @@
     "test:unit": "node ./tools/scripts/run-tests.mjs unit",
     "test:visual": "turbo run test:visual --filter=web",
     "test:visual:ci": "turbo run test:visual --filter=web -- --reporter=line,html",
-    "package": "turbo run package"
+    "package": "turbo run package",
+    "test:widget": "npm run build:widget && npx playwright test --config=playwright.widget.config.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
