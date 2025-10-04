@@ -24,6 +24,7 @@
   const manifestComputed = $derived(mergeManifest(defaultManifestList, manifest ?? manifestDefault));
   const manifestList = $derived(manifestComputed.list);
   const manifestMap = $derived(manifestComputed.map);
+  const activeEntry = $derived($activeId ? $manifestMap[$activeId] ?? null : null);
 
   const activeId = $state<AppId | null>(null);
   const component = $state<ComponentType | null>(null);
@@ -178,20 +179,29 @@
   </svelte:fragment>
 
   <svelte:fragment slot="nav">
+    <slot name="app-host_nav_before" activeId={$activeId} entries={$manifestList} />
     <ul class="app-host__nav">
       {#each $manifestList as entry (entry.id)}
         <li>
-          <button
-            type="button"
-            class:active={entry.id === $activeId}
-            onclick={() => handleSelect(entry.id)}
+          <slot
+            name="app-host_nav_entry"
+            {entry}
+            active={entry.id === $activeId}
+            select={() => handleSelect(entry.id)}
           >
-            <span class="icon" aria-hidden="true">{entry.icon}</span>
-            <span class="label">{entry.label}</span>
-          </button>
+            <button
+              type="button"
+              class:active={entry.id === $activeId}
+              onclick={() => handleSelect(entry.id)}
+            >
+              <span class="icon" aria-hidden="true">{entry.icon}</span>
+              <span class="label">{entry.label}</span>
+            </button>
+          </slot>
         </li>
       {/each}
     </ul>
+    <slot name="app-host_nav_after" activeId={$activeId} entries={$manifestList} />
   </svelte:fragment>
 
   <svelte:fragment slot="app">
@@ -200,25 +210,38 @@
         <MiniAppBase class="app-host__miniapp-base" />
         {#if $loading}
           <div class="app-host__stage app-host__stage--status">
-            <p class="app-host__status">Carregando {$activeId ? $manifestMap[$activeId]?.label : 'mini-app'}…</p>
+            <slot name="app-host_stage_status-loading" activeId={$activeId} activeEntry={$activeEntry}>
+              <p class="app-host__status">Carregando {$activeId ? $activeEntry?.label : 'mini-app'}…</p>
+            </slot>
           </div>
         {:else if $error}
           <div class="app-host__stage app-host__stage--status">
-            <div class="app-host__error" role="alert">
-              <strong>Erro ao carregar módulo.</strong>
-              <pre>{$error.message}</pre>
-            </div>
+            <slot name="app-host_stage_status-error" activeEntry={$activeEntry} error={$error}>
+              <div class="app-host__error" role="alert">
+                <strong>Erro ao carregar módulo.</strong>
+                <pre>{$error.message}</pre>
+              </div>
+            </slot>
           </div>
         {:else if $component}
           <div class="app-host__stage app-host__stage--component">
-            {@render $component?.($componentProps)}
+            <slot
+              name="app-host_stage_app-container"
+              component={$component}
+              props={$componentProps}
+              activeEntry={$activeEntry}
+            >
+              {@render $component?.($componentProps)}
+            </slot>
           </div>
         {:else}
           <div class="app-host__stage app-host__stage--placeholder">
-            <div class="app-host__stage-placeholder">
-              <h2>Tela inicial dos mini apps</h2>
-              <p>Escolha uma vertical na navegação lateral para começar.</p>
-            </div>
+            <slot name="app-host_stage_app-placeholder" activeEntry={$activeEntry}>
+              <div class="app-host__stage-placeholder">
+                <h2>Tela inicial dos mini apps</h2>
+                <p>Escolha uma vertical na navegação lateral para começar.</p>
+              </div>
+            </slot>
           </div>
         {/if}
       </div>
