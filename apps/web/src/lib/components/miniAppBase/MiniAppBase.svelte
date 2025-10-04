@@ -1,15 +1,17 @@
+<svelte:options runes={true} />
+
 <script lang="ts">
   import { userProfile } from '$lib/data/userProfile';
-  import type { UserProfileState } from '$lib/data/userProfile';
 
   let { class: className = '' } = $props();
 
+  const profile = userProfile;
+
   const formatValue = (value: string) => (value?.trim() ? value.trim() : '—');
 
-  $: state = $userProfile as UserProfileState;
-  $: statusLabel = state.signedIn ? 'Cadastro identificado' : 'Complete seu cadastro';
-  $: statusTone = state.signedIn ? 'chip chip--success' : 'chip chip--warning';
-  $: isProfileEmpty = Object.values(state.profile).every((value) => !String(value ?? '').trim());
+  const statusLabel = $derived($profile.signedIn ? 'Cadastro identificado' : 'Complete seu cadastro');
+  const statusTone = $derived($profile.signedIn ? 'chip chip--success' : 'chip chip--warning');
+  const isProfileEmpty = $derived(Object.values($profile.profile).every((value) => !String(value ?? '').trim()));
 
   function handleLogin() {
     userProfile.login();
@@ -31,14 +33,14 @@
   }
 </script>
 
-<section class={`miniapp-base card ${className}`.trim()} data-state={state.signedIn ? 'signed' : 'guest'}>
+<section class={`miniapp-base card ${className}`.trim()} data-state={$profile.signedIn ? 'signed' : 'guest'}>
   <header class="miniapp-base__header">
     <p class="miniapp-base__eyebrow">MiniApp base</p>
-    <span class={`miniapp-base__status ${statusTone}`.trim()}>{statusLabel}</span>
+    <span class={`miniapp-base__status ${$statusTone}`.trim()}>{$statusLabel}</span>
   </header>
   <h2 class="miniapp-base__title">Identifique-se para continuar</h2>
   <p class="miniapp-base__description">
-    {#if isProfileEmpty}
+    {#if $isProfileEmpty}
       Informe seus dados principais para liberar o acesso completo aos mini-apps.
     {:else}
       Revise seus dados antes de prosseguir ou atualize-os sempre que necessário.
@@ -47,29 +49,29 @@
   <dl class="miniapp-base__details">
     <div>
       <dt>Nome completo</dt>
-      <dd>{formatValue(state.profile.nomeCompleto)}</dd>
+      <dd>{formatValue($profile.profile.nomeCompleto)}</dd>
     </div>
     <div>
       <dt>Telefone</dt>
-      <dd>{formatValue(state.profile.telefone)}</dd>
+      <dd>{formatValue($profile.profile.telefone)}</dd>
     </div>
     <div>
       <dt>E-mail</dt>
-      <dd>{formatValue(state.profile.email)}</dd>
+      <dd>{formatValue($profile.profile.email)}</dd>
     </div>
     <div>
       <dt>CEP</dt>
-      <dd>{formatValue(state.profile.cep)}</dd>
+      <dd>{formatValue($profile.profile.cep)}</dd>
     </div>
   </dl>
   <div class="miniapp-base__actions">
-    <button type="button" class="miniapp-base__button miniapp-base__button--primary" on:click={handleLogin}>
-      {state.signedIn ? 'Continuar' : 'Fazer login'}
+    <button type="button" class="miniapp-base__button miniapp-base__button--primary" onclick={handleLogin}>
+      {$profile.signedIn ? 'Continuar' : 'Fazer login'}
     </button>
-    <button type="button" class="miniapp-base__button miniapp-base__button--ghost" on:click={handleEdit}>
+    <button type="button" class="miniapp-base__button miniapp-base__button--ghost" onclick={handleEdit}>
       Editar dados
     </button>
-    <button type="button" class="miniapp-base__reset" on:click={handleReset}>Limpar cadastro</button>
+    <button type="button" class="miniapp-base__reset" onclick={handleReset}>Limpar cadastro</button>
   </div>
 </section>
 

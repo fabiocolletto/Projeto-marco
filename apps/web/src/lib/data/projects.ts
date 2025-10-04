@@ -48,7 +48,9 @@ async function prepareStore(): Promise<ProjectStore> {
         lastError = error;
         try {
           await candidate.close();
-        } catch {}
+        } catch (closeError) {
+          console.warn('[projectData] Falha ao encerrar adapter após erro de inicialização', closeError);
+        }
       }
     }
     throw lastError || new Error('Falha ao inicializar store de projetos');

@@ -1,9 +1,5 @@
-import type {
-  AppId,
-  AppManifest,
-  AppManifestEntry,
-  AppManifestOverrides,
-} from './types';
+import type { ComponentType } from 'svelte';
+import type { AppId, AppManifest, AppManifestEntry, AppManifestOverrides } from './types';
 
 export interface MergeManifestResult {
   list: AppManifestEntry[];
@@ -24,4 +20,4 @@ export declare function resolveActiveId(
 export declare function loadVertical<T>(
   entry: AppManifestEntry,
   importer: (loader: string) => Promise<T>,
-): Promise<Function>;
+): Promise<ComponentType>;

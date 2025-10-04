@@ -1,17 +1,14 @@
+<svelte:options runes={true} />
+
 <script lang="ts">
-  import { createEventDispatcher, onMount, setContext } from 'svelte';
-  import type { ComponentType } from 'svelte';
+  import { createEventDispatcher, onMount, setContext, type ComponentType } from 'svelte';
   import { get } from 'svelte/store';
-import MiniAppBase from '$lib/components/miniAppBase/MiniAppBase.svelte';
-import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
+  import MiniAppBase from '$lib/components/miniAppBase/MiniAppBase.svelte';
+  import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   import { projectData } from '$lib/data/projects';
   import { bus } from '@marco/platform/bus';
-  import manifestDefault, {
-    manifestList as defaultManifestList,
-    type AppManifest,
-    type AppManifestEntry,
-    type AppId
-  } from './manifest';
+  import manifestDefault, { manifestList as defaultManifestList } from './manifest';
+  import type { AppManifestEntry, AppId } from './manifest';
   import { loadVertical, mergeManifest, resolveActiveId } from './logic.js';
 
   const PROJECT_DATA_CONTEXT = Symbol('appHost:projectData');
@@ -20,26 +17,22 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
 
   export { PROJECT_DATA_CONTEXT, BUS_CONTEXT, AC_CONTEXT };
 
-  export let manifest: Partial<AppManifest> = manifestDefault;
-  export let appId: AppId | null = null;
+  let { manifest = manifestDefault, appId = null } = $props();
 
   const dispatch = createEventDispatcher<{ select: { id: AppId } }>();
 
-  let manifestState = mergeManifest(defaultManifestList, manifest);
-  let manifestList: AppManifestEntry[] = manifestState.list;
-  let manifestMap = manifestState.map;
-  $: manifestState = mergeManifest(defaultManifestList, manifest);
-  $: manifestList = manifestState.list;
-  $: manifestMap = manifestState.map;
+  const manifestState = $derived(mergeManifest(defaultManifestList, manifest ?? manifestDefault));
+  const manifestList = $derived($manifestState.list);
+  const manifestMap = $derived($manifestState.map);
 
-  let activeId: AppId | null = null;
-  let component: ComponentType | null = null;
-  let componentProps: Record<string, unknown> = {};
-  let loading = false;
-  let error: Error | null = null;
+  const activeId = $state<AppId | null>(null);
+  const component = $state<ComponentType | null>(null);
+  const componentProps = $state<Record<string, unknown>>({});
+  const loading = $state(false);
+  const error = $state<Error | null>(null);
   const cache = new Map<AppId, ComponentType>();
-  let acModule: any = null;
-  let token = 0;
+  const acModule = $state<unknown>(null);
+  const token = $state(0);
 
   setContext(PROJECT_DATA_CONTEXT, projectData);
   setContext(BUS_CONTEXT, bus);
@@ -49,30 +42,37 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
     projectData.init().catch((err) => console.error('[AppHost] Falha ao inicializar dados do projeto', err));
   });
 
-  $: {
-    const incoming = resolveActiveId(appId, manifestMap, manifestList);
-    if (incoming !== activeId) {
-      activeId = incoming;
+  $effect(() => {
+    const incoming = resolveActiveId(appId ?? null, $manifestMap, $manifestList);
+    if (incoming !== $activeId) {
+      $activeId = incoming;
     }
-  }
+  });
 
-  $: if (!activeId) {
-    const first = manifestList[0];
-    activeId = first?.id ?? null;
-  }
+  $effect(() => {
+    if ($activeId) return;
+    const first = $manifestList[0];
+    if (first) {
+      $activeId = first.id;
+    }
+  });
 
-  $: if (activeId) {
-    void loadApp(activeId);
-  } else {
-    component = null;
-    error = null;
-  }
+  $effect(() => {
+    const id = $activeId;
+    if (id) {
+      void loadApp(id);
+    } else {
+      $component = null;
+      $componentProps = {};
+      $error = null;
+    }
+  });
 
-  async function ensureAc(): Promise<any> {
-    if (acModule) return acModule;
+  async function ensureAc(): Promise<unknown> {
+    if ($acModule) return $acModule;
     const mod = await import('@marco/domain-eventos');
-    acModule = mod?.default ?? mod;
-    return acModule;
+    $acModule = mod?.default ?? mod;
+    return $acModule;
   }
 
   function resolveProps(entry: AppManifestEntry): Record<string, unknown> {
@@ -97,62 +97,64 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
     }
 
     if (entry.requires.includes('ac')) {
-      props.ac = acModule;
+      props.ac = $acModule;
     }
 
     return props;
   }
 
   async function loadApp(id: AppId): Promise<void> {
-    const entry = manifestMap[id];
+    const entry = $manifestMap[id];
     if (!entry) {
-      component = null;
-      error = new Error(`Vertical desconhecida: ${id}`);
+      $component = null;
+      $componentProps = {};
+      $error = new Error(`Vertical desconhecida: ${id}`);
       return;
     }
 
-    const currentToken = ++token;
+    $token += 1;
+    const currentToken = $token;
 
     if (cache.has(id)) {
-      component = cache.get(id) ?? null;
-      componentProps = resolveProps(entry);
+      $component = cache.get(id) ?? null;
+      $componentProps = resolveProps(entry);
       return;
     }
 
-    loading = true;
-    error = null;
+    $loading = true;
+    $error = null;
 
     try {
       if (entry.requires.includes('projectData')) {
         await projectData.init();
-        if (currentToken !== token) return;
+        if (currentToken !== $token) return;
       }
 
-      if (entry.requires.includes('ac') && !acModule) {
+      if (entry.requires.includes('ac') && !$acModule) {
         await ensureAc();
-        if (currentToken !== token) return;
+        if (currentToken !== $token) return;
       }
 
       const candidate = await loadVertical(entry, (loader) => import(/* @vite-ignore */ loader));
-      if (currentToken !== token) return;
+      if (currentToken !== $token) return;
       cache.set(id, candidate as ComponentType);
-      component = candidate as ComponentType;
-      componentProps = resolveProps(entry);
+      $component = candidate as ComponentType;
+      $componentProps = resolveProps(entry);
     } catch (err) {
       const reason = err instanceof Error ? err : new Error(String(err));
       console.error('[AppHost] Falha ao carregar vertical', id, reason);
-      error = reason;
-      component = null;
+      $error = reason;
+      $component = null;
     } finally {
-      if (currentToken === token) {
-        loading = false;
+      if (currentToken === $token) {
+        $loading = false;
       }
     }
   }
 
   function handleSelect(id: AppId): void {
-    if (id === activeId) return;
-    activeId = id;
+    if (id === $activeId) return;
+    $activeId = id;
     dispatch('select', { id });
     void loadApp(id);
   }
@@ -162,24 +164,24 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
   <title>Gerenciar Eventos — Hub de Verticais</title>
 </svelte:head>
 
-<AppBaseLayout
-  class="app-host"
-  top={() => (
+<AppBaseLayout class="app-host">
+  <svelte:fragment slot="top">
     <div class="app-host__header">
       <div>
         <h1>Gestão de eventos</h1>
         <p>Selecione um mini-app para continuar.</p>
       </div>
     </div>
-  )}
-  nav={() => (
+  </svelte:fragment>
+
+  <svelte:fragment slot="nav">
     <ul class="app-host__nav">
-      {#each manifestList as entry (entry.id)}
+      {#each $manifestList as entry (entry.id)}
         <li>
           <button
             type="button"
-            class:active={entry.id === activeId}
-            on:click={() => handleSelect(entry.id)}
+            class:active={entry.id === $activeId}
+            onclick={() => handleSelect(entry.id)}
           >
             <span class="icon" aria-hidden="true">{entry.icon}</span>
             <span class="label">{entry.label}</span>
@@ -187,25 +189,26 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
         </li>
       {/each}
     </ul>
-  )}
-  app={() => (
+  </svelte:fragment>
+
+  <svelte:fragment slot="app">
     <div class="app-host__canvas">
       <div class="app-host__workspace">
         <MiniAppBase class="app-host__miniapp-base" />
-        {#if loading}
+        {#if $loading}
           <div class="app-host__stage app-host__stage--status">
-            <p class="app-host__status">Carregando {activeId ? manifestMap[activeId]?.label : 'mini-app'}…</p>
+            <p class="app-host__status">Carregando {$activeId ? $manifestMap[$activeId]?.label : 'mini-app'}…</p>
           </div>
-        {:else if error}
+        {:else if $error}
           <div class="app-host__stage app-host__stage--status">
             <div class="app-host__error" role="alert">
               <strong>Erro ao carregar módulo.</strong>
-              <pre>{error.message}</pre>
+              <pre>{$error.message}</pre>
             </div>
           </div>
-        {:else if component}
+        {:else if $component}
           <div class="app-host__stage app-host__stage--component">
-            <svelte:component this={component} {...componentProps} />
+            {@render $component?.($componentProps)}
           </div>
         {:else}
           <div class="app-host__stage app-host__stage--placeholder">
@@ -217,8 +220,8 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
         {/if}
       </div>
     </div>
-  )}
-/>
+  </svelte:fragment>
+</AppBaseLayout>
 
 <style>
   .app-host__header {
@@ -290,7 +293,7 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
     border: 1px solid rgba(15, 23, 42, 0.08);
     display: flex;
   }
-  .app-host__miniapp-base {
+  :global(.app-host__miniapp-base) {
     position: absolute;
     top: 2rem;
     right: 2rem;
@@ -360,7 +363,7 @@ import AppBaseLayout from '$lib/layout/AppBaseLayout.svelte';
       padding: 2.5rem 1.75rem 1.75rem;
       border-radius: 1.5rem;
     }
-    .app-host__miniapp-base {
+    :global(.app-host__miniapp-base) {
       position: static;
       width: 100%;
       margin-bottom: 1.5rem;
