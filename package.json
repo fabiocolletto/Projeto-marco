@@ -7,5 +7,12 @@
   },
   "devDependencies": {
     "vitest": "^1.6.0"
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "test:visual": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.1"
   }
 }
