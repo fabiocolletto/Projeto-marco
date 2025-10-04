@@ -303,11 +303,24 @@ export async function render(rootEl){
     await renderEvento();
   }
 
+  function cloneProject(data){
+    if(typeof globalThis?.structuredClone === "function"){
+      return globalThis.structuredClone(data);
+    }
+    if(!data || typeof data !== "object") return data;
+    const plain = JSON.parse(JSON.stringify(data));
+    if(Array.isArray(data.lista) && !Array.isArray(plain.lista)) plain.lista = [...data.lista];
+    if(Array.isArray(data.tipos) && !Array.isArray(plain.tipos)) plain.tipos = [...data.tipos];
+    if(data.modelos && typeof data.modelos === "object" && !plain.modelos) plain.modelos = { ...data.modelos };
+    if(data.vars && typeof data.vars === "object" && !plain.vars) plain.vars = { ...data.vars };
+    return plain;
+  }
+
   async function duplicateActive(){
     if(!ativo){ setStatus("Sem evento ativo"); return; }
     const full = (await store.getProject?.(ativo.id)) || ativo;
     // cria uma cópia rascunho
-    const clone = structuredClone(full);
+    const clone = cloneProject(full);
     delete clone.id; // força novo id
     clone.evento = clone.evento || {};
     clone.evento.nome = (clone.evento.nome || ativo.nome || "Evento") + " (cópia)";
