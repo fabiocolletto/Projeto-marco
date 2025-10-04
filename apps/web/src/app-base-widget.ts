@@ -13,6 +13,10 @@ export type ModuleManifest = {
 };
 
 declare global {
+  interface Window {
+    __APP_BASE_WIDGET_READY__?: boolean;
+  }
+
   interface WindowEventMap {
     'app-base:register-manifest': CustomEvent<ModuleManifest>;
     'app-base:request-module': CustomEvent<ModuleRequest>;
@@ -42,11 +46,20 @@ const ensureRoot = () => {
   return element;
 };
 
+if (typeof window !== 'undefined') {
+  window.__APP_BASE_WIDGET_READY__ = false;
+}
+
 const appBaseWidget = typeof document !== 'undefined'
   ? new AppBaseLayout({
       target: ensureRoot()
     })
   : undefined;
+
+if (typeof window !== 'undefined') {
+  window.__APP_BASE_WIDGET_READY__ = true;
+  window.dispatchEvent(new CustomEvent('app-base:ready'));
+}
 
 const handleManifestRegistration = (event: WindowEventMap['app-base:register-manifest']) => {
   const manifest = event.detail;

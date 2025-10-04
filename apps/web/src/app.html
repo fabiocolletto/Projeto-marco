@@ -1,12 +1,16 @@
-<!-- Template interno do SvelteKit: não incorporar diretamente em WordPress/Elementor. Somente o snippet hospedado (docs/embed/app-base-snippet.html) é suportado. -->
+<!--
+  Template interno do SvelteKit. Pode ser copiado para um widget HTML do Elementor.
+  Quando executado fora do bundle local (/bundle/app-host.js), o script de fallback
+  injeta automaticamente os artefatos publicados no CDN (widgets/app-base/latest/).
+-->
 <!doctype html>
 <html lang="pt-br">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     %sveltekit.head%
-    <link rel="stylesheet" href="/bundle/app-base.css" />
-    <script type="module" src="/bundle/app-host.js" defer></script>
+    <link rel="stylesheet" href="/bundle/app-base.css" data-app-base="local" />
+    <script type="module" src="/bundle/app-host.js" defer data-app-base="local"></script>
   </head>
   <body class="app-base-body" data-sveltekit-preload-data="hover">
     <div class="app-base-root">
@@ -93,5 +97,78 @@
         </div>
       </div>
     </div>
+    <script>
+      (() => {
+        const CDN_BASE = 'https://cdn.5horas.app/widgets/app-base/latest/';
+        let fallbackTriggered = false;
+
+        if (typeof window !== 'undefined' && window.__APP_BASE_WIDGET_READY__ === undefined) {
+          window.__APP_BASE_WIDGET_READY__ = false;
+        }
+
+        const ensureStylesheet = () => {
+          if (document.querySelector('link[data-app-base="cdn-style"]')) {
+            return;
+          }
+
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = `${CDN_BASE}app-base-widget.css`;
+          link.dataset.appBase = 'cdn-style';
+          document.head.appendChild(link);
+        };
+
+        const ensureScript = () => {
+          if (document.querySelector('script[data-app-base="cdn-script"]')) {
+            return;
+          }
+
+          const script = document.createElement('script');
+          script.type = 'module';
+          script.src = `${CDN_BASE}app-base-widget.js`;
+          script.dataset.appBase = 'cdn-script';
+          document.head.appendChild(script);
+        };
+
+        const triggerFallback = () => {
+          if (fallbackTriggered) {
+            return;
+          }
+
+          fallbackTriggered = true;
+          ensureStylesheet();
+          ensureScript();
+        };
+
+        const localScript = document.querySelector('script[data-app-base="local"]');
+        const localStylesheet = document.querySelector('link[data-app-base="local"]');
+
+        if (localScript) {
+          localScript.addEventListener('error', () => {
+            triggerFallback();
+          });
+        } else {
+          triggerFallback();
+        }
+
+        if (localStylesheet) {
+          localStylesheet.addEventListener('error', () => {
+            triggerFallback();
+          });
+        }
+
+        window.addEventListener('app-base:ready', () => {
+          window.__APP_BASE_WIDGET_READY__ = true;
+        });
+
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            if (!window.__APP_BASE_WIDGET_READY__) {
+              triggerFallback();
+            }
+          }, 1200);
+        });
+      })();
+    </script>
   </body>
 </html>
