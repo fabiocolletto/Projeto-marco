@@ -1,139 +1,69 @@
 // shared/listUtils.js
-// Base para a etapa Convidados:
-// - normalização de nomes
-// - limpeza de números/telefones (2+ dígitos) fora dos nomes
-// - estatísticas do textarea (AGORA só por LINHA)
-// - CSV simples (1 coluna "nome")
+// Utilitários para tratamento de nomes em listas de convidados.
+// Mantém compatibilidade com consumidores em ES Modules via import relativo.
 
-const SMALL_WORDS = new Set(['da','de','do','das','dos','e']);
-const PHONE_RE = /(?:\+?\d[\d\s().-]{6,}\d)/g; // telefones "soltos"
+const LOWERCASE_WORDS = new Set(["da", "de", "do", "das", "dos", "e"]);
+const WORD_JOINERS = new Set(["-", "'"]);
 
-// -------------------- Helpers gerais --------------------
-
-// Tokenização "geral" (mantida para outros usos)
-export function tokenize(text = '') {
-  return String(text)
-    .replace(/\r\n?/g, '\n')
-    .split(/\n|,|;|\t/g)                      // <— geral (mantida)
-    .map(s => s.trim())
-    .filter(Boolean);
+function toLowerSafe(segment = "") {
+  return segment.toLocaleLowerCase("pt-BR");
 }
 
-// Tokenização por LINHA (nova): para estatística do textarea
-function tokenizeLines(text = '') {
-  return String(text)
-    .replace(/\r\n?/g, '\n')
-    .split('\n')                               // <— apenas por linha
-    .map(s => s.trim())
-    .filter(Boolean);
-}
-
-export function normalizeName(s = '') {
-  const words = String(s)
-    .normalize('NFKC')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase()
-    .split(' ');
-  return words
-    .map((w, i) => (i > 0 && SMALL_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
-    .join(' ');
-}
-
-export function digits(s = '') { return String(s).replace(/\D/g, ''); }
-
-export function normalizePhone(s = '') {
-  let d = digits(s);
-  if (d.length > 11) d = d.slice(-11);        // remove +55 etc: mantém 11 finais
-  if (d.length < 10) return null;
-  return d.length === 10
-    ? `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`
-    : `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
-}
-
-// Remove telefones e sequências numéricas 2+ do texto de NOME
-export function stripNumbersFromName(s = '') {
-  let t = String(s);
-  t = t.replace(PHONE_RE, ' ');
-  t = t.replace(/\d{2,}/g, ' ');
-  t = t.replace(/[()\-._]+/g, ' ');
-  t = t.replace(/\s{2,}/g, ' ').trim();
-  return t;
-}
-
-export function uniqueCaseInsensitive(arr = []) {
-  const seen = new Set(); const out = [];
-  for (const s of arr) {
-    const k = String(s).toLocaleLowerCase();
-    if (seen.has(k)) continue;
-    seen.add(k); out.push(s);
+function capitalizeSegment(segment = "", force = false) {
+  if (!segment) return "";
+  const lower = toLowerSafe(segment);
+  if (!force && LOWERCASE_WORDS.has(lower)) {
+    return lower;
   }
-  return out;
+  return lower.replace(/^[\p{L}]/u, (char) => char.toLocaleUpperCase("pt-BR"));
 }
 
-// -------------------- Parser "nomes soltos" (estatística do textarea) --------------------
-// IMPORTANTE: agora conta por LINHA (não divide por vírgula/;).
-export function parsePlainList(text = '') {
-  const tokens = tokenizeLines(text);          // <— mudou de tokenize(...) para tokenizeLines(...)
-  const rawCount = tokens.length;
-
-  const items = [];
-  const duplicates = [];
-  const filtered = [];
-  const seen = new Set();
-
-  for (const t of tokens) {
-    const cleaned = stripNumbersFromName(t);
-    if (!cleaned || cleaned.replace(/\W/g, '').length < 2) {
-      filtered.push(t);
-      continue;
-    }
-    const name = normalizeName(cleaned);
-    const key  = name.toLocaleLowerCase();
-    if (seen.has(key)) { duplicates.push(name); continue; }
-    seen.add(key);
-    items.push(name);
-  }
-
-  return { items, duplicates, rawCount, filtered };
-}
-
-// -------------------- CSV simples (uma coluna "nome") --------------------
-
-export function toCSV(names = []) {
-  const esc = s => `"${String(s).replace(/"/g, '""')}"`;
-  return ['nome', ...names.map(esc)].join('\n');
-}
-
-export function fromCSV(csv = '') {
-  const lines = String(csv).replace(/\r\n?/g, '\n').split('\n').filter(l => l.trim().length);
-  if (!lines.length) return [];
-
-  const parseLine = (line) => {
-    const out = []; let cur = '', inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (inQ) {
-        if (ch === '"') { if (line[i+1] === '"') { cur += '"'; i++; } else { inQ = false; } }
-        else cur += ch;
-      } else {
-        if (ch === ',') { out.push(cur); cur = ''; }
-        else if (ch === '"') inQ = true;
-        else cur += ch;
+function titleCaseWord(word = "", isFirstWord = false) {
+  if (!word) return "";
+  const segments = word.split(/([-'])/u);
+  return segments
+    .map((segment, index) => {
+      if (WORD_JOINERS.has(segment)) {
+        return segment;
       }
-    }
-    out.push(cur);
-    return out.map(v => v.trim());
-  };
-
-  const header = parseLine(lines[0]).map(h => h.toLowerCase());
-  const idx = header.includes('nome') ? header.indexOf('nome') : 0;
-
-  const names = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseLine(lines[i]);
-    const cell = cols[idx] || '';
-    if (cell) names.push(cell);
-  }
-  return names;
+      const previous = segments[index - 1];
+      const force = (isFirstWord && index === 0) || WORD_JOINERS.has(previous);
+      return capitalizeSegment(segment, force);
+    })
+    .join("");
 }
+
+/**
+ * Remove sequências numéricas com pelo menos dois dígitos de um nome.
+ * Substitui os números por espaços e normaliza múltiplos espaços consecutivos.
+ * @param {string} value
+ * @returns {string}
+ */
+export function stripNumbersFromName(value = "") {
+  return String(value ?? "")
+    .replace(/\d{2,}/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Normaliza um nome próprio para "Title Case" preservando conectores comuns.
+ * - Mantém preposições em minúsculas quando não iniciam o nome.
+ * - Força maiúsculas após hífen ou apóstrofo (ex: "D'Ávila").
+ * @param {string} value
+ * @returns {string}
+ */
+export function normalizeName(value = "") {
+  const cleaned = stripNumbersFromName(value);
+  if (!cleaned) return "";
+
+  const words = cleaned.split(/\s+/u).filter(Boolean);
+  return words
+    .map((word, index) => titleCaseWord(word, index === 0))
+    .join(" ");
+}
+
+export default {
+  normalizeName,
+  stripNumbersFromName,
+};
