@@ -1,316 +1,119 @@
 /* ==========================================================================
-   5Horas UI – base compartilhada para widgets do app
-   Responsivo, leve e extensível via CSS vars
+   5Horas UI – utilitários neutros para responsividade e bordas
    ========================================================================== */
 
-/* -------------------- Tokens (tema) -------------------- */
-:root{
-  /* Cores */
-  --paper: #ffffff;
-  --bg: #f8fafc;
-  --ink: #0f172a;
-  --mut: #64748b;
-  --line: #e5e7eb;
-
-  --pri: #2563eb;        /* primário (azul) */
-  --pri-ink: #ffffff;
-  --pri-ring: rgba(37,99,235,.25);
-
-  --accent: #f97316;     /* acento (laranja) */
-  --danger: #ef4444;
-  --success: #16a34a;
-  --warning: #f59e0b;
-  --info: #0ea5e9;
-
-  /* Raios & sombra */
-  --radius: 12px;
-  --shadow: 0 10px 30px rgba(2,6,23,.08);
-
-  /* Tipografia (ajustada por breakpoint) */
-  --fs-sm: 12px;
-  --fs-md: 14px;
-  --fs-lg: 18px;
-
-  /* Espaços */
-  --space-1: 6px;
-  --space-2: 10px;
-  --space-3: 12px;
-  --space-4: 16px;
-  --space-5: 20px;
-
-  /* Larguras container */
-  --container: 1100px;
+:root {
+  --gdg-container: min(1100px, 100%);
+  --gdg-gutter: 16px;
+  --gdg-radius: 12px;
+  --gdg-line-color: #e5e7eb;
 }
 
-/* -------------------- Reset leve -------------------- */
-* { box-sizing: border-box; }
-html, body {
-  margin: 0;
-  color: var(--ink);
-  background: var(--bg);
-  font: 400 var(--fs-md)/1.55 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
+* {
+  box-sizing: border-box;
 }
-img, svg { max-width: 100%; height: auto; }
-a { color: var(--pri); text-decoration: none; }
-a:hover { text-decoration: underline; }
-:focus-visible { outline: 0; box-shadow: 0 0 0 3px var(--pri-ring); border-radius: 6px; }
 
-/* -------------------- Layout helpers -------------------- */
-.container { max-width: var(--container); margin: 0 auto; padding: 0 var(--space-4); }
-.hidden { display: none !important; }
-.visually-hidden { position:absolute !important; width:1px;height:1px;overflow:hidden;clip:rect(1px,1px,1px,1px);white-space:nowrap; }
+img,
+svg {
+  max-width: 100%;
+  height: auto;
+}
 
-/* -------------------- Grid 12 colunas -------------------- */
-.row { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--space-2); }
+.hidden {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
+}
+
+.container {
+  max-width: var(--gdg-container);
+  margin: 0 auto;
+  padding: 0 var(--gdg-gutter);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--gdg-gutter);
+}
+
 .col-12 { grid-column: span 12; }
 .col-8  { grid-column: span 8; }
 .col-6  { grid-column: span 6; }
 .col-4  { grid-column: span 4; }
 .col-3  { grid-column: span 3; }
 
-/* Breakpoints */
-@media (max-width: 1024px){
-  :root { --fs-md: 15px; }
+@media (max-width: 1024px) {
+  .lg-col-12 { grid-column: span 12; }
+  .lg-col-6  { grid-column: span 6; }
+  .lg-col-4  { grid-column: span 4; }
 }
-@media (max-width: 768px){
-  :root { --fs-md: 14px; }
+
+@media (max-width: 768px) {
   .md-col-12 { grid-column: span 12; }
   .md-col-6  { grid-column: span 6; }
   .md-col-4  { grid-column: span 4; }
 }
-@media (max-width: 640px){
-  :root { --fs-md: 14px; --fs-lg: 17px; }
-  .col-8, .col-6, .col-4, .col-3 { grid-column: span 12; } /* empilha no mobile */
+
+@media (max-width: 640px) {
+  .col-8,
+  .col-6,
+  .col-4,
+  .col-3 {
+    grid-column: span 12;
+  }
 }
 
-/* -------------------- Cartões & estruturas -------------------- */
-.card{
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: var(--space-3);
-  margin: var(--space-3) 0;
-  box-shadow: var(--shadow);
-}
-.card > h3, .card > h4 { margin: 4px 0 10px 0; }
-.actions { display: flex; gap: var(--space-2); justify-content: flex-end; flex-wrap: wrap; }
-.actions-sticky{
-  position: sticky; bottom: 0; background: var(--paper);
-  border: 1px solid var(--line); border-radius: var(--radius);
-  padding: var(--space-2); display:flex; gap:var(--space-2); justify-content:flex-end;
-  box-shadow: 0 -6px 14px rgba(2,6,23,.04);
+.card {
+  border: 1px solid var(--gdg-line-color);
+  border-radius: var(--gdg-radius);
+  padding: var(--gdg-gutter);
 }
 
-/* -------------------- Formularios -------------------- */
-label{ display:block; margin: var(--space-1) 0; font-weight:600; }
-input, select, textarea{
-  width: 100%;
-  padding: var(--space-2);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: #fff;
-  font-size: var(--fs-md);
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
-textarea{ min-height: 120px; resize: vertical; }
-input:focus, select:focus, textarea:focus{
-  border-color: var(--pri);
-  box-shadow: 0 0 0 3px var(--pri-ring);
-}
-input[disabled], select[disabled], textarea[disabled]{ background: #f1f5f9; color: var(--mut); }
-
-.help { font-size: var(--fs-sm); color: var(--mut); }
-.is-invalid{ border-color: var(--danger) !important; }
-.field-error{ color: var(--danger); font-size: var(--fs-sm); margin-top: 4px; }
-
-/* -------------------- Botões -------------------- */
-.btn{
-  appearance: none; border: 1px solid var(--pri);
-  background: var(--pri); color: var(--pri-ink);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius); font-weight: 700; cursor: pointer;
-  transition: filter .15s ease, transform .02s ease;
-}
-.btn:hover { filter: brightness(1.05); }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: .6; cursor: default; }
-.btn.block { width: 100%; }
-
-.btn.ghost{
-  background: #fff; color: var(--ink);
-  border-color: var(--line);
-}
-.btn.danger{
-  background: var(--danger);
-  border-color: var(--danger);
-  color: #fff;
-}
-.btn.icon{ display:inline-flex; align-items:center; gap:8px; }
-
-/* Mobile: ações podem virar bloco completo */
-@media (max-width: 480px){
-  .actions .btn { flex: 1 1 auto; }      /* botões se expandem igualmente */
-  .btn.block-sm { width: 100%; }
+.card > h2,
+.card > h3,
+.card > h4 {
+  margin-top: 0;
 }
 
-/* -------------------- Tipos e utilidades -------------------- */
-.mut { color: var(--mut); }
-.badge{
-  display:inline-flex; align-items:center; gap:6px;
-  padding: 4px 10px; border-radius: 999px; border:1px solid var(--line);
-  background: #fff; font-size: var(--fs-sm);
-}
-.pill{
-  display:inline-flex; gap:6px; align-items:center;
-  padding: 6px 10px; border-radius: 999px; border:1px solid var(--line);
-  background:#fff; font-size: var(--fs-sm);
-}
-.accent { color: var(--accent); }
-
-/* -------------------- Abas simples (se quiser fora do Elementor) -------------------- */
-.tabs{ display:flex; gap: var(--space-2); border-bottom: 1px solid var(--line); }
-.tab{
-  padding: var(--space-2) var(--space-3); border: 1px solid var(--line);
-  border-bottom: none; border-radius: var(--radius) var(--radius) 0 0;
-  background:#fff; color: var(--mut); cursor:pointer;
-}
-.tab[aria-selected="true"]{ color:#fff; background: var(--pri); border-color: var(--pri); }
-
-/* -------------------- Tabelas (listas, RSVP, etc.) -------------------- */
-.table{ width:100%; border-collapse: collapse; font-size: var(--fs-md); }
-.table th, .table td{ border:1px solid var(--line); padding: 8px 10px; text-align:left; }
-.table th{ background:#f8fafc; font-weight:700; }
-.table tr:hover td{ background:#fbfdff; }
-
-/* -------------------- Overlay / Dialog -------------------- */
-.overlay{
-  position: fixed; inset: 0; background: rgba(0,0,0,.45);
-  display:flex; align-items:center; justify-content:center; z-index: 9999;
-}
-.dialog{
-  background: #fff; border:1px solid var(--line); border-radius: var(--radius);
-  box-shadow: var(--shadow); padding: var(--space-4); width: min(520px, 90vw);
-}
-.list{ max-height: 280px; overflow: auto; margin: var(--space-2) 0; }
-.rowi{ display:flex; justify-content:space-between; align-items:center; gap:8px;
-  padding: var(--space-2); border:1px solid var(--line); border-radius: var(--radius);
-  margin: 6px 0; }
-.rowi strong{ display:block; max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-
-/* -------------------- Toast (feedback leve) -------------------- */
-.toast{
-  position: fixed; right: 14px; bottom: 14px; z-index: 99999;
-  background: #fff; color: var(--ink);
-  border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 10px 12px; box-shadow: var(--shadow);
-  display: none; min-width: 200px;
-}
-.toast.show{ display:block; animation: pop .18s ease-out; }
-.toast.success{ border-color: rgba(22,163,74,.35); }
-.toast.error{ border-color: rgba(239,68,68,.35); }
-.toast.info{ border-color: rgba(14,165,233,.35); }
-
-/* -------------------- Spinners / animações -------------------- */
-.spinner{
-  width: 18px; height: 18px; border-radius: 50%;
-  border: 2px solid #e2e8f0; border-top-color: var(--pri);
-  animation: spin .8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes pop { from { transform: scale(.98); opacity: .6; } to { transform: scale(1); opacity: 1; } }
-
-/* Respeita usuários com redução de movimento */
-@media (prefers-reduced-motion: reduce){
-  * { animation: none !important; transition: none !important; }
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gdg-gutter);
+  justify-content: flex-end;
 }
 
-/* -------------------- Impressão (oculta elementos desnecessários) -------------------- */
-@media print{
-  .actions, .actions-sticky, .overlay, .toast { display: none !important; }
-  .card { box-shadow: none; border-color: #bbb; }
+.actions-sticky {
+  position: sticky;
+  bottom: 0;
+  border: 1px solid var(--gdg-line-color);
+  border-radius: var(--gdg-radius);
+  padding: var(--gdg-gutter);
+  background: inherit;
 }
 
-/* -------------------- Espaçamentos utilitários (compacto) -------------------- */
-.mt-1{ margin-top: var(--space-1) } .mt-2{ margin-top: var(--space-2) } .mt-3{ margin-top: var(--space-3) }
-.mb-1{ margin-bottom: var(--space-1) } .mb-2{ margin-bottom: var(--space-2) } .mb-3{ margin-bottom: var(--space-3) }
-.p-2{ padding: var(--space-2) } .p-3{ padding: var(--space-3) } .p-4{ padding: var(--space-4) }
-
-/* ====== Refinos visuais (patch de teste) ====== */
-
-/* 1) Tokens mais suaves */
-:root{
-  --radius: 14px;              /* cantos mais arredondados */
-  --line: #e9eef5;             /* borda mais clara */
-  --shadow: 0 8px 24px rgba(2,6,23,.06); /* sombra discreta */
-}
-
-/* 2) Cards mais leves */
-.card{
-  border-color: var(--line);
-  box-shadow: var(--shadow);
-}
-
-/* 3) Títulos maiores (use <h2> nas seções novas) */
-.card > h2{                    /* quando você trocar para h2 */
-  font-size: clamp(18px, 2.2vw, 22px);
-  font-weight: 800;
-  letter-spacing: .2px;
-  margin: 4px 0 12px;
-}
-.card > h3{                    /* compat: títulos atuais continuam bons */
-  font-size: clamp(16px, 2vw, 20px);
-  font-weight: 700;
-  margin: 4px 0 10px;
-}
-
-/* 4) Inputs “soft rounded” */
-input, select, textarea{
-  border-radius: var(--radius);
-  border-color: var(--line);
-  background: #fff;
-  transition: border-color .15s ease, box-shadow .15s ease, background-color .15s;
-}
-input:focus, select:focus, textarea:focus{
-  border-color: var(--pri);
-  box-shadow: 0 0 0 4px var(--pri-ring);
-}
-
-/* 5) Placeholders menores e mais fracos */
-::placeholder{
-  color: var(--mut);
-  opacity: .75;
-  font-size: var(--fs-sm);
-}
-
-/* 6) Labels mais compactos, coerentes em linha vertical */
-label{
-  margin: 4px 0;              /* menos espaço */
-  font-weight: 600;
-}
-
-/* 7) Botões: visual sólido + versões “fantasma” bem discretas */
-.btn{ border-radius: var(--radius); }
-.btn.ghost{ border-color: var(--line); color: #0f172a; }
-.btn.danger{ filter: saturate(.95); }
-
-/* 8) Ações sticky com sombra de separação sutil */
-.actions-sticky{
-  box-shadow: 0 -6px 18px rgba(2,6,23,.05);
-}
-
-/* 9) Variante opcional “flat” (sem bordas nos campos) — aplique na seção inteira */
-.form--flat input,
-.form--flat select,
-.form--flat textarea{
-  border: none;
-  border-bottom: 1px solid var(--line);
-  border-radius: 0;
+.btn {
+  appearance: none;
+  border: 1px solid var(--gdg-line-color);
+  border-radius: var(--gdg-radius);
+  padding: 8px 16px;
   background: transparent;
+  cursor: pointer;
 }
-.form--flat input:focus,
-.form--flat select:focus,
-.form--flat textarea:focus{
-  border-bottom-color: var(--pri);
-  box-shadow: none;
+
+.btn.block {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .actions .btn {
+    flex: 1 1 auto;
+  }
 }

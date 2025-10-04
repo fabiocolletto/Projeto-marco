@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gestão de Convidados – Aplicativo</title>
+    <!--
+      Copie todo este arquivo para o widget HTML do Elementor.
+      Ajuste o atributo data-gdg-base do <script> abaixo para apontar para a pasta onde os arquivos .mjs e o CSS estão hospedados
+      (ex.: data-gdg-base="https://seudominio.com/wp-content/uploads/gdg/").
+      Quando aberto diretamente neste repositório, o valor "./" já referencia a mesma pasta do arquivo.
+    -->
+    <link
+      rel="stylesheet"
+      data-gdg-css
+      data-path="../../shared/ui.css"
+      href="../../shared/ui.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        font: 400 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+
+      .gdg-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 32px;
+        padding: 32px 0 64px;
+      }
+
+      .gdg-header-block,
+      .gdg-tabs-block {
+        position: relative;
+      }
+
+      .gdg-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .gdg-pane {
+        display: none;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .gdg-pane[aria-hidden="false"] {
+        display: flex;
+      }
+
+      .gdg-pane__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 20px;
+      }
+
+      .gdg-pane__card {
+        background: #ffffff;
+        border: 1px solid var(--gdg-line-color);
+        border-radius: var(--gdg-radius);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .gdg-pane__card h2 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .gdg-pane__placeholder {
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .gdg-badge-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+      }
+
+      .gdg-badge {
+        border: 1px dashed var(--gdg-line-color);
+        border-radius: calc(var(--gdg-radius) - 4px);
+        padding: 12px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .gdg-badge strong {
+        font-size: 28px;
+      }
+
+      .gdg-badge span {
+        font-size: 13px;
+        color: #475569;
+      }
+
+      .gdg-pane__list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .gdg-pane__list-item {
+        padding: 16px;
+        border: 1px solid var(--gdg-line-color);
+        border-radius: var(--gdg-radius);
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .gdg-pane__list-item strong {
+        font-size: 16px;
+      }
+
+      footer {
+        margin-top: 32px;
+        font-size: 12px;
+        color: #64748b;
+        text-align: center;
+      }
+
+      @media (max-width: 640px) {
+        .gdg-shell {
+          gap: 24px;
+          padding: 24px 0 48px;
+        }
+
+        .gdg-pane__card {
+          padding: 16px;
+        }
+
+        .gdg-pane__grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="gdg-shell container">
+      <div class="gdg-header-block" id="gdg-header"></div>
+      <div class="gdg-tabs-block" id="gdg-tabs"></div>
+
+      <div class="gdg-content">
+        <section class="gdg-pane" data-tab-pane="painel" aria-hidden="true">
+          <div class="gdg-pane__grid">
+            <article class="gdg-pane__card">
+              <h2>Visão geral</h2>
+              <div class="gdg-pane__placeholder">
+                <p>Selecione um evento para visualizar o resumo geral. Este espaço pode receber widgets adicionais, como gráficos ou indicadores personalizados.</p>
+                <p>Enquanto nenhuma peça adicional é montada, mantemos um layout neutro pronto para que você adicione componentes futuros.</p>
+              </div>
+              <div class="gdg-badge-grid">
+                <div class="gdg-badge"><strong id="gdg-pane-convites">0</strong><span>Convites planejados</span></div>
+                <div class="gdg-badge"><strong id="gdg-pane-pessoas">0</strong><span>Pessoas estimadas</span></div>
+                <div class="gdg-badge"><strong id="gdg-pane-msgs">0</strong><span>Mensagens agendadas</span></div>
+              </div>
+            </article>
+
+            <article class="gdg-pane__card">
+              <h2>Próximos passos</h2>
+              <div class="gdg-pane__placeholder">
+                <p>Use esta área para guiar a operação do evento: inclua atalhos, links de relatórios ou checklists específicos da sua rotina.</p>
+                <p>À medida que criarmos novos módulos (convidados, mensagens, relatórios), atualizaremos este painel automaticamente.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="gdg-pane" data-tab-pane="dados-evento" aria-hidden="true">
+          <div class="gdg-pane__card" style="padding: 0">
+            <div id="gdg-event-editor"></div>
+          </div>
+        </section>
+
+        <section class="gdg-pane" data-tab-pane="convidados" aria-hidden="true">
+          <div class="gdg-pane__card">
+            <h2>Convidados</h2>
+            <div class="gdg-pane__placeholder">
+              <p>Este bloco está preparado para receber o módulo de gestão de convidados. Assim que a peça estiver disponível, basta montá-la neste container.</p>
+            </div>
+            <div class="gdg-pane__list">
+              <div class="gdg-pane__list-item">
+                <strong>Importações e sincronização</strong>
+                <span>Planeje aqui os botões para importar planilhas ou sincronizar listas.</span>
+              </div>
+              <div class="gdg-pane__list-item">
+                <strong>Filtros e buscas</strong>
+                <span>Reserve espaço para filtros rápidos, pesquisa por nome e segmentações.</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="gdg-pane" data-tab-pane="mensagens" aria-hidden="true">
+          <div class="gdg-pane__card">
+            <h2>Mensagens</h2>
+            <div class="gdg-pane__placeholder">
+              <p>Configuração de disparos, agendamentos e templates poderá ser posicionada aqui. O layout mantém a mesma linguagem visual, facilitando a evolução do produto.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="gdg-pane" data-tab-pane="relatorios" aria-hidden="true">
+          <div class="gdg-pane__card">
+            <h2>Relatórios</h2>
+            <div class="gdg-pane__placeholder">
+              <p>Quando os relatórios estiverem definidos, basta montar os componentes correspondentes neste espaço.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer>
+        Gestão de Convidados – protótipo integrado das peças atuais.
+      </footer>
+    </div>
+
+    <script type="module" data-gdg-base="./">
+      const scriptEl = document.currentScript;
+      const baseAttr = scriptEl?.dataset?.gdgBase ?? scriptEl?.dataset?.base;
+
+      function ensureTrailingSlash(value) {
+        return value.endsWith("/") ? value : `${value}/`;
+      }
+
+      function resolveBase() {
+        try {
+          if (baseAttr) {
+            return ensureTrailingSlash(new URL(baseAttr, window.location.href).href);
+          }
+        } catch (err) {
+          console.warn("[GDG] Caminho base inválido em data-gdg-base", err);
+        }
+        const ref = scriptEl?.src || window.location.href;
+        if (ref) {
+          return ensureTrailingSlash(new URL("./", ref).href);
+        }
+        const cssLink = document.querySelector("link[data-gdg-css]");
+        if (cssLink?.ownerDocument?.location?.href) {
+          return ensureTrailingSlash(new URL("./", cssLink.ownerDocument.location.href).href);
+        }
+        return ensureTrailingSlash(window.location.origin + "/");
+      }
+
+      const BASE = resolveBase();
+      const toUrl = (path) => new URL(path, BASE).href;
+
+      const cssLink = document.querySelector("link[data-gdg-css]");
+      if (cssLink) {
+        const cssPath = cssLink.getAttribute("data-path") || cssLink.getAttribute("href") || "";
+        cssLink.href = toUrl(cssPath || "../../shared/ui.css");
+      }
+
+      const ready = new Promise((resolve) => {
+        if (document.readyState !== "loading") {
+          resolve();
+        } else {
+          document.addEventListener("DOMContentLoaded", resolve, { once: true });
+        }
+      });
+
+      await ready;
+
+      const [
+        { mount: mountHeader },
+        { mount: mountTabs },
+        { mount: mountEditor },
+        { subscribe }
+      ] = await Promise.all([
+        import(toUrl("app_header.mjs")),
+        import(toUrl("nav_tabs.mjs")),
+        import(toUrl("event_editor.mjs")),
+        import(toUrl("../shared/marcoBus.js"))
+      ]);
+
+      const panes = Array.from(document.querySelectorAll("[data-tab-pane]"));
+      const convitesEl = document.getElementById("gdg-pane-convites");
+      const pessoasEl = document.getElementById("gdg-pane-pessoas");
+      const msgsEl = document.getElementById("gdg-pane-msgs");
+
+      function updatePaneVisibility(activeId) {
+        panes.forEach((pane) => {
+          const isActive = pane.getAttribute("data-tab-pane") === activeId;
+          pane.setAttribute("aria-hidden", String(!isActive));
+        });
+      }
+
+      function getCounts(project) {
+        if (!project) {
+          return { convites: 0, pessoas: 0 };
+        }
+        const convitesArr = Array.isArray(project.convites) ? project.convites : null;
+        if (convitesArr) {
+          const convites = convitesArr.length;
+          const pessoas = convitesArr.reduce((total, invite) => {
+            if (typeof invite?.total === "number" && !Number.isNaN(invite.total)) {
+              return total + invite.total;
+            }
+            const acomp = Array.isArray(invite?.acompanhantes) ? invite.acompanhantes.length : 0;
+            return total + 1 + acomp;
+          }, 0);
+          return { convites, pessoas };
+        }
+        const lista = Array.isArray(project.lista) ? project.lista.length : 0;
+        return { convites: lista, pessoas: lista };
+      }
+
+      function applyMetrics(project) {
+        const { convites, pessoas } = getCounts(project);
+        const mensagens = Array.isArray(project?.mensagens) ? project.mensagens.length : 0;
+        if (convitesEl) convitesEl.textContent = String(convites);
+        if (pessoasEl) pessoasEl.textContent = String(pessoas);
+        if (msgsEl) msgsEl.textContent = String(mensagens);
+      }
+
+      let currentProjectId = null;
+
+      subscribe("marco:project-selected", ({ project }) => {
+        currentProjectId = project?.id ?? null;
+        applyMetrics(project);
+      });
+
+      subscribe("marco:project-updated", ({ id, project }) => {
+        if (!id) return;
+        if (currentProjectId && id !== currentProjectId) return;
+        currentProjectId = project?.id ?? currentProjectId;
+        applyMetrics(project);
+      });
+
+      window.abas = function (id) {
+        updatePaneVisibility(id);
+      };
+
+      mountHeader("#gdg-header");
+      mountTabs("#gdg-tabs", { initial: "painel" });
+      mountEditor("#gdg-event-editor");
+      updatePaneVisibility("painel");
+    </script>
+  </body>
+</html>
