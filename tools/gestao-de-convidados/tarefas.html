@@ -88,15 +88,26 @@
   // Módulos compartilhados
   const PATH_BUS   = "/shared/marcoBus.js";
   const PATH_STORE = "/shared/projectStore.js";
+  const LOAD_ERROR_MESSAGE = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
   const CANDIDATES = [
     "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
     "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
   ];
+  function renderLoadError(message){
+    const main = document.querySelector('main.ac');
+    if(main){
+      main.innerHTML = `<div class="container"><section class="card"><h2>Carregamento interrompido</h2><p>${message}</p></section></div>`;
+    }
+  }
   async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
   async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
 
   const store = await loadShared(PATH_STORE);
   const bus   = await loadShared(PATH_BUS);
+  if(!store || !bus){
+    renderLoadError(LOAD_ERROR_MESSAGE);
+    throw new Error(LOAD_ERROR_MESSAGE);
+  }
   await store?.init?.();
 
   // Estado
