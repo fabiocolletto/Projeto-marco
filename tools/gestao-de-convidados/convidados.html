@@ -5,58 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="../../shared/gestaoEventosApp.css" />
   <title>Assistente Cerimonial — Convidados</title>
+  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
   <style>
-    :root{color-scheme: light}
-    .ac{background:#fff;color:#111}
-    .ac .card{background:#fff;border:1px solid #ddd;border-radius:12px;padding:16px;margin-bottom:12px}
-    .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .twocol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:900px){.twocol{grid-template-columns:1fr}}
-    .grid-kpi{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-    @media(max-width:900px){.grid-kpi{grid-template-columns:1fr}}
-    .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:12px;color:#555}
-    .field input,.field select,.field textarea{width:100%;padding:8px 10px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:14px}
-    textarea{min-height:160px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
-    .pill{display:inline-block;border-radius:999px;padding:4px 10px;font-size:12px;border:1px solid #ddd}
-    .pill.ok{background:#f0fff4;border-color:#b6f2c7;color:#0a7a2e}
-    .pill.warn{background:#fff7ed;border-color:#ffd6ae;color:#9a4b00}
-    .pill.saving{background:#fffdea;border-color:#ffe9a6;color:#6a4b00}
-    .btn{border-radius:8px;border:1px solid #ccc;background:#0b65c2;color:#fff;padding:8px 12px;cursor:pointer}
-    .btn--ghost{background:#fff;color:#111}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .danger{color:#a40000}
-    .summary-line{font-size:14px;margin:4px 0}
-
-    /* Tabela */
-    .table-wrap{overflow:auto; max-height:60vh}
-    @media (max-height:700px){ .table-wrap{max-height:50vh} }
-    table{width:100%;border-collapse:separate;border-spacing:0;border-bottom:1px solid #ddd}
-    thead th{position:sticky;top:0;background:#fff;border-bottom:1px solid #eee;text-align:left;padding:8px;font-size:12px;color:#555;z-index:1}
-    tfoot td{position:sticky;bottom:0;background:#fff;border-top:1px solid #eee;padding:8px;font-weight:600}
-    tbody td{border-bottom:1px solid #f0f0f0;padding:8px;font-size:14px;vertical-align:top}
-    td.right{text-align:right}
-    .small{font-size:12px;color:#666}
-
-    /* Indicadores: subcards */
-    .kpi-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:900px){.kpi-cards{grid-template-columns:1fr}}
-    .mini-card{border:1px solid #eee;border-radius:10px;padding:12px}
-    .mini-card h3{margin:0 0 8px 0;font-size:14px;color:#333}
-    .mini-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-    .mini-grid strong{font-size:18px;display:block}
-    .mini-grid .small{color:#666}
-
-    /* Telefones */
     .warn-icon{color:#9a4b00;margin-left:6px;font-size:12px}
     .cell-phone.invalid{background:#fff7ed}
     .hint{font-size:11px;color:#9a4b00;margin-top:4px}
     .muted{font-size:11px;color:#777;margin-top:2px}
-
-    /* Coluna Ações */
-    .col-actions{width:48px}
-    .icon-btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid #ccc;background:#fff;color:#111;width:32px;height:32px;border-radius:8px;cursor:pointer}
-    .icon-btn:hover{background:#f7f7f7}
   </style>
 </head>
 <body>
@@ -120,7 +74,7 @@
     <!-- CARD 4: Lista -->
     <section class="card">
       <div class="card__header"><h2>Lista</h2></div>
-      <div class="table-wrap">
+      <div class="table-wrap table-wrap--scroll">
         <table>
           <thead>
             <tr>
@@ -172,12 +126,40 @@
     "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
   ];
   async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
-  async function loadShared(rel){ for(const base of CANDIDATES){ const mod = await tryImport(base+rel); if(mod) return mod; } return null; }
+  const buildUrl = (base, rel)=>{ if(!base) return rel; const cleanRel = rel.startsWith('/') ? rel.slice(1) : rel; const normalized = base.endsWith('/') ? base : base + '/'; return normalized + cleanRel; };
+  async function loadShared(rel){
+    try{
+      const mod = await import(rel);
+      if(mod) return mod;
+    }catch(err){
+      console.warn('[convidados] Falha ao importar local', rel, err);
+    }
+    for(const base of CANDIDATES){
+      const url = buildUrl(base, rel);
+      const mod = await tryImport(url);
+      if(mod) return mod;
+    }
+    return null;
+  }
+
+  function showLoadError(message){
+    const main = document.querySelector('main.ac');
+    if(main){
+      main.innerHTML = `<div class="container"><section class="card"><h2>Carregamento interrompido</h2><p>${message}</p></section></div>`;
+    }
+  }
 
   const store = await loadShared(PATH_STORE);
   const bus   = await loadShared(PATH_BUS);
   const inv   = await loadShared(PATH_INV);  // { parseInvites, normalizePhone }
-  await store?.init?.();
+
+  if(!store || !bus || !inv){
+    const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+    showLoadError(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  await store.init?.();
 
   // Estado e utilitários
   const AUTO_SAVE_MS = 700;
