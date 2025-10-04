@@ -1,3 +1,7 @@
+<script lang="ts">
+  import SyncPanel from './SyncPanel.svelte';
+</script>
+
 <section class="card" id="cardIndicadores">
   <h2>Indicadores do evento</h2>
   <div class="mini-grid">
@@ -72,7 +76,9 @@
   <details id="secSync">
     <summary>Sincronização</summary>
     <div class="details-wrap">
-      <div id="sync_host"></div>
+      <div id="sync_host">
+        <SyncPanel />
+      </div>
       <div class="close-hint">Pressione <strong>Esc</strong> ou clique no lápis novamente para fechar.</div>
     </div>
   </details>
