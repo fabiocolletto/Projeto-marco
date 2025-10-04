@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Assistente Cerimonial — Convidados</title>
+  <link rel="stylesheet" href="/shared/gestaoEventosApp.css">
+  <style>
+    .warn-icon{color:#9a4b00;margin-left:6px;font-size:12px}
+    .cell-phone.invalid{background:#fff7ed}
+    .hint{font-size:11px;color:#9a4b00;margin-top:4px}
+    .muted{font-size:11px;color:#777;margin-top:2px}
+  </style>
+</head>
+<body>
+<main class="ac">
+  <div class="container">
+    <h1>Convidados</h1>
+
+    <!-- CARD 1: Resumo do evento -->
+    <section class="card" id="g2_cardResumo">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div>
+          <h2 id="g2_evTitle">—</h2>
+          <div id="g2_resTipoData" class="small">—</div>
+        </div>
+      </div>
+      <div class="summary-line" id="g2_resEndereco">Endereço</div>
+      <div class="summary-line" id="g2_resAnfitriao">Anfitrião</div>
+      <div class="summary-line" id="g2_resCerimonial">Cerimonialista</div>
+    </section>
+
+    <!-- CARD 2: Indicadores -->
+    <section class="card">
+      <div class="card__header"><h2>Indicadores</h2></div>
+      <div class="kpi-cards">
+        <div class="mini-card">
+          <h3>Indicadores de Convidados</h3>
+          <div class="mini-grid">
+            <div><strong id="g2_kpiConfirmados">0</strong><div class="small">Confirmados</div></div>
+            <div><strong id="g2_kpiPendentes">0</strong><div class="small">Pendentes</div></div>
+            <div><strong id="g2_kpiNaoVai">0</strong><div class="small">Não vão</div></div>
+            <div><strong id="g2_kpiPessoasConfirmadas">0</strong><div class="small">Pessoas confirmadas</div></div>
+            <div><strong id="g2_kpiTxConfirmacao">0%</strong><div class="small">Taxa de confirmação</div></div>
+          </div>
+        </div>
+        <div class="mini-card">
+          <h3>Indicadores de Convites</h3>
+          <div class="mini-grid">
+            <div><strong id="g2_kpiConvites">0</strong><div class="small">Convites</div></div>
+            <div><strong id="g2_kpiPessoas">0</strong><div class="small">Pessoas</div></div>
+            <div><strong id="g2_kpiTelValidos">0</strong><div class="small">Telefones válidos</div></div>
+            <div><strong id="g2_kpiSemTelefone">0</strong><div class="small">Sem telefone</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CARD 3: Criar lista -->
+    <section class="card">
+      <div class="card__header"><h2>Criar / atualizar lista</h2></div>
+      <div class="field">
+        <label for="g2_raw"><h3>Adicione convites em massa — cole nomes e telefones (um convite por linha). Padronizamos e mesclamos automaticamente.</h3></label>
+        <textarea id="g2_raw" placeholder=""></textarea>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px">
+        <button id="g2_btnGerar" class="btn" type="button">Gerar/mesclar</button>
+        <button id="g2_btnSubstituir" class="btn btn--ghost" type="button">Substituir lista</button>
+      </div>
+      <div class="small" id="g2_lastGen">—</div>
+    </section>
+
+    <!-- CARD 4: Lista -->
+    <section class="card">
+      <div class="card__header"><h2>Lista</h2></div>
+      <div class="table-wrap table-wrap--scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th><h3>Convidados</h3></th>
+              <th><h3>Total</h3></th>
+              <th><h3>Telefone</h3></th>
+              <th><h3>Mesa/Grupo</h3></th>
+              <th><h3>Confirmação</h3></th>
+              <th class="right col-actions"><h3>Ações</h3></th>
+            </tr>
+          </thead>
+          <tbody id="g2_listBody"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="7" id="g2_listSummary" class="small" style="text-align:right">—</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="small" id="g2_listMeta" style="display:none"></div>
+      <div id="g2_tests" style="display:none"></div>
+    </section>
+
+    <!-- CARD 5: Estado -->
+    <section class="card">
+      <div class="card__header"><h2>Estado</h2></div>
+      <div class="row" style="justify-content:space-between">
+        <div>
+          <div class="small">Projeto: <span id="g2_estadoMetaId">—</span></div>
+          <div class="small">Atualizado em: <span id="g2_estadoMetaUpd">—</span></div>
+        </div>
+        <div class="row">
+          <span id="g2_pillLink" class="pill warn">Sem evento</span>
+          <span id="g2_pillSaving" class="pill ok">Pronto</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+  // Módulos compartilhados
+  const PATH_BUS   = "/shared/marcoBus.js";
+  const PATH_STORE = "/shared/projectStore.js";
+  const PATH_INV   = "/shared/inviteUtils.js"; // ferramenta de convites (fonte de verdade)
+  const CANDIDATES = [
+    "https://cdn.jsdelivr.net/gh/fabiocolletto/Projeto-marco@main",
+    "https://rawcdn.githack.com/fabiocolletto/Projeto-marco/main"
+  ];
+  async function tryImport(url){ try{ return await import(url); } catch(e1){ try{ return await import(url+(url.includes('?')?'&':'?')+'t='+Date.now()); } catch(e2){ return null; } } }
+  const buildUrl = (base, rel)=>{ if(!base) return rel; const cleanRel = rel.startsWith('/') ? rel.slice(1) : rel; const normalized = base.endsWith('/') ? base : base + '/'; return normalized + cleanRel; };
+  async function loadShared(rel){
+    try{
+      const mod = await import(rel);
+      if(mod) return mod;
+    }catch(err){
+      console.warn('[convidados] Falha ao importar local', rel, err);
+    }
+    for(const base of CANDIDATES){
+      const url = buildUrl(base, rel);
+      const mod = await tryImport(url);
+      if(mod) return mod;
+    }
+    return null;
+  }
+
+  function showLoadError(message){
+    const main = document.querySelector('main.ac');
+    if(main){
+      main.innerHTML = `<div class="container"><section class="card"><h2>Carregamento interrompido</h2><p>${message}</p></section></div>`;
+    }
+  }
+
+  const store = await loadShared(PATH_STORE);
+  const bus   = await loadShared(PATH_BUS);
+  const inv   = await loadShared(PATH_INV);  // { parseInvites, normalizePhone }
+
+  if(!store || !bus || !inv){
+    const errorMessage = 'Não foi possível carregar os módulos compartilhados. Atualize a página ou tente novamente mais tarde.';
+    showLoadError(errorMessage);
+    throw new Error(errorMessage);
+  }
+
+  await store.init?.();
+
+  // Estado e utilitários
+  const AUTO_SAVE_MS = 700;
+  const state = { currentId:null, project:null, lista:[], dirty:false, saving:false, timer:null };
+  const $ = (s)=> document.querySelector(s);
+  const setPill = (el, kind, txt)=>{ el.className = 'pill '+kind; el.textContent = txt; };
+  const esc = (s)=> String(s==null?'':s).replace(/[&<>]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[m]));
+  const escAttr = (s)=> String(s==null?'':s).replace(/[&<>"'`]/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;','`':'&#96;' }[m]));
+  const fmtDateTime = (ts)=> ts? new Date(ts).toLocaleString() : '—';
+
+  // Resumo
+  const evTitle = $('#g2_evTitle');
+  const resTipoData = $('#g2_resTipoData');
+  const resEndereco = $('#g2_resEndereco');
+  const resAnfitriao = $('#g2_resAnfitriao');
+  const resCerimonial = $('#g2_resCerimonial');
+  const pillLink = $('#g2_pillLink');
+
+  // Indicadores
+  const kpiConvites = $('#g2_kpiConvites');
+  const kpiPessoas = $('#g2_kpiPessoas');
+  const kpiConfirmados = document.getElementById('g2_kpiConfirmados');
+  const kpiPendentes = document.getElementById('g2_kpiPendentes');
+  const kpiNaoVai = document.getElementById('g2_kpiNaoVai');
+  const kpiTxConfirmacao = document.getElementById('g2_kpiTxConfirmacao');
+  const kpiTelValidos = document.getElementById('g2_kpiTelValidos');
+  const kpiSemTelefone = document.getElementById('g2_kpiSemTelefone');
+  const kpiPessoasConfirmadas = document.getElementById('g2_kpiPessoasConfirmadas');
+
+  // Criar lista
+  const txtRaw = $('#g2_raw');
+  const btnGerar = $('#g2_btnGerar');
+  const btnSubstituir = $('#g2_btnSubstituir');
+  const lastGen = $('#g2_lastGen');
+
+  // Lista
+  const listBody = $('#g2_listBody');
+  const listMeta = $('#g2_listMeta');
+  const listSummary = $('#g2_listSummary');
+
+  // Rodapé
+  const estadoMetaId = $('#g2_estadoMetaId');
+  const estadoMetaUpd = $('#g2_estadoMetaUpd');
+  const pillSaving = $('#g2_pillSaving');
+
+  function ensureShape(o){
+    o ||= {}; o.cerimonialista ||= { nomeCompleto:"", telefone:"", redeSocial:"" };
+    o.evento ||= { nome:"", data:"", hora:"", local:"", tipo:"", endereco:{}, anfitriao:{} };
+    o.evento.endereco ||= {}; o.evento.anfitriao ||= {};
+    o.lista ||= [];
+    return o;
+  }
+  function setDirty(v){ state.dirty=!!v; if(!state.saving){ setPill(pillSaving, v? 'warn':'ok', v? 'Alterações não salvas':'Pronto'); } }
+  function setSaving(v){ state.saving=!!v; setPill(pillSaving, v? 'saving':'ok', v? 'Salvando…':'Pronto'); }
+
+  // ======== Telefones ========
+  const isE164 = (s)=> /^\+[1-9]\d{7,14}$/.test(String(s||''));
+  const onlyDigits = (s)=> String(s||'').replace(/\D+/g,'');
+  const validDDD = (ddd)=> /^(1[1-9]|[2-9]\d)$/.test(String(ddd));
+  const parseBR = (digits)=>{ const nd = onlyDigits(digits); if(!(nd.length===10||nd.length===11)) return null; const ddd=nd.slice(0,2); const local=nd.slice(2); if(!validDDD(ddd)) return null; return {ddd,local}; };
+  const formatBR = (ddd, local)=> local.length===9?`(${ddd}) ${local.slice(0,5)}-${local.slice(5)}`: local.length===8?`(${ddd}) ${local.slice(0,4)}-${local.slice(4)}`:`(${ddd}) ${local}`;
+  const toE164IfBR = (raw)=>{ const nd=onlyDigits(raw); if(nd.startsWith('55')&&(nd.length===12||nd.length===13)) return '+'+nd; const br=parseBR(nd); return br? '+55'+br.ddd+br.local : null; };
+  const normalizeToE164 = (raw)=>{ const viaMod = inv?.normalizePhone?.(raw||'') || ''; if(isE164(viaMod)) return viaMod; const viaBR=toE164IfBR(raw); return isE164(viaBR||'')? viaBR : null; };
+  const nationalTextIfBR = (raw)=>{ if(/^\+55\d{10,11}$/.test(String(raw||''))){ const d=raw.slice(3); return formatBR(d.slice(0,2), d.slice(2)); } const nd=onlyDigits(raw); const br=parseBR(nd); return br? formatBR(br.ddd, br.local) : null; };
+
+  // ======== Nova estratégia: compor/interpretar convite padronizado ========
+  const composeNames = (titular, acompanhantes=[])=> [titular, ...acompanhantes].filter(Boolean).map(s=>String(s).trim()).filter(Boolean).join(', ');
+  const parseNamesStr = (s)=>{ const arr = String(s||'').split(/\s*,\s*/).map(v=>v.trim()).filter(Boolean); const titular = arr[0]||''; const acompanhantes = arr.slice(1); return {titular, acompanhantes, total: Math.max(1, arr.length)}; };
+  const composePhones = (primary, extras=[])=> [primary, ...extras].filter(Boolean).map(v=>String(v).trim()).filter(Boolean).join(', ');
+  const parsePhonesStr = (s)=>{ const rawList = String(s||'').split(/\s*,\s*/).map(v=>v.trim()).filter(Boolean); let primaryE164 = null; let primaryRaw = rawList[0]||''; if(primaryRaw){ const n = normalizeToE164(primaryRaw); primaryE164 = n || primaryRaw; } return {primary: primaryE164, list: rawList}; };
+
+  // ======== KPIs ========
+  const pct = (num, den)=> den>0 ? Math.round((num/den)*100)+'%' : '0%';
+  const isWhatsAppReady = (raw)=> !!normalizeToE164(raw);
+  function stats(){
+    const rows = state.lista||[];
+    const convites = rows.length;
+    const pessoas = rows.reduce((s,c)=> s + (Number(c.total)|| (1 + ((c.acompanhantes||[]).length)) ), 0);
+    const confirmados = rows.filter(r=> r.confirmacao==='confirmado').length;
+    const pendentes = rows.filter(r=> !r.confirmacao || r.confirmacao==='pendente').length;
+    const naoVai = rows.filter(r=> r.confirmacao==='nao').length;
+    const telValidos = rows.filter(r=> isWhatsAppReady(r.telefone)).length;
+    const semTelefone = rows.filter(r=> !String(r.telefone||'').trim()).length;
+    const pessoasConfirmadas = rows.reduce((s,c)=> s + ((c.confirmacao==='confirmado') ? (Number(c.total)|| (1 + ((c.acompanhantes||[]).length)) ) : 0), 0);
+    return {convites,pessoas,confirmados,pendentes,naoVai,telValidos,semTelefone,pessoasConfirmadas};
+  }
+  const updateKPIs=()=>{ const st=stats(); kpiConvites&&(kpiConvites.textContent=String(st.convites)); kpiPessoas&&(kpiPessoas.textContent=String(st.pessoas)); kpiConfirmados&&(kpiConfirmados.textContent=String(st.confirmados)); kpiPendentes&&(kpiPendentes.textContent=String(st.pendentes)); kpiNaoVai&&(kpiNaoVai.textContent=String(st.naoVai)); kpiTxConfirmacao&&(kpiTxConfirmacao.textContent=pct(st.confirmados, st.convites)); kpiTelValidos&&(kpiTelValidos.textContent=String(st.telValidos)); kpiSemTelefone&&(kpiSemTelefone.textContent=String(st.semTelefone)); kpiPessoasConfirmadas&&(kpiPessoasConfirmadas.textContent=String(st.pessoasConfirmadas)); if(listSummary){ listSummary.textContent = `${st.convites} convites • ${st.pessoas} pessoas`; } };
+
+  // ======== Render ========
+  const labelConf = (c)=> c==='confirmado'? 'Confirmado' : c==='nao'? 'Não vai' : 'Pendente';
+  function renderResumo(){ const p=state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{}; evTitle.textContent=ev.nome||'—'; resTipoData.textContent=[ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—'; resEndereco.textContent='Endereço'+(end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):''); resAnfitriao.textContent='Anfitrião'+(anf.nome? ': '+anf.nome:''); resCerimonial.textContent='Cerimonialista'+(cer.nomeCompleto? ': '+cer.nomeCompleto:''); setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento'); estadoMetaId.textContent=state.currentId||'—'; estadoMetaUpd.textContent=fmtDateTime(p.updatedAt); }
+
+  function phoneCellHTML(t){ const raw=String(t.telefone||''); const e164=normalizeToE164(raw); const nat = nationalTextIfBR(e164||raw); const withName = nat? `${nat}${t.titular? `<div class="muted">de ${esc(t.titular)}</div>`:''}` : null; const isReady=!!e164; const display = esc(withName||raw); const warn = !isReady && raw.trim().length>0; const hint='Telefone não está no formato internacional (E.164) — ajustar para uso no WhatsApp.'; return warn? `<span class="cell-phone invalid">${display}<span class="warn-icon" title="${hint}" aria-label="${hint}">⚠</span></span>` : (withName||display||''); }
+
+  function renderList(){ const rows=state.lista||[]; listMeta.textContent=`${rows.length} itens`; if(!rows.length){ listBody.innerHTML='<tr><td colspan="7" class="small">Nenhum convidado.</td></tr>'; updateKPIs(); return; } listBody.innerHTML = rows.map((t,i)=>{ const names = composeNames(t.titular, t.acompanhantes); const totalCalc = Number(t.total) || (1 + ((t.acompanhantes||[]).length)); return `<tr data-i="${i}">\n        <td>${i+1}</td>\n        <td>${esc(names)}</td>\n        <td>${totalCalc}</td>\n        <td>${phoneCellHTML(t)}</td>\n        <td>${esc(t.mesa||'')}</td>\n        <td>${esc(labelConf(t.confirmacao))}</td>\n        <td class="right col-actions"><button class="icon-btn" data-act="edit" title="Editar" aria-label="Editar">✎</button></td>\n      </tr>`; }).join(''); updateKPIs(); }
+
+  // ======== Edição com campos padronizados (nomes e telefones em vírgulas) ========
+  function editRow(i){ const t=state.lista[i]||{}; const tr=listBody.querySelector(`tr[data-i="${i}"]`); if(!tr) return; const namesStr = composeNames(t.titular, t.acompanhantes); const phonesStr = composePhones(t.telefone, t.telefones||[]); const raw = String(t.telefone||''); const isReady = !!normalizeToE164(raw); const natText = nationalTextIfBR(raw) || raw; const hint = !isReady && raw.trim().length>0 ? '<div class="hint">⚠ Formato esperado: +[código do país][DDD][número]. Ex.: +55DD9XXXXXXXX</div>' : ''; tr.innerHTML = `\n      <td>${i+1}</td>\n      <td>\n        <input type="text" value="${escAttr(namesStr)}" data-f="names" placeholder="Titular, Acompanhante 1, Acompanhante 2"/>\n      </td>\n      <td>${Number(t.total) || (1 + (t.acompanhantes||[]).length) || 1}</td>\n      <td>\n        <input type="text" value="${escAttr(phonesStr||natText)}" data-f="phones" placeholder="Telefone(s) separados por vírgula"/>\n        ${hint}\n      </td>\n      <td><input type="text" value="${escAttr(t.mesa||'')}" data-f="mesa" placeholder="Mesa/Grupo"/></td>\n      <td>\n        <select data-f="conf">\n          <option value="pendente"${t.confirmacao==='pendente'||!t.confirmacao?' selected':''}>Pendente</option>\n          <option value="confirmado"${t.confirmacao==='confirmado'?' selected':''}>Confirmado</option>\n          <option value="nao"${t.confirmacao==='nao'?' selected':''}>Não vai</option>\n        </select>\n      </td>\n      <td class="right col-actions">\n        <button class="btn small" data-act="save" title="Salvar">Salvar</button>\n        <button class="btn btn--ghost small" data-act="cancel" title="Cancelar">⟲</button>\n        <button class="btn btn--ghost small danger" data-act="del" title="Excluir">🗑</button>\n      </td>`; }
+
+  function onListClick(ev){ const btn = ev.target.closest('button[data-act]'); if(!btn) return; const tr=btn.closest('tr'); if(!tr) return; const i=Number(tr?.dataset.i); const act=btn.dataset.act; if(act==='edit'){ editRow(i); return; } if(act==='del'){ state.lista.splice(i,1); setDirty(true); renderList(); scheduleSave(); return; } if(act==='cancel'){ renderList(); return; } if(act==='save'){ const elNames=tr.querySelector('[data-f="names"]'); const elPhones=tr.querySelector('[data-f="phones"]'); const elMes=tr.querySelector('[data-f="mesa"]'); const elCon=tr.querySelector('[data-f="conf"]'); if(!elNames||!elPhones||!elMes||!elCon){ console.warn('Campos de edição não encontrados'); renderList(); return; } const namesStr=elNames.value.trim(); const phonesStr=elPhones.value.trim(); const {titular, acompanhantes, total}=parseNamesStr(namesStr); const {primary, list}=parsePhonesStr(phonesStr); const telefone = primary || ''; const telefones = list.slice(1); const mesa=elMes.value.trim(); const conf=elCon.value; state.lista[i] = { id: state.lista[i]?.id || (crypto.randomUUID?.()||('id_'+Date.now())), titular, acompanhantes, telefone, telefones, mesa, confirmacao: conf||'pendente', total: total }; setDirty(true); renderList(); scheduleSave(); return; } }
+  listBody.addEventListener('click', onListClick);
+
+  // ======== Parser (usa parseInvites e compõe nomes/telefones padronizados) ========
+  const mergeByKey=(baseArr,newArr,keyFn)=>{ const map=new Map(baseArr.map((it)=>[keyFn(it),it])); for(const it of newArr){ const k=keyFn(it); if(map.has(k)){ const prev=map.get(k); map.set(k,{...prev,...it,id:prev.id||it.id}); } else { map.set(k,it); } } return [...map.values()]; };
+  const pick=(obj,arr,def='')=>{ for(const k of arr){ if(obj && obj[k]!=null && obj[k]!=='' ) return obj[k]; } return def; };
+
+  function applyParser(mode){ if(!txtRaw) return; const raw = txtRaw.value.trim(); if(!raw) return; const parsed = inv?.parseInvites?.(raw) || []; const novo = parsed.map(c=>{ const titular = pick(c,['titular','principal','nome'],''); const acompanhantes = Array.isArray(c.acompanhantes)? c.acompanhantes.filter(Boolean):[]; const total = Number(c.total) || (1 + acompanhantes.length); const telRaw = pick(c,['e164','telefoneFormatado','telefone','whatsapp','phone'],''); const e164 = normalizeToE164(telRaw); const telefone = e164 || String(telRaw||''); const namesStr = composeNames(titular, acompanhantes); const phonesStr = composePhones(telefone); return { id: c.id || (crypto.randomUUID?.()||('id_'+Date.now()+Math.random().toString(16).slice(2))), titular: String(titular||'').trim(), acompanhantes, telefone, telefones: [], namesStr, phonesStr, mesa:'', confirmacao:'pendente', total }; }); if(mode==='substituir'){ state.lista=novo; } else { state.lista = mergeByKey(state.lista, novo, it=> (normalizeToE164(it.telefone)||it.telefone||'') + '|' + (it.titular||'').toLowerCase()); } const totalEntrada = novo.reduce((s,x)=> s + (Number(x.total) || (1 + ((x.acompanhantes||[]).length)) ), 0); lastGen.textContent = `Gerado em ${new Date().toLocaleString()} • ${novo.length} convites / ${totalEntrada} pessoas (entrada)`; txtRaw.value=''; setDirty(true); renderList(); scheduleSave(); }
+
+  btnGerar.addEventListener('click', ()=> applyParser('mesclar'));
+  btnSubstituir.addEventListener('click', ()=> applyParser('substituir'));
+
+  function scheduleSave(){ if(state.timer) clearTimeout(state.timer); state.timer = setTimeout(doSave, AUTO_SAVE_MS); }
+  async function doSave(){ if(!state.currentId) return; setSaving(true); const next = ensureShape(JSON.parse(JSON.stringify(state.project||{}))); next.lista = state.lista; next.updatedAt = Date.now(); await store.updateProject?.(state.currentId,next); state.project = await store.getProject?.(state.currentId); setSaving(false); setDirty(false); renderResumo(); updateKPIs(); bus.publish('ac:project-updated',{ id: state.currentId, updatedAt: next.updatedAt }); }
+
+  // BUS
+  bus.subscribe('ac:open-event', async ({ id })=>{ if(!id) return; await setCurrent(id); });
+  bus.subscribe('ac:project-updated', async ({ id, updatedAt })=>{ if(id && id===state.currentId){ if(updatedAt){ estadoMetaUpd.textContent = fmtDateTime(updatedAt); } await loadCurrent(id); } });
+  bus.subscribe('ac:request-current', ()=>{ if(state.currentId){ try{ bus.publish('ac:open-event',{ id: state.currentId, from:'convidados' }); }catch{} } });
+
+  async function loadCurrent(id){ state.currentId=id; state.project = id? await store.getProject?.(id) : null; ensureShape(state.project); state.lista = [...(state.project.lista||[])]; setDirty(false); setSaving(false); const p=state.project||{}; const ev=p.evento||{}; const end=ev.endereco||{}; const anf=ev.anfitriao||{}; const cer=p.cerimonialista||{}; evTitle.textContent=ev.nome||'—'; resTipoData.textContent=[ev.tipo,ev.data,ev.hora].filter(Boolean).join(' • ')||'—'; resEndereco.textContent='Endereço'+(end.logradouro||end.numero||end.bairro||end.cidade? ': '+[end.logradouro,end.numero,end.bairro,end.cidade].filter(Boolean).join(', '):''); resAnfitriao.textContent='Anfitrião'+(anf.nome? ': '+anf.nome:''); resCerimonial.textContent='Cerimonialista'+(cer.nomeCompleto? ': '+cer.nomeCompleto:''); setPill(pillLink, state.currentId? 'ok':'warn', state.currentId? 'Vinculado':'Sem evento'); estadoMetaId.textContent=state.currentId||'—'; estadoMetaUpd.textContent=fmtDateTime(p.updatedAt); renderList(); updateKPIs(); }
+  async function setCurrent(id){ await loadCurrent(id); }
+  async function trySyncWithEventos(maxTries=8, interval=400){ return new Promise(resolve=>{ let tries=0; const ask=()=>{ try{ bus.publish('ac:request-current'); }catch{} tries++; if(state.currentId){ resolve(true); return; } if(tries<maxTries){ setTimeout(ask,interval);} else { resolve(false);} }; ask(); }); }
+
+  // Self-tests
+  function runSelfTests(){ const out=[]; try{ const x=parseNamesStr('Fábio, Coleto'); if(!(x.titular==='Fábio' && x.acompanhantes[0]==='Coleto' && x.total===2)) throw new Error('parseNamesStr'); out.push('parseNamesStr: OK'); }catch(e){ out.push('parseNamesStr: FAIL - '+e.message); }
+    try{ const p=parsePhonesStr('41 98432-8888, +5541999999999'); if(!(p && p.primary)) throw new Error('parsePhonesStr'); out.push('parsePhonesStr: OK'); }catch(e){ out.push('parsePhonesStr: FAIL - '+e.message); }
+    try{ const s = inv?.parseInvites?.('João e Ana — 41 91234-5678\nCarlos; 41 3333-0000; 2 acompanhantes') || []; if(!(Array.isArray(s) && s.length>=1)) throw new Error('parseInvites'); out.push('parseInvites respected: OK'); }catch(e){ out.push('parseInvites respected: FAIL - '+e.message); }
+    console.log('[SelfTests]', out.join(' | ')); const holder=document.getElementById('g2_tests'); if(holder) holder.textContent=out.join(' | '); }
+
+  (async function bootstrap(){ const synced = await trySyncWithEventos(); if(synced && state.currentId){ runSelfTests(); return; } const metas=(store.listProjects?.()||[]); const last=localStorage.getItem('ac:lastId'); const initial=(metas.find(m=>m.id===last)?.id) || metas[0]?.id || null; if(initial){ await setCurrent(initial); } if(!initial){ ensureShape(state.project); } runSelfTests(); })();
+</script>
+</body>
+</html>
