@@ -26,6 +26,8 @@ O script `npm run package --workspace web` agora gera:
 
 ## AppBase no Elementor
 
+> ⚠️ **Importante:** o arquivo [`apps/web/src/app.html`](apps/web/src/app.html) é apenas o template interno do SvelteKit. Ele **não** deve ser colado no WordPress/Elementor. Qualquer erro 404 para `/bundle/app-host.js` indica que o snippet utilizado não é o `dist/app-base-widget.html` exportado pelo build.
+
 ### Copiando o HTML gerado
 
 1. Execute `npm run build:widget` na raiz do repositório. O comando compila o bundle do widget (`apps/web/dist/app-base-widget.{css,js}`) e gera o arquivo consolidado [`dist/app-base-widget.html`](dist/app-base-widget.html).

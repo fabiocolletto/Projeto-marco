@@ -1,5 +1,13 @@
 # Marco zero — AppBase sem mini-app
 
+> ⚠️ **Atenção:** [`apps/web/src/app.html`](../src/app.html) é apenas o template do SvelteKit e não deve ser embutido diretamente no WordPress/Elementor. Sempre use o HTML gerado em `dist/app-base-widget.html`. Um 404 para `/bundle/app-host.js` normalmente indica que o snippet colado não corresponde ao widget exportado.
+
+Checklist rápido antes de publicar:
+
+- [ ] Confirme que o HTML embutido contém o `<div id="app-base-widget-root">`.
+- [ ] Verifique se o `<script type="module">` do widget está presente (geralmente aponta para `app-base-widget.js`).
+
+
 ## Contexto atual
 
 - O widget exportado representa apenas o shell institucional (header, navegação lateral e canvas vazio).
