@@ -1,9 +1,20 @@
-// tools/gestao-de-convidados/app_header.mjs
-// Cabeçalho + Painel (somente UI) — consome funções do /shared
+export const projectDetails = new Map();
 
-import * as store from "../../shared/projectStore.js";   // init, listProjects, getProject, createProject, deleteProject, updateProject, exportProject (conforme seu shared)
-import * as inviteUtils from "../../shared/inviteUtils.js"; // opcional (reserva para futuras ações)
-import * as listUtils   from "../../shared/listUtils.js";   // opcional (reserva para futuras ações)
+const FALLBACK_SELECTORS = {
+  select: ['#switchEvent', '#projectSelect', '[data-role="project-select"]'],
+  tableBody: ['[data-role="project-list"] tbody', '[data-role="project-list"]', '#projectTable tbody'],
+  kpiTotal: ['[data-role="kpi-total"]', '#kpiTotal'],
+  kpiConfirmed: ['[data-role="kpi-confirmed"]', '#kpiConfirmed'],
+  kpiPending: ['[data-role="kpi-pending"]', '#kpiPending'],
+  eventTitle: ['[data-role="evento-nome"]', '#eventoNome', '#evTitle'],
+  eventDate: ['[data-role="evento-data"]', '#eventoData'],
+  eventLocal: ['[data-role="evento-local"]', '#eventoLocal'],
+  eventAddress: ['[data-role="evento-endereco"]', '#eventoEndereco'],
+  eventHost: ['[data-role="evento-anfitriao"]', '#eventoAnfitriao'],
+  eventUpdated: ['[data-role="evento-updated"]', '#eventoUpdated'],
+  countLista: ['[data-role="evento-lista-count"]', '#eventoListaCount'],
+  countConvidados: ['[data-role="evento-convidados-count"]', '#eventoConvidadosCount']
+};
 
 // ---------- helpers mínimos de UI ----------
 const $ = (root, sel) => root.querySelector(sel);
@@ -86,71 +97,33 @@ const html = `
     </div>
   </div>
 
-  <main class="ac-wrap">
-    <div class="ac-panel">
-      <section class="ac-card">
-        <div class="ac-card__inner">
-          <h2 class="ac-card__title">Painel do usuário</h2>
-          <div class="ac-kpis">
-            <div class="ac-kpi"><strong id="kpi-ev">0</strong><span>eventos</span></div>
-            <div class="ac-kpi"><strong id="kpi-convites">0</strong><span>convites</span></div>
-            <div class="ac-kpi"><strong id="kpi-pessoas">0</strong><span>pessoas</span></div>
-          </div>
-          <div style="margin-top:10px">
-            <table class="ac-table ac-table--scroll" id="tbl-user" aria-label="Eventos recentes">
-              <thead><tr><th>Evento</th><th>Data</th><th>Convites</th><th>Atualizado</th></tr></thead>
-              <tbody id="user-last"></tbody>
-            </table>
-            <div class="ac-table__hint" id="user-hint" hidden>Role para ver mais eventos</div>
-            <div style="margin-top:6px;text-align:right" id="user-foot"></div>
-          </div>
-        </div>
-      </section>
+function formatMetaDate(meta){
+  if(!meta) return '';
+  const dataISO = meta.dataISO || meta.data || '';
+  const hora = meta.hora || '';
+  if(!dataISO && !hora) return '';
+  return formatDateLabel({ dataISO, hora });
+}
 
-      <section class="ac-card">
-        <div class="ac-card__inner">
-          <h2 class="ac-card__title">Evento selecionado</h2>
-          <div class="ac-kpis" style="margin-top:0">
-            <div class="ac-kpi"><strong id="ev-convites">0</strong><span>convites</span></div>
-            <div class="ac-kpi"><strong id="ev-pessoas">0</strong><span>pessoas</span></div>
-            <div class="ac-kpi"><strong id="ev-msgs">0</strong><span>agendamentos</span></div>
-          </div>
-          <div id="ev-title" style="font-weight:900; margin-top:10px">—</div>
-          <div class="ac-meta" style="margin-top:6px">
-            <span id="ev-date">—</span><span>•</span><span id="ev-time">—</span><span>•</span><span id="ev-local">—</span>
-          </div>
-          <div style="margin-top:10px">
-            <table class="ac-table" aria-label="Resumo rápido">
-              <tbody>
-                <tr><th>Anfitrião</th><td id="ev-host">—</td></tr>
-                <tr><th>Contato</th><td id="ev-host-contato">—</td></tr>
-                <tr><th>Endereço</th><td id="ev-end">—</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
+function extractList(payload){
+  if(!payload || typeof payload !== 'object') return [];
+  if(Array.isArray(payload.lista)) return payload.lista;
+  if(Array.isArray(payload.convidados)) return payload.convidados;
+  return [];
+}
 
-  <!-- Modal carregar -->
-  <div id="modal" class="ac-modal" hidden>
-    <div class="ac-card" style="max-width:min(840px,95vw);margin:auto">
-      <div class="ac-card__inner">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong>Eventos salvos</strong>
-          <button class="ac-iconbtn" data-action="fechar-modal" title="Fechar">×</button>
-        </div>
-        <div style="margin-top:8px">
-          <table class="ac-table">
-            <thead><tr><th>Título</th><th>Data</th><th>Convites</th><th>Atualizado</th><th></th></tr></thead>
-            <tbody id="tbl-evs"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-`;
+function countConfirmed(list){
+  let confirmed = 0;
+  for(const item of list){
+    if(!item) continue;
+    const status = String(item.status ?? item.confirmacao ?? item.rsvp ?? '').toLowerCase();
+    const truthy = item.confirmado ?? item.confirmada ?? item.presenca ?? item.presença;
+    if(truthy === true){ confirmed++; continue; }
+    if(typeof truthy === 'string' && /^(sim|yes|y|confirmad[ao]|ok|1)$/.test(truthy.toLowerCase())){ confirmed++; continue; }
+    if(['confirmado','confirmada','presença confirmada','confirmada'].includes(status)) confirmed++;
+  }
+  return confirmed;
+}
 
 // ---------- lógica principal ----------
 let currentRoot = null;
@@ -202,19 +175,19 @@ export async function render(rootEl){
   root.appendChild(host);
   rootEl.replaceChildren(root);
 
-  const setStatus = (text) => {
-    const dot = $(root, "#dot");
-    const st  = $(root, "#status");
-    st.textContent = text;
-    dot.style.background = text.includes("Salv") ? "#d97706" : "#1a7f37";
-    clearTimeout(setStatus._t);
-    setStatus._t = setTimeout(()=>{ st.textContent = "Pronto"; dot.style.background = "#bbb"; }, 1600);
-  };
+function extractHost(payload){
+  const evento = extractEvento(payload);
+  if(evento.anfitriao && typeof evento.anfitriao === 'object') return evento.anfitriao;
+  if(payload.anfitriao && typeof payload.anfitriao === 'object') return payload.anfitriao;
+  return {};
+}
 
-  // dados
-  await (store.init?.() ?? Promise.resolve());
-  let lista = (await (store.listProjects?.() ?? Promise.resolve([]))) || [];
-  // se listProjects não retorna convites, a UI continua funcional (mostra 0/—)
+function extractEndereco(payload){
+  const evento = extractEvento(payload);
+  if(evento.endereco && typeof evento.endereco === 'object') return evento.endereco;
+  if(payload.endereco && typeof payload.endereco === 'object') return payload.endereco;
+  return {};
+}
 
   let ativo = lista[0] || null;
   let lastProjectId;
@@ -249,32 +222,52 @@ export async function render(rootEl){
     ).join("")) || "";
     sel.selectedIndex = lista.length ? 0 : -1;
   }
+function joinAddress(addr){
+  if(!addr || typeof addr !== 'object') return '';
+  const { logradouro, numero, bairro, cidade, uf, complemento } = addr;
+  const main = [logradouro, numero, bairro, cidade, uf].filter(Boolean).join(', ');
+  if(complemento) return main? `${main} (${complemento})` : complemento;
+  return main;
+}
 
-  // métricas/linhas
-  const pessoasCount = (ev) => (ev?.convites || []).reduce((n, iv)=> n + 1 + (iv?.acompanhantes?.length || 0), 0);
-  function renderUserPanel(){
-    $(root, "#kpi-ev").textContent = String(lista.length);
-    $(root, "#kpi-convites").textContent = String(lista.reduce((n,ev)=> n + (ev?.convites?.length||0), 0));
-    $(root, "#kpi-pessoas").textContent  = String(lista.reduce((n,ev)=> n + pessoasCount(ev), 0));
-
-    const tbody = $(root, "#user-last");
-    const rows = lista.map(ev =>
-      `<tr><td>${esc(ev?.nome || "—")}</td><td>${fmtDate(ev?.dataISO)}</td><td>${ev?.convites?.length || 0}</td><td>${new Date(ev?.updatedAt||0).toLocaleString()}</td></tr>`
-    ).join("");
-    tbody.innerHTML = rows || `<tr><td colspan="4" style="color:#666">Sem eventos.</td></tr>`;
-
-    const tbl = $(root, "#tbl-user"); const hint = $(root, "#user-hint");
-    if(lista.length>3){
-      tbl.classList.add("ac-table--scroll");
-      requestAnimationFrame(()=>{
-        const r = tbody.querySelector("tr"); const rh = r ? r.getBoundingClientRect().height : 36;
-        tbody.style.maxHeight = Math.round(rh*3 + 2) + "px"; hint.hidden = false;
-      });
-    } else {
-      tbl.classList.remove("ac-table--scroll");
-      tbody.style.maxHeight = ""; hint.hidden = true;
+export function createHeaderController({ store, bus, elements = {} } = {}){
+  const ui = {
+    select: pickElement(elements.select, FALLBACK_SELECTORS.select),
+    tableBody: pickElement(elements.tableBody, FALLBACK_SELECTORS.tableBody),
+    kpis: {
+      total: pickElement(elements.kpiTotal, FALLBACK_SELECTORS.kpiTotal),
+      confirmed: pickElement(elements.kpiConfirmed, FALLBACK_SELECTORS.kpiConfirmed),
+      pending: pickElement(elements.kpiPending, FALLBACK_SELECTORS.kpiPending)
+    },
+    evento: {
+      title: pickElement(elements.eventTitle, FALLBACK_SELECTORS.eventTitle),
+      date: pickElement(elements.eventDate, FALLBACK_SELECTORS.eventDate),
+      local: pickElement(elements.eventLocal, FALLBACK_SELECTORS.eventLocal),
+      address: pickElement(elements.eventAddress, FALLBACK_SELECTORS.eventAddress),
+      host: pickElement(elements.eventHost, FALLBACK_SELECTORS.eventHost),
+      updated: pickElement(elements.eventUpdated, FALLBACK_SELECTORS.eventUpdated)
+    },
+    counts: {
+      lista: pickElement(elements.countLista, FALLBACK_SELECTORS.countLista),
+      convidados: pickElement(elements.countConvidados, FALLBACK_SELECTORS.countConvidados)
     }
-    $(root, "#user-foot").textContent = `${lista.length} eventos`;
+  };
+
+  const state = {
+    metas: [],
+    activeId: null,
+    store,
+    bus
+  };
+
+  function getDetail(id){
+    return projectDetails.get(id);
+  }
+
+  function upsertDetail(detail){
+    if(detail && detail.id){
+      projectDetails.set(detail.id, detail);
+    }
   }
 
   function renderEvento(){
@@ -338,24 +331,121 @@ export async function render(rootEl){
   currentBtn = btn;
   btn.addEventListener("click", ()=>globalToggleMenu());
   bindGlobalListeners();
-
-  // modal carregar
-  function openModal(){
-    const tb = $(root, "#tbl-evs");
-    const rows = lista.map((ev,i)=>`
-      <tr>
-        <td>${esc(ev?.nome||"—")}</td>
-        <td>${fmtDate(ev?.dataISO)}</td>
-        <td>${ev?.convites?.length||0}</td>
-        <td>${new Date(ev?.updatedAt||0).toLocaleString()}</td>
-        <td><button class="ac-iconbtn" data-load="${i}" title="Selecionar">→</button></td>
-      </tr>`).join("");
-    tb.innerHTML = rows;
-    $(root, "#modal").hidden = false;
+  async function refreshIndex(){
+    const storeRef = state.store;
+    const listed = storeRef?.listProjects?.();
+    const metas = Array.isArray(listed) ? listed : (listed || []);
+    state.metas = metas;
+    if(!metas.length){
+      projectDetails.clear();
+      fillSelect();
+      renderUserPanel();
+      return metas;
+    }
+    const tuples = await Promise.all(metas.map(async meta => {
+      if(!meta?.id) return null;
+      try{
+        const payload = await storeRef?.getProject?.(meta.id);
+        return { id: meta.id, payload: payload || null };
+      }catch(error){
+        console.warn('[app_header] Falha ao carregar detalhes do projeto', meta.id, error);
+        return { id: meta.id, payload: null };
+      }
+    }));
+    projectDetails.clear();
+    tuples.forEach(t => { if(t) projectDetails.set(t.id, t); });
+    fillSelect();
+    renderUserPanel();
+    if(state.activeId){
+      renderEvento();
+    }
+    return metas;
   }
 
-  root.addEventListener("click",(e)=>{
-    if(e.target.matches('[data-action="fechar-modal"]')) $(root, "#modal").hidden = true;
+  function fillSelect(){
+    const selectEl = ui.select;
+    if(!selectEl) return;
+    const frag = document.createDocumentFragment();
+    const metas = state.metas || [];
+    for(const meta of metas){
+      const entry = getDetail(meta.id);
+      const payload = entry?.payload || null;
+      const evento = extractEvento(payload);
+      const labelParts = [];
+      const nome = evento.nome || meta.nome || meta.id;
+      if(nome) labelParts.push(nome);
+      const dateStr = formatDateLabel(evento) || formatMetaDate(meta);
+      if(dateStr) labelParts.push(dateStr);
+      if(evento.local) labelParts.push(evento.local);
+      else if(meta.local) labelParts.push(meta.local);
+      const option = document.createElement('option');
+      option.value = meta.id;
+      option.textContent = labelParts.join(' • ') || meta.id;
+      option.selected = meta.id === state.activeId;
+      option.dataset.metaName = meta.nome || '';
+      if(evento.dataISO) option.dataset.eventoDataIso = evento.dataISO;
+      if(evento.local) option.dataset.eventoLocal = evento.local;
+      frag.appendChild(option);
+    }
+    selectEl.innerHTML = '';
+    selectEl.appendChild(frag);
+  }
+
+  function renderUserPanel(){
+    const body = ui.tableBody;
+    if(body){
+      const frag = document.createDocumentFragment();
+      state.metas.forEach((meta, index)=>{
+        const entry = getDetail(meta.id);
+        const payload = entry?.payload || null;
+        const evento = extractEvento(payload);
+        const list = extractList(payload);
+        const confirmed = countConfirmed(list);
+        const row = document.createElement('tr');
+        const cols = [
+          index + 1,
+          evento.nome || meta.nome || meta.id,
+          formatDateLabel(evento) || formatMetaDate(meta),
+          evento.local || meta.local || '—',
+          list.length,
+          confirmed
+        ];
+        cols.forEach(val =>{
+          const td = document.createElement('td');
+          td.textContent = val === undefined || val === null || val === '' ? '—' : String(val);
+          row.appendChild(td);
+        });
+        row.dataset.projectId = meta.id;
+        frag.appendChild(row);
+      });
+      body.innerHTML = '';
+      body.appendChild(frag);
+    }
+
+    const totals = state.metas.reduce((acc, meta)=>{
+      const entry = getDetail(meta.id);
+      const payload = entry?.payload || null;
+      const list = extractList(payload);
+      acc.total += list.length;
+      acc.confirmed += countConfirmed(list);
+      return acc;
+    }, { total:0, confirmed:0 });
+    totals.pending = Math.max(0, totals.total - totals.confirmed);
+
+    if(ui.kpis.total) ui.kpis.total.textContent = String(totals.total);
+    if(ui.kpis.confirmed) ui.kpis.confirmed.textContent = String(totals.confirmed);
+    if(ui.kpis.pending) ui.kpis.pending.textContent = String(totals.pending);
+  }
+
+  function renderEvento(){
+    if(!state.activeId) return;
+    const meta = state.metas.find(m => m.id === state.activeId) || {};
+    const entry = getDetail(state.activeId);
+    const payload = entry?.payload || null;
+    const evento = extractEvento(payload);
+    const host = extractHost(payload);
+    const endereco = extractEndereco(payload);
+    const lista = extractList(payload);
 
     const it = e.target.closest(".ac-dd__item");
     if(it){
@@ -373,8 +463,28 @@ export async function render(rootEl){
       setActive(lista[i] || ativo);
       $(root, "#modal").hidden = true;
       setStatus("Evento carregado");
+    if(ui.evento.title) ui.evento.title.textContent = evento.nome || meta.nome || meta.id || '—';
+    const dateText = formatDateLabel(evento) || formatMetaDate(meta) || '—';
+    if(ui.evento.date) ui.evento.date.textContent = dateText;
+    if(ui.evento.local) ui.evento.local.textContent = evento.local || meta.local || '—';
+    if(ui.evento.address) ui.evento.address.textContent = joinAddress(endereco) || '—';
+    const hostName = host.nome || host.nomeCompleto || host.responsavel;
+    if(ui.evento.host) ui.evento.host.textContent = hostName || '—';
+    if(ui.evento.updated){
+      const updatedAt = payload?.updatedAt || meta.updatedAt;
+      if(updatedAt){
+        try{
+          const d = new Date(updatedAt);
+          ui.evento.updated.textContent = Number.isNaN(+d)
+            ? String(updatedAt)
+            : d.toLocaleString('pt-BR');
+        }catch{
+          ui.evento.updated.textContent = String(updatedAt);
+        }
+      }else{
+        ui.evento.updated.textContent = '—';
+      }
     }
-  });
 
   async function refreshIndex({ preferredId } = {}){
     const previousId = ativo?.id ?? null;
@@ -423,14 +533,52 @@ export async function render(rootEl){
     const novoId = res?.meta?.id;
     await refreshIndex({ preferredId: novoId });
     setStatus("Evento criado");
+    const totalLista = lista.length;
+    const confirmed = countConfirmed(lista);
+    const pending = Math.max(0, totalLista - confirmed);
+    if(ui.counts.lista) ui.counts.lista.textContent = String(totalLista);
+    if(ui.counts.convidados) ui.counts.convidados.textContent = `${confirmed} confirmados • ${pending} pendentes`;
   }
-}
 
-// atalho opcional: montar por seletor
-export function mount(selector){
-  const el = document.querySelector(selector);
-  if(!el) throw new Error("Elemento não encontrado: " + selector);
-  return render(el);
+  async function setActive(id){
+    if(!id) return;
+    state.activeId = id;
+    if(!projectDetails.has(id)){
+      try{
+        const payload = await state.store?.getProject?.(id);
+        upsertDetail({ id, payload: payload || null });
+      }catch(error){
+        console.warn('[app_header] Falha ao atualizar detalhes do projeto selecionado', id, error);
+        upsertDetail({ id, payload: null });
+      }
+    }
+    renderEvento();
+    notifyProjectChange(id);
+  }
+
+  function notifyProjectChange(id){
+    if(!id) return;
+    const meta = state.metas.find(m => m.id === id) || null;
+    const payload = getDetail(id)?.payload || null;
+    try{
+      state.bus?.publish?.('ac:project-change', { id, meta, payload });
+    }catch(error){
+      console.warn('[app_header] Falha ao publicar mudança de projeto', error);
+    }
+    try{
+      window.dispatchEvent(new CustomEvent('ac:project-change', { detail: { id, meta, payload } }));
+    }catch{}
+  }
+
+  return {
+    get projectDetails(){ return projectDetails; },
+    refreshIndex,
+    fillSelect,
+    renderUserPanel,
+    renderEvento,
+    setActive,
+    notifyProjectChange
+  };
 }
 
 // Permite que outras ferramentas forcem a atualização do cabeçalho após editar
@@ -440,3 +588,4 @@ export async function buzz(){
     await currentRefresh();
   }
 }
+export default { createHeaderController };
