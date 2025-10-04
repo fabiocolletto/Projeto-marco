@@ -1,0 +1,16 @@
+{
+  "name": "@marco/features-convites",
+  "version": "0.1.0",
+  "type": "module",
+  "svelte": "./src/ConvidadosMiniApp.svelte",
+  "exports": {
+    ".": {
+      "svelte": "./src/ConvidadosMiniApp.svelte",
+      "import": "./src/index.js",
+      "require": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@marco/domain-convites": "0.1.0"
+  }
+}

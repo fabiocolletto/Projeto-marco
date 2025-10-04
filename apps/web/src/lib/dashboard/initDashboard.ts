@@ -34,12 +34,14 @@ export async function initDashboard(): Promise<void> {
         try{ renderStatus(); }catch{}
       });
 
-      const bus      = await loadShared('@tools/shared/marcoBus.js');
-      const ac       = await loadShared('@tools/unique/eventos.mjs');
-      const tasksMod = await loadShared('@tools/unique/tarefas.mjs');
-      await loadShared('@tools/unique/fornecedores.mjs'); // registra <ac-fornecedores>
-      const convidMod= await loadShared('@tools/unique/convites.mjs');
-      if(!convidMod?.mountConvidadosMiniApp){ console.warn('[MiniApp Convidados] módulo não disponível em', '@tools/unique/convites.mjs'); }
+      const busModule      = await loadShared('@marco/platform/bus');
+      const bus            = busModule?.bus || busModule;
+      const ac             = await loadShared('@marco/domain-eventos');
+      const tasksMod       = await loadShared('@marco/features-tarefas');
+      const fornecedoresMod= await loadShared('@marco/features-fornecedores');
+      const convidMod      = await loadShared('@marco/features-convites');
+      const mensagensMod   = await loadShared('@marco/features-mensagens');
+      if(!convidMod?.mountConvidadosMiniApp){ console.warn('[MiniApp Convidados] módulo não disponível em', '@marco/features-convites'); }
       const syncMod  = await loadShared('@tools/shared/sync.minapp.js');
       if(!syncMod?.mountSyncMiniApp){ console.warn('[MiniApp Sync] módulo não disponível em', '@tools/shared/sync.minapp.js'); }
 
@@ -257,7 +259,7 @@ export async function initDashboard(): Promise<void> {
           fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
         });
         const { meta } = await projectData.createProject(blank);
-        await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+        await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
       });
 
       btnDelete.addEventListener('click', async ()=>{
@@ -268,40 +270,52 @@ export async function initDashboard(): Promise<void> {
         }catch(e){ console.error(e); }
         state.currentId=null; await renderSaved();
         const nextId=(state.metas[0]&&state.metas[0].id)||null;
-        await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+        await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
       });
 
       function publishCurrent(){ if(state.currentId) bus?.publish?.('ac:open-event',{ id: state.currentId, from:'eventos' }); }
 
+      let tarefasApp: any = null;
+      let fornecedoresApp: any = null;
+      let convidadosApp: any = null;
+      let mensagensApp: any = null;
+
       function mountTasksIfNeeded(){
         const host = document.querySelector('#tasks_host');
         if(host && !host?.dataset?.mounted && tasksMod?.mountTasksMiniApp){
-          tasksMod.mountTasksMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+          tarefasApp = tasksMod.mountTasksMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
           host.dataset.mounted = '1';
         }
       }
 
       function mountFornecedoresIfNeeded(){
         const host = document.querySelector('#fornecedores_host');
-        if(host && !host.dataset.mounted){
-          const el = document.createElement('ac-fornecedores');
-          if(state.currentId) el.setAttribute('project-id', state.currentId);
+        if(host && !host.dataset.mounted && fornecedoresMod?.mountFornecedoresMiniApp){
+          const el = document.createElement('div');
           host.appendChild(el);
+          fornecedoresApp = fornecedoresMod.mountFornecedoresMiniApp(el, { ac, store, bus, getCurrentId: ()=> state.currentId });
           host.dataset.mounted = '1';
         }
       }
       function updateFornecedoresProject(){
-        const el = document.querySelector('#fornecedores_host ac-fornecedores');
-        if(el){ const pid = state.currentId || ''; if(pid) el.setAttribute('project-id', pid); }
+        fornecedoresApp?.refresh?.();
       }
 
       function mountConvidadosIfNeeded(){
         const host = document.querySelector('#convidados_host');
         if(host && !host?.dataset?.mounted && convidMod?.mountConvidadosMiniApp){
-          convidMod.mountConvidadosMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+          convidadosApp = convidMod.mountConvidadosMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
           host.dataset.mounted = '1';
         } else if(host && !convidMod?.mountConvidadosMiniApp){
-          host.innerHTML = '<div class="muted">Módulo de Convidados não encontrado. Verifique /shared/acConvidados.v1.mjs.</div>';
+          host.innerHTML = '<div class="muted">Módulo de Convidados não encontrado. Verifique @marco/features-convites.</div>';
+        }
+      }
+
+      function mountMensagensIfNeeded(){
+        const host = document.querySelector('#mensagens_host');
+        if(host && !host.dataset?.mounted && mensagensMod?.mountMensagensMiniApp){
+          mensagensApp = mensagensMod.mountMensagensMiniApp(host, { ac, store, bus, getCurrentId: ()=> state.currentId });
+          host.dataset.mounted = '1';
         }
       }
 
@@ -345,12 +359,12 @@ export async function initDashboard(): Promise<void> {
         }
         ac.model.ensureShape(state.project||{});
         fillForm(state.project||{}); setDirty(false); renderHeader(); renderIndicators();
-        mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+        mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
       }
       async function setCurrent(id){
         if(!id){
           state.currentId=null; state.project=null; await projectData.selectProject(null);
-          await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
+          await renderSaved(); fillForm(ac.model.ensureShape({})); renderHeader(); setDirty(false); renderIndicators(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
         }
         await loadCurrent(id); safeLS.set('ac:lastId', id); renderSwitcher();
       }
@@ -385,15 +399,15 @@ export async function initDashboard(): Promise<void> {
       // Abrir/fechar seções
       function updateEditActives(){
         document.querySelectorAll('[data-open]')?.forEach(b=>b.classList.remove('active'));
-        ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secSync'].forEach(sel=>{
+        ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{
           const d=document.querySelector(sel); if(d && d.open){ const btn=document.querySelector(`[data-open="${sel}"]`); if(btn) btn.classList.add('active'); }
         });
       }
-      function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secSync'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
-      function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } if(selector==='#secConvidados'){ mountConvidadosIfNeeded(); } if(selector==='#secSync'){ mountSyncIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }
+      function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
+      function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } if(selector==='#secConvidados'){ mountConvidadosIfNeeded(); } if(selector==='#secMensagens'){ mountMensagensIfNeeded(); } if(selector==='#secSync'){ mountSyncIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }
       document.addEventListener('click', (ev)=>{ const btn = ev.target.closest('[data-open]'); if(!btn) return; const sel = btn.getAttribute('data-open'); if(sel) toggleSection(sel); });
       window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeAll(); }});
-      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secSync'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }); });
+      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }); });
 
       // ====================== Boot ======================
       async function bootstrap(){
@@ -411,7 +425,7 @@ export async function initDashboard(): Promise<void> {
             fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
           });
           const { meta } = await projectData.createProject(blank);
-          await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
+          await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
         }
         const last = safeLS.get('ac:lastId');
         const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;

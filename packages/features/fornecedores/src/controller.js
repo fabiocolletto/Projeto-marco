@@ -1,3 +1,12 @@
+import {
+  normalizeFornecedor,
+  parseBRLCurrency,
+  formatBRLCurrency,
+  formatDateBR,
+  maskTelefoneBR,
+  computeFornecedoresKpi
+} from '@marco/domain-fornecedores';
+
 // ===============================
 // /shared/acFornecedores.v1.mjs
 // ===============================
@@ -49,67 +58,13 @@ async function updateProject(store, id, mut){
 }
 
 // ---------- Normalização ----------
-const normalizeStatus = (s)=>{
-  const k = String(s||'').trim().toLowerCase();
-  const map = {
-    'planejado':'planejado','cotacao':'planejado','cotação':'planejado','proposta':'planejado',
-    'contrato':'contratado','contratado':'contratado','pendente':'contratado','aberto':'contratado',
-    'parcial':'parcial','pago parcial':'parcial','parcialmente pago':'parcial',
-    'pago':'pago','quitado':'pago',
-    'cancelado':'cancelado','cancelada':'cancelado'
-  };
-  return map[k] || '';
-};
-const computeStatus = (it)=>{
-  if(String(it?.status||'').toLowerCase()==='cancelado') return 'cancelado';
-  const v = Number(it?.valor||0)||0; const p = Number(it?.pago||0)||0;
-  if(v>0 && p>=v) return 'pago';
-  if(p>0 && p<v)  return 'parcial';
-  return normalizeStatus(it?.status) || (v>0? 'contratado' : 'planejado');
-};
-
-const toISO = (d)=>{ // aceita 'YYYY-MM-DD' ou 'DD/MM/AAAA'
-  if(!d) return '';
-  const s = String(d).trim();
-  if(/\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
-  const m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if(m){ const [_,dd,mm,yy]=m; return `${yy.padStart(4,'0')}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`; }
-  const dt = new Date(s); if(!Number.isNaN(+dt)) return dt.toISOString().slice(0,10);
-  return '';
-};
-
-function normFornecedor(it={}){
-  const base = {
-    id: it.id || uid(),
-    fornecedor: it.fornecedor ?? it.nome ?? it.title ?? '',
-    contato: it.contato ?? '',
-    telefone: it.telefone ?? it.phone ?? '',
-    categoria: it.categoria ?? it.tipo ?? '',
-    dataEntrega: toISO(it.dataEntrega || it.entrega || it.date || ''), // persistimos ISO
-    valor: Number(it.valor ?? it.total ?? 0) || 0,
-    pago: Number(it.pago ?? it.valorPago ?? 0) || 0,
-    notas: it.notas ?? it.obs ?? it.notes ?? ''
-  };
-  base.status = normalizeStatus(it.status) || computeStatus(base);
-  return base;
-}
+const normFornecedor = (it = {})=> normalizeFornecedor(it);
 
 // ---------- Formatação BR ----------
-function fmtBRDate(ac, iso){
-  if(!iso) return '';
-  try{ return ac?.format?.fmtDateBR ? ac.format.fmtDateBR(iso) : iso.split('-').reverse().join('/'); }
-  catch{ return iso.split('-').reverse().join('/'); }
-}
-function parseBRL(str){ // "1.234,56" -> 1234.56 (Number)
-  const s = String(str||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',', '.');
-  const n = parseFloat(s); return Number.isFinite(n) ? n : 0;
-}
-function fmtBRL(ac, n){ try{ return ac?.format?.money ? ac.format.money(Number(n)||0) : (Number(n)||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); } catch{ return `R$ ${(Number(n)||0).toFixed(2)}`; } }
-function maskTelBR(v){
-  let s = String(v||'').replace(/\D/g,'').slice(0,11);
-  if(s.length<=10) return s.replace(/(\d{0,2})(\d{0,4})(\d{0,4}).*/, (m,a,b,c)=> (a?`(${a}`:'') + (a&&a.length===2?') ':'') + (b||'') + (c?`-${c}`:'') );
-  return s.replace(/(\d{0,2})(\d{0,5})(\d{0,4}).*/, (m,a,b,c)=> (a?`(${a}`:'') + (a&&a.length===2?') ':'') + (b||'') + (c?`-${c}`:'') );
-}
+const fmtBRDate = (ac, iso)=> formatDateBR(iso, ac?.format?.fmtDateBR);
+const parseBRL = (str)=> parseBRLCurrency(str);
+const fmtBRL = (ac, value)=> formatBRLCurrency(value, ac?.format?.money);
+const maskTelBR = (v)=> maskTelefoneBR(v);
 
 // ---------- UI helpers ----------
 function tableHeader(){
@@ -127,22 +82,18 @@ function tableHeader(){
 }
 
 function kpiRow(ac, list){
-  const total = list.reduce((a,b)=> a + (Number(b.valor)||0), 0);
-  const pago  = list.reduce((a,b)=> a + (Number(b.pago)||0), 0);
-  const pct = total>0 ? Math.round((pago/total)*100) : 0;
+  const kpi = computeFornecedoresKpi(list);
   return el('div',{className:'row',style:'gap:.75rem;align-items:center;margin:6px 0'},[
-    el('strong',{textContent:`${fmtBRL(ac, pago)} pagos — ${pct}%`}),
+    el('strong',{textContent:`${fmtBRL(ac, kpi.pago)} pagos — ${kpi.pctPago}%`}),
     el('span',{textContent:'•'}),
-    el('span',{textContent:`Total: ${fmtBRL(ac, total)}`, className:'muted'})
+    el('span',{textContent:`Total: ${fmtBRL(ac, kpi.total)}`, className:'muted'})
   ]);
 }
 
 function progress(ac, list){
-  const total = list.reduce((a,b)=> a + (Number(b.valor)||0), 0);
-  const pago  = list.reduce((a,b)=> a + (Number(b.pago)||0), 0);
-  const pct = total>0 ? Math.round((pago/total)*100) : 0;
+  const { total, pctPago } = computeFornecedoresKpi(list);
   const track = el('div',{className:'progress__track',style:'height:10px;border-radius:6px;background:#eef2f6;overflow:hidden'});
-  const bar = el('div',{className:'progress__bar',style:`height:10px;border-radius:6px;background:#0b65c2;width:${pct}%;transition:width .25s ease`});
+  const bar = el('div',{className:'progress__bar',style:`height:10px;border-radius:6px;background:#0b65c2;width:${pctPago}%;transition:width .25s ease`});
   track.appendChild(bar);
   return track;
 }
@@ -388,5 +339,10 @@ export function mountFornecedoresMiniApp(root, { ac, store, bus, getCurrentId })
   // Primeira renderização
   rerender();
 
-  return { refresh: rerender };
+  return {
+    refresh: rerender,
+    destroy(){
+      clear(root);
+    }
+  };
 }

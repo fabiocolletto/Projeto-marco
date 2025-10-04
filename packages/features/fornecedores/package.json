@@ -1,0 +1,16 @@
+{
+  "name": "@marco/features-fornecedores",
+  "version": "0.1.0",
+  "type": "module",
+  "svelte": "./src/FornecedoresMiniApp.svelte",
+  "exports": {
+    ".": {
+      "svelte": "./src/FornecedoresMiniApp.svelte",
+      "import": "./src/index.js",
+      "require": "./src/index.js"
+    }
+  },
+  "dependencies": {
+    "@marco/domain-fornecedores": "0.1.0"
+  }
+}

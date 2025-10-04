@@ -1,3 +1,10 @@
+import {
+  taskModels as domainTaskModels,
+  normalizeTask,
+  computeStatus as computeTaskStatus,
+  computeTasksKpi
+} from '@marco/domain-tarefas';
+
 // ===============================
 // /shared/acTasks.v1.mjs
 // ===============================
@@ -22,62 +29,16 @@ mountTasksMiniApp(rootElement, {
 const uid = (p='t')=> p + Math.random().toString(36).slice(2,10);
 
 // ---------- Helpers internos ----------
-const normalizeStatus = (s)=>{
-  const k = String(s||'').trim().toLowerCase();
-  const map = {
-    'a fazer':'todo','nao iniciado':'todo','não iniciado':'todo','não-iniciado':'todo','pendente':'todo','todo':'todo',
-    'iniciado':'doing','em andamento':'doing','andamento':'doing','doing':'doing',
-    'concluida':'done','concluída':'done','feito':'done','done':'done',
-    'atrasada':'late','atrasado':'late','late':'late'
-  };
-  return map[k] || '';
-};
-const computeStatus = (t)=>{
-  try{ if(window.__ac_core_tasks_compute__) return window.__ac_core_tasks_compute__(t); }catch{}
-  const prazo = t?.prazo || t?.due || '';
-  if(prazo){ const d = new Date(prazo); const ref = new Date(); ref.setHours(0,0,0,0); if(!Number.isNaN(+d) && d < ref) return 'late'; }
-  return normalizeStatus(t?.status) || 'todo';
+const computeStatus = (task)=>{
+  try{ if(window.__ac_core_tasks_compute__) return window.__ac_core_tasks_compute__(task); }catch{}
+  return computeTaskStatus(task);
 };
 
 // ---------- Normalização ----------
-const normTask = (t={})=>{
-  const base = {
-    id: t.id || uid(),
-    titulo: t.titulo ?? t.nome ?? t.title ?? t.text ?? '',
-    responsavel: t.responsavel ?? t.owner ?? t.assign ?? '',
-    prazo: t.prazo ?? t.data ?? t.due ?? '',   // YYYY-MM-DD preferencial
-    notas: t.notas ?? t.obs ?? t.notes ?? ''
-  };
-  // status persistido (retrocompatível)
-  const st = normalizeStatus(t.status) || computeStatus(t);
-  base.status = st;
-  // done derivado do status
-  base.done = (st === 'done');
-  return base;
-};
+const normTask = (task={})=> normalizeTask({ ...task, id: task.id || uid() }, { computeStatus });
 
 // ---------- Modelos prontos ----------
-export const taskModels = {
-  casamento: [
-    { titulo:'Definir orçamento', responsavel:'Anfitrião', prazo:'' },
-    { titulo:'Reservar local da cerimônia', responsavel:'Cerimonial', prazo:'' },
-    { titulo:'Reservar buffet', responsavel:'Cerimonial', prazo:'' },
-    { titulo:'Contratar fotógrafo', responsavel:'Cerimonial', prazo:'' },
-    { titulo:'Lista de convidados inicial', responsavel:'Anfitrião', prazo:'' }
-  ],
-  debutante15: [
-    { titulo:'Definir tema/festa', responsavel:'Anfitrião', prazo:'' },
-    { titulo:'Contratar DJ/banda', responsavel:'Cerimonial', prazo:'' },
-    { titulo:'Coreografia valsa', responsavel:'Família', prazo:'' },
-    { titulo:'Convites e distribuição', responsavel:'Anfitrião', prazo:'' }
-  ],
-  jantarCorporativo: [
-    { titulo:'Briefing com equipe de marketing', responsavel:'Equipe', prazo:'' },
-    { titulo:'Lista de VIPs', responsavel:'Comercial', prazo:'' },
-    { titulo:'Reserva restaurante/espaco', responsavel:'Operações', prazo:'' },
-    { titulo:'Material de apoio (brindes)', responsavel:'Marketing', prazo:'' }
-  ]
-};
+export const taskModels = domainTaskModels;
 
 // ---------- Persistência utilitária ----------
 async function getProject(store, id){ return id? await store.getProject?.(id) : null; }
@@ -103,7 +64,7 @@ function el(tag, attrs={}, children=[]){
 function clear(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
 
 function kpiRow(ac, list){
-  const k = ac.stats.kpiTarefas(list||[]);
+  const k = ac?.stats?.kpiTarefas ? ac.stats.kpiTarefas(list||[]) : computeTasksKpi(list||[]);
   return el('div',{className:'row',style:'gap:.75rem;align-items:center;margin:6px 0'},[
     el('strong',{textContent:`${k.pendentes} pendentes`} ),
     el('span',{textContent:'•'}),
@@ -112,7 +73,7 @@ function kpiRow(ac, list){
 }
 
 function progress(ac, list){
-  const k = ac.stats.kpiTarefas(list||[]);
+  const k = ac?.stats?.kpiTarefas ? ac.stats.kpiTarefas(list||[]) : computeTasksKpi(list||[]);
   const track = el('div',{className:'progress__track',style:'height:10px;border-radius:6px;background:#eef2f6;overflow:hidden'});
   const bar = el('div',{className:'progress__bar',style:`height:10px;border-radius:6px;background:#0b65c2;width:${k.pctConcluidas}%;transition:width .25s ease`});
   track.appendChild(bar);
@@ -273,4 +234,11 @@ export function mountTasksMiniApp(root, { ac, store, bus, getCurrentId }){
   // Primeira renderização
   rerender();
 
-  return { refresh: rerender };
+  return {
+    refresh: rerender,
+    destroy(){
+      clear(root);
+    }
+  };
+}
+
