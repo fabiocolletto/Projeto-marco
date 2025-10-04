@@ -10,6 +10,6 @@ Este documento fornece um rápido resumo para quem automatiza tarefas neste repo
 - 
 
 ## Checklist Rápido
-1. 
+1. Antes de finalizar qualquer alteração que afete a interface, execute `npm run test:visual` para garantir que os cenários visuais continuam funcionando.
 
 Seguir estas orientações ajuda a manter o código consistente e facilita o trabalho colaborativo entre agentes e desenvolvedores humanos.
