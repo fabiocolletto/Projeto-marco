@@ -26,7 +26,15 @@ O script `npm run package --workspace web` agora gera:
 
 ## AppBase no Elementor
 
-> ⚠️ **Importante:** o arquivo [`apps/web/src/app.html`](apps/web/src/app.html) é apenas o template interno do SvelteKit. Ele **não** deve ser colado no WordPress/Elementor. Utilize sempre o snippet hospedado no CDN; qualquer 404 para `app-base-widget.{css,js}` indica caminho incorreto ou bloqueio de permissão.
+> ⚠️ **Importante:** o arquivo [`apps/web/src/app.html`](apps/web/src/app.html) é apenas o template interno do SvelteKit e serve exclusivamente para o runtime do SvelteKit. Ele **não** deve ser colado no WordPress/Elementor — somente o snippet hospedado no CDN é suportado. Qualquer 404 para `app-base-widget.{css,js}` indica caminho incorreto ou bloqueio de permissão.
+
+### Fluxo contínuo de publicação
+
+1. **Merge na `main`** — toda alteração de front-end precisa ser integrada na branch principal. O merge dispara o workflow `Deploy AppBase` no GitHub Actions.
+2. **Execução automática do workflow** — o pipeline compila o host, atualiza o `widgets/app-base/latest/` e publica os artefatos (`app-base-widget.{css,js}`) no CDN institucional.
+3. **Snippet hospedado atualizado** — o arquivo [`docs/embed/app-base-snippet.html`](docs/embed/app-base-snippet.html) referencia o caminho `latest/`. Assim que o CDN conclui a publicação, qualquer página Elementor carregando o snippet passa a exibir a nova versão automaticamente, sem necessidade de colar HTML adicional.
+
+Documente no ticket correspondente a hora do merge e o link do workflow para rastreabilidade.
 
 ### Snippet CDN pronto para uso
 
@@ -73,11 +81,12 @@ Se for necessário gerar o HTML inline (por exemplo, para depuração offline), 
 
 3. Sempre que o shell solicitar um módulo (`app-base:request-module`), responda com o manifest apropriado (o host dispara `app-base:module-pending` automaticamente). Assim que o JSON estiver disponível, o AppBase importará a vertical com base no `loader` informado.
 
-### Checklist rápido pós-incorporação
+### Checklist pós-deploy (marco zero)
 
-1. Abra a página publicada, inspecione o console do navegador e confirme que **não há erros 404** nas solicitações de `app-base-widget.{css,js}`.
-2. Valide se o header institucional e a navegação lateral renderizam com o tema oficial.
-3. Capture uma evidência visual ou execute `npm run test:visual` apontando para o ambiente incorporado, quando aplicável.
+1. **Abrir a página Elementor publicada** e validar o carregamento automático do snippet (sem colar `app.html`).
+2. **Inspecionar erros no console** garantindo ausência de 404 para `app-base-widget.{css,js}` e scripts relacionados.
+3. **Capturar uma screenshot atualizada** para anexar ao ticket/PR.
+4. **Executar a suíte Playwright do marco zero** assim que o comando dedicado estiver disponível (planejado como `npm run test:marco-zero`). Anexar relatório quando aplicável.
 
 ## Testes visuais
 

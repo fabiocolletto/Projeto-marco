@@ -1,6 +1,12 @@
 # Marco zero — AppBase sem mini-app
 
-> ⚠️ **Atenção:** [`apps/web/src/app.html`](../src/app.html) é apenas o template do SvelteKit e não deve ser embutido diretamente no WordPress/Elementor. Use o snippet publicado em [`docs/embed/app-base-snippet.html`](../../../docs/embed/app-base-snippet.html), que aponta para `widgets/app-base/latest/` no CDN institucional. Qualquer 404 para `app-base-widget.{css,js}` indica problema de permissão ou caminho incorreto.
+> ⚠️ **Atenção:** [`apps/web/src/app.html`](../src/app.html) é apenas o template do SvelteKit e não deve ser embutido diretamente no WordPress/Elementor. Somente o snippet hospedado em [`docs/embed/app-base-snippet.html`](../../../docs/embed/app-base-snippet.html) é suportado; ele aponta para `widgets/app-base/latest/` no CDN institucional. Qualquer 404 para `app-base-widget.{css,js}` indica problema de permissão ou caminho incorreto.
+
+### Fluxo contínuo de publicação
+
+1. **Merge na `main`** — integre suas alterações na branch principal para acionar o workflow `Deploy AppBase`.
+2. **Workflow automático** — o GitHub Actions empacota o host e publica `app-base-widget.{css,js}` no caminho `widgets/app-base/latest/` do CDN.
+3. **Snippet hospedado** — como o Elementor carrega [`app-base-snippet.html`](../../../docs/embed/app-base-snippet.html) diretamente do repositório/CDN, a página atualiza sozinha assim que o deploy finaliza, sem colar `app.html`.
 
 Checklist rápido antes de publicar:
 
@@ -27,5 +33,6 @@ Checklist rápido antes de publicar:
    - Header e navegação institucional renderizados sem mensagens de erro no console.
    - Placeholder do canvas exibindo o texto padrão do AppHost.
    - Ausência de solicitações de rede 404 para `app-base-widget.{css,js}` e `manifest/active.json` (nenhum mini-app ativo).
-4. **Evidência visual** — capturar uma screenshot manual ou via Playwright apontando para a URL do WordPress. Validar que o layout ocupa 100% da largura disponível e que o canvas está vazio.
-5. **Logs futuros** — documentar qualquer script extra adicionado para registrar manifests quando mini-apps forem liberados.
+4. **Checklist pós-deploy** — após o merge e o workflow, abra a página Elementor publicada, inspecione o console (sem erros 404) e capture uma screenshot para anexar ao ticket/PR.
+5. **Validação Playwright** — assim que o comando dedicado estiver disponível (planejado como `npm run test:marco-zero`), execute-o para capturar evidências automatizadas do "marco 0".
+6. **Logs futuros** — documentar qualquer script extra adicionado para registrar manifests quando mini-apps forem liberados.
