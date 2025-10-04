@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { get } from 'svelte/store';
 import { projectData } from '$lib/data/projects';
+import { activePanel, closePanel, openOnboarding, openPanel, type PanelId } from '$lib/stores/ui';
 
 let initialized = false;
 
@@ -45,6 +46,7 @@ export async function initDashboard(): Promise<void> {
       // ====================== Estado & helpers ======================
       const AUTO_SAVE_MS = 700;
       const state = { currentId:null, project:null, metas:[], dirty:false, saving:false, timer:null };
+      let currentPanel: PanelId = 'overview';
       const $  = (s)=> document.querySelector(s);
       const $$ = (s)=> [...document.querySelectorAll(s)];
 
@@ -200,10 +202,18 @@ export async function initDashboard(): Promise<void> {
       }
 
       // ====================== KPIs (v2) ======================
-      function syncTasksKpiActive(){ try{ const kpi=document.querySelector('#kpi_tasks'); const det=document.querySelector('#secTarefas'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
-      function syncForKpiActive(){ try{ const kpi=document.querySelector('#kpi_for'); const det=document.querySelector('#secFornecedores'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
-      function syncGuestsKpiActive(){ try{ const kpi=document.querySelector('#kpi_guests'); const det=document.querySelector('#secConvidados'); if(kpi&&det){ kpi.classList.toggle('active', !!det.open); } }catch{} }
-      function syncSyncHeaderActive(){ try{ const badge=document.querySelector('#hdr_sync_badge'); const det=document.querySelector('#secSync'); if(badge&&det){ badge.classList.toggle('active', !!det.open); } }catch{} }
+      function reflectActivePanelState(){
+        try{
+          const kpiTasks=document.querySelector('#kpi_tasks');
+          const kpiFor=document.querySelector('#kpi_for');
+          const kpiGuests=document.querySelector('#kpi_guests');
+          const syncBadge=document.querySelector('#hdr_sync_badge');
+          if(kpiTasks) kpiTasks.classList.toggle('active', currentPanel==='tarefas');
+          if(kpiFor) kpiFor.classList.toggle('active', currentPanel==='fornecedores');
+          if(kpiGuests) kpiGuests.classList.toggle('active', currentPanel==='convidados');
+          if(syncBadge) syncBadge.classList.toggle('active', currentPanel==='sync');
+        }catch{}
+      }
 
       function clearChildren(node){ while(node && node.firstChild) node.removeChild(node.firstChild); }
       function pushSeg(container, pct, title){ const seg=document.createElement('div'); seg.className='seg'; seg.style.width=Math.max(0,Math.min(100,pct)).toFixed(2)+'%'; if(title) seg.title=title; container.appendChild(seg); }
@@ -249,14 +259,8 @@ export async function initDashboard(): Promise<void> {
       }
 
       // ====================== Novo / Excluir ======================
-      btnNew.addEventListener('click', async ()=>{
-        const blank = ac.model.ensureShape({
-          cerimonialista:{},
-          evento:{ endereco:{}, anfitriao:{ endCorrespondencia:{}, endEntrega:{} } },
-          fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
-        });
-        const { meta } = await projectData.createProject(blank);
-        await setCurrent(meta.id); await renderSaved(); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+      btnNew.addEventListener('click', () => {
+        openOnboarding();
       });
 
       btnDelete.addEventListener('click', async ()=>{
@@ -268,6 +272,7 @@ export async function initDashboard(): Promise<void> {
         state.currentId=null; await renderSaved();
         const nextId=(state.metas[0]&&state.metas[0].id)||null;
         await setCurrent(nextId); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject();
+        if(!nextId){ closePanel(); }
       });
 
       function publishCurrent(){ if(state.currentId) bus?.publish?.('ac:open-event',{ id: state.currentId, from:'eventos' }); }
@@ -276,6 +281,25 @@ export async function initDashboard(): Promise<void> {
       let fornecedoresApp: any = null;
       let convidadosApp: any = null;
       let mensagensApp: any = null;
+
+      window.addEventListener('ac:onboarding:complete', async (ev: CustomEvent<{ record?: any; focus?: PanelId }>)=>{
+        try{
+          const detail = ev?.detail||{};
+          const record = detail.record||{};
+          const metaId = record?.meta?.id;
+          if(!metaId) return;
+          await renderSaved();
+          await setCurrent(metaId);
+          publishCurrent();
+          mountTasksIfNeeded();
+          mountFornecedoresIfNeeded();
+          mountConvidadosIfNeeded();
+          mountMensagensIfNeeded();
+          mountSyncIfNeeded();
+          updateFornecedoresProject();
+          if(detail.focus){ openPanel(detail.focus); }
+        }catch(err){ console.error('[onboarding:complete]', err); }
+      });
 
       function mountTasksIfNeeded(){
         const host = document.querySelector('#tasks_host');
@@ -387,18 +411,22 @@ export async function initDashboard(): Promise<void> {
         };
       }catch{}
 
-      // Abrir/fechar seções
-      function updateEditActives(){
-        document.querySelectorAll('[data-open]')?.forEach(b=>b.classList.remove('active'));
-        ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{
-          const d=document.querySelector(sel); if(d && d.open){ const btn=document.querySelector(`[data-open="${sel}"]`); if(btn) btn.classList.add('active'); }
-        });
-      }
-      function closeAll(){ ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const el=document.querySelector(sel); if(el) el.open=false; }); updateEditActives(); }
-      function toggleSection(selector){ const target = document.querySelector(selector); if(!target) return; const willOpen = !target.open; closeAll(); target.open = willOpen; updateEditActives(); if(willOpen){ if(selector==='#secTarefas'){ mountTasksIfNeeded(); } if(selector==='#secFornecedores'){ mountFornecedoresIfNeeded(); } if(selector==='#secConvidados'){ mountConvidadosIfNeeded(); } if(selector==='#secMensagens'){ mountMensagensIfNeeded(); } if(selector==='#secSync'){ mountSyncIfNeeded(); } } syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }
-      document.addEventListener('click', (ev)=>{ const btn = ev.target.closest('[data-open]'); if(!btn) return; const sel = btn.getAttribute('data-open'); if(sel) toggleSection(sel); });
-      window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closeAll(); }});
-      ['#secEvento','#secAnfitriao','#secCerimonial','#secTarefas','#secFornecedores','#secConvidados','#secMensagens','#secSync'].forEach(sel=>{ const d=document.querySelector(sel); if(d) d.addEventListener('toggle', ()=>{ updateEditActives(); syncTasksKpiActive(); syncForKpiActive(); syncGuestsKpiActive(); syncSyncHeaderActive(); }); });
+      const unsubscribePanel = activePanel.subscribe((panel)=>{
+        currentPanel = panel;
+        reflectActivePanelState();
+        if(panel==='tarefas'){ mountTasksIfNeeded(); }
+        if(panel==='fornecedores'){ mountFornecedoresIfNeeded(); }
+        if(panel==='convidados'){ mountConvidadosIfNeeded(); }
+        if(panel==='mensagens'){ mountMensagensIfNeeded(); }
+        if(panel==='sync'){ mountSyncIfNeeded(); }
+      });
+      document.addEventListener('click', (ev)=>{
+        const btn = ev.target.closest('[data-open]');
+        if(!btn) return;
+        const sel = btn.getAttribute('data-open');
+        if(sel){ openPanel(sel as PanelId); }
+      });
+      window.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ closePanel(); }});
 
       // ====================== Boot ======================
       async function bootstrap(){
@@ -410,25 +438,28 @@ export async function initDashboard(): Promise<void> {
 
         const metas = state.metas||[];
         if(!metas.length){
-          const blank = ac.model.ensureShape({
-            cerimonialista:{},
-            evento:{ endereco:{}, anfitriao:{ endCorrespondencia:{}, endEntrega:{} } },
-            fornecedores:[], convidados:[], checklist:[], tipos:[], modelos:{}, vars:{}
-          });
-          const { meta } = await projectData.createProject(blank);
-          await setCurrent(meta.id); publishCurrent(); mountTasksIfNeeded(); mountFornecedoresIfNeeded(); mountConvidadosIfNeeded(); mountMensagensIfNeeded(); mountSyncIfNeeded(); updateFornecedoresProject(); return;
+          state.currentId = null;
+          state.project = null;
+          await projectData.selectProject(null);
+          fillForm(ac.model.ensureShape({}));
+          renderHeader();
+          renderIndicators();
+          renderStatus();
+          reflectActivePanelState();
+          openOnboarding();
+          return;
         }
         const last = safeLS.get('ac:lastId');
         const initial = (metas.find(m=>m.id===last)?.id) || metas[0]?.id || null;
         await setCurrent(initial); if(initial) publishCurrent();
-        closeAll();
         renderStatus();
         mountTasksIfNeeded();
         mountFornecedoresIfNeeded();
         mountConvidadosIfNeeded();
+        mountMensagensIfNeeded();
         mountSyncIfNeeded();
         updateFornecedoresProject();
-        syncSyncHeaderActive();
+        reflectActivePanelState();
       }
       await bootstrap();
 
