@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Marco · AppBase + MiniApps</title>
+    
+    <link rel="stylesheet" href="./styles/tokens.css" />
+    <link rel="stylesheet" href="./styles/components.css" />
+
+  </head>
+  <body>
+    <header class="app-header">
+      <!-- BEGIN: logo-picture-responsive -->
+      <picture>
+        <source srcset="/Projeto-marco/assets/app/brand/logo-dark-800.webp 800w, /Projeto-marco/assets/app/brand/logo-dark-400.webp 400w" media="(prefers-color-scheme: dark)" type="image/webp">
+        <source srcset="/Projeto-marco/assets/app/brand/logo-light-800.webp 800w, /Projeto-marco/assets/app/brand/logo-light-400.webp 400w" media="(prefers-color-scheme: light)" type="image/webp">
+        <img src="/Projeto-marco/assets/app/brand/logo-light-400.webp" alt="Logo 5 Horas" width="400" height="100" loading="eager" decoding="async">
+      </picture>
+      <!-- END: logo-picture-responsive -->
+      <div class="logo-area">
+        <div class="app-badge" data-i18n="app.badge">Marco</div>
+        <div class="title-group">
+          <h1 data-i18n="app.header.title">Marco · AppBase + MiniApps</h1>
+          <p data-i18n="app.header.description">
+            Aplicativo demonstrativo do Sistema Operacional Marco, com AppBase local-first
+            carregando mini-apps habilitados por tenant e respeitando os contratos do
+            blueprint consolidado.
+          </p>
+        </div>
+      </div>
+      <div class="status-area">
+        <span
+          class="status-indicator"
+          data-ref="status-indicator"
+          data-i18n="status.indicator"
+        >
+          Sessão ativa
+        </span>
+        <label class="locale-switcher">
+          <span class="sr-only" data-i18n="controls.locale.label">Idioma</span>
+          <select data-action="change-locale">
+            <option value="pt-BR" data-i18n="controls.locale.ptBR">Português (Brasil)</option>
+            <option value="en-US" data-i18n="controls.locale.enUS">English (US)</option>
+          </select>
+        </label>
+        <button
+          type="button"
+          class="theme-toggle"
+          data-action="toggle-theme"
+          aria-pressed="false"
+        >
+          <span class="theme-toggle__icon" aria-hidden="true">🌓</span>
+          <span data-theme-label data-i18n="controls.theme.light">Modo claro</span>
+        </button>
+        <div class="status-meta">
+          <span data-ref="status-tenant" data-i18n="status.tenant">Tenant:</span>
+          <span data-ref="status-user" data-i18n="status.user">Usuário:</span>
+          <span data-ref="status-storage" data-i18n="status.storage">Armazenamento vinculado:</span>
+          <span data-ref="status-sync" data-i18n="status.sync">Último sync:</span>
+          <span data-ref="status-ready" data-i18n="status.ready">Tempo até READY:</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="tela-principal" class="view active">
+        <div class="main-layout">
+          <section class="card app-block miniapp-list">
+            <header>
+              <h3 data-i18n="home.summary.title">Mini-app resumos</h3>
+              <p>
+                <span data-ref="miniapp-count">0</span>
+                <span data-i18n="home.summary.connector"> habilitados para </span>
+                <span data-ref="summary-tenant">-</span>
+              </p>
+            </header>
+            <div class="miniapp-rail" id="mini-app-grid"></div>
+          </section>
+          <section class="card app-block app-metrics">
+            <header>
+              <span class="eyebrow" data-i18n="home.metrics.eyebrow">Indicadores</span>
+              <h2 data-i18n="home.metrics.title">Snapshot operacional</h2>
+              <p data-i18n="home.metrics.description">
+                Resumo rápido de fluxo, capacidade e alertas do tenant ativo.
+              </p>
+            </header>
+            <div class="app-metrics-grid">
+              <article class="app-metric">
+                <span data-i18n="home.metrics.taskFlow">Fluxo de tarefas</span>
+                <strong data-ref="metric-task-flow">—</strong>
+              </article>
+              <article class="app-metric">
+                <span data-i18n="home.metrics.capacity">Capacidade</span>
+                <strong data-ref="metric-capacity">—</strong>
+              </article>
+              <article class="app-metric">
+                <span data-i18n="home.metrics.alerts">Alertas</span>
+                <strong data-ref="metric-alerts">—</strong>
+              </article>
+            </div>
+            <div class="app-metrics-highlights">
+              <article class="app-highlight">
+                <span data-i18n="home.metrics.approvals">Aprovações</span>
+                <strong data-ref="highlight-approvals">—</strong>
+              </article>
+              <article class="app-highlight">
+                <span data-i18n="home.metrics.fieldTeams">Equipes em campo</span>
+                <strong data-ref="highlight-field-teams">—</strong>
+              </article>
+              <article class="app-highlight">
+                <span data-i18n="home.metrics.priorityTasks">Tarefas críticas</span>
+                <strong data-ref="highlight-priority">—</strong>
+              </article>
+            </div>
+          </section>
+          <section class="card app-block client-panel">
+            <header>
+              <span class="eyebrow" data-i18n="home.client.eyebrow">Painel cliente</span>
+              <h2 data-i18n="home.client.title">Painel principal</h2>
+              <p data-i18n="home.client.description">
+                Área reservada para os componentes do cliente conforme o desenho base.
+              </p>
+            </header>
+            <div class="placeholder-area large"></div>
+          </section>
+          <section
+            class="card app-block miniapp-panel is-collapsed"
+            id="miniapp-panel-card"
+            aria-live="polite"
+          >
+            <header class="miniapp-panel-header">
+              <div class="miniapp-panel-context">
+                <span
+                  class="mini-app-chip"
+                  data-panel-chip
+                  data-i18n="panel.placeholder.chip"
+                >
+                  Mini-app não selecionado
+                </span>
+                <button
+                  type="button"
+                  class="icon-button"
+                  data-panel-menu
+                  aria-label="Abrir MiniAppPanel"
+                  aria-expanded="false"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M2.5 8a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
+                    />
+                  </svg>
+                  <span class="sr-only" data-i18n="panel.placeholder.toggle">Alternar MiniAppPanel</span>
+                </button>
+              </div>
+              <div class="miniapp-panel-meta">
+                <p data-panel-meta data-i18n="panel.placeholder.meta">
+                  Selecione um mini-app na coluna à esquerda para visualizar os masters.
+                </p>
+                <button
+                  type="button"
+                  class="pill-button miniapp-panel-close"
+                  data-panel-close
+                  hidden
+                  data-i18n="panel.placeholder.close"
+                >
+                  Fechar painel
+                </button>
+              </div>
+            </header>
+            <div class="miniapp-panel-body">
+              <div class="panel-placeholder" data-panel-placeholder data-i18n="panel.placeholder.body">
+                Selecione um mini-app na coluna à esquerda e utilize o menu de três pontos para abrir o MiniAppPanel.
+              </div>
+              <div class="panel-content" data-panel-content hidden></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <template id="panel-template-operations">
+        <div class="master-grid">
+          <div class="master-card">
+            <h3 data-i18n="panel.operations.kpis">KPIs do sistema</h3>
+            <div class="empty-slot"></div>
+          </div>
+          <div class="master-card">
+            <h3 data-i18n="panel.operations.data">Dados / Resumos</h3>
+            <div class="empty-slot"></div>
+          </div>
+          <div class="master-card">
+            <h3 data-i18n="panel.operations.other">Outros painéis</h3>
+            <div class="empty-slot"></div>
+          </div>
+        </div>
+        <div class="expansion-master">
+          <h3 data-i18n="panel.operations.expand">Área p/ expandir</h3>
+          <div class="empty-slot tall"></div>
+        </div>
+      </template>
+
+      <template id="panel-template-tasks">
+        <p class="panel-note" data-i18n="panel.tasks.note">
+          O painel mestre do Gestor de Tarefas apresentará filtros, status e próximos cards definidos nesta fase.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
+
+      <template id="panel-template-account">
+        <p class="panel-note" data-i18n="panel.account.note">
+          Área reservada para vincular dispositivos, backups e livros-razão diretamente no painel central.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
+
+      <template id="panel-template-market">
+        <p class="panel-note" data-i18n="panel.market.note">
+          Em breve: catálogo compacto para habilitar ou revogar licenças sem sair da Home.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
+
+      <template id="panel-template-settings">
+        <p class="panel-note" data-i18n="panel.settings.note">
+          Configurações rápidas do tenant, schemas registrados e observabilidade sumarizada aparecerão aqui.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
+
+      <section id="mini-app-painel" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2 data-i18n="operations.header.title">Mini-app • Painel de Operações</h2>
+              <p class="breadcrumbs">
+                <span data-i18n="breadcrumbs.home">Home</span><span data-i18n="breadcrumbs.miniapps">Mini-apps</span
+                ><span data-i18n="operations.header.breadcrumb">Painel de Operações</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-painel"
+                data-i18n="operations.actions.export"
+              >
+                Exportar painel
+              </button>
+            </div>
+          </header>
+          <p class="panel-note" data-i18n="operations.note">
+            Masters base preparados para receber os subcards.
+          </p>
+          <div class="master-grid">
+            <div class="master-card">
+              <h3 data-i18n="operations.card.kpis">KPIs do sistema</h3>
+              <div class="empty-slot"></div>
+            </div>
+            <div class="master-card">
+              <h3 data-i18n="operations.card.data">Dados / Resumos</h3>
+              <div class="empty-slot"></div>
+            </div>
+            <div class="master-card">
+              <h3 data-i18n="operations.card.other">Outros painéis</h3>
+              <div class="empty-slot"></div>
+            </div>
+          </div>
+          <div class="expansion-master">
+            <h3 data-i18n="operations.card.expand">Área p/ expandir</h3>
+            <div class="empty-slot tall"></div>
+          </div>
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            <span data-i18n="shared.backToHome">Voltar para a tela principal</span>
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-tarefas" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2 data-i18n="tasks.header.title">Mini-app • Gestor de Tarefas</h2>
+              <p class="breadcrumbs">
+                <span data-i18n="breadcrumbs.home">Home</span><span data-i18n="breadcrumbs.miniapps">Mini-apps</span
+                ><span data-i18n="tasks.header.breadcrumb">Gestor de Tarefas</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button type="button" data-i18n="tasks.actions.create">Criar nova tarefa</button>
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-tarefas"
+                data-i18n="tasks.actions.export"
+              >
+                Exportar planilha
+              </button>
+            </div>
+          </header>
+
+          <div class="chip-row" style="margin-top: 16px">
+            <span class="chip info" data-i18n="tasks.filters.today">Filtro: Hoje</span>
+            <span class="chip neutral" data-i18n="tasks.filters.owner">Owner: Todos</span>
+            <span class="chip warning" data-i18n="tasks.filters.critical">4 itens críticos</span>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="tasks.table.tasks">Tarefas</th>
+                  <th scope="col" data-i18n="tasks.table.owners">Responsáveis</th>
+                  <th scope="col" data-i18n="tasks.table.dates">Datas</th>
+                  <th scope="col" data-i18n="tasks.table.status">Status</th>
+                  <th scope="col" data-i18n="tasks.table.data">Dados consumidos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Revisar contrato principal</strong></td>
+                  <td>Carla Nogueira</td>
+                  <td>12/03 → 14/03</td>
+                  <td>
+                    <span class="status-indicator status-indicator--info" data-i18n="tasks.status.inProgress">Em curso</span>
+                  </td>
+                  <td>Base jurídica v2</td>
+                </tr>
+                <tr>
+                  <td><strong>Sincronizar planilha de fornecedores</strong></td>
+                  <td>Equipe Operações</td>
+                  <td>12/03 → 13/03</td>
+                  <td>
+                    <span class="status-indicator status-indicator--success" data-i18n="tasks.status.done">Concluído</span>
+                  </td>
+                  <td>Inventário homologado</td>
+                </tr>
+                <tr>
+                  <td><strong>Testar backups incrementais</strong></td>
+                  <td>Marcos Lima</td>
+                  <td>11/03 → 15/03</td>
+                  <td>
+                    <span class="status-indicator status-indicator--warning" data-i18n="tasks.status.warning">Atenção</span>
+                  </td>
+                  <td>Snapshots AWS 22h</td>
+                </tr>
+                <tr>
+                  <td><strong>Validar checklist de campo</strong></td>
+                  <td>Fernanda Dias</td>
+                  <td>10/03 → 12/03</td>
+                  <td>
+                    <span class="status-indicator status-indicator--danger" data-i18n="tasks.status.critical">Crítico</span>
+                  </td>
+                  <td>Dossiê Equipes Norte</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="system-tips">
+            <h4 data-i18n="tasks.tips.title">Dicas do sistema</h4>
+            <ul>
+              <li data-i18n="tasks.tips.item1">Use filtros por status para focar nos itens críticos do dia.</li>
+              <li data-i18n="tasks.tips.item2">Os cartões de dados consumidos indicam a fonte principal da tarefa.</li>
+              <li data-i18n="tasks.tips.item3">Atualizações automáticas acontecem a cada 15 minutos.</li>
+            </ul>
+          </div>
+
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            <span data-i18n="shared.backToHome">Voltar para a tela principal</span>
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-conta" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2 data-i18n="account.header.title">Mini-app • Conta & Backup</h2>
+              <p class="breadcrumbs">
+                <span data-i18n="breadcrumbs.home">Home</span><span data-i18n="breadcrumbs.miniapps">Mini-apps</span
+                ><span data-i18n="account.header.breadcrumb">Conta & Backup</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-conta"
+                data-i18n="account.actions.export"
+              >
+                Exportar relatório
+              </button>
+              <button type="button" data-i18n="account.actions.magicLink">Gerar link mágico</button>
+              <button type="button" data-i18n="account.actions.unlink">Desvincular dispositivo</button>
+            </div>
+          </header>
+
+          <div class="grid-two">
+            <div class="data-card">
+              <h4 data-i18n="account.identity.title">Identidade & Sessão</h4>
+              <ul>
+                <li>
+                  <span data-i18n="account.identity.tenant">Tenant atual:</span>
+                  <strong data-ref="detail-tenant">-</strong>
+                </li>
+                <li>
+                  <span data-i18n="account.identity.user">Usuário autenticado:</span>
+                  <strong data-ref="detail-user">-</strong>
+                </li>
+                <li>
+                  <span data-i18n="account.identity.login">Login unificado:</span>
+                  <span data-ref="detail-logins">-</span>
+                </li>
+                <li>
+                  <span data-i18n="account.identity.kiosk">Modo quiosque:</span>
+                  <span data-ref="detail-kiosk">-</span>
+                </li>
+              </ul>
+            </div>
+            <div class="data-card">
+              <h4 data-i18n="account.backup.title">Backup & Storage</h4>
+              <ul>
+                <li>
+                  <span data-i18n="account.backup.state">Backup automático:</span>
+                  <strong data-ref="detail-backup">-</strong>
+                </li>
+                <li>
+                  <span data-i18n="account.backup.files">Arquivos sincronizados:</span>
+                  <span data-ref="detail-files">-</span>
+                </li>
+                <li>
+                  <span data-i18n="account.backup.export">Última exportação:</span>
+                  <span data-ref="detail-export">-</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="storage-grid" id="storage-grid"></div>
+
+          <div class="grid-two">
+            <div class="data-card">
+              <h4 data-i18n="account.devices.title">Dispositivos ativos</h4>
+              <div class="device-list" id="device-list"></div>
+            </div>
+            <div class="data-card">
+              <h4 data-i18n="account.audit.title">Livro-razão de conformidade</h4>
+              <ul class="timeline" id="audit-timeline"></ul>
+            </div>
+          </div>
+
+          <div class="system-tips">
+            <h4 data-i18n="account.tips.title">Direitos do titular prontos para 1 clique</h4>
+            <ul>
+              <li data-i18n="account.tips.item1">Acesso completo aos dados exportando o envelope único.</li>
+              <li data-i18n="account.tips.item2">Retificação centralizada com versionamento por schema.</li>
+              <li data-i18n="account.tips.item3">Exclusão total com janela de segurança e recibo.</li>
+            </ul>
+          </div>
+
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            <span data-i18n="shared.backToHome">Voltar para a tela principal</span>
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-market" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2 data-i18n="market.header.title">Mini-app • Marketplace</h2>
+              <p class="breadcrumbs">
+                <span data-i18n="breadcrumbs.home">Home</span><span data-i18n="breadcrumbs.miniapps">Mini-apps</span
+                ><span data-i18n="market.header.breadcrumb">Marketplace</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button type="button" data-i18n="market.actions.refresh">Atualizar catálogos</button>
+              <button type="button" data-i18n="market.actions.viewLicenses">Ver licenças ativas</button>
+            </div>
+          </header>
+
+          <div class="market-grid" id="market-grid"></div>
+
+          <div class="system-tips">
+            <h4 data-i18n="market.tips.title">Como funciona o marketplace</h4>
+            <ul>
+              <li data-i18n="market.tips.item1">Mini-apps obrigatórios ficam bloqueados para desativação.</li>
+              <li data-i18n="market.tips.item2">Ativações refletem imediatamente na Home e no AppBase.</li>
+              <li data-i18n="market.tips.item3">
+                Licenças adicionais habilitam recursos como backup multi-dispositivo.
+              </li>
+            </ul>
+          </div>
+
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            <span data-i18n="shared.backToHome">Voltar para a tela principal</span>
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-config" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2 data-i18n="config.header.title">Mini-app • Configuração & Operação</h2>
+              <p class="breadcrumbs">
+                <span data-i18n="breadcrumbs.home">Home</span><span data-i18n="breadcrumbs.miniapps">Mini-apps</span
+                ><span data-i18n="config.header.breadcrumb">Configuração</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-config"
+                data-i18n="config.actions.export"
+              >
+                Exportar config
+              </button>
+              <button type="button" data-i18n="config.actions.audit">Ver auditoria</button>
+            </div>
+          </header>
+
+          <div class="config-block">
+            <h4 data-i18n="config.snapshot.title">Configuração resolvida</h4>
+            <pre id="config-json"></pre>
+          </div>
+
+          <div class="grid-two">
+            <div class="data-card">
+              <h4 data-i18n="config.checklist.title">Checklist LGPD-first</h4>
+              <ul>
+                <li data-i18n="config.checklist.item1">Consentimentos com recibo individual</li>
+                <li data-i18n="config.checklist.item2">Exportação 1-clique no envelope comum</li>
+                <li data-i18n="config.checklist.item3">Retenção configurável por MiniApp</li>
+              </ul>
+            </div>
+            <div class="data-card">
+              <h4 data-i18n="config.observability.title">Observabilidade</h4>
+              <ul>
+                <li data-i18n="config.observability.item1">Eventos críticos monitorados em tempo real</li>
+                <li data-i18n="config.observability.item2">KPIs alinhados ao blueprint R1.0</li>
+                <li data-i18n="config.observability.item3">Logs assinados por tenant e usuário</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col" data-i18n="config.table.event">Evento</th>
+                  <th scope="col" data-i18n="config.table.last">Última captura</th>
+                  <th scope="col" data-i18n="config.table.notes">Notas</th>
+                </tr>
+              </thead>
+              <tbody id="observability-table"></tbody>
+            </table>
+          </div>
+
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            <span data-i18n="shared.backToHome">Voltar para a tela principal</span>
+          </a>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <div class="footer-brand">
+        <img
+          src="https://5horas.com.br/wp-content/uploads/2025/09/Logo-Banner2.png"
+          alt="Logo 5horas"
+          loading="lazy"
+        />
+      </div>
+      <div class="footer-content">
+        <span data-i18n="footer.copyright">© 2024 Marco • Sistema Operacional Modular</span>
+        <span data-i18n="footer.version">Versão 0.2.0 • Protótipo navegável AppBase + MiniApps</span>
+      </div>
+    </footer>
+
+    <div
+      class="export-feedback"
+      data-export-feedback
+      hidden
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <span class="export-feedback__icon" data-export-icon aria-hidden="true">⏳</span>
+      <span data-export-message>Preparando exportação…</span>
+    </div>
+
+        <script type="module" src="./scripts/main.js"></script>
+
+  </body>
+</html>
