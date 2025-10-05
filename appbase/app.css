@@ -63,13 +63,19 @@ input {
 }
 
 .ac-app {
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 12px;
+  width: min(100vw, 100%);
+  margin: 0;
+  padding: 12px clamp(18px, 4vw, 56px);
   display: grid;
   gap: 14px;
   grid-template-rows: auto 1fr auto;
   min-height: 100vh;
+}
+
+@media (min-width: 1600px) {
+  .ac-app {
+    padding-inline: clamp(48px, 8vw, 120px);
+  }
 }
 
 .ac-appbar,
