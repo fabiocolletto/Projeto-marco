@@ -3,26 +3,40 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema Operacional Marco</title>
+    <title>Marco · AppBase + MiniApps</title>
     <style>
       :root {
-        --bg-primary: #0b1021;
-        --bg-secondary: #101833;
-        --bg-tertiary: #0f162c;
-        --surface: rgba(19, 28, 53, 0.85);
-        --surface-strong: rgba(24, 34, 63, 0.95);
-        --accent: #38bdf8;
-        --accent-strong: #0ea5e9;
+        --bg-primary: #f6f8fc;
+        --bg-secondary: #e8edfa;
+        --bg-tertiary: #dfe4f6;
+        --surface: rgba(255, 255, 255, 0.92);
+        --surface-strong: rgba(255, 255, 255, 0.98);
+        --accent: #4f6ef7;
+        --accent-strong: #1d4ed8;
+        --lavender: #7c3aed;
         --success: #22c55e;
-        --warning: #f97316;
+        --success-soft: rgba(34, 197, 94, 0.12);
+        --warning: #f59e0b;
+        --warning-soft: rgba(245, 158, 11, 0.16);
         --danger: #ef4444;
-        --text-primary: #f8fafc;
-        --text-secondary: #cbd5f5;
-        --border-color: rgba(148, 163, 184, 0.24);
-        --shadow-elevated: 0 24px 60px rgba(8, 14, 40, 0.45);
-        --radius-large: 24px;
+        --danger-soft: rgba(239, 68, 68, 0.12);
+        --text-primary: #1f2a44;
+        --text-secondary: #5f6c8a;
+        --border-color: rgba(187, 195, 216, 0.6);
+        --border-strong: rgba(99, 102, 241, 0.28);
+        --shadow-elevated: 0 18px 48px rgba(31, 42, 68, 0.12);
+        --radius-large: 26px;
         --radius-medium: 18px;
         --radius-small: 12px;
+        --space-2xs: 6px;
+        --space-xs: 10px;
+        --space-sm: 14px;
+        --space-md: 18px;
+        --space-lg: 24px;
+        --space-xl: 32px;
+        --space-xxl: 48px;
+        --layout-gutter: clamp(24px, 5vw, 60px);
+        --layout-gap: clamp(20px, 3vw, 28px);
       }
 
       * {
@@ -32,25 +46,52 @@
       body {
         margin: 0;
         min-height: 100vh;
-        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-        background: radial-gradient(circle at top, #1e293b 0%, #0b1021 45%, #05070f 100%);
+        font-family: "Inter", "SF Pro Display", -apple-system, system-ui, sans-serif;
+        background: linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-tertiary) 100%);
         color: var(--text-primary);
         display: flex;
         flex-direction: column;
+        align-items: center;
+      }
+
+      header.app-header,
+      main,
+      footer {
+        width: min(1180px, calc(100% - (var(--layout-gutter) * 2)));
+        margin: 0 auto;
       }
 
       a,
       button {
         font-family: inherit;
+        color: inherit;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
       }
 
       header.app-header {
-        padding: 32px clamp(24px, 4vw, 60px);
+        margin-top: var(--space-xxl);
+        padding: var(--space-xl) var(--layout-gutter);
         display: flex;
         flex-wrap: wrap;
-        gap: 24px;
+        gap: var(--layout-gap);
         align-items: center;
         justify-content: space-between;
+        background: var(--surface);
+        border-radius: var(--radius-large);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-elevated);
+        backdrop-filter: blur(14px);
       }
 
       .logo-area {
@@ -66,7 +107,7 @@
         width: 64px;
         height: 64px;
         border-radius: 18px;
-        background: linear-gradient(135deg, var(--accent-strong), #6366f1);
+        background: linear-gradient(135deg, var(--accent-strong), var(--lavender));
         font-weight: 700;
         font-size: 1rem;
         letter-spacing: 0.08em;
@@ -81,7 +122,7 @@
       .title-group p {
         margin: 6px 0 0;
         color: var(--text-secondary);
-        max-width: 520px;
+        max-width: 560px;
         font-size: 0.95rem;
       }
 
@@ -96,12 +137,13 @@
         padding: 10px 20px;
         border-radius: 999px;
         font-weight: 600;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
         display: inline-flex;
         align-items: center;
         gap: 10px;
-        background: rgba(34, 197, 94, 0.15);
+        background: var(--success-soft);
         color: var(--success);
+        border: 1px solid rgba(34, 197, 94, 0.3);
       }
 
       .status-indicator::before {
@@ -111,7 +153,7 @@
         height: 10px;
         border-radius: 50%;
         background: currentColor;
-        box-shadow: 0 0 10px currentColor;
+        box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
       }
 
       .status-meta {
@@ -125,7 +167,8 @@
 
       main {
         flex: 1;
-        padding: 0 clamp(24px, 4vw, 60px) 48px;
+        padding: var(--space-xl) 0 calc(var(--space-xl) + var(--space-xxl));
+        width: 100%;
       }
 
       .view {
@@ -134,7 +177,7 @@
 
       .view.active {
         display: block;
-        animation: fadeIn 200ms ease-out;
+        animation: fadeIn 220ms ease-out;
       }
 
       @keyframes fadeIn {
@@ -150,9 +193,291 @@
 
       .main-layout {
         display: grid;
-        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
-        gap: 28px;
-        align-items: stretch;
+        gap: var(--layout-gap);
+        grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+        align-items: start;
+      }
+
+      .miniapp-column {
+        display: flex;
+        flex-direction: column;
+        gap: var(--layout-gap);
+      }
+
+      .miniapp-list header {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .miniapp-list header h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .miniapp-list header p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .miniapp-list header span {
+        font-weight: 600;
+        color: var(--accent-strong);
+      }
+
+      .miniapp-rail {
+        margin-top: var(--space-md);
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .mini-app-card {
+        border-radius: var(--radius-medium);
+        border: 1px solid rgba(79, 110, 247, 0.32);
+        background: rgba(79, 110, 247, 0.12);
+        padding: var(--space-sm) var(--space-md);
+        display: grid;
+        gap: var(--space-xs);
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, border 120ms ease;
+      }
+
+      .mini-app-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 18px 32px rgba(79, 110, 247, 0.18);
+        border-color: rgba(79, 110, 247, 0.48);
+      }
+
+      .mini-app-card:focus-visible {
+        outline: 2px solid rgba(79, 110, 247, 0.8);
+        outline-offset: 3px;
+      }
+
+      .mini-app-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-xs);
+      }
+
+      .mini-app-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.86);
+        color: var(--accent-strong);
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .mini-app-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .mini-app-meta {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+      }
+
+      .icon-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        background: rgba(79, 110, 247, 0.15);
+        color: var(--accent-strong);
+        cursor: pointer;
+        transition: background 120ms ease, border 120ms ease, transform 120ms ease;
+      }
+
+      .icon-button:hover {
+        background: rgba(79, 110, 247, 0.24);
+      }
+
+      .icon-button:focus-visible {
+        outline: 2px solid rgba(79, 110, 247, 0.72);
+        outline-offset: 2px;
+      }
+
+      .icon-button svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+      }
+
+      .primary-stack {
+        display: grid;
+        gap: var(--layout-gap);
+      }
+
+      .client-panel header,
+      .miniapp-panel header {
+        display: grid;
+        gap: 8px;
+      }
+
+      .miniapp-panel {
+        position: relative;
+        transition: box-shadow 160ms ease, border 160ms ease;
+      }
+
+      .miniapp-panel.is-collapsed [data-panel-content] {
+        display: none;
+      }
+
+      .miniapp-panel.is-collapsed [data-panel-close] {
+        display: none;
+      }
+
+      .miniapp-panel.is-collapsed [data-panel-placeholder] {
+        display: grid;
+      }
+
+      .miniapp-panel-header {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-sm);
+      }
+
+      .miniapp-panel-context {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        flex-wrap: wrap;
+      }
+
+      .miniapp-panel-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
+      }
+
+      .miniapp-panel-meta p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .miniapp-panel-body {
+        margin-top: var(--layout-gap);
+        display: grid;
+        gap: var(--layout-gap);
+      }
+
+      .panel-placeholder {
+        border-radius: var(--radius-medium);
+        border: 1px dashed rgba(148, 163, 184, 0.6);
+        background: rgba(148, 163, 184, 0.12);
+        min-height: 160px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: var(--space-lg);
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+
+      .panel-content {
+        display: grid;
+        gap: var(--layout-gap);
+      }
+
+      .miniapp-panel-close {
+        margin-left: auto;
+      }
+
+      .miniapp-panel.is-active {
+        border-color: var(--border-strong);
+        box-shadow: 0 24px 48px rgba(79, 110, 247, 0.18);
+      }
+
+      .client-panel header h2,
+      .miniapp-panel header h2 {
+        margin: 0;
+        font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+      }
+
+      .client-panel header p,
+      .miniapp-panel header p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .panel-note {
+        margin: var(--space-md) 0 0;
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .placeholder-area {
+        margin-top: var(--layout-gap);
+        border-radius: var(--radius-medium);
+        border: 1px dashed rgba(148, 163, 184, 0.5);
+        background: rgba(148, 163, 184, 0.12);
+      }
+
+      .placeholder-area.large {
+        min-height: 220px;
+      }
+
+      .master-grid {
+        margin-top: var(--layout-gap);
+        display: grid;
+        gap: var(--layout-gap);
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .master-card {
+        border-radius: var(--radius-medium);
+        border: 1px dashed rgba(79, 110, 247, 0.36);
+        background: rgba(79, 110, 247, 0.06);
+        padding: var(--space-lg);
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .master-card h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .empty-slot {
+        border-radius: var(--radius-small);
+        border: 1px dashed rgba(148, 163, 184, 0.6);
+        background: rgba(255, 255, 255, 0.6);
+        min-height: 100px;
+      }
+
+      .expansion-master {
+        margin-top: var(--layout-gap);
+        border-radius: var(--radius-medium);
+        border: 1px dashed rgba(79, 110, 247, 0.4);
+        background: rgba(79, 110, 247, 0.08);
+        padding: var(--space-lg);
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .expansion-master h3 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .empty-slot.tall {
+        min-height: 160px;
       }
 
       .card {
@@ -160,7 +485,7 @@
         border-radius: var(--radius-large);
         border: 1px solid var(--border-color);
         box-shadow: var(--shadow-elevated);
-        padding: 28px;
+        padding: var(--space-xl);
         backdrop-filter: blur(18px);
       }
 
@@ -169,6 +494,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 12px;
+        flex-wrap: wrap;
       }
 
       .card header h2,
@@ -177,47 +503,484 @@
         font-size: 1.1rem;
       }
 
+      .card header p {
+        margin: 4px 0 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
       .panel-actions {
         display: flex;
         gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .primary-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: var(--layout-gap);
+        flex-wrap: wrap;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(79, 110, 247, 0.12);
+        color: var(--accent-strong);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .primary-header h2 {
+        margin: 12px 0 4px;
+        font-size: clamp(1.8rem, 3vw, 2.4rem);
+      }
+
+      .primary-header .meta {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .status-chip-group {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .status-chip {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px solid rgba(79, 110, 247, 0.2);
+        background: rgba(79, 110, 247, 0.1);
+        color: var(--accent-strong);
+      }
+
+      .status-chip--mirror {
+        border-color: rgba(79, 110, 247, 0.28);
+        background: rgba(79, 110, 247, 0.15);
+      }
+
+      .status-chip--safe {
+        border-color: rgba(34, 197, 94, 0.25);
+        background: var(--success-soft);
+        color: var(--success);
+      }
+
+      .status-buttons {
+        margin-top: var(--layout-gap);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+
+      .status-button {
+        border: 1px solid transparent;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        background: var(--surface-strong);
+        color: var(--text-primary);
+        transition: transform 120ms ease, box-shadow 120ms ease, border 120ms ease;
+      }
+
+      .status-button--new {
+        border-color: rgba(245, 158, 11, 0.28);
+        background: var(--warning-soft);
+        color: var(--warning);
+      }
+
+      .status-button--execute {
+        border-color: rgba(79, 110, 247, 0.28);
+        background: rgba(79, 110, 247, 0.15);
+        color: var(--accent-strong);
+      }
+
+      .status-button--ready {
+        border-color: rgba(34, 197, 94, 0.25);
+        background: var(--success-soft);
+        color: var(--success);
+      }
+
+      .status-button--maintenance {
+        border-color: rgba(148, 163, 184, 0.3);
+        background: rgba(148, 163, 184, 0.16);
+        color: var(--text-secondary);
+      }
+
+      .status-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 20px rgba(31, 42, 68, 0.12);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: rgba(79, 110, 247, 0.12);
+        color: var(--accent-strong);
+        font-size: 0.85rem;
+        font-weight: 600;
+        border: 1px dashed rgba(79, 110, 247, 0.4);
+      }
+
+      .badge-light {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 12px;
+        border-radius: 999px;
+        background: rgba(79, 110, 247, 0.12);
+        color: var(--accent-strong);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .sync-options {
+        display: grid;
+        gap: var(--layout-gap);
+      }
+
+      .option-group {
+        display: grid;
+        gap: var(--space-xs);
+      }
+
+      .group-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .option-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-xs);
+      }
+
+      .option-pill {
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: rgba(148, 163, 184, 0.12);
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 8px 16px;
+        cursor: pointer;
+      }
+
+      .option-pill--active {
+        border-color: rgba(79, 110, 247, 0.4);
+        background: rgba(79, 110, 247, 0.18);
+        color: var(--accent-strong);
+      }
+
+      .option-pill--ghost {
+        background: rgba(148, 163, 184, 0.08);
+      }
+
+      .option-status {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .option-status::before {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .option-status--offline {
+        color: var(--danger);
+      }
+
+      .option-status--mirroring {
+        color: var(--accent-strong);
+      }
+
+      .operations-highlights {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+      }
+
+      .operations-highlights > div {
+        border-radius: var(--radius-medium);
+        border: 1px solid var(--border-color);
+        background: var(--surface-strong);
+        padding: 18px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .operations-highlights p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .form-field {
+        display: grid;
+        gap: 8px;
+        font-size: 0.85rem;
+      }
+
+      .form-field span {
+        color: var(--text-secondary);
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      .form-field input {
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        color: var(--text-primary);
+        background: #ffffff;
+        box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+      }
+
+      .form-field input:focus {
+        outline: none;
+        border-color: rgba(79, 110, 247, 0.6);
+        box-shadow: 0 0 0 3px rgba(79, 110, 247, 0.18);
+      }
+
+      .inline-note {
+        margin-top: var(--layout-gap);
+        border-radius: var(--radius-medium);
+        border: 1px dashed rgba(79, 110, 247, 0.3);
+        background: rgba(79, 110, 247, 0.08);
+        padding: var(--space-md) var(--space-lg);
+        display: grid;
+        gap: var(--space-2xs);
+      }
+
+      .inline-note p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .action-bar {
+        margin-top: var(--layout-gap);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+      }
+
+      .action-button {
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        background: var(--surface-strong);
+        padding: 12px 18px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, border 120ms ease;
+      }
+
+      .action-button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(31, 42, 68, 0.12);
+      }
+
+      .action-button--tests {
+        border-color: rgba(79, 110, 247, 0.35);
+      }
+
+      .action-button--audit {
+        border-color: rgba(34, 197, 94, 0.3);
+      }
+
+      .action-button--control {
+        border-color: rgba(245, 158, 11, 0.3);
+      }
+
+      .kpi-section {
+        display: grid;
+        gap: var(--layout-gap);
+      }
+
+      .kpi-section header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .kpi-section header p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: var(--space-md);
+      }
+
+      .kpi-card {
+        border-radius: var(--radius-medium);
+        border: 1px solid rgba(79, 110, 247, 0.18);
+        background: rgba(79, 110, 247, 0.12);
+        padding: 18px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .kpi-card span {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .kpi-card strong {
+        font-size: 1.6rem;
+      }
+
+      .kpi-card small {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+      }
+
+      .insight-section {
+        display: grid;
+        gap: var(--layout-gap);
+      }
+
+      .insight-section header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .insight-section header p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .insight-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: var(--space-md);
+      }
+
+      .insight-card {
+        border-radius: var(--radius-medium);
+        border: 1px solid var(--border-color);
+        background: var(--surface-strong);
+        padding: 20px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .insight-card h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .insight-card p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .schedule-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .schedule-list li {
+        display: flex;
+        flex-direction: column;
+        gap: var(--space-2xs);
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-small);
+        border: 1px solid var(--border-color);
+        background: var(--surface-strong);
+      }
+
+      .schedule-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      .schedule-time {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
       }
 
       .panel-actions button,
       .pill-button {
-        border: none;
+        border: 1px solid rgba(79, 110, 247, 0.2);
         padding: 10px 18px;
         border-radius: 999px;
-        background: rgba(148, 163, 184, 0.14);
-        color: var(--text-primary);
+        background: rgba(79, 110, 247, 0.12);
+        color: var(--accent-strong);
         font-size: 0.85rem;
         font-weight: 600;
         cursor: pointer;
-        transition: transform 120ms ease, background 120ms ease;
+        transition: transform 120ms ease, background 120ms ease, box-shadow 120ms ease;
       }
 
       .panel-actions button:hover,
-      .pill-button:hover {
+      .pill-button:hover,
+      .toggle:not(:disabled):hover {
         transform: translateY(-1px);
-        background: rgba(148, 163, 184, 0.24);
+        background: rgba(79, 110, 247, 0.18);
+        box-shadow: 0 10px 22px rgba(79, 110, 247, 0.18);
       }
 
       .panel-body {
-        margin-top: 24px;
+        margin-top: var(--layout-gap);
         display: grid;
-        gap: 24px;
+        gap: var(--layout-gap);
       }
 
-      .panel-body .status-strip {
+      .status-strip {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 18px;
+        gap: var(--space-md);
       }
 
       .status-tile {
         border-radius: var(--radius-medium);
         border: 1px solid rgba(59, 130, 246, 0.25);
         background: linear-gradient(145deg, rgba(14, 165, 233, 0.18), rgba(14, 116, 233, 0.12));
-        padding: 18px;
+        padding: var(--space-md);
       }
 
       .status-tile strong {
@@ -242,6 +1005,9 @@
         background: var(--surface-strong);
         border: 1px solid rgba(148, 163, 184, 0.18);
         padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
       .highlight-card h4 {
@@ -250,86 +1016,82 @@
       }
 
       .highlight-card p {
-        margin: 8px 0 0;
+        margin: 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        flex: 1;
+      }
+
+      .mini-app-summary {
+        margin: 18px 0 10px;
         font-size: 0.85rem;
         color: var(--text-secondary);
       }
 
-      .mini-apps header p {
-        margin: 4px 0 0;
-        color: var(--text-secondary);
-        font-size: 0.85rem;
+      .mini-app-summary strong {
+        color: var(--text-primary);
       }
 
       .mini-app-grid {
-        margin-top: 22px;
+        margin-top: 12px;
         display: grid;
         gap: 16px;
       }
 
-      .mini-app-card {
-        border-radius: var(--radius-medium);
-        border: 1px solid rgba(56, 189, 248, 0.3);
-        background: rgba(15, 118, 255, 0.12);
-        padding: 20px;
+
+      .chip-row {
         display: flex;
-        flex-direction: column;
-        gap: 12px;
-        cursor: pointer;
-        transition: transform 120ms ease, box-shadow 120ms ease, border 120ms ease;
+        flex-wrap: wrap;
+        gap: 8px;
       }
 
-      .mini-app-card:hover {
-        transform: translateY(-3px);
-        border-color: rgba(56, 189, 248, 0.6);
-        box-shadow: 0 20px 40px rgba(2, 132, 199, 0.25);
-      }
-
-      .mini-app-card span.label {
-        font-size: 0.95rem;
-        font-weight: 600;
-      }
-
-      .mini-app-card span.meta {
-        color: var(--text-secondary);
-        font-size: 0.82rem;
-      }
-
-      .mini-app-card .cta {
+      .chip {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.75rem;
         font-weight: 600;
-        font-size: 0.85rem;
-        color: var(--accent);
-      }
-
-      .view header .breadcrumbs {
+        background: rgba(148, 163, 184, 0.18);
         color: var(--text-secondary);
-        font-size: 0.85rem;
       }
 
-      .view header .breadcrumbs span + span::before {
-        content: "›";
-        margin: 0 8px;
-        color: rgba(148, 163, 184, 0.5);
+      .chip.success {
+        background: rgba(34, 197, 94, 0.18);
+        color: var(--success);
+      }
+
+      .chip.info {
+        background: rgba(79, 110, 247, 0.18);
+        color: var(--accent-strong);
+      }
+
+      .chip.neutral {
+        background: rgba(148, 163, 184, 0.14);
+        color: var(--text-secondary);
+      }
+
+      .chip.warning {
+        background: var(--warning-soft);
+        color: var(--warning);
       }
 
       .grid-two {
-        margin-top: 26px;
+        margin-top: var(--layout-gap);
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 22px;
+        gap: var(--layout-gap);
       }
 
       .kpi-board {
         display: grid;
-        gap: 14px;
+        gap: var(--space-sm);
       }
 
       .kpi-item {
-        background: rgba(56, 189, 248, 0.15);
-        border: 1px solid rgba(56, 189, 248, 0.4);
+        background: rgba(79, 110, 247, 0.12);
+        border: 1px solid rgba(79, 110, 247, 0.3);
         border-radius: var(--radius-medium);
         padding: 16px;
       }
@@ -343,7 +1105,7 @@
       .data-card {
         background: var(--surface-strong);
         border-radius: var(--radius-medium);
-        border: 1px solid rgba(148, 163, 184, 0.18);
+        border: 1px solid var(--border-color);
         padding: 18px;
         display: grid;
         gap: 10px;
@@ -364,15 +1126,15 @@
       }
 
       .expansion-area {
-        margin-top: 26px;
-        background: rgba(59, 130, 246, 0.1);
-        border: 1px dashed rgba(56, 189, 248, 0.4);
+        margin-top: var(--layout-gap);
+        background: rgba(79, 110, 247, 0.08);
+        border: 1px dashed rgba(79, 110, 247, 0.36);
         border-radius: var(--radius-medium);
-        padding: 24px;
+        padding: var(--space-lg);
       }
 
       .expansion-area h4 {
-        margin: 0 0 8px;
+        margin: 0 0 var(--space-xs);
       }
 
       .expansion-area p {
@@ -382,18 +1144,18 @@
       }
 
       .table-wrapper {
-        margin-top: 24px;
+        margin-top: var(--layout-gap);
         background: var(--surface-strong);
         border-radius: var(--radius-large);
-        border: 1px solid rgba(148, 163, 184, 0.18);
-        padding: 24px;
+        border: 1px solid var(--border-color);
+        padding: var(--space-lg);
         overflow-x: auto;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 620px;
+        min-width: 640px;
       }
 
       table thead {
@@ -405,8 +1167,8 @@
 
       table th,
       table td {
-        padding: 14px 18px;
-        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        padding: var(--space-sm) var(--space-md);
+        border-bottom: 1px solid rgba(187, 195, 216, 0.4);
         text-align: left;
       }
 
@@ -419,13 +1181,13 @@
       }
 
       .system-tips {
-        margin-top: 20px;
+        margin-top: var(--space-lg);
         border-radius: var(--radius-medium);
-        border: 1px solid rgba(248, 250, 252, 0.12);
-        background: rgba(15, 23, 42, 0.8);
-        padding: 20px;
+        border: 1px solid var(--border-color);
+        background: var(--surface-strong);
+        padding: var(--space-lg);
         display: grid;
-        gap: 10px;
+        gap: var(--space-sm);
       }
 
       .system-tips h4 {
@@ -439,60 +1201,268 @@
         color: var(--text-secondary);
         font-size: 0.85rem;
         display: grid;
-        gap: 6px;
+        gap: var(--space-2xs);
       }
 
-      footer {
-        padding: 24px clamp(24px, 4vw, 60px) 40px;
-        color: rgba(203, 213, 225, 0.6);
-        font-size: 0.8rem;
+      .device-list {
+        display: grid;
+        gap: 14px;
+      }
+
+      .device-card {
+        border-radius: var(--radius-medium);
+        border: 1px solid var(--border-color);
+        padding: 16px;
+        background: var(--surface-strong);
+        display: grid;
+        gap: 8px;
+      }
+
+      .device-card header {
         display: flex;
         justify-content: space-between;
-        flex-wrap: wrap;
+        align-items: center;
         gap: 12px;
       }
 
-      .back-action {
-        margin-top: 22px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        cursor: pointer;
-        color: var(--accent);
-        font-size: 0.9rem;
+      .device-card header span {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
       }
 
-      .back-action svg {
-        width: 16px;
-        height: 16px;
+      .device-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        display: grid;
+        gap: 4px;
+      }
+
+      .storage-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .storage-card {
+        border-radius: var(--radius-medium);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        padding: 16px;
+        background: rgba(14, 165, 233, 0.12);
+        display: grid;
+        gap: 6px;
+      }
+
+      .storage-card strong {
+        font-size: 0.95rem;
+      }
+
+      .storage-card span {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+      }
+
+      .timeline {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 12px;
+      }
+
+      .timeline li {
+        position: relative;
+        padding-left: 24px;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .timeline li::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 6px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent-strong);
+        box-shadow: 0 0 10px rgba(79, 110, 247, 0.35);
+      }
+
+      .market-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: var(--space-md);
+        margin-top: var(--layout-gap);
+      }
+
+      .market-card {
+        border-radius: var(--radius-medium);
+        border: 1px solid var(--border-color);
+        background: var(--surface-strong);
+        padding: var(--space-lg);
+        display: grid;
+        gap: var(--space-sm);
+      }
+
+      .market-card header h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .market-card header p {
+        margin: 6px 0 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .market-card footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .toggle {
+        border: 1px solid rgba(79, 110, 247, 0.25);
+        border-radius: 999px;
+        padding: 10px 20px;
+        background: rgba(79, 110, 247, 0.12);
+        color: var(--accent-strong);
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 120ms ease, background 120ms ease;
+      }
+
+      .toggle:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+        background: rgba(148, 163, 184, 0.2);
+        border-color: rgba(148, 163, 184, 0.28);
+        color: var(--text-secondary);
+      }
+
+      .config-block {
+        background: var(--surface-strong);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-medium);
+        padding: var(--space-lg);
+        margin-top: var(--layout-gap);
+      }
+
+      .config-block h4 {
+        margin: 0 0 var(--space-sm);
+      }
+
+      .config-block pre {
+        margin: 0;
+        white-space: pre-wrap;
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        max-height: 320px;
+        overflow-y: auto;
+        background: #f6f7ff;
+        border-radius: var(--radius-small);
+        padding: var(--space-md);
+        border: 1px solid var(--border-color);
+      }
+
+      a.back-action {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+        margin-top: var(--layout-gap);
+        font-size: 0.9rem;
+        text-decoration: none;
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      a.back-action svg {
+        width: 18px;
+        height: 18px;
         fill: currentColor;
       }
 
-      @media (max-width: 960px) {
-        header.app-header {
-          align-items: flex-start;
+      footer {
+        margin-top: auto;
+        padding: var(--space-lg) var(--layout-gutter) var(--space-xl);
+        display: flex;
+        justify-content: space-between;
+        gap: var(--layout-gap);
+        flex-wrap: wrap;
+        align-items: center;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border-color);
+        background: var(--surface);
+        border-radius: var(--radius-large) var(--radius-large) 0 0;
+        box-shadow: 0 -12px 32px rgba(31, 42, 68, 0.08);
+      }
+
+      .footer-brand {
+        display: flex;
+        align-items: center;
+      }
+
+      .footer-brand img {
+        height: 32px;
+        object-fit: contain;
+        display: block;
+      }
+
+      .footer-content {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+      }
+
+      @media (max-width: 1200px) {
+        .main-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .miniapp-column {
+          order: 2;
+        }
+
+        .primary-stack {
+          order: 1;
         }
 
         .status-area {
           align-items: flex-start;
         }
 
-        .main-layout {
-          grid-template-columns: 1fr;
+        .status-meta {
+          text-align: left;
         }
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 720px) {
+        :root {
+          --layout-gutter: 20px;
+          --layout-gap: 20px;
+        }
+
         header.app-header {
-          padding: 24px;
+          padding: var(--space-lg) var(--layout-gutter);
         }
 
         main {
-          padding: 0 24px 32px;
+          padding: var(--space-lg) 0 calc(var(--space-lg) + var(--space-xl));
         }
 
-        .card {
-          padding: 22px;
+        footer {
+          padding: var(--space-lg) var(--layout-gutter) var(--space-xl);
+        }
+
+        table {
+          min-width: 520px;
         }
       }
     </style>
@@ -500,20 +1470,24 @@
   <body>
     <header class="app-header">
       <div class="logo-area">
-        <span class="app-badge">Marco</span>
+        <div class="app-badge">Marco</div>
         <div class="title-group">
-          <h1>Sistema Operacional Marco</h1>
+          <h1>Marco · AppBase + MiniApps</h1>
           <p>
-            Console unificado para monitorar KPIs, centralizar dados operacionais e
-            acionar mini-apps críticos da operação.
+            Aplicativo demonstrativo do Sistema Operacional Marco, com AppBase local-first
+            carregando mini-apps habilitados por tenant e respeitando os contratos do
+            blueprint consolidado.
           </p>
         </div>
       </div>
       <div class="status-area">
-        <span class="status-indicator">Status operacional: Online</span>
+        <span class="status-indicator" data-ref="status-indicator">Sessão ativa</span>
         <div class="status-meta">
-          <span>Última sincronização: 12/03/2024 • 18:42</span>
-          <span>Usuário conectado: <strong>ana.souza</strong></span>
+          <span data-ref="status-tenant">Tenant:</span>
+          <span data-ref="status-user">Usuário:</span>
+          <span data-ref="status-storage">Armazenamento vinculado:</span>
+          <span data-ref="status-sync">Último sync:</span>
+          <span data-ref="status-ready">Tempo até READY:</span>
         </div>
       </div>
     </header>
@@ -521,82 +1495,116 @@
     <main>
       <section id="tela-principal" class="view active">
         <div class="main-layout">
-          <section class="card painel-principal">
-            <header>
-              <div>
-                <h2>Painel principal</h2>
-                <p class="breadcrumbs"><span>Home</span><span>Painel</span></p>
-              </div>
-              <div class="panel-actions">
-                <button type="button">Dados / KPIs</button>
-                <button type="button">Atualizar status</button>
-              </div>
-            </header>
-
-            <div class="panel-body">
-              <div class="status-strip">
-                <div class="status-tile">
-                  <span>Fluxo de tarefas concluídas</span>
-                  <strong>82%</strong>
-                  <span>Meta mínima: 75%</span>
-                </div>
-                <div class="status-tile">
-                  <span>Capacidade operacional</span>
-                  <strong>92%</strong>
-                  <span>Atualizado há 3 min</span>
-                </div>
-                <div class="status-tile">
-                  <span>Alertas ativos</span>
-                  <strong>3</strong>
-                  <span>2 críticos • 1 monitorando</span>
-                </div>
-              </div>
-
-              <div class="panel-highlights">
-                <article class="highlight-card">
-                  <h4>Fila de aprovações</h4>
-                  <p>Documentos aguardando revisão jurídica e financeira.</p>
-                  <button class="pill-button" data-target="mini-app-painel">
-                    Abrir mini-app Painel
-                  </button>
-                </article>
-                <article class="highlight-card">
-                  <h4>Equipes em campo</h4>
-                  <p>9 equipes confirmadas • 2 deslocamentos em andamento.</p>
-                </article>
-                <article class="highlight-card">
-                  <h4>Tarefas prioritárias</h4>
-                  <p>4 tarefas vencendo hoje. Sincronize com o mini-app de tarefas.</p>
-                  <button class="pill-button" data-target="mini-app-tarefas">
-                    Abrir mini-app Tarefas
-                  </button>
-                </article>
-              </div>
-            </div>
-          </section>
-
-          <aside class="card mini-apps">
-            <header>
-              <div>
-                <h3>Mini-apps conectados</h3>
-                <p>Selecione um mini-app para expandir os dados específicos.</p>
-              </div>
-            </header>
-            <div class="mini-app-grid">
-              <article class="mini-app-card" data-target="mini-app-painel">
-                <span class="label">Painel de Operações</span>
-                <span class="meta">KPIs, dados mestres, status de recursos</span>
-                <span class="cta">Abrir painel detalhado →</span>
-              </article>
-              <article class="mini-app-card" data-target="mini-app-tarefas">
-                <span class="label">Gestor de Tarefas</span>
-                <span class="meta">Cronogramas, responsáveis e dados consumidos</span>
-                <span class="cta">Abrir lista de tarefas →</span>
-              </article>
-            </div>
+          <aside class="miniapp-column">
+            <section class="card miniapp-list">
+              <header>
+                <h3>Mini-app resumos</h3>
+                <p>
+                  <span data-ref="miniapp-count">0</span> habilitados para
+                  <span data-ref="summary-tenant">-</span>
+                </p>
+              </header>
+              <div class="miniapp-rail" id="mini-app-grid"></div>
+            </section>
           </aside>
+          <section class="primary-stack">
+            <section class="card client-panel">
+              <header>
+                <span class="eyebrow">Painel cliente</span>
+                <h2>Painel principal</h2>
+                <p>Área reservada para os componentes do cliente conforme o desenho base.</p>
+              </header>
+              <div class="placeholder-area large"></div>
+            </section>
+            <section
+              class="card miniapp-panel is-collapsed"
+              id="miniapp-panel-card"
+              aria-live="polite"
+            >
+              <header class="miniapp-panel-header">
+                <div class="miniapp-panel-context">
+                  <span class="mini-app-chip" data-panel-chip>Mini-app não selecionado</span>
+                  <button
+                    type="button"
+                    class="icon-button"
+                    data-panel-menu
+                    aria-label="Abrir MiniAppPanel"
+                    aria-expanded="false"
+                  >
+                    <svg viewBox="0 0 16 16" aria-hidden="true">
+                      <path
+                        d="M2.5 8a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
+                      />
+                    </svg>
+                    <span class="sr-only">Alternar MiniAppPanel</span>
+                  </button>
+                </div>
+                <div class="miniapp-panel-meta">
+                  <p data-panel-meta>Selecione um mini-app na coluna à esquerda para visualizar os masters.</p>
+                  <button type="button" class="pill-button miniapp-panel-close" data-panel-close hidden>
+                    Fechar painel
+                  </button>
+                </div>
+              </header>
+              <div class="miniapp-panel-body">
+                <div class="panel-placeholder" data-panel-placeholder>
+                  Selecione um mini-app na coluna à esquerda e utilize o menu de três pontos para abrir o MiniAppPanel.
+                </div>
+                <div class="panel-content" data-panel-content hidden></div>
+              </div>
+            </section>
+          </section>
         </div>
       </section>
+
+      <template id="panel-template-operations">
+        <div class="master-grid">
+          <div class="master-card">
+            <h3>KPIs do sistema</h3>
+            <div class="empty-slot"></div>
+          </div>
+          <div class="master-card">
+            <h3>Dados / Resumos</h3>
+            <div class="empty-slot"></div>
+          </div>
+          <div class="master-card">
+            <h3>Outros painéis</h3>
+            <div class="empty-slot"></div>
+          </div>
+        </div>
+        <div class="expansion-master">
+          <h3>Área p/ expandir</h3>
+          <div class="empty-slot tall"></div>
+        </div>
+      </template>
+
+      <template id="panel-template-tasks">
+        <p class="panel-note">
+          O painel mestre do Gestor de Tarefas apresentará filtros, status e próximos cards definidos nesta fase.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
+
+      <template id="panel-template-account">
+        <p class="panel-note">
+          Área reservada para vincular dispositivos, backups e livros-razão diretamente no painel central.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
+
+      <template id="panel-template-market">
+        <p class="panel-note">
+          Em breve: catálogo compacto para habilitar ou revogar licenças sem sair da Home.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
+
+      <template id="panel-template-settings">
+        <p class="panel-note">
+          Configurações rápidas do tenant, schemas registrados e observabilidade sumarizada aparecerão aqui.
+        </p>
+        <div class="placeholder-area large"></div>
+      </template>
 
       <section id="mini-app-painel" class="view">
         <section class="card">
@@ -607,72 +1615,31 @@
                 <span>Home</span><span>Mini-apps</span><span>Painel de Operações</span>
               </p>
             </div>
-            <div class="panel-actions">
-              <button type="button">Publicar dados</button>
-              <button type="button">Sincronizar recursos</button>
-            </div>
           </header>
-
-          <div class="grid-two">
-            <div class="kpi-board">
-              <div class="kpi-item">
-                <span>KPIs críticos</span>
-                <strong>05</strong>
-                <span>Última auditoria: há 12 minutos</span>
-              </div>
-              <div class="kpi-item">
-                <span>Disponibilidade de recursos</span>
-                <strong>87%</strong>
-                <span>Infraestrutura, equipes, fornecedores</span>
-              </div>
-              <div class="kpi-item">
-                <span>Tickets em observação</span>
-                <strong>11</strong>
-                <span>4 aguardando confirmação de dados</span>
-              </div>
+          <p class="panel-note">Masters base preparados para receber os subcards.</p>
+          <div class="master-grid">
+            <div class="master-card">
+              <h3>KPIs do sistema</h3>
+              <div class="empty-slot"></div>
             </div>
-            <div class="data-card">
-              <h4>Dados recentes</h4>
-              <ul>
-                <li>Upload do inventário consolidado • 12/03 • 18:12</li>
-                <li>Backup automático enviado para cofre seguro • 17:40</li>
-                <li>Checklist de conformidade assinado por <strong>ribeiro.l</strong></li>
-              </ul>
-              <button class="pill-button" type="button">Central de backups</button>
+            <div class="master-card">
+              <h3>Dados / Resumos</h3>
+              <div class="empty-slot"></div>
+            </div>
+            <div class="master-card">
+              <h3>Outros painéis</h3>
+              <div class="empty-slot"></div>
             </div>
           </div>
-
-          <div class="grid-two" style="margin-top: 24px">
-            <div class="data-card">
-              <h4>Controles de dados</h4>
-              <ul>
-                <li>Dashboard de arquivos de dados</li>
-                <li>Monitor de integrações • API, CSV, manual</li>
-                <li>Workflow de liberação de novos datasets</li>
-              </ul>
-            </div>
-            <div class="data-card">
-              <h4>Rotinas automatizadas</h4>
-              <ul>
-                <li>Validação de consistência diária • 07:00</li>
-                <li>Sincronização com CRM às 11:30 e 17:30</li>
-                <li>Alertas push para divergências críticas</li>
-              </ul>
-            </div>
+          <div class="expansion-master">
+            <h3>Área p/ expandir</h3>
+            <div class="empty-slot tall"></div>
           </div>
-
-          <div class="expansion-area">
-            <h4>Área para expansão e visualizações futuras</h4>
-            <p>
-              Reserve este espaço para componentes adicionais do mini-app (gráficos,
-              integrações em tempo real, modais). Mantém a hierarquia prevista no
-              esboço original para evoluções incrementais.
-            </p>
-          </div>
-
-          <a class="back-action" data-action="home">
+          <a class="back-action" data-action="home" href="#">
             <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z" />
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
             </svg>
             Voltar para a tela principal
           </a>
@@ -694,6 +1661,12 @@
             </div>
           </header>
 
+          <div class="chip-row" style="margin-top: 16px">
+            <span class="chip info">Filtro: Hoje</span>
+            <span class="chip neutral">Owner: Todos</span>
+            <span class="chip warning">4 itens críticos</span>
+          </div>
+
           <div class="table-wrapper">
             <table>
               <thead>
@@ -710,28 +1683,52 @@
                   <td><strong>Revisar contrato principal</strong></td>
                   <td>Carla Nogueira</td>
                   <td>12/03 → 14/03</td>
-                  <td><span class="status-indicator" style="background: rgba(56, 189, 248, 0.15); color: var(--accent)">Em curso</span></td>
+                  <td>
+                    <span
+                      class="status-indicator"
+                      style="background: rgba(56, 189, 248, 0.15); color: var(--accent)"
+                      >Em curso</span
+                    >
+                  </td>
                   <td>Base jurídica v2</td>
                 </tr>
                 <tr>
                   <td><strong>Sincronizar planilha de fornecedores</strong></td>
                   <td>Equipe Operações</td>
                   <td>12/03 → 13/03</td>
-                  <td><span class="status-indicator" style="background: rgba(34, 197, 94, 0.15); color: var(--success)">Concluído</span></td>
+                  <td>
+                    <span
+                      class="status-indicator"
+                      style="background: rgba(34, 197, 94, 0.15); color: var(--success)"
+                      >Concluído</span
+                    >
+                  </td>
                   <td>Inventário homologado</td>
                 </tr>
                 <tr>
                   <td><strong>Testar backups incrementais</strong></td>
                   <td>Marcos Lima</td>
                   <td>11/03 → 15/03</td>
-                  <td><span class="status-indicator" style="background: rgba(249, 115, 22, 0.15); color: var(--warning)">Atenção</span></td>
+                  <td>
+                    <span
+                      class="status-indicator"
+                      style="background: rgba(249, 115, 22, 0.15); color: var(--warning)"
+                      >Atenção</span
+                    >
+                  </td>
                   <td>Snapshots AWS 22h</td>
                 </tr>
                 <tr>
                   <td><strong>Validar checklist de campo</strong></td>
                   <td>Fernanda Dias</td>
                   <td>10/03 → 12/03</td>
-                  <td><span class="status-indicator" style="background: rgba(239, 68, 68, 0.15); color: var(--danger)">Crítico</span></td>
+                  <td>
+                    <span
+                      class="status-indicator"
+                      style="background: rgba(239, 68, 68, 0.15); color: var(--danger)"
+                      >Crítico</span
+                    >
+                  </td>
                   <td>Dossiê Equipes Norte</td>
                 </tr>
               </tbody>
@@ -747,9 +1744,189 @@
             </ul>
           </div>
 
-          <a class="back-action" data-action="home">
+          <a class="back-action" data-action="home" href="#">
             <svg viewBox="0 0 20 20" aria-hidden="true">
-              <path d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z" />
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            Voltar para a tela principal
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-conta" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2>Mini-app • Conta & Backup</h2>
+              <p class="breadcrumbs">
+                <span>Home</span><span>Mini-apps</span><span>Conta & Backup</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button type="button">Gerar link mágico</button>
+              <button type="button">Desvincular dispositivo</button>
+            </div>
+          </header>
+
+          <div class="grid-two">
+            <div class="data-card">
+              <h4>Identidade & Sessão</h4>
+              <ul>
+                <li>
+                  Tenant atual: <strong data-ref="detail-tenant">-</strong>
+                </li>
+                <li>
+                  Usuário autenticado: <strong data-ref="detail-user">-</strong>
+                </li>
+                <li>
+                  Login unificado: <span data-ref="detail-logins">-</span>
+                </li>
+                <li>
+                  Modo quiosque: <span data-ref="detail-kiosk">-</span>
+                </li>
+              </ul>
+            </div>
+            <div class="data-card">
+              <h4>Backup & Storage</h4>
+              <ul>
+                <li>Backup automático: <strong data-ref="detail-backup">-</strong></li>
+                <li>Arquivos sincronizados: <span data-ref="detail-files">-</span></li>
+                <li>Última exportação: <span data-ref="detail-export">-</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="storage-grid" id="storage-grid"></div>
+
+          <div class="grid-two">
+            <div class="data-card">
+              <h4>Dispositivos ativos</h4>
+              <div class="device-list" id="device-list"></div>
+            </div>
+            <div class="data-card">
+              <h4>Livro-razão de conformidade</h4>
+              <ul class="timeline" id="audit-timeline"></ul>
+            </div>
+          </div>
+
+          <div class="system-tips">
+            <h4>Direitos do titular prontos para 1 clique</h4>
+            <ul>
+              <li>Acesso completo aos dados exportando o envelope único.</li>
+              <li>Retificação centralizada com versionamento por schema.</li>
+              <li>Exclusão total com janela de segurança e recibo.</li>
+            </ul>
+          </div>
+
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            Voltar para a tela principal
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-market" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2>Mini-app • Marketplace</h2>
+              <p class="breadcrumbs">
+                <span>Home</span><span>Mini-apps</span><span>Marketplace</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button type="button">Atualizar catálogos</button>
+              <button type="button">Ver licenças ativas</button>
+            </div>
+          </header>
+
+          <div class="market-grid" id="market-grid"></div>
+
+          <div class="system-tips">
+            <h4>Como funciona o marketplace</h4>
+            <ul>
+              <li>Mini-apps obrigatórios ficam bloqueados para desativação.</li>
+              <li>Ativações refletem imediatamente na Home e no AppBase.</li>
+              <li>
+                Licenças adicionais habilitam recursos como backup multi-dispositivo.
+              </li>
+            </ul>
+          </div>
+
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
+            </svg>
+            Voltar para a tela principal
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-config" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2>Mini-app • Configuração & Operação</h2>
+              <p class="breadcrumbs">
+                <span>Home</span><span>Mini-apps</span><span>Configuração</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button type="button">Exportar config</button>
+              <button type="button">Ver auditoria</button>
+            </div>
+          </header>
+
+          <div class="config-block">
+            <h4>Configuração resolvida</h4>
+            <pre id="config-json"></pre>
+          </div>
+
+          <div class="grid-two">
+            <div class="data-card">
+              <h4>Checklist LGPD-first</h4>
+              <ul>
+                <li>Consentimentos com recibo individual</li>
+                <li>Exportação 1-clique no envelope comum</li>
+                <li>Retenção configurável por MiniApp</li>
+              </ul>
+            </div>
+            <div class="data-card">
+              <h4>Observabilidade</h4>
+              <ul>
+                <li>Eventos críticos monitorados em tempo real</li>
+                <li>KPIs alinhados ao blueprint R1.0</li>
+                <li>Logs assinados por tenant e usuário</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Evento</th>
+                  <th scope="col">Última captura</th>
+                  <th scope="col">Notas</th>
+                </tr>
+              </thead>
+              <tbody id="observability-table"></tbody>
+            </table>
+          </div>
+
+          <a class="back-action" data-action="home" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path
+                d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z"
+              />
             </svg>
             Voltar para a tela principal
           </a>
@@ -758,34 +1935,848 @@
     </main>
 
     <footer>
-      <span>© 2024 Marco • Sistema Operacional Modular</span>
-      <span>Versão 0.1.0 • Layout baseado no esboço inicial do projeto</span>
+      <div class="footer-brand">
+        <img
+          src="https://5horas.com.br/wp-content/uploads/2025/09/Logo-Banner2.png"
+          alt="Logo 5horas"
+          loading="lazy"
+        />
+      </div>
+      <div class="footer-content">
+        <span>© 2024 Marco • Sistema Operacional Modular</span>
+        <span>Versão 0.2.0 • Protótipo navegável AppBase + MiniApps</span>
+      </div>
     </footer>
 
     <script>
-      const views = document.querySelectorAll(".view");
+      const views = document.querySelectorAll('.view');
       const appRoot = document.documentElement;
+      const panelCard = document.getElementById('miniapp-panel-card');
+      const panelContent = panelCard?.querySelector('[data-panel-content]');
+      const panelPlaceholder = panelCard?.querySelector('[data-panel-placeholder]');
+      const panelChip = panelCard?.querySelector('[data-panel-chip]');
+      const panelMeta = panelCard?.querySelector('[data-panel-meta]');
+      const panelClose = panelCard?.querySelector('[data-panel-close]');
+      const panelMenu = panelCard?.querySelector('[data-panel-menu]');
+      let activePanelKey = null;
+      let activePanelTrigger = null;
 
       function activateView(id) {
         views.forEach((view) => {
-          view.classList.toggle("active", view.id === id);
+          view.classList.toggle('active', view.id === id);
         });
         if (window.scrollY > 0) {
-          window.scrollTo({ top: 0, behavior: "smooth" });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        appRoot.setAttribute("data-view", id);
+        appRoot.setAttribute('data-view', id);
       }
 
-      document.querySelectorAll("[data-target]").forEach((element) => {
-        element.addEventListener("click", () => activateView(element.dataset.target));
+      const dashboardSnapshot = {
+        taskFlow: 82,
+        capacity: 92,
+        alerts: 3,
+        approvals: 12,
+        fieldTeams: 9,
+        priorityTasks: 4,
+      };
+
+      const sessionState = {
+        network: 'Online',
+        deviceName: 'Marco Tablet Kiosk',
+        lastSync: '12/03/2025 17:42',
+        timeToReady: '1,4s',
+        kioskMode: 'Device Owner • Single-App Kiosk',
+        devices: [
+          {
+            id: 'device-01',
+            label: 'Marco Tablet Kiosk',
+            type: 'Tablet',
+            lastActivity: 'há 2 minutos',
+            status: 'Sessão atual',
+          },
+          {
+            id: 'device-02',
+            label: 'iPhone 15 — Operações',
+            type: 'Celular',
+            lastActivity: 'há 1 hora',
+            status: 'Login via Passkey',
+          },
+          {
+            id: 'device-03',
+            label: 'Desktop Backoffice',
+            type: 'Desktop',
+            lastActivity: 'há 3 horas',
+            status: 'Sessão ativa',
+          },
+        ],
+        auditTrail: [
+          {
+            event: 'export_completed',
+            description: 'Exportação 1-clique concluída',
+            timestamp: '12/03 17:21',
+          },
+          {
+            event: 'erasure_requested',
+            description: 'Solicitação de eliminação total agendada',
+            timestamp: '12/03 14:02',
+          },
+          {
+            event: 'consent_logged',
+            description: 'Consentimento LGPD atualizado',
+            timestamp: '11/03 18:45',
+          },
+        ],
+      };
+
+      const backupSnapshot = {
+        enabled: true,
+        filesSynced: '128 itens',
+        lastExport: '12/03 17:21',
+        storageStatus: {
+          drive: {
+            name: 'Google Drive',
+            status: 'Operacional',
+            lastSync: 'há 5 minutos',
+          },
+          onedrive: {
+            name: 'Microsoft OneDrive',
+            status: 'Operacional',
+            lastSync: 'há 8 minutos',
+          },
+        },
+      };
+
+      const marketCatalog = [
+        {
+          key: 'operations',
+          title: 'Painel de Operações',
+          description: 'KPIs, dados mestres e status unificado do tenant.',
+          capabilities: ['KPIs', 'Alertas', 'Workflow'],
+          license: 'Base',
+        },
+        {
+          key: 'tasks',
+          title: 'Gestor de Tarefas',
+          description: 'Cronogramas, responsáveis e dependências críticas.',
+          capabilities: ['Quadro', 'Alertas', 'Exportação'],
+          license: 'Base',
+        },
+        {
+          key: 'account',
+          title: 'Conta & Backup',
+          description: 'Identidade, dispositivos, direitos do titular e backups.',
+          capabilities: ['LGPD', 'Backup', 'Passkeys'],
+          license: 'Premium',
+        },
+        {
+          key: 'market',
+          title: 'Marketplace',
+          description: 'Gestão de catálogos, licenças e habilitação de MiniApps.',
+          capabilities: ['Catálogo', 'Licenças', 'Provisionamento'],
+          license: 'Base',
+        },
+        {
+          key: 'settings',
+          title: 'Configuração & Operação',
+          description: 'Parâmetros do AppBase, observabilidade e auditoria.',
+          capabilities: ['Schemas', 'Observabilidade', 'LGPD'],
+          license: 'Base',
+        },
+        {
+          key: 'analytics',
+          title: 'Insights Avançados',
+          description: 'Visualizações analíticas e previsões operacionais.',
+          capabilities: ['Forecast', 'Análises', 'Dashboards'],
+          license: 'Add-on',
+          comingSoon: true,
+        },
+      ];
+
+      const observabilitySnapshot = [
+        {
+          event: 'boot_start',
+          timestamp: '12/03 17:00',
+          notes: 'Fluxo nominal',
+        },
+        {
+          event: 'config_loaded',
+          timestamp: '12/03 17:00',
+          notes: 'Checksum válido',
+        },
+        {
+          event: 'session_ok',
+          timestamp: '12/03 17:01',
+          notes: 'Token renovado via PKCE',
+        },
+        {
+          event: 'sync_completed',
+          timestamp: '12/03 17:42',
+          notes: 'Fila zerada',
+        },
+        {
+          event: 'export_completed',
+          timestamp: '12/03 17:21',
+          notes: 'Envelope distribuído',
+        },
+      ];
+
+      const AppBase = (() => {
+        const modules = new Map();
+        const defaults = new Set();
+        let enabled = new Set();
+        let currentConfig = null;
+
+        function register(key, module) {
+          modules.set(key, module);
+        }
+
+        function boot(config) {
+          currentConfig = config;
+          defaults.clear();
+          (config.defaults?.enabledMiniApps ?? []).forEach((key) => defaults.add(key));
+          enabled = new Set([
+            ...(config.defaults?.enabledMiniApps ?? []),
+            ...(config.user?.enabledMiniApps ?? []),
+          ]);
+          refreshNav();
+        }
+
+        function refreshNav() {
+          const enabledKeys = Array.from(enabled).filter((key) => modules.has(key));
+          const container = document.getElementById('mini-app-grid');
+          if (container) {
+            container.innerHTML = '';
+            enabledKeys.forEach((key) => {
+              const module = modules.get(key);
+              container.appendChild(createMiniAppCard(module, key));
+            });
+          }
+          const countRef = document.querySelector('[data-ref="miniapp-count"]');
+          if (countRef) {
+            countRef.textContent = enabledKeys.length;
+          }
+          const tenantSummary = document.querySelector('[data-ref="summary-tenant"]');
+          if (tenantSummary && currentConfig) {
+            tenantSummary.textContent = currentConfig.tenantId;
+          }
+          connectMiniAppTriggers();
+          buildMarketplace();
+        }
+
+        function createMiniAppCard(module, key) {
+          const article = document.createElement('article');
+          article.className = 'mini-app-card';
+          article.dataset.miniapp = key;
+          article.dataset.miniappView = key;
+          article.tabIndex = 0;
+          article.setAttribute('role', 'button');
+          article.setAttribute('aria-label', `Abrir visão completa de ${module.card.label}`);
+
+          const header = document.createElement('div');
+          header.className = 'mini-app-card-header';
+
+          const chip = document.createElement('div');
+          chip.className = 'mini-app-chip';
+
+          const title = document.createElement('span');
+          title.className = 'mini-app-title';
+          title.textContent = module.card.label;
+          chip.appendChild(title);
+
+          const trigger = document.createElement('button');
+          trigger.type = 'button';
+          trigger.className = 'icon-button';
+          trigger.dataset.panelTrigger = key;
+          trigger.setAttribute('aria-label', `Abrir MiniAppPanel de ${module.card.label}`);
+          trigger.setAttribute('aria-expanded', 'false');
+          trigger.innerHTML = `
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M2.5 8a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" />
+            </svg>
+            <span class="sr-only">Abrir painel de mini-app</span>
+          `;
+
+          chip.appendChild(trigger);
+          header.appendChild(chip);
+          article.appendChild(header);
+
+          if (module.card?.meta) {
+            const meta = document.createElement('p');
+            meta.className = 'mini-app-meta';
+            meta.textContent = module.card.meta;
+            article.appendChild(meta);
+          }
+
+          article.addEventListener('click', (event) => {
+            if (event.target.closest('button')) {
+              return;
+            }
+            activateView(module.id);
+          });
+
+          article.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              activateView(module.id);
+            }
+          });
+
+          article.dataset.bound = 'true';
+
+          return article;
+        }
+
+        function toggleMiniApp(key) {
+          if (!modules.has(key) && !defaults.has(key)) {
+            return;
+          }
+          const module = modules.get(key);
+          if (enabled.has(key)) {
+            if (defaults.has(key)) {
+              return;
+            }
+            enabled.delete(key);
+            if (activePanelKey === key) {
+              hideMiniAppPanel();
+            }
+            if (module && appRoot.dataset.view === module.id) {
+              activateView('tela-principal');
+            }
+          } else {
+            enabled.add(key);
+          }
+          refreshNav();
+        }
+
+        function isEnabled(key) {
+          return enabled.has(key);
+        }
+
+        function isDefault(key) {
+          return defaults.has(key);
+        }
+
+        function getResolvedConfig() {
+          if (!currentConfig) {
+            return null;
+          }
+          return {
+            tenantId: currentConfig.tenantId,
+            userId: currentConfig.userId,
+            catalogBaseUrl: currentConfig.catalogBaseUrl,
+            enabledMiniApps: Array.from(enabled),
+            entitlements: currentConfig.user?.entitlements ?? {},
+            providers: currentConfig.user?.providers ?? {},
+            ui: currentConfig.ui,
+            meta: currentConfig.meta,
+          };
+        }
+
+        function resolve(key) {
+          return modules.get(key);
+        }
+
+        return {
+          register,
+          boot,
+          toggleMiniApp,
+          isEnabled,
+          isDefault,
+          getResolvedConfig,
+          resolve,
+        };
+      })();
+
+      AppBase.register('operations', {
+        id: 'mini-app-painel',
+        card: {
+          label: 'Painel de Operações',
+          meta: 'KPIs, dados mestres e status de recursos',
+          cta: 'Abrir painel detalhado',
+        },
+        badges: ['KPIs', 'Alertas'],
+        panel: {
+          template: 'panel-template-operations',
+          meta: 'Masters do painel operacional prontos para receber subcards.',
+        },
       });
 
+      AppBase.register('tasks', {
+        id: 'mini-app-tarefas',
+        card: {
+          label: 'Gestor de Tarefas',
+          meta: 'Cronogramas, responsáveis e dados consumidos',
+          cta: 'Abrir lista de tarefas',
+        },
+        badges: ['Workflow', 'Autosave'],
+        panel: {
+          template: 'panel-template-tasks',
+          meta: 'Masters do gestor focados em filtros e status prioritários.',
+        },
+      });
+
+      AppBase.register('account', {
+        id: 'mini-app-conta',
+        card: {
+          label: 'Conta & Backup',
+          meta: 'Identidade, dispositivos e direitos LGPD',
+          cta: 'Gerenciar conta',
+        },
+        badges: ['LGPD', 'Backup'],
+        panel: {
+          template: 'panel-template-account',
+          meta: 'Masters para direitos do titular, dispositivos e backups.',
+        },
+      });
+
+      AppBase.register('market', {
+        id: 'mini-app-market',
+        card: {
+          label: 'Marketplace',
+          meta: 'Catálogo confiável de mini-apps do tenant',
+          cta: 'Gerenciar licenças',
+        },
+        badges: ['Catálogo', 'Provisionamento'],
+        panel: {
+          template: 'panel-template-market',
+          meta: 'Preview compacto para habilitar ou revogar licenças.',
+        },
+      });
+
+      AppBase.register('settings', {
+        id: 'mini-app-config',
+        card: {
+          label: 'Configuração & Operação',
+          meta: 'Parametros, observabilidade e auditoria',
+          cta: 'Abrir configurações',
+        },
+        badges: ['Schemas', 'Logs'],
+        panel: {
+          template: 'panel-template-settings',
+          meta: 'Masters de configuração rápida e observabilidade do tenant.',
+        },
+      });
+
+      const bootConfig = {
+        tenantId: 'tenant-marco',
+        userId: 'ribeiro.l',
+        catalogBaseUrl: 'https://cdn.marco.app/catalog',
+        defaults: { enabledMiniApps: ['home', 'market', 'settings'] },
+        user: {
+          enabledMiniApps: ['operations', 'tasks', 'account'],
+          entitlements: { backup: true, marketplace: true },
+          providers: { login: ['google', 'apple'], storage: ['drive', 'onedrive'] },
+        },
+        ui: { theme: 'dark', layout: 'tabs' },
+        meta: { version: '1.0', signature: 'demo-signature', checksum: 'demo-checksum' },
+      };
+
+      AppBase.boot(bootConfig);
+
+      updateHeaderSession(bootConfig, sessionState);
+      updateHomeSnapshot(dashboardSnapshot);
+      updateAccountDetails(bootConfig, sessionState, backupSnapshot);
+      buildObservabilityTable();
+      connectMiniAppTriggers();
       document.querySelectorAll('[data-action="home"]').forEach((element) => {
-        element.addEventListener("click", (event) => {
+        element.addEventListener('click', (event) => {
           event.preventDefault();
-          activateView("tela-principal");
+          activateView('tela-principal');
         });
       });
+
+      function updateHeaderSession(config, session) {
+        const indicator = document.querySelector('[data-ref="status-indicator"]');
+        if (indicator) {
+          indicator.textContent = `Sessão ativa • ${session.network}`;
+        }
+        const tenantRef = document.querySelector('[data-ref="status-tenant"]');
+        if (tenantRef) {
+          tenantRef.textContent = `Tenant: ${config.tenantId}`;
+        }
+        const userRef = document.querySelector('[data-ref="status-user"]');
+        if (userRef) {
+          userRef.textContent = `Usuário: ${config.userId} • ${session.deviceName}`;
+        }
+        const storageProviders = config.user?.providers?.storage ?? [];
+        const storageRef = document.querySelector('[data-ref="status-storage"]');
+        if (storageRef) {
+          storageRef.textContent = storageProviders.length
+            ? `Armazenamento vinculado: ${storageProviders
+                .map((provider) => provider.toUpperCase())
+                .join(' • ')}`
+            : 'Armazenamento vinculado: não habilitado';
+        }
+        const syncRef = document.querySelector('[data-ref="status-sync"]');
+        if (syncRef) {
+          syncRef.textContent = session.lastSync
+            ? `Último sync: ${session.lastSync}`
+            : 'Sync desativado';
+        }
+        const readyRef = document.querySelector('[data-ref="status-ready"]');
+        if (readyRef) {
+          readyRef.textContent = `Tempo até READY: ${session.timeToReady}`;
+        }
+      }
+
+      function updateHomeSnapshot(snapshot) {
+        const flow = document.querySelector('[data-ref="metric-task-flow"]');
+        if (flow) {
+          flow.textContent = `${snapshot.taskFlow}%`;
+        }
+        const capacity = document.querySelector('[data-ref="metric-capacity"]');
+        if (capacity) {
+          capacity.textContent = `${snapshot.capacity}%`;
+        }
+        const alerts = document.querySelector('[data-ref="metric-alerts"]');
+        if (alerts) {
+          alerts.textContent = snapshot.alerts;
+        }
+        const approvals = document.querySelector('[data-ref="highlight-approvals"]');
+        if (approvals) {
+          approvals.textContent = snapshot.approvals;
+        }
+        const teams = document.querySelector('[data-ref="highlight-field-teams"]');
+        if (teams) {
+          teams.textContent = snapshot.fieldTeams;
+        }
+        const priority = document.querySelector('[data-ref="highlight-priority"]');
+        if (priority) {
+          priority.textContent = snapshot.priorityTasks;
+        }
+      }
+
+      function updateAccountDetails(config, session, backup) {
+        const tenantDetail = document.querySelector('[data-ref="detail-tenant"]');
+        if (tenantDetail) {
+          tenantDetail.textContent = config.tenantId;
+        }
+        const userDetail = document.querySelector('[data-ref="detail-user"]');
+        if (userDetail) {
+          userDetail.textContent = config.userId;
+        }
+        const loginDetail = document.querySelector('[data-ref="detail-logins"]');
+        if (loginDetail) {
+          const providers = config.user?.providers?.login ?? [];
+          loginDetail.textContent = providers.length
+            ? providers.map((provider) => provider.toUpperCase()).join(' • ')
+            : 'Sem provedores configurados';
+        }
+        const kioskDetail = document.querySelector('[data-ref="detail-kiosk"]');
+        if (kioskDetail) {
+          kioskDetail.textContent = session.kioskMode;
+        }
+        const backupDetail = document.querySelector('[data-ref="detail-backup"]');
+        if (backupDetail) {
+          backupDetail.textContent = backup.enabled ? 'Ativo' : 'Desativado';
+        }
+        const filesDetail = document.querySelector('[data-ref="detail-files"]');
+        if (filesDetail) {
+          filesDetail.textContent = backup.filesSynced;
+        }
+        const exportDetail = document.querySelector('[data-ref="detail-export"]');
+        if (exportDetail) {
+          exportDetail.textContent = backup.lastExport;
+        }
+
+        const storageGrid = document.getElementById('storage-grid');
+        if (storageGrid) {
+          storageGrid.innerHTML = '';
+          const storageProviders = config.user?.providers?.storage ?? [];
+          storageProviders.forEach((providerKey) => {
+            const data = backup.storageStatus[providerKey];
+            const card = document.createElement('article');
+            card.className = 'storage-card';
+            card.innerHTML = `
+              <strong>${data?.name ?? providerKey.toUpperCase()}</strong>
+              <span>Status: ${data?.status ?? 'Desconhecido'}</span>
+              <span>Último sync: ${data?.lastSync ?? '—'}</span>
+            `;
+            storageGrid.appendChild(card);
+          });
+        }
+
+        const deviceList = document.getElementById('device-list');
+        if (deviceList) {
+          deviceList.innerHTML = '';
+          session.devices.forEach((device) => {
+            const card = document.createElement('article');
+            card.className = 'device-card';
+            card.innerHTML = `
+              <header>
+                <strong>${device.label}</strong>
+                <span>${device.status}</span>
+              </header>
+              <ul>
+                <li>Tipo: ${device.type}</li>
+                <li>Última atividade: ${device.lastActivity}</li>
+                <li>ID: ${device.id}</li>
+              </ul>
+            `;
+            deviceList.appendChild(card);
+          });
+        }
+
+        const timeline = document.getElementById('audit-timeline');
+        if (timeline) {
+          timeline.innerHTML = '';
+          session.auditTrail.forEach((entry) => {
+            const item = document.createElement('li');
+            item.textContent = `${entry.timestamp} • ${entry.description}`;
+            timeline.appendChild(item);
+          });
+        }
+
+        const configJson = document.getElementById('config-json');
+        if (configJson) {
+          const resolved = AppBase.getResolvedConfig();
+          configJson.textContent = JSON.stringify(resolved, null, 2);
+        }
+      }
+
+      function toggleMiniAppPanel(key, trigger) {
+        if (!panelCard || !panelContent || !panelPlaceholder) {
+          return;
+        }
+        if (activePanelKey === key && panelCard.classList.contains('is-active')) {
+          hideMiniAppPanel();
+          return;
+        }
+        showMiniAppPanel(key, trigger);
+      }
+
+      function showMiniAppPanel(key, trigger) {
+        const module = AppBase.resolve(key);
+        if (!module || !panelCard || !panelContent || !panelPlaceholder) {
+          return;
+        }
+
+        panelContent.innerHTML = '';
+        const templateId = module.panel?.template;
+        if (templateId) {
+          const template = document.getElementById(templateId);
+          if (template) {
+            panelContent.appendChild(template.content.cloneNode(true));
+          }
+        }
+        if (!panelContent.hasChildNodes()) {
+          const fallback = document.createElement('p');
+          fallback.className = 'panel-note';
+          fallback.textContent = `Painel em preparação para ${module.card.label}.`;
+          panelContent.appendChild(fallback);
+        }
+
+        panelPlaceholder.setAttribute('hidden', 'hidden');
+        panelContent.removeAttribute('hidden');
+        panelCard.classList.add('is-active');
+        panelCard.classList.remove('is-collapsed');
+
+        if (panelChip) {
+          panelChip.textContent = module.card.label;
+        }
+        if (panelMeta) {
+          panelMeta.textContent = module.panel?.meta ?? module.card?.meta ?? '';
+        }
+
+        if (panelClose) {
+          panelClose.removeAttribute('hidden');
+        }
+
+        if (panelMenu) {
+          panelMenu.dataset.panelTrigger = key;
+          panelMenu.setAttribute('aria-expanded', 'true');
+          panelMenu.setAttribute('aria-label', `Fechar MiniAppPanel de ${module.card.label}`);
+        }
+
+        if (activePanelTrigger) {
+          activePanelTrigger.setAttribute('aria-expanded', 'false');
+        }
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'true');
+          activePanelTrigger = trigger;
+        } else {
+          activePanelTrigger = null;
+        }
+
+        activePanelKey = key;
+      }
+
+      function hideMiniAppPanel() {
+        if (!panelCard || !panelContent || !panelPlaceholder) {
+          return;
+        }
+        panelCard.classList.remove('is-active');
+        panelCard.classList.add('is-collapsed');
+        panelContent.innerHTML = '';
+        panelContent.setAttribute('hidden', 'hidden');
+        panelPlaceholder.removeAttribute('hidden');
+
+        if (panelChip) {
+          panelChip.textContent = 'Mini-app não selecionado';
+        }
+        if (panelMeta) {
+          panelMeta.textContent = 'Selecione um mini-app na coluna à esquerda para visualizar os masters.';
+        }
+        if (panelClose) {
+          panelClose.setAttribute('hidden', 'hidden');
+        }
+        if (panelMenu) {
+          panelMenu.removeAttribute('data-panel-trigger');
+          panelMenu.setAttribute('aria-expanded', 'false');
+          panelMenu.setAttribute('aria-label', 'Abrir MiniAppPanel');
+        }
+        if (activePanelTrigger) {
+          activePanelTrigger.setAttribute('aria-expanded', 'false');
+        }
+        activePanelTrigger = null;
+        activePanelKey = null;
+      }
+
+      if (panelClose) {
+        panelClose.addEventListener('click', (event) => {
+          event.stopPropagation();
+          hideMiniAppPanel();
+        });
+      }
+
+      if (panelMenu) {
+        panelMenu.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const targetKey = panelMenu.dataset.panelTrigger ?? activePanelKey;
+          if (targetKey) {
+            toggleMiniAppPanel(targetKey, panelMenu);
+          }
+        });
+      }
+
+      function connectMiniAppTriggers() {
+        document.querySelectorAll('[data-miniapp-view]').forEach((element) => {
+          if (element.dataset.bound === 'true') {
+            return;
+          }
+          const module = AppBase.resolve(element.dataset.miniappView);
+          if (!module) {
+            return;
+          }
+          element.dataset.bound = 'true';
+          element.addEventListener('click', (event) => {
+            if (event.target.closest('button')) {
+              return;
+            }
+            activateView(module.id);
+          });
+        });
+
+        document.querySelectorAll('[data-panel-trigger]').forEach((button) => {
+          if (button.dataset.panelBound === 'true') {
+            return;
+          }
+          button.dataset.panelBound = 'true';
+          button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            toggleMiniAppPanel(button.dataset.panelTrigger, button);
+          });
+        });
+      }
+
+      function buildMarketplace() {
+        const container = document.getElementById('market-grid');
+        if (!container) {
+          return;
+        }
+        container.innerHTML = '';
+        marketCatalog.forEach((item) => {
+          const card = document.createElement('article');
+          card.className = 'market-card';
+          card.dataset.marketCard = item.key;
+
+          const header = document.createElement('header');
+          header.innerHTML = `
+            <div>
+              <h4>${item.title}</h4>
+              <p>${item.description}</p>
+            </div>
+          `;
+          card.appendChild(header);
+
+          if (item.capabilities?.length) {
+            const chips = document.createElement('div');
+            chips.className = 'chip-row';
+            item.capabilities.forEach((capability) => {
+              const chip = document.createElement('span');
+              chip.className = 'chip neutral';
+              chip.textContent = capability;
+              chips.appendChild(chip);
+            });
+            card.appendChild(chips);
+          }
+
+          const statusRow = document.createElement('div');
+          statusRow.className = 'chip-row';
+          const statusChip = document.createElement('span');
+          if (item.comingSoon) {
+            statusChip.className = 'chip neutral';
+            statusChip.textContent = 'Em breve';
+          } else if (AppBase.isEnabled(item.key)) {
+            statusChip.className = 'chip success';
+            statusChip.textContent = 'Ativo';
+          } else {
+            statusChip.className = 'chip info';
+            statusChip.textContent = 'Disponível';
+          }
+          statusRow.appendChild(statusChip);
+
+          if (item.license) {
+            const licenseChip = document.createElement('span');
+            licenseChip.className = 'chip neutral';
+            licenseChip.textContent = `Licença: ${item.license}`;
+            statusRow.appendChild(licenseChip);
+          }
+          card.appendChild(statusRow);
+
+          const footer = document.createElement('footer');
+          if (item.comingSoon) {
+            const info = document.createElement('span');
+            info.className = 'chip neutral';
+            info.textContent = 'Catálogo agendado para Q3';
+            footer.appendChild(info);
+          } else {
+            const toggle = document.createElement('button');
+            toggle.className = 'toggle';
+            toggle.type = 'button';
+            if (AppBase.isDefault(item.key)) {
+              toggle.textContent = 'Obrigatório';
+              toggle.disabled = true;
+            } else {
+              toggle.textContent = AppBase.isEnabled(item.key) ? 'Desabilitar' : 'Habilitar';
+              toggle.addEventListener('click', () => {
+                AppBase.toggleMiniApp(item.key);
+              });
+            }
+            footer.appendChild(toggle);
+          }
+          card.appendChild(footer);
+
+          container.appendChild(card);
+        });
+      }
+
+      function buildObservabilityTable() {
+        const tbody = document.getElementById('observability-table');
+        if (!tbody) {
+          return;
+        }
+        tbody.innerHTML = '';
+        observabilitySnapshot.forEach((entry) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td><strong>${entry.event}</strong></td>
+            <td>${entry.timestamp}</td>
+            <td>${entry.notes}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
     </script>
   </body>
 </html>

@@ -1,17 +1,45 @@
 # Sistema Operacional Marco
 
-Este repositório contém uma única página HTML (`index.html`) que materializa o conceito do Sistema Operacional Marco descrito nos esboços fornecidos. A interface reproduz a **tela principal** com o painel unificado e dois mini-apps navegáveis diretamente no mesmo arquivo.
+Este repositório contém o protótipo navegável do **AppBase Marco** executando mini-apps
+habilitados via configuração local. Toda a experiência continua em um único arquivo
+`index.html`, reunindo HTML, CSS e JavaScript vanilla conforme as diretrizes do projeto.
 
-## Como usar
+## Funcionalidades principais
 
-1. Abra `index.html` em qualquer navegador moderno.
-2. A tela inicial apresenta o painel principal com KPIs e cartões de destaque.
-3. Utilize os botões ou cartões de mini-apps para navegar entre:
-   - **Mini-app • Painel de Operações**
-   - **Mini-app • Gestor de Tarefas**
-4. Clique em “Voltar para a tela principal” para retornar ao painel inicial.
+- **Tela principal alinhada ao esboço** com coluna vertical de resumos de mini-apps
+  e dois masters centrais: Painel cliente e MiniAppPanel.
+- **Masters vazios definidos** para KPIs, dados, outros painéis e área de expansão,
+  preparando a inclusão posterior dos subcards.
+- **Etiquetas com menu de três pontos** em cada mini-app habilitado, carregando o
+  MiniAppPanel correspondente no centro apenas quando solicitado, com botão de
+  fechar e destaque do mini-app ativo.
+- **Camada visual preservada** com paleta clara, tipografia Inter e superfícies
+  translúcidas conforme o print de referência compartilhado.
+- **Rodapé com branding 5horas** incorporando o logo oficial ao lado dos
+  metadados do protótipo.
+- **Espaçamentos unificados** definindo variáveis de layout para cards, colunas e
+  laterais, garantindo consistência visual nas resoluções do Galaxy Tab S9 em
+  modo retrato e paisagem.
+- **AppBase em JavaScript** simulando o contrato de boot (`register`, merge de
+  `enabledMiniApps`, bloqueio de defaults e controle de licenças).
+- **Mini-apps prontos**:
+  - Painel de Operações
+  - Gestor de Tarefas
+  - Conta & Backup (identidade, dispositivos e direitos LGPD)
+  - Marketplace (habilitação de mini-apps e licenças)
+  - Configuração & Operação (config resolvida, observabilidade e checklist)
+- **Marketplace interativo** com toggles para ativar/desativar mini-apps opcionais e
+  cartões bloqueados para itens obrigatórios.
+- **Dados dinâmicos simulados** para sessão, dispositivos, storage, auditoria e KPIs.
 
-Toda a navegação e o estilo estão contidos no próprio HTML, dispensando build tools ou dependências externas.
+## Como executar
+
+1. Baixe ou clone este repositório.
+2. Abra o arquivo `index.html` em um navegador moderno (Chrome, Edge, Firefox, Safari).
+3. Utilize os cartões para abrir a visão completa ou acione o botão de três pontos
+   em cada mini-app para mostrar o MiniAppPanel dentro da Home.
+4. No mini-app Marketplace, clique em **Habilitar/Desabilitar** para simular a
+   alteração da lista de mini-apps ativos (mini-apps padrão permanecem bloqueados).
 
 ## Estrutura
 
@@ -19,12 +47,17 @@ Toda a navegação e o estilo estão contidos no próprio HTML, dispensando buil
 .
 ├── README.md
 ├── agent.md
-└── index.html
+├── index.html
+└── MARCO_BLUEPRINT.md
 ```
 
-- `index.html`: implementa o layout completo, estilos, interações e conteúdo base.
-- `agent.md`: instruções institucionais preservadas para referência futura.
+- `index.html`: implementa todo o aplicativo (layout, estilos, AppBase e mini-apps).
+- `agent.md`: instruções operacionais para evoluções futuras do protótipo.
+- `MARCO_BLUEPRINT.md`: blueprint consolidado do AppBase e gadget Marco.
 
-## Próximos passos
+## Próximos passos sugeridos
 
-A página foi planejada para receber expansões incrementais no mesmo padrão visual. Novos mini-apps ou componentes podem ser adicionados criando novas seções e conectando-as aos cartões existentes ou a novos pontos de navegação.
+- Adicionar novos mini-apps ao catálogo simulando contratos reais do blueprint.
+- Introduzir componentes responsivos adicionais (gráficos, formulários ou modais).
+- Conectar o protótipo a dados reais ou mocks externos mantendo a abordagem
+  single-file.
