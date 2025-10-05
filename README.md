@@ -41,6 +41,30 @@ habilitados via configuração local. Toda a experiência continua em um único 
 4. No mini-app Marketplace, clique em **Habilitar/Desabilitar** para simular a
    alteração da lista de mini-apps ativos (mini-apps padrão permanecem bloqueados).
 
+## Provisionamento de credenciais e desbloqueio do AppBase
+
+O AppBase agora inicia em modo protegido para garantir que apenas dispositivos
+autorizados carreguem os mini-apps do tenant.
+
+1. **Overlay de bloqueio** — ao abrir a página o corpo fica marcado com
+   `data-locked="true"` e um overlay exige autenticação antes de liberar a navegação.
+2. **WebAuthn / Passkeys** — utilize o botão “Entrar com passkey” para solicitar
+   ao backend do tenant (`/webauthn/authenticate`) um desafio. Em navegadores com
+   suporte, o fluxo detecta autenticadores biométricos de plataforma (ideal para
+   tablets e celulares) e também permite registrar novos dispositivos via
+   `navigator.credentials.create`.
+3. **Fallback PIN seguro** — caso passkeys não estejam disponíveis, cadastre um
+   PIN curto pelo fluxo administrativo. O valor é derivado com PBKDF2 (WebCrypto)
+   e armazenado localmente com salt e número de iterações. Há um limite de cinco
+   tentativas por sessão, com bloqueio automático após exceder.
+4. **Fluxo administrativo** — operadores com token emitido pelo backend podem
+   validar o acesso, cadastrar PINs ou solicitar reset seguro através dos botões
+   dedicados. O demo usa fetch para os endpoints administrativos e aplica um
+   fallback local para ambientes desconectados.
+5. **Boot controlado** — `AppBase.boot` só monta os mini-apps após o overlay sinalizar
+   que a sessão está desbloqueada, evitando renderizar cards ou painéis enquanto a
+   autenticação não termina.
+
 ## Estrutura
 
 ```

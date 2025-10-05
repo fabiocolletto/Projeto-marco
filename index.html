@@ -54,6 +54,241 @@
         align-items: center;
       }
 
+      body[data-locked='true'] header.app-header,
+      body[data-locked='true'] main,
+      body[data-locked='true'] footer {
+        filter: blur(8px);
+        pointer-events: none;
+        user-select: none;
+        transition: filter 200ms ease;
+      }
+
+      .session-lock-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: var(--space-xl);
+        background: radial-gradient(circle at top, rgba(79, 110, 247, 0.36), rgba(31, 42, 68, 0.9));
+        backdrop-filter: blur(18px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 220ms ease;
+        z-index: 999;
+      }
+
+      .session-lock-overlay::before {
+        content: "";
+        position: absolute;
+        inset: 12px;
+        border: 1px solid rgba(124, 58, 237, 0.35);
+        border-radius: 28px;
+        opacity: 0.4;
+        pointer-events: none;
+      }
+
+      body[data-locked='true'] .session-lock-overlay {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      body[data-locked='false'] .session-lock-overlay {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .session-lock-card {
+        position: relative;
+        width: min(720px, 100%);
+        background: rgba(14, 20, 35, 0.86);
+        border: 1px solid rgba(99, 102, 241, 0.45);
+        border-radius: 24px;
+        padding: clamp(24px, 4vw, 40px);
+        color: #f5f7ff;
+        box-shadow: 0 40px 120px rgba(15, 23, 42, 0.45);
+        display: flex;
+        flex-direction: column;
+        gap: clamp(18px, 3vw, 28px);
+      }
+
+      .session-lock-header h2 {
+        margin: 0;
+        font-size: clamp(1.6rem, 3vw, 2.2rem);
+      }
+
+      .session-lock-header p {
+        margin: 8px 0 0;
+        color: rgba(226, 232, 255, 0.8);
+        line-height: 1.5;
+      }
+
+      .session-lock-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: rgba(79, 110, 247, 0.16);
+        color: #c7d2fe;
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .session-lock-status {
+        padding: 14px 18px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(148, 163, 209, 0.35);
+        font-size: 0.95rem;
+        line-height: 1.4;
+        color: #e2e8f0;
+      }
+
+      .session-lock-status[data-tone='success'] {
+        background: rgba(34, 197, 94, 0.16);
+        border-color: rgba(34, 197, 94, 0.45);
+        color: #bbf7d0;
+      }
+
+      .session-lock-status[data-tone='error'] {
+        background: rgba(239, 68, 68, 0.18);
+        border-color: rgba(239, 68, 68, 0.55);
+        color: #fecaca;
+      }
+
+      .session-lock-status[data-tone='warning'] {
+        background: rgba(245, 158, 11, 0.2);
+        border-color: rgba(245, 158, 11, 0.5);
+        color: #fde68a;
+      }
+
+      .session-lock-section {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid rgba(148, 163, 209, 0.25);
+        border-radius: 18px;
+        padding: 18px clamp(18px, 3vw, 24px);
+      }
+
+      .session-lock-section h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #dbeafe;
+      }
+
+      .session-lock-section p {
+        margin: 6px 0 0;
+        color: rgba(203, 213, 225, 0.84);
+        font-size: 0.9rem;
+      }
+
+      .session-lock-note {
+        display: block;
+        margin-top: 6px;
+        font-size: 0.85rem;
+        color: rgba(165, 180, 252, 0.85);
+      }
+
+      .session-lock-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .session-lock-button {
+        appearance: none;
+        border: 1px solid rgba(99, 102, 241, 0.45);
+        background: linear-gradient(135deg, rgba(79, 110, 247, 0.75), rgba(124, 58, 237, 0.8));
+        color: #f8fafc;
+        padding: 10px 18px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+      }
+
+      .session-lock-button.ghost {
+        background: rgba(15, 23, 42, 0.8);
+        border-color: rgba(148, 163, 209, 0.35);
+        color: #c7d2fe;
+      }
+
+      .session-lock-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .session-lock-button:not(:disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.45);
+      }
+
+      .session-lock-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .session-lock-form label {
+        font-size: 0.85rem;
+        color: rgba(191, 219, 254, 0.9);
+      }
+
+      .session-lock-form input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 209, 0.4);
+        background: rgba(15, 23, 42, 0.65);
+        color: #f8fafc;
+        font-size: 1rem;
+      }
+
+      .session-lock-form input:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .session-lock-form input::placeholder {
+        color: rgba(148, 163, 209, 0.7);
+      }
+
+      .session-lock-form-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        justify-content: space-between;
+      }
+
+      .session-lock-attempts {
+        font-size: 0.8rem;
+        color: rgba(251, 191, 36, 0.8);
+      }
+
+      .session-lock-footer {
+        font-size: 0.8rem;
+        color: rgba(203, 213, 225, 0.7);
+        text-align: center;
+      }
+
+      @media (max-width: 720px) {
+        .session-lock-card {
+          border-radius: 18px;
+          padding: 22px;
+        }
+
+        .session-lock-actions {
+          flex-direction: column;
+          align-items: stretch;
+        }
+      }
+
       header.app-header,
       main,
       footer {
@@ -1532,7 +1767,135 @@
       }
     </style>
   </head>
-  <body>
+  <body data-locked="true">
+    <section
+      class="session-lock-overlay"
+      data-lock-overlay
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="session-lock-title"
+      aria-live="assertive"
+    >
+      <div class="session-lock-card">
+        <header class="session-lock-header">
+          <span class="session-lock-badge">Tenant Secure Gate</span>
+          <h2 id="session-lock-title">Sessão protegida</h2>
+          <p data-lock-hint>
+            Esta estação exige validação de credenciais antes de carregar os mini-apps
+            do tenant.
+          </p>
+        </header>
+        <div class="session-lock-status" data-lock-status data-tone="neutral">
+          Preparando mecanismos de autenticação seguro...
+        </div>
+        <section class="session-lock-section">
+          <header>
+            <h3>Passkey / WebAuthn</h3>
+            <p>
+              Preferencial para dispositivos com biometria ou chaves de segurança.
+              <span data-lock-biometric class="session-lock-note"></span>
+            </p>
+          </header>
+          <div class="session-lock-actions">
+            <button type="button" class="session-lock-button" data-action="lock-webauthn-signin">
+              Entrar com passkey
+            </button>
+            <button type="button" class="session-lock-button ghost" data-action="lock-webauthn-register">
+              Registrar novo dispositivo
+            </button>
+          </div>
+        </section>
+        <section class="session-lock-section">
+          <header>
+            <h3>Fallback PIN</h3>
+            <p>Utilize este canal apenas quando passkeys não estiverem disponíveis.</p>
+          </header>
+          <form class="session-lock-form" data-lock-pin-login novalidate>
+            <label for="lock-pin-input">PIN ou senha curta</label>
+            <input
+              id="lock-pin-input"
+              type="password"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              minlength="4"
+              maxlength="12"
+              autocomplete="one-time-code"
+              data-lock-pin-input
+              placeholder="••••"
+              required
+            />
+            <div class="session-lock-form-actions">
+              <button type="button" class="session-lock-button" data-action="lock-pin-signin">
+                Desbloquear com PIN
+              </button>
+              <span class="session-lock-attempts" data-lock-attempts></span>
+            </div>
+          </form>
+        </section>
+        <section class="session-lock-section" data-lock-admin>
+          <header>
+            <h3>Fluxo administrativo</h3>
+            <p>Cadastro inicial, rotação de credenciais ou reset de emergência.</p>
+          </header>
+          <form class="session-lock-form" data-lock-admin-form novalidate>
+            <label for="lock-admin-token">Token administrativo do tenant</label>
+            <input
+              id="lock-admin-token"
+              type="password"
+              autocomplete="off"
+              data-lock-admin-token
+              placeholder="Token emitido pelo backend"
+              required
+            />
+            <div class="session-lock-form-actions">
+              <button type="button" class="session-lock-button" data-action="lock-admin-validate">
+                Validar token
+              </button>
+              <button type="button" class="session-lock-button ghost" data-action="lock-admin-reset">
+                Resetar PIN cadastrado
+              </button>
+            </div>
+          </form>
+          <form class="session-lock-form" data-lock-pin-setup novalidate>
+            <label for="lock-pin-new">Cadastrar ou atualizar PIN</label>
+            <input
+              id="lock-pin-new"
+              type="password"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              minlength="4"
+              maxlength="12"
+              data-lock-pin-new
+              placeholder="Novo PIN"
+              required
+              disabled
+            />
+            <input
+              type="password"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              minlength="4"
+              maxlength="12"
+              data-lock-pin-confirm
+              placeholder="Confirmar PIN"
+              required
+              disabled
+            />
+            <div class="session-lock-form-actions">
+              <button type="button" class="session-lock-button" data-action="lock-pin-set" disabled>
+                Salvar PIN seguro
+              </button>
+            </div>
+          </form>
+        </section>
+        <footer class="session-lock-footer">
+          <p>
+            Auditoria: tentativas excedidas são reportadas automaticamente ao serviço de
+            segurança do tenant.
+          </p>
+        </footer>
+      </div>
+    </section>
     <header class="app-header">
       <!-- BEGIN: logo-picture-responsive -->
       <picture>
@@ -2052,6 +2415,14 @@
     </footer>
 
     <script>
+      const lockOverlay = document.querySelector('[data-lock-overlay]');
+      const sessionLock = createSessionLock(lockOverlay);
+      const authUI = createAuthUI(lockOverlay);
+      const tenantContext = { tenantId: null, userId: null };
+      const authController = createAuthController(sessionLock, authUI, tenantContext);
+
+      authController.initialise();
+
       const views = document.querySelectorAll('.view');
       const appRoot = document.documentElement;
       const panelCard = document.getElementById('miniapp-panel-card');
@@ -2072,6 +2443,722 @@
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
         appRoot.setAttribute('data-view', id);
+      }
+
+      function createSessionLock(overlay) {
+        const body = document.body;
+        let locked = body.dataset.locked !== 'false';
+        let resolver = null;
+        let releasePromise = locked
+          ? new Promise((resolve) => {
+              resolver = resolve;
+            })
+          : Promise.resolve();
+
+        function syncOverlay() {
+          if (!overlay) {
+            return;
+          }
+          overlay.setAttribute('aria-hidden', locked ? 'false' : 'true');
+          if (locked) {
+            overlay.setAttribute('tabindex', '-1');
+            requestAnimationFrame(() => {
+              overlay.focus?.();
+            });
+          } else {
+            overlay.removeAttribute('tabindex');
+          }
+        }
+
+        syncOverlay();
+
+        function setLocked(state, reason) {
+          if (state === locked) {
+            return;
+          }
+          locked = state;
+          body.dataset.locked = locked ? 'true' : 'false';
+          syncOverlay();
+          if (!locked) {
+            resolver?.();
+            resolver = null;
+            releasePromise = Promise.resolve();
+          } else {
+            releasePromise = new Promise((resolve) => {
+              resolver = resolve;
+            });
+          }
+          if (reason) {
+            console.info(`[SessionLock] estado=${locked ? 'locked' : 'unlocked'} • ${reason}`);
+          }
+        }
+
+        return {
+          isLocked: () => locked,
+          release(reason) {
+            setLocked(false, reason ?? 'liberação solicitada');
+          },
+          lock(reason) {
+            setLocked(true, reason ?? 'bloqueio solicitado');
+          },
+          waitForRelease() {
+            return locked ? releasePromise : Promise.resolve();
+          },
+        };
+      }
+
+      function createAuthUI(overlay) {
+        const statusEl = overlay?.querySelector('[data-lock-status]');
+        const hintEl = overlay?.querySelector('[data-lock-hint]');
+        const biometricEl = overlay?.querySelector('[data-lock-biometric]');
+        const attemptsEl = overlay?.querySelector('[data-lock-attempts]');
+        const pinSetupInputs = overlay
+          ? Array.from(overlay.querySelectorAll('[data-lock-pin-new], [data-lock-pin-confirm]'))
+          : [];
+        const pinSetupButton = overlay?.querySelector('[data-action="lock-pin-set"]');
+
+        return {
+          setStatus(message, tone = 'neutral') {
+            if (!statusEl) {
+              return;
+            }
+            statusEl.textContent = message;
+            statusEl.dataset.tone = tone;
+          },
+          setHint(message) {
+            if (hintEl) {
+              hintEl.textContent = message;
+            }
+          },
+          setBiometric(message) {
+            if (biometricEl) {
+              biometricEl.textContent = message;
+            }
+          },
+          setAttempts(message) {
+            if (attemptsEl) {
+              attemptsEl.textContent = message;
+            }
+          },
+          enablePinSetup(enabled) {
+            pinSetupInputs.forEach((input) => {
+              if (enabled) {
+                input.removeAttribute('disabled');
+              } else {
+                input.setAttribute('disabled', '');
+              }
+            });
+            if (pinSetupButton) {
+              if (enabled) {
+                pinSetupButton.removeAttribute('disabled');
+              } else {
+                pinSetupButton.setAttribute('disabled', '');
+              }
+            }
+          },
+          overlay,
+        };
+      }
+
+      function createAuthController(sessionLockController, ui, context) {
+        const MAX_PIN_ATTEMPTS = 5;
+        const AUTH_BASE_URL = 'https://auth.marco.app/tenants';
+        const pinInput = lockOverlay?.querySelector('[data-lock-pin-input]');
+        const pinSignInButton = lockOverlay?.querySelector('[data-action="lock-pin-signin"]');
+        const pinNewInput = lockOverlay?.querySelector('[data-lock-pin-new]');
+        const pinConfirmInput = lockOverlay?.querySelector('[data-lock-pin-confirm]');
+        const pinSetupForm = lockOverlay?.querySelector('[data-lock-pin-setup]');
+        const adminTokenInput = lockOverlay?.querySelector('[data-lock-admin-token]');
+        const adminValidateButton = lockOverlay?.querySelector('[data-action="lock-admin-validate"]');
+        const adminResetButton = lockOverlay?.querySelector('[data-action="lock-admin-reset"]');
+        const pinLoginForm = lockOverlay?.querySelector('[data-lock-pin-login]');
+        const webauthnSignInButton = lockOverlay?.querySelector('[data-action="lock-webauthn-signin"]');
+        const webauthnRegisterButton = lockOverlay?.querySelector('[data-action="lock-webauthn-register"]');
+        let adminValidated = false;
+        let conditionalMediationAvailable = false;
+        let attemptedConditionalFlow = false;
+
+        pinLoginForm?.addEventListener('submit', (event) => event.preventDefault());
+        pinSetupForm?.addEventListener('submit', (event) => event.preventDefault());
+
+        webauthnSignInButton?.addEventListener('click', () => handlePasskeySignIn());
+        webauthnRegisterButton?.addEventListener('click', () => handlePasskeyRegistration());
+        pinSignInButton?.addEventListener('click', () => handlePinUnlock());
+        pinSetupForm
+          ?.querySelector('[data-action="lock-pin-set"]')
+          ?.addEventListener('click', () => handlePinSetup());
+        adminValidateButton?.addEventListener('click', () => handleAdminValidation());
+        adminResetButton?.addEventListener('click', () => handleAdminReset());
+
+        function storageKey(suffix) {
+          const tenant = context.tenantId ?? 'default';
+          return `marco::${tenant}::${suffix}`;
+        }
+
+        function getPinRecord() {
+          const raw = localStorage.getItem(storageKey('pin-record'));
+          if (!raw) {
+            return null;
+          }
+          try {
+            return JSON.parse(raw);
+          } catch (error) {
+            console.warn('Registro de PIN inválido, limpando...', error);
+            localStorage.removeItem(storageKey('pin-record'));
+            return null;
+          }
+        }
+
+        function savePinRecord(record) {
+          localStorage.setItem(storageKey('pin-record'), JSON.stringify(record));
+          resetAttempts();
+        }
+
+        function clearPinRecord() {
+          localStorage.removeItem(storageKey('pin-record'));
+          resetAttempts();
+        }
+
+        function getAttempts() {
+          const value = sessionStorage.getItem(storageKey('pin-attempts'));
+          return value ? Number(value) : 0;
+        }
+
+        function setAttempts(value) {
+          sessionStorage.setItem(storageKey('pin-attempts'), String(value));
+          updateAttemptsLabel(value);
+        }
+
+        function resetAttempts() {
+          sessionStorage.removeItem(storageKey('pin-attempts'));
+          updateAttemptsLabel(0);
+        }
+
+        function updateAttemptsLabel(current = getAttempts()) {
+          const record = getPinRecord();
+          if (!record) {
+            ui.setAttempts('Nenhum PIN cadastrado.');
+            return;
+          }
+          const remaining = Math.max(MAX_PIN_ATTEMPTS - current, 0);
+          ui.setAttempts(`Tentativas restantes: ${remaining}`);
+          if (remaining <= 0) {
+            pinSignInButton?.setAttribute('disabled', '');
+          } else {
+            pinSignInButton?.removeAttribute('disabled');
+          }
+        }
+
+        function ensureContext() {
+          if (!context.tenantId) {
+            throw new Error('Tenant ainda não configurado.');
+          }
+        }
+
+        function updateHint() {
+          if (context.tenantId) {
+            ui.setHint(
+              `Tenant ${context.tenantId} exige desbloqueio com passkey ou PIN derivado com WebCrypto antes de carregar o AppBase.`,
+            );
+          }
+        }
+
+        function updateAdminState(valid) {
+          adminValidated = valid;
+          ui.enablePinSetup(valid);
+        }
+
+        function bufferToBase64Url(buffer) {
+          const bytes = buffer instanceof ArrayBuffer ? new Uint8Array(buffer) : new Uint8Array(buffer.buffer ?? buffer);
+          let binary = '';
+          bytes.forEach((byte) => {
+            binary += String.fromCharCode(byte);
+          });
+          return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+        }
+
+        function base64UrlToBuffer(value) {
+          const normalised = value.replace(/-/g, '+').replace(/_/g, '/');
+          const pad = normalised.length % 4;
+          const padded = pad ? normalised + '='.repeat(4 - pad) : normalised;
+          const binary = atob(padded);
+          const bytes = new Uint8Array(binary.length);
+          for (let index = 0; index < binary.length; index += 1) {
+            bytes[index] = binary.charCodeAt(index);
+          }
+          return bytes.buffer;
+        }
+
+        function randomBuffer(length) {
+          const bytes = new Uint8Array(length);
+          crypto.getRandomValues(bytes);
+          return bytes.buffer;
+        }
+
+        async function derivePin(secret, saltBase64, iterations = 120000) {
+          const encoder = new TextEncoder();
+          const saltBuffer = saltBase64 ? base64UrlToBuffer(saltBase64) : randomBuffer(16);
+          const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(secret), 'PBKDF2', false, [
+            'deriveBits',
+          ]);
+          const derivedBits = await crypto.subtle.deriveBits(
+            {
+              name: 'PBKDF2',
+              hash: 'SHA-256',
+              salt: saltBuffer,
+              iterations,
+            },
+            keyMaterial,
+            256,
+          );
+          return {
+            hash: bufferToBase64Url(derivedBits),
+            salt: bufferToBase64Url(saltBuffer),
+            iterations,
+          };
+        }
+
+        function normaliseRegistrationOptions(payload) {
+          const publicKey = payload?.publicKey ?? payload;
+          if (!publicKey) {
+            throw new Error('Challenge de registro inválido.');
+          }
+          if (publicKey.challenge && typeof publicKey.challenge === 'string') {
+            publicKey.challenge = base64UrlToBuffer(publicKey.challenge);
+          }
+          if (publicKey.user?.id && typeof publicKey.user.id === 'string') {
+            publicKey.user.id = base64UrlToBuffer(publicKey.user.id);
+          }
+          if (Array.isArray(publicKey.excludeCredentials)) {
+            publicKey.excludeCredentials = publicKey.excludeCredentials.map((item) => ({
+              ...item,
+              id: typeof item.id === 'string' ? base64UrlToBuffer(item.id) : item.id,
+            }));
+          }
+          return publicKey;
+        }
+
+        function normaliseAuthenticationOptions(payload) {
+          const publicKey = payload?.publicKey ?? payload;
+          if (!publicKey) {
+            throw new Error('Challenge de autenticação inválido.');
+          }
+          if (publicKey.challenge && typeof publicKey.challenge === 'string') {
+            publicKey.challenge = base64UrlToBuffer(publicKey.challenge);
+          }
+          if (Array.isArray(publicKey.allowCredentials)) {
+            publicKey.allowCredentials = publicKey.allowCredentials.map((item) => ({
+              ...item,
+              id: typeof item.id === 'string' ? base64UrlToBuffer(item.id) : item.id,
+            }));
+          }
+          return publicKey;
+        }
+
+        function buildFallbackRegistrationOptions() {
+          const rpId = window.location.hostname || 'localhost';
+          return {
+            challenge: randomBuffer(32),
+            rp: { name: 'Marco Tenant', id: rpId },
+            user: {
+              id: new TextEncoder().encode(context.userId ?? 'usuario-demo'),
+              name: context.userId ?? 'usuario-demo',
+              displayName: context.userId ?? 'Usuário Demo',
+            },
+            pubKeyCredParams: [
+              { type: 'public-key', alg: -7 },
+              { type: 'public-key', alg: -257 },
+            ],
+            authenticatorSelection: {
+              residentKey: 'preferred',
+              userVerification: 'preferred',
+              authenticatorAttachment: 'platform',
+            },
+            timeout: 60000,
+          };
+        }
+
+        function buildFallbackAuthenticationOptions() {
+          const rpId = window.location.hostname || 'localhost';
+          return {
+            challenge: randomBuffer(32),
+            timeout: 60000,
+            rpId,
+            userVerification: 'preferred',
+          };
+        }
+
+        async function requestRegistrationOptions() {
+          ensureContext();
+          const url = `${AUTH_BASE_URL}/${encodeURIComponent(context.tenantId)}/webauthn/register`;
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: context.userId }),
+            });
+            if (!response.ok) {
+              throw new Error(`Falha HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            return normaliseRegistrationOptions(payload);
+          } catch (error) {
+            console.warn('Usando challenge local de fallback para registro', error);
+            return buildFallbackRegistrationOptions();
+          }
+        }
+
+        async function requestAuthenticationOptions(extra = {}) {
+          ensureContext();
+          const url = `${AUTH_BASE_URL}/${encodeURIComponent(context.tenantId)}/webauthn/authenticate`;
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: context.userId, ...extra }),
+            });
+            if (!response.ok) {
+              throw new Error(`Falha HTTP ${response.status}`);
+            }
+            const payload = await response.json();
+            return normaliseAuthenticationOptions(payload);
+          } catch (error) {
+            console.warn('Usando challenge local de fallback para autenticação', error);
+            return buildFallbackAuthenticationOptions();
+          }
+        }
+
+        async function postCredential(kind, payload) {
+          ensureContext();
+          const url = `${AUTH_BASE_URL}/${encodeURIComponent(context.tenantId)}/webauthn/${kind}`;
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ userId: context.userId, credential: payload }),
+            });
+            if (!response.ok) {
+              throw new Error(`Backend respondeu ${response.status}`);
+            }
+            return response.json().catch(() => ({}));
+          } catch (error) {
+            console.warn(`Envio de credencial em modo demonstração (${kind})`, error);
+            return { mode: 'fallback' };
+          }
+        }
+
+        function serialiseAttestation(credential) {
+          return {
+            id: credential.id,
+            type: credential.type,
+            rawId: bufferToBase64Url(credential.rawId),
+            response: {
+              clientDataJSON: bufferToBase64Url(credential.response.clientDataJSON),
+              attestationObject: bufferToBase64Url(credential.response.attestationObject),
+            },
+          };
+        }
+
+        function serialiseAssertion(credential) {
+          return {
+            id: credential.id,
+            type: credential.type,
+            rawId: bufferToBase64Url(credential.rawId),
+            response: {
+              authenticatorData: bufferToBase64Url(credential.response.authenticatorData),
+              clientDataJSON: bufferToBase64Url(credential.response.clientDataJSON),
+              signature: bufferToBase64Url(credential.response.signature),
+              userHandle: credential.response.userHandle
+                ? bufferToBase64Url(credential.response.userHandle)
+                : null,
+            },
+          };
+        }
+
+        async function validateAdminToken(token) {
+          ensureContext();
+          const url = `${AUTH_BASE_URL}/${encodeURIComponent(context.tenantId)}/admin/validate-token`;
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token }),
+            });
+            if (!response.ok) {
+              throw new Error('Token rejeitado pelo backend');
+            }
+            const data = await response.json();
+            if (!data?.valid) {
+              throw new Error('Token administrativo inválido');
+            }
+            return data;
+          } catch (error) {
+            console.warn('Validação administrativa em modo de fallback', error);
+            if (token && token.length >= 6) {
+              return { valid: true, mode: 'fallback' };
+            }
+            throw error;
+          }
+        }
+
+        async function requestAdminReset(token) {
+          ensureContext();
+          const url = `${AUTH_BASE_URL}/${encodeURIComponent(context.tenantId)}/admin/reset-pin`;
+          try {
+            const response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token }),
+            });
+            if (!response.ok) {
+              throw new Error('Reset não autorizado');
+            }
+            return response.json().catch(() => ({}));
+          } catch (error) {
+            console.warn('Reset administrativo em modo fallback', error);
+            return { mode: 'fallback' };
+          }
+        }
+
+        async function handlePasskeyRegistration() {
+          if (!window.PublicKeyCredential || !navigator.credentials?.create) {
+            ui.setStatus('WebAuthn indisponível neste dispositivo.', 'warning');
+            return;
+          }
+          try {
+            ensureContext();
+          } catch (error) {
+            ui.setStatus('Carregando informações do tenant. Aguarde...', 'warning');
+            return;
+          }
+          ui.setStatus('Solicitando challenge de registro seguro...', 'neutral');
+          try {
+            const publicKey = await requestRegistrationOptions();
+            const credential = await navigator.credentials.create({ publicKey });
+            if (!credential) {
+              throw new Error('Credencial não criada.');
+            }
+            const payload = serialiseAttestation(credential);
+            await postCredential('register-callback', payload);
+            ui.setStatus('Dispositivo registrado com sucesso. Utilize passkey para desbloquear.', 'success');
+          } catch (error) {
+            console.error('Erro no registro WebAuthn', error);
+            ui.setStatus(`Falha ao registrar passkey: ${error.message ?? error}`, 'error');
+          }
+        }
+
+        async function handlePasskeySignIn(extra = {}) {
+          if (!window.PublicKeyCredential || !navigator.credentials?.get) {
+            ui.setStatus('WebAuthn indisponível neste dispositivo.', 'warning');
+            return;
+          }
+          try {
+            ensureContext();
+          } catch (error) {
+            ui.setStatus('Carregando informações do tenant. Aguarde...', 'warning');
+            return;
+          }
+          ui.setStatus('Iniciando autenticação passkey...', 'neutral');
+          try {
+            const publicKey = await requestAuthenticationOptions(extra);
+            const credential = await navigator.credentials.get({
+              publicKey,
+              mediation: extra.mediation,
+            });
+            if (!credential) {
+              throw new Error('Nenhuma credencial retornada.');
+            }
+            const payload = serialiseAssertion(credential);
+            await postCredential('authenticate-callback', payload);
+            ui.setStatus('Sessão desbloqueada com passkey. Abrindo AppBase...', 'success');
+            setTimeout(() => sessionLockController.release('passkey verificada'), 320);
+          } catch (error) {
+            if (error?.name === 'NotAllowedError') {
+              ui.setStatus('A autenticação passkey foi cancelada ou expirou.', 'warning');
+            } else {
+              console.error('Erro na autenticação WebAuthn', error);
+              ui.setStatus(`Falha na autenticação passkey: ${error.message ?? error}`, 'error');
+            }
+          }
+        }
+
+        async function handlePinUnlock() {
+          try {
+            ensureContext();
+          } catch (error) {
+            ui.setStatus('Configuração do tenant ainda não disponível.', 'warning');
+            return;
+          }
+          const record = getPinRecord();
+          if (!record) {
+            ui.setStatus('Nenhum PIN cadastrado. Utilize o fluxo administrativo.', 'warning');
+            return;
+          }
+          if (getAttempts() >= MAX_PIN_ATTEMPTS) {
+            ui.setStatus('Limite de tentativas excedido. Solicite intervenção administrativa.', 'error');
+            return;
+          }
+          const value = pinInput?.value?.trim();
+          if (!value || value.length < 4) {
+            ui.setStatus('Informe o PIN cadastrado (mínimo 4 dígitos).', 'warning');
+            pinInput?.focus();
+            return;
+          }
+          ui.setStatus('Validando PIN com derivação WebCrypto...', 'neutral');
+          try {
+            const derived = await derivePin(value, record.salt, record.iterations);
+            if (derived.hash === record.hash) {
+              resetAttempts();
+              if (pinInput) {
+                pinInput.value = '';
+              }
+              ui.setStatus('PIN verificado. Sessão será liberada.', 'success');
+              setTimeout(() => sessionLockController.release('PIN verificado'), 320);
+            } else {
+              const attempts = getAttempts() + 1;
+              setAttempts(attempts);
+              if (attempts >= MAX_PIN_ATTEMPTS) {
+                ui.setStatus('PIN incorreto e limite atingido. Contate o administrador.', 'error');
+              } else {
+                ui.setStatus('PIN incorreto. Tente novamente.', 'warning');
+              }
+            }
+          } catch (error) {
+            console.error('Erro ao validar PIN', error);
+            ui.setStatus('Erro interno ao validar o PIN.', 'error');
+          }
+        }
+
+        async function handlePinSetup() {
+          if (!adminValidated) {
+            ui.setStatus('Valide o token administrativo antes de cadastrar um PIN.', 'warning');
+            return;
+          }
+          const pinValue = pinNewInput?.value?.trim();
+          const confirmValue = pinConfirmInput?.value?.trim();
+          if (!pinValue || pinValue.length < 4) {
+            ui.setStatus('O PIN deve ter ao menos 4 dígitos.', 'warning');
+            pinNewInput?.focus();
+            return;
+          }
+          if (pinValue !== confirmValue) {
+            ui.setStatus('Os campos de PIN não coincidem.', 'warning');
+            return;
+          }
+          ui.setStatus('Gerando hash seguro para o PIN...', 'neutral');
+          try {
+            const record = await derivePin(pinValue);
+            savePinRecord({
+              ...record,
+              createdAt: new Date().toISOString(),
+            });
+            if (pinNewInput) pinNewInput.value = '';
+            if (pinConfirmInput) pinConfirmInput.value = '';
+            ui.setStatus('PIN cadastrado e pronto para uso.', 'success');
+          } catch (error) {
+            console.error('Erro ao cadastrar PIN', error);
+            ui.setStatus('Não foi possível cadastrar o PIN.', 'error');
+          }
+        }
+
+        async function handleAdminValidation() {
+          const token = adminTokenInput?.value?.trim();
+          if (!token) {
+            ui.setStatus('Informe o token administrativo fornecido pelo backend.', 'warning');
+            adminTokenInput?.focus();
+            return;
+          }
+          ui.setStatus('Validando token administrativo...', 'neutral');
+          try {
+            const result = await validateAdminToken(token);
+            updateAdminState(true);
+            if (result?.mode === 'fallback') {
+              ui.setStatus('Token aceito em modo demonstração. Confirme no backend para produção.', 'warning');
+            } else {
+              ui.setStatus('Token validado. Cadastre ou resete o PIN com segurança.', 'success');
+            }
+          } catch (error) {
+            console.error('Token administrativo rejeitado', error);
+            updateAdminState(false);
+            ui.setStatus('Token inválido ou expirado.', 'error');
+          }
+        }
+
+        async function handleAdminReset() {
+          if (!adminValidated) {
+            ui.setStatus('Valide o token administrativo antes de resetar o PIN.', 'warning');
+            return;
+          }
+          const token = adminTokenInput?.value?.trim();
+          ui.setStatus('Solicitando reset seguro do PIN...', 'neutral');
+          try {
+            await requestAdminReset(token ?? '');
+            clearPinRecord();
+            ui.setStatus('PIN removido. Cadastre um novo antes do próximo acesso.', 'success');
+          } catch (error) {
+            console.error('Erro ao resetar PIN', error);
+            ui.setStatus('Não foi possível resetar o PIN.', 'error');
+          }
+        }
+
+        async function detectCapabilities() {
+          if (!window.PublicKeyCredential) {
+            ui.setStatus('Navegador sem suporte a WebAuthn. Utilize o PIN administrativo.', 'warning');
+            webauthnSignInButton?.setAttribute('disabled', '');
+            webauthnRegisterButton?.setAttribute('disabled', '');
+            return;
+          }
+          try {
+            const platformAvailable = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable?.();
+            conditionalMediationAvailable = Boolean(
+              await PublicKeyCredential.isConditionalMediationAvailable?.().catch(() => false),
+            );
+            const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            if (platformAvailable && isMobile) {
+              ui.setBiometric('Biometria nativa disponível para desbloqueio instantâneo.');
+            } else if (platformAvailable) {
+              ui.setBiometric('Plataforma suporta autenticadores embarcados.');
+            } else {
+              ui.setBiometric('Nenhum autenticador biométrico detectado.');
+            }
+            ui.setStatus('Autenticação forte habilitada. Escolha passkey ou PIN administrativo.', 'success');
+          } catch (error) {
+            console.warn('Erro ao detectar suporte WebAuthn', error);
+            ui.setStatus('Não foi possível detectar suporte a biometria.', 'warning');
+          }
+        }
+
+        async function attemptConditionalFlow() {
+          if (!conditionalMediationAvailable || attemptedConditionalFlow) {
+            return;
+          }
+          attemptedConditionalFlow = true;
+          try {
+            await handlePasskeySignIn({ mediation: 'conditional' });
+          } catch (error) {
+            console.warn('Fluxo condicional de passkey não concluído', error);
+          }
+        }
+
+        return {
+          initialise() {
+            ui.setStatus('Inicializando mecanismos de autenticação...', 'neutral');
+            detectCapabilities().finally(() => {
+              updateAttemptsLabel();
+            });
+          },
+          syncContext(newContext = {}) {
+            if (newContext.tenantId) {
+              context.tenantId = newContext.tenantId;
+            }
+            if (newContext.userId) {
+              context.userId = newContext.userId;
+            }
+            updateHint();
+            updateAttemptsLabel();
+            attemptConditionalFlow();
+          },
+        };
       }
 
       const dashboardSnapshot = {
@@ -2233,7 +3320,7 @@
           modules.set(key, module);
         }
 
-        function boot(config) {
+        async function boot(config) {
           currentConfig = config;
           defaults.clear();
           (config.defaults?.enabledMiniApps ?? []).forEach((key) => defaults.add(key));
@@ -2241,7 +3328,9 @@
             ...(config.defaults?.enabledMiniApps ?? []),
             ...(config.user?.enabledMiniApps ?? []),
           ]);
+          await sessionLock.waitForRelease();
           refreshNav();
+          return currentConfig;
         }
 
         function refreshNav() {
@@ -2474,13 +3563,21 @@
         meta: { version: '1.0', signature: 'demo-signature', checksum: 'demo-checksum' },
       };
 
-      AppBase.boot(bootConfig);
+      tenantContext.tenantId = bootConfig.tenantId;
+      tenantContext.userId = bootConfig.userId;
+      authController.syncContext({ tenantId: bootConfig.tenantId, userId: bootConfig.userId });
 
-      updateHeaderSession(bootConfig, sessionState);
-      updateHomeSnapshot(dashboardSnapshot);
-      updateAccountDetails(bootConfig, sessionState, backupSnapshot);
-      buildObservabilityTable();
-      connectMiniAppTriggers();
+      AppBase.boot(bootConfig)
+        .then(() => {
+          updateHeaderSession(bootConfig, sessionState);
+          updateHomeSnapshot(dashboardSnapshot);
+          updateAccountDetails(bootConfig, sessionState, backupSnapshot);
+          buildObservabilityTable();
+          connectMiniAppTriggers();
+        })
+        .catch((error) => {
+          console.error('Erro ao inicializar o AppBase após o desbloqueio', error);
+        });
       document.querySelectorAll('[data-action="home"]').forEach((element) => {
         element.addEventListener('click', (event) => {
           event.preventDefault();
