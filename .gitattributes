@@ -1,0 +1,2 @@
+assets/app/brand/*.png filter=lfs diff=lfs merge=lfs -text
+assets/app/brand/*.webp filter=lfs diff=lfs merge=lfs -text

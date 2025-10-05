@@ -1,0 +1,18 @@
+{
+  "version": "R1.0-2025-10-05",
+  "baseUrl": "https://fabiocolletto.github.io/Projeto-marco",
+  "images": {
+    "logo_light_400": "/assets/app/brand/logo-light-400.webp",
+    "logo_light_800": "/assets/app/brand/logo-light-800.webp",
+    "logo_dark_400":  "/assets/app/brand/logo-dark-400.webp",
+    "logo_dark_800":  "/assets/app/brand/logo-dark-800.webp",
+    "logo_light_transparent_400": "/assets/app/brand/logo-light-transparent-400.webp",
+    "logo_light_transparent_800": "/assets/app/brand/logo-light-transparent-800.webp",
+    "logo_dark_transparent_400":  "/assets/app/brand/logo-dark-transparent-400.webp",
+    "logo_dark_transparent_800":  "/assets/app/brand/logo-dark-transparent-800.webp",
+    "icon_light":     "/assets/app/brand/icon-light-500.webp",
+    "icon_dark":      "/assets/app/brand/icon-dark-500.webp",
+    "icon_light_transparent": "/assets/app/brand/icon-light-transparent-500.webp",
+    "icon_dark_transparent":  "/assets/app/brand/icon-dark-transparent-500.webp"
+  }
+}
