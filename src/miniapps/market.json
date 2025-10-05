@@ -1,0 +1,38 @@
+{
+  "key": "market",
+  "module": {
+    "type": "template"
+  },
+  "meta": {
+    "id": "mini-app-market",
+    "card": {
+      "label": "Marketplace",
+      "labelKey": "miniapps.market.label",
+      "meta": "Catálogo confiável de mini-apps do tenant",
+      "metaKey": "miniapps.market.meta",
+      "cta": "Gerenciar licenças",
+      "ctaKey": "miniapps.market.cta"
+    },
+    "badges": ["Catálogo", "Provisionamento"],
+    "badgeKeys": ["miniapps.market.badge1", "miniapps.market.badge2"],
+    "panel": {
+      "template": "panel-template-market",
+      "meta": "Preview compacto para habilitar ou revogar licenças.",
+      "metaKey": "miniapps.market.panel"
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "titleKey": "market.catalog.market.title",
+      "description": "Gestão de catálogos, licenças e habilitação de MiniApps.",
+      "descriptionKey": "market.catalog.market.description",
+      "capabilities": ["Catálogo", "Licenças", "Provisionamento"],
+      "capabilityKeys": [
+        "market.catalog.market.capability1",
+        "market.catalog.market.capability2",
+        "market.catalog.market.capability3"
+      ],
+      "license": "Base",
+      "licenseKey": "market.catalog.market.license"
+    }
+  }
+}

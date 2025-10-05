@@ -1,3 +1,5 @@
+import { createTemplateModule } from './template-module.js';
+
 export const dashboardSnapshot = {
   taskFlow: 82,
   capacity: 92,
@@ -82,172 +84,6 @@ export const backupSnapshot = {
   },
 };
 
-export const marketCatalog = [
-  {
-    key: 'operations',
-    title: 'Painel de Operações',
-    titleKey: 'market.catalog.operations.title',
-    description: 'KPIs, dados mestres e status unificado do tenant.',
-    descriptionKey: 'market.catalog.operations.description',
-    capabilities: ['KPIs', 'Alertas', 'Workflow'],
-    capabilityKeys: [
-      'market.catalog.operations.capability1',
-      'market.catalog.operations.capability2',
-      'market.catalog.operations.capability3',
-    ],
-    license: 'Base',
-    licenseKey: 'market.catalog.operations.license',
-  },
-  {
-    key: 'tasks',
-    title: 'Gestor de Tarefas',
-    titleKey: 'market.catalog.tasks.title',
-    description: 'Cronogramas, responsáveis e dependências críticas.',
-    descriptionKey: 'market.catalog.tasks.description',
-    capabilities: ['Quadro', 'Alertas', 'Exportação'],
-    capabilityKeys: [
-      'market.catalog.tasks.capability1',
-      'market.catalog.tasks.capability2',
-      'market.catalog.tasks.capability3',
-    ],
-    license: 'Base',
-    licenseKey: 'market.catalog.tasks.license',
-  },
-  {
-    key: 'account',
-    title: 'Conta & Backup',
-    titleKey: 'market.catalog.account.title',
-    description: 'Identidade, dispositivos, direitos do titular e backups.',
-    descriptionKey: 'market.catalog.account.description',
-    capabilities: ['LGPD', 'Backup', 'Passkeys'],
-    capabilityKeys: [
-      'market.catalog.account.capability1',
-      'market.catalog.account.capability2',
-      'market.catalog.account.capability3',
-    ],
-    license: 'Premium',
-    licenseKey: 'market.catalog.account.license',
-  },
-  {
-    key: 'market',
-    title: 'Marketplace',
-    titleKey: 'market.catalog.market.title',
-    description: 'Gestão de catálogos, licenças e habilitação de MiniApps.',
-    descriptionKey: 'market.catalog.market.description',
-    capabilities: ['Catálogo', 'Licenças', 'Provisionamento'],
-    capabilityKeys: [
-      'market.catalog.market.capability1',
-      'market.catalog.market.capability2',
-      'market.catalog.market.capability3',
-    ],
-    license: 'Base',
-    licenseKey: 'market.catalog.market.license',
-  },
-  {
-    key: 'settings',
-    title: 'Configuração & Operação',
-    titleKey: 'market.catalog.settings.title',
-    description: 'Parâmetros do AppBase, observabilidade e auditoria.',
-    descriptionKey: 'market.catalog.settings.description',
-    capabilities: ['Schemas', 'Observabilidade', 'LGPD'],
-    capabilityKeys: [
-      'market.catalog.settings.capability1',
-      'market.catalog.settings.capability2',
-      'market.catalog.settings.capability3',
-    ],
-    license: 'Base',
-    licenseKey: 'market.catalog.settings.license',
-  },
-  {
-    key: 'analytics',
-    title: 'Insights Avançados',
-    titleKey: 'market.catalog.analytics.title',
-    description: 'Visualizações analíticas e previsões operacionais.',
-    descriptionKey: 'market.catalog.analytics.description',
-    capabilities: ['Forecast', 'Análises', 'Dashboards'],
-    capabilityKeys: [
-      'market.catalog.analytics.capability1',
-      'market.catalog.analytics.capability2',
-      'market.catalog.analytics.capability3',
-    ],
-    license: 'Add-on',
-    licenseKey: 'market.catalog.analytics.license',
-    comingSoon: true,
-    comingSoonKey: 'market.catalog.analytics.soon',
-  },
-];
-
-
-function createTemplateModule(config) {
-  const meta = {
-    key: config.key,
-    id: config.id,
-    card: config.card,
-    badges: config.badges ?? [],
-    badgeKeys: config.badgeKeys ?? [],
-    panel: config.panel ?? {},
-  };
-
-  return {
-    key: meta.key,
-    meta,
-    init(container, context = {}) {
-      if (!container) {
-        return;
-      }
-      const templateId = meta.panel?.template;
-      const uiContext = context.ui ?? {};
-      const applyTranslations = typeof uiContext.applyTranslations === 'function' ? uiContext.applyTranslations : null;
-      const translateWithFallback =
-        typeof uiContext.translateWithFallback === 'function' ? uiContext.translateWithFallback : null;
-      const translate = typeof uiContext.translate === 'function' ? uiContext.translate : null;
-
-      if (templateId) {
-        const template = document.getElementById(templateId);
-        if (template) {
-          container.appendChild(template.content.cloneNode(true));
-          if (applyTranslations) {
-            applyTranslations(container);
-          }
-        }
-      }
-
-      if (!container.hasChildNodes()) {
-        const resolvedLabel =
-          (translateWithFallback && translateWithFallback(meta.card?.labelKey, meta.card?.label ?? '')) ||
-          (translate && meta.card?.labelKey
-            ? (() => {
-                const value = translate(meta.card.labelKey, {});
-                return value !== meta.card.labelKey ? value : null;
-              })()
-            : null) ||
-          meta.card?.label ||
-          meta.key;
-
-        const fallbackText =
-          (translateWithFallback &&
-            translateWithFallback(
-              'panel.placeholder.default',
-              `Selecione um mini-app para ${resolvedLabel}`,
-              { label: resolvedLabel },
-            )) ||
-          (translate
-            ? (() => {
-                const value = translate('panel.placeholder.default', { label: resolvedLabel });
-                return value !== 'panel.placeholder.default' ? value : null;
-              })()
-            : null) ||
-          `Selecione um mini-app para ${resolvedLabel}`;
-
-        const fallback = document.createElement('p');
-        fallback.className = 'panel-note';
-        fallback.textContent = fallbackText;
-        container.appendChild(fallback);
-      }
-    },
-  };
-}
-
 export const moduleDefinitions = [
   createTemplateModule({
     key: 'operations',
@@ -266,6 +102,20 @@ export const moduleDefinitions = [
       template: 'panel-template-operations',
       meta: 'Masters do painel operacional prontos para receber subcards.',
       metaKey: 'miniapps.operations.panel',
+    },
+    marketplace: {
+      title: 'Painel de Operações',
+      titleKey: 'market.catalog.operations.title',
+      description: 'KPIs, dados mestres e status unificado do tenant.',
+      descriptionKey: 'market.catalog.operations.description',
+      capabilities: ['KPIs', 'Alertas', 'Workflow'],
+      capabilityKeys: [
+        'market.catalog.operations.capability1',
+        'market.catalog.operations.capability2',
+        'market.catalog.operations.capability3',
+      ],
+      license: 'Base',
+      licenseKey: 'market.catalog.operations.license',
     },
   }),
   createTemplateModule({
@@ -286,6 +136,20 @@ export const moduleDefinitions = [
       meta: 'Masters do gestor focados em filtros e status prioritários.',
       metaKey: 'miniapps.tasks.panel',
     },
+    marketplace: {
+      title: 'Gestor de Tarefas',
+      titleKey: 'market.catalog.tasks.title',
+      description: 'Cronogramas, responsáveis e dependências críticas.',
+      descriptionKey: 'market.catalog.tasks.description',
+      capabilities: ['Quadro', 'Alertas', 'Exportação'],
+      capabilityKeys: [
+        'market.catalog.tasks.capability1',
+        'market.catalog.tasks.capability2',
+        'market.catalog.tasks.capability3',
+      ],
+      license: 'Base',
+      licenseKey: 'market.catalog.tasks.license',
+    },
   }),
   createTemplateModule({
     key: 'account',
@@ -304,6 +168,20 @@ export const moduleDefinitions = [
       template: 'panel-template-account',
       meta: 'Masters para direitos do titular, dispositivos e backups.',
       metaKey: 'miniapps.account.panel',
+    },
+    marketplace: {
+      title: 'Conta & Backup',
+      titleKey: 'market.catalog.account.title',
+      description: 'Identidade, dispositivos, direitos do titular e backups.',
+      descriptionKey: 'market.catalog.account.description',
+      capabilities: ['LGPD', 'Backup', 'Passkeys'],
+      capabilityKeys: [
+        'market.catalog.account.capability1',
+        'market.catalog.account.capability2',
+        'market.catalog.account.capability3',
+      ],
+      license: 'Base',
+      licenseKey: 'market.catalog.account.license',
     },
   }),
   createTemplateModule({
@@ -324,6 +202,20 @@ export const moduleDefinitions = [
       meta: 'Preview compacto para habilitar ou revogar licenças.',
       metaKey: 'miniapps.market.panel',
     },
+    marketplace: {
+      title: 'Marketplace',
+      titleKey: 'market.catalog.market.title',
+      description: 'Gestão de catálogos, licenças e habilitação de MiniApps.',
+      descriptionKey: 'market.catalog.market.description',
+      capabilities: ['Catálogo', 'Licenças', 'Provisionamento'],
+      capabilityKeys: [
+        'market.catalog.market.capability1',
+        'market.catalog.market.capability2',
+        'market.catalog.market.capability3',
+      ],
+      license: 'Base',
+      licenseKey: 'market.catalog.market.license',
+    },
   }),
   createTemplateModule({
     key: 'settings',
@@ -342,6 +234,20 @@ export const moduleDefinitions = [
       template: 'panel-template-settings',
       meta: 'Masters de configuração rápida e observabilidade do tenant.',
       metaKey: 'miniapps.settings.panel',
+    },
+    marketplace: {
+      title: 'Configuração & Operação',
+      titleKey: 'market.catalog.settings.title',
+      description: 'Parâmetros do AppBase, observabilidade e auditoria.',
+      descriptionKey: 'market.catalog.settings.description',
+      capabilities: ['Schemas', 'Observabilidade', 'LGPD'],
+      capabilityKeys: [
+        'market.catalog.settings.capability1',
+        'market.catalog.settings.capability2',
+        'market.catalog.settings.capability3',
+      ],
+      license: 'Base',
+      licenseKey: 'market.catalog.settings.license',
     },
   }),
 ];
@@ -394,6 +300,38 @@ export const bootConfig = {
     entitlements: { backup: true, marketplace: true },
     providers: { login: ['google', 'apple'], storage: ['drive', 'onedrive'] },
   },
+  miniApps: [
+    {
+      key: 'operations',
+      manifestUrl: '../miniapps/operations.json',
+      moduleUrl: './template-module.js',
+    },
+    {
+      key: 'tasks',
+      manifestUrl: '../miniapps/tasks.json',
+      moduleUrl: './template-module.js',
+    },
+    {
+      key: 'account',
+      manifestUrl: '../miniapps/account.json',
+      moduleUrl: './template-module.js',
+    },
+    {
+      key: 'market',
+      manifestUrl: '../miniapps/market.json',
+      moduleUrl: './template-module.js',
+    },
+    {
+      key: 'settings',
+      manifestUrl: '../miniapps/settings.json',
+      moduleUrl: './template-module.js',
+    },
+    {
+      key: 'analytics',
+      manifestUrl: '../miniapps/analytics.json',
+      moduleType: 'placeholder',
+    },
+  ],
   ui: { theme: 'dark', layout: 'tabs' },
   meta: { version: '1.0', signature: 'demo-signature', checksum: 'demo-checksum' },
 };
