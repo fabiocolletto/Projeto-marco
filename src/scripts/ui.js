@@ -24,6 +24,7 @@ const exportFeedbackIcon = exportFeedbackElement?.querySelector('[data-export-ic
 
 let activePanelKey = null;
 let activePanelTrigger = null;
+let activePanelDestroy = null;
 let hideFeedbackTimeout = null;
 let currentLocale = 'pt-BR';
 const localeCache = new Map();
@@ -431,23 +432,24 @@ export function renderMiniAppGrid() {
   const enabledKeys = AppBase.getEnabledMiniApps();
   enabledKeys.forEach((key) => {
     const module = AppBase.resolve(key);
-    if (!module) {
+    const meta = AppBase.getModuleMeta(key);
+    if (!module || !meta) {
       return;
     }
-    container.appendChild(createMiniAppCard(module, key));
+    container.appendChild(createMiniAppCard(meta, key));
   });
   updateMiniAppSummary(enabledKeys.length);
   connectMiniAppTriggers();
 }
 
-function createMiniAppCard(module, key) {
+function createMiniAppCard(meta, key) {
   const article = document.createElement('article');
   article.className = 'mini-app-card';
   article.dataset.miniapp = key;
   article.dataset.miniappView = key;
   article.tabIndex = 0;
   article.setAttribute('role', 'button');
-  const cardLabel = translateWithFallback(module.card.labelKey, module.card.label);
+  const cardLabel = translateWithFallback(meta.card?.labelKey, meta.card?.label ?? meta.key);
   article.setAttribute('aria-label', translateWithFallback('miniapps.card.open', `Abrir visão completa de ${cardLabel}`, {
     label: cardLabel,
   }));
@@ -485,7 +487,7 @@ function createMiniAppCard(module, key) {
   header.appendChild(chip);
   article.appendChild(header);
 
-  const cardMeta = translateWithFallback(module.card?.metaKey, module.card?.meta ?? '');
+  const cardMeta = translateWithFallback(meta.card?.metaKey, meta.card?.meta ?? '');
   if (cardMeta) {
     const meta = document.createElement('p');
     meta.className = 'mini-app-meta';
@@ -497,13 +499,13 @@ function createMiniAppCard(module, key) {
     if (event.target.closest('button')) {
       return;
     }
-    activateView(module.id);
+    activateView(meta.id);
   });
 
   article.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      activateView(module.id);
+      activateView(meta.id);
     }
   });
 
@@ -613,7 +615,8 @@ export function connectMiniAppTriggers() {
       return;
     }
     const module = AppBase.resolve(element.dataset.miniappView);
-    if (!module) {
+    const meta = AppBase.getModuleMeta(element.dataset.miniappView);
+    if (!module || !meta) {
       return;
     }
     element.dataset.bound = 'true';
@@ -621,7 +624,7 @@ export function connectMiniAppTriggers() {
       if (event.target.closest('button')) {
         return;
       }
-      activateView(module.id);
+      activateView(meta.id);
     });
   });
 
@@ -648,29 +651,80 @@ export function toggleMiniAppPanel(key, trigger) {
   showMiniAppPanel(key, trigger);
 }
 
+function createModuleContext(meta) {
+  const config = storedConfig ?? AppBase.getConfig() ?? null;
+  return {
+    app: AppBase,
+    meta,
+    state: {
+      config,
+      session: storedSession,
+      dashboard: storedDashboard,
+      backup: storedBackup,
+      observability: storedObservability,
+      catalog: storedCatalog,
+    },
+    ui: {
+      translate,
+      translateWithFallback,
+      resolveTranslation,
+      applyTranslations,
+      formatRelativeTime,
+    },
+  };
+}
+
+function cleanupActivePanel() {
+  if (typeof activePanelDestroy === 'function') {
+    try {
+      activePanelDestroy();
+    } catch (error) {
+      console.error('MiniApp destroy error', error);
+    }
+  }
+  activePanelDestroy = null;
+}
+
 function showMiniAppPanel(key, trigger) {
   const module = AppBase.resolve(key);
-  if (!module || !panelCard || !panelContent || !panelPlaceholder) {
+  const meta = AppBase.getModuleMeta(key);
+  if (!module || !meta || !panelCard || !panelContent || !panelPlaceholder) {
     return;
   }
 
+  cleanupActivePanel();
+
   panelContent.innerHTML = '';
-  const templateId = module.panel?.template;
-  if (templateId) {
-    const template = document.getElementById(templateId);
-    if (template) {
-      panelContent.appendChild(template.content.cloneNode(true));
-      applyTranslations(panelContent);
+  const moduleContainer = document.createElement('div');
+  moduleContainer.className = 'miniapp-panel-container';
+  panelContent.appendChild(moduleContainer);
+
+  const context = createModuleContext(meta);
+  try {
+    const result = module.init(moduleContainer, context);
+    if (typeof result === 'function') {
+      activePanelDestroy = result;
+    } else if (typeof module.destroy === 'function') {
+      activePanelDestroy = () => module.destroy(moduleContainer, context);
+    } else {
+      activePanelDestroy = null;
     }
+  } catch (error) {
+    console.error(`Erro ao iniciar módulo "${key}"`, error);
+    activePanelDestroy = null;
   }
-  if (!panelContent.hasChildNodes()) {
+
+  if (!moduleContainer.hasChildNodes()) {
+    const label = translateWithFallback(meta.card?.labelKey, meta.card?.label ?? meta.key);
     const fallback = document.createElement('p');
     fallback.className = 'panel-note';
-    fallback.textContent = translate('panel.placeholder.default', {
-      label: translate(module.card.labelKey ?? '', {}) || module.card.label,
-    });
-    panelContent.appendChild(fallback);
+    fallback.textContent =
+      translateWithFallback('panel.placeholder.default', `Selecione um mini-app para ${label}`, { label }) ||
+      `Selecione um mini-app para ${label}`;
+    moduleContainer.appendChild(fallback);
   }
+
+  applyTranslations(moduleContainer);
 
   panelPlaceholder.setAttribute('hidden', 'hidden');
   panelContent.removeAttribute('hidden');
@@ -678,12 +732,12 @@ function showMiniAppPanel(key, trigger) {
   panelCard.classList.remove('is-collapsed');
 
   if (panelChip) {
-    panelChip.textContent = translateWithFallback(module.card.labelKey, module.card.label);
+    panelChip.textContent = translateWithFallback(meta.card?.labelKey, meta.card?.label ?? meta.key);
   }
   if (panelMeta) {
     panelMeta.textContent =
-      translateWithFallback(module.panel?.metaKey, module.panel?.meta ?? '') ||
-      translateWithFallback(module.card?.metaKey, module.card?.meta ?? '');
+      translateWithFallback(meta.panel?.metaKey, meta.panel?.meta ?? '') ||
+      translateWithFallback(meta.card?.metaKey, meta.card?.meta ?? '');
   }
 
   if (panelClose) {
@@ -693,7 +747,7 @@ function showMiniAppPanel(key, trigger) {
   if (panelMenu) {
     panelMenu.dataset.panelTrigger = key;
     panelMenu.setAttribute('aria-expanded', 'true');
-    const label = translateWithFallback(module.card.labelKey, module.card.label);
+    const label = translateWithFallback(meta.card?.labelKey, meta.card?.label ?? meta.key);
     panelMenu.setAttribute('aria-label', translateWithFallback('panel.close', `Fechar MiniAppPanel de ${label}`, {
       label,
     }));
@@ -714,8 +768,10 @@ function showMiniAppPanel(key, trigger) {
 
 export function hideMiniAppPanel() {
   if (!panelCard || !panelContent || !panelPlaceholder) {
+    cleanupActivePanel();
     return;
   }
+  cleanupActivePanel();
   panelCard.classList.remove('is-active');
   panelCard.classList.add('is-collapsed');
   panelContent.innerHTML = '';
