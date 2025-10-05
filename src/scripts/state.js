@@ -178,8 +178,78 @@ export const marketCatalog = [
 ];
 
 
+function createTemplateModule(config) {
+  const meta = {
+    key: config.key,
+    id: config.id,
+    card: config.card,
+    badges: config.badges ?? [],
+    badgeKeys: config.badgeKeys ?? [],
+    panel: config.panel ?? {},
+  };
+
+  return {
+    key: meta.key,
+    meta,
+    init(container, context = {}) {
+      if (!container) {
+        return;
+      }
+      const templateId = meta.panel?.template;
+      const uiContext = context.ui ?? {};
+      const applyTranslations = typeof uiContext.applyTranslations === 'function' ? uiContext.applyTranslations : null;
+      const translateWithFallback =
+        typeof uiContext.translateWithFallback === 'function' ? uiContext.translateWithFallback : null;
+      const translate = typeof uiContext.translate === 'function' ? uiContext.translate : null;
+
+      if (templateId) {
+        const template = document.getElementById(templateId);
+        if (template) {
+          container.appendChild(template.content.cloneNode(true));
+          if (applyTranslations) {
+            applyTranslations(container);
+          }
+        }
+      }
+
+      if (!container.hasChildNodes()) {
+        const resolvedLabel =
+          (translateWithFallback && translateWithFallback(meta.card?.labelKey, meta.card?.label ?? '')) ||
+          (translate && meta.card?.labelKey
+            ? (() => {
+                const value = translate(meta.card.labelKey, {});
+                return value !== meta.card.labelKey ? value : null;
+              })()
+            : null) ||
+          meta.card?.label ||
+          meta.key;
+
+        const fallbackText =
+          (translateWithFallback &&
+            translateWithFallback(
+              'panel.placeholder.default',
+              `Selecione um mini-app para ${resolvedLabel}`,
+              { label: resolvedLabel },
+            )) ||
+          (translate
+            ? (() => {
+                const value = translate('panel.placeholder.default', { label: resolvedLabel });
+                return value !== 'panel.placeholder.default' ? value : null;
+              })()
+            : null) ||
+          `Selecione um mini-app para ${resolvedLabel}`;
+
+        const fallback = document.createElement('p');
+        fallback.className = 'panel-note';
+        fallback.textContent = fallbackText;
+        container.appendChild(fallback);
+      }
+    },
+  };
+}
+
 export const moduleDefinitions = [
-  {
+  createTemplateModule({
     key: 'operations',
     id: 'mini-app-painel',
     card: {
@@ -197,8 +267,8 @@ export const moduleDefinitions = [
       meta: 'Masters do painel operacional prontos para receber subcards.',
       metaKey: 'miniapps.operations.panel',
     },
-  },
-  {
+  }),
+  createTemplateModule({
     key: 'tasks',
     id: 'mini-app-tarefas',
     card: {
@@ -216,8 +286,8 @@ export const moduleDefinitions = [
       meta: 'Masters do gestor focados em filtros e status prioritários.',
       metaKey: 'miniapps.tasks.panel',
     },
-  },
-  {
+  }),
+  createTemplateModule({
     key: 'account',
     id: 'mini-app-conta',
     card: {
@@ -235,8 +305,8 @@ export const moduleDefinitions = [
       meta: 'Masters para direitos do titular, dispositivos e backups.',
       metaKey: 'miniapps.account.panel',
     },
-  },
-  {
+  }),
+  createTemplateModule({
     key: 'market',
     id: 'mini-app-market',
     card: {
@@ -254,8 +324,8 @@ export const moduleDefinitions = [
       meta: 'Preview compacto para habilitar ou revogar licenças.',
       metaKey: 'miniapps.market.panel',
     },
-  },
-  {
+  }),
+  createTemplateModule({
     key: 'settings',
     id: 'mini-app-config',
     card: {
@@ -273,7 +343,7 @@ export const moduleDefinitions = [
       meta: 'Masters de configuração rápida e observabilidade do tenant.',
       metaKey: 'miniapps.settings.panel',
     },
-  },
+  }),
 ];
 
 export const observabilitySnapshot = [

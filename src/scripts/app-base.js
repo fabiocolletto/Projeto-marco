@@ -4,6 +4,31 @@ let enabled = new Set();
 let currentConfig = null;
 const listeners = new Set();
 
+function normalizeMeta(key, definition) {
+  const sourceMeta = definition.meta ?? {};
+  const cardSource = sourceMeta.card ?? definition.card ?? {};
+  const panelSource = sourceMeta.panel ?? definition.panel ?? {};
+  const badgesSource = Array.isArray(sourceMeta.badges)
+    ? sourceMeta.badges
+    : Array.isArray(definition.badges)
+      ? definition.badges
+      : [];
+  const badgeKeysSource = Array.isArray(sourceMeta.badgeKeys)
+    ? sourceMeta.badgeKeys
+    : Array.isArray(definition.badgeKeys)
+      ? definition.badgeKeys
+      : [];
+
+  return {
+    key,
+    id: sourceMeta.id ?? definition.id ?? key,
+    card: { ...cardSource },
+    badges: [...badgesSource],
+    badgeKeys: [...badgeKeysSource],
+    panel: { ...panelSource },
+  };
+}
+
 function notify(event) {
   listeners.forEach((listener) => {
     try {
@@ -15,7 +40,11 @@ function notify(event) {
 }
 
 function register(key, definition) {
-  modules.set(key, definition);
+  if (!definition || typeof definition.init !== 'function') {
+    throw new Error(`AppBase.register("${key}") requer um módulo com método init(container, context).`);
+  }
+  const meta = normalizeMeta(key, definition);
+  modules.set(key, { module: definition, meta });
 }
 
 function boot(config) {
@@ -72,7 +101,7 @@ function getResolvedConfig() {
 }
 
 function resolve(key) {
-  return modules.get(key);
+  return modules.get(key)?.module ?? null;
 }
 
 function getEnabledMiniApps() {
@@ -84,7 +113,15 @@ function getConfig() {
 }
 
 function getModuleEntries() {
-  return Array.from(modules.entries());
+  return Array.from(modules.entries()).map(([key, entry]) => [key, entry.module]);
+}
+
+function getModuleMeta(key) {
+  return modules.get(key)?.meta ?? null;
+}
+
+function getModuleMetaEntries() {
+  return Array.from(modules.entries()).map(([key, entry]) => [key, entry.meta]);
 }
 
 function onChange(listener) {
@@ -103,5 +140,7 @@ export const AppBase = {
   getEnabledMiniApps,
   getConfig,
   getModuleEntries,
+  getModuleMeta,
+  getModuleMetaEntries,
   onChange,
 };
