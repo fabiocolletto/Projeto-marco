@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Marco · Painel de controle</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div class="ac-app">
+      <header class="ac-appbar" role="banner">
+        <div class="ac-appbar__branding">
+          <span class="ac-logo" aria-hidden="true">◈</span>
+          <span class="ac-appbar__title">Marco Console</span>
+        </div>
+        <div class="ac-appbar__actions">
+          <button type="button" class="ac-btn ac-btn--ghost js-open-login">
+            Entrar
+          </button>
+        </div>
+      </header>
+      <div class="ac-main">
+        <aside class="ac-rail" aria-label="Seções do painel">
+          <ul class="ac-rail__list">
+            <li>
+              <button
+                type="button"
+                class="ac-rail__card js-etiq"
+                data-target="painel-controle"
+                aria-current="page"
+              >
+                Painel de controle
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="ac-rail__card js-etiq"
+                data-target="visao-geral"
+              >
+                Visão geral
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="ac-rail__card js-etiq"
+                data-target="alertas"
+              >
+                Alertas
+              </button>
+            </li>
+          </ul>
+        </aside>
+        <main class="ac-stage" id="main-stage">
+          <section
+            id="painel-controle"
+            class="ac-panel ac-panel--active"
+            aria-labelledby="heading-painel"
+            tabindex="-1"
+          >
+            <header class="ac-panel__header">
+              <h1 id="heading-painel" class="ac-sr-only">Painel de controle</h1>
+              <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
+                <ol>
+                  <li><a href="#main-stage">Início</a></li>
+                  <li aria-current="page">Painel de controle</li>
+                </ol>
+              </nav>
+              <div class="ac-toolbar" role="toolbar" aria-label="Ações do painel">
+                <div class="ac-toolbar__group" aria-label="Sincronização">
+                  <span class="ac-toolbar__label">Serviços</span>
+                  <button
+                    type="button"
+                    class="ac-toggle js-toggle-sync"
+                    aria-pressed="false"
+                    aria-label="Alternar sincronização"
+                  >
+                    Sync
+                  </button>
+                  <button
+                    type="button"
+                    class="ac-toggle js-toggle-backup"
+                    aria-pressed="false"
+                    aria-label="Alternar backup"
+                  >
+                    Backup
+                  </button>
+                </div>
+                <div class="ac-toolbar__group">
+                  <button type="button" class="ac-btn js-export">Exportar CSV</button>
+                </div>
+              </div>
+            </header>
+            <div class="ac-panel__body">
+              <section class="ac-tiles" aria-label="Indicadores">
+                <article class="ac-tile" data-kpi="sync">
+                  <header>
+                    <span class="ac-kpi-dot" aria-hidden="true"></span>
+                    <h2 id="heading-sync">Sincronização</h2>
+                  </header>
+                  <p>
+                    Estado: <span class="ac-kpi-state" data-state="sync">Desativado</span>
+                  </p>
+                  <p>
+                    Última execução: <time class="ac-kpi-date" data-date="sync">—</time>
+                  </p>
+                </article>
+                <article class="ac-tile" data-kpi="backup">
+                  <header>
+                    <span class="ac-kpi-dot" aria-hidden="true"></span>
+                    <h2 id="heading-backup">Backup</h2>
+                  </header>
+                  <p>
+                    Estado: <span class="ac-kpi-state" data-state="backup">Desativado</span>
+                  </p>
+                  <p>
+                    Última execução: <time class="ac-kpi-date" data-date="backup">—</time>
+                  </p>
+                </article>
+              </section>
+              <section class="ac-table-wrapper" aria-label="Eventos recentes">
+                <header class="ac-table-header">
+                  <h2 id="heading-eventos">Eventos recentes</h2>
+                  <p>Monitore as últimas atualizações registradas pelos serviços.</p>
+                </header>
+                <div class="ac-table-scroller">
+                  <table class="ac-table" aria-describedby="heading-eventos">
+                    <thead>
+                      <tr>
+                        <th scope="col">
+                          <button type="button" class="ac-th" data-sort="data">
+                            Data
+                          </button>
+                        </th>
+                        <th scope="col">
+                          <button type="button" class="ac-th" data-sort="evento">
+                            Evento
+                          </button>
+                        </th>
+                        <th scope="col">
+                          <button type="button" class="ac-th" data-sort="responsavel">
+                            Responsável
+                          </button>
+                        </th>
+                        <th scope="col">
+                          <button type="button" class="ac-th" data-sort="status">
+                            Status
+                          </button>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td data-type="data">
+                          <time datetime="2024-04-22T09:30:00Z">22/04/2024 09:30</time>
+                        </td>
+                        <td data-type="evento">Sincronização concluída</td>
+                        <td data-type="responsavel">Serviço Sync</td>
+                        <td data-type="status">Sucesso</td>
+                      </tr>
+                      <tr>
+                        <td data-type="data">
+                          <time datetime="2024-04-22T07:10:00Z">22/04/2024 07:10</time>
+                        </td>
+                        <td data-type="evento">Backup agendado</td>
+                        <td data-type="responsavel">Serviço Backup</td>
+                        <td data-type="status">Agendado</td>
+                      </tr>
+                      <tr>
+                        <td data-type="data">
+                          <time datetime="2024-04-21T18:45:00Z">21/04/2024 18:45</time>
+                        </td>
+                        <td data-type="evento">Sincronização falhou</td>
+                        <td data-type="responsavel">Serviço Sync</td>
+                        <td data-type="status">Falha</td>
+                      </tr>
+                      <tr>
+                        <td data-type="data">
+                          <time datetime="2024-04-21T08:15:00Z">21/04/2024 08:15</time>
+                        </td>
+                        <td data-type="evento">Backup concluído</td>
+                        <td data-type="responsavel">Serviço Backup</td>
+                        <td data-type="status">Sucesso</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </section>
+          <section
+            id="visao-geral"
+            class="ac-panel"
+            aria-labelledby="heading-visao"
+            tabindex="-1"
+          >
+            <header class="ac-panel__header">
+              <h2 id="heading-visao" class="ac-sr-only">Visão geral</h2>
+              <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
+                <ol>
+                  <li><a href="#main-stage">Início</a></li>
+                  <li aria-current="page">Visão geral</li>
+                </ol>
+              </nav>
+              <div class="ac-toolbar" role="toolbar" aria-label="Ações da visão geral">
+                <div class="ac-toolbar__group">
+                  <button type="button" class="ac-btn ac-btn--ghost">Atualizar</button>
+                </div>
+              </div>
+            </header>
+            <div class="ac-panel__body">
+              <p>
+                A visão geral apresenta um resumo dos KPIs principais da plataforma. Use as ações no rail para voltar ao painel de controle e explorar os detalhes dos eventos.
+              </p>
+            </div>
+          </section>
+          <section
+            id="alertas"
+            class="ac-panel"
+            aria-labelledby="heading-alertas"
+            tabindex="-1"
+          >
+            <header class="ac-panel__header">
+              <h2 id="heading-alertas" class="ac-sr-only">Alertas</h2>
+              <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
+                <ol>
+                  <li><a href="#main-stage">Início</a></li>
+                  <li aria-current="page">Alertas</li>
+                </ol>
+              </nav>
+              <div class="ac-toolbar" role="toolbar" aria-label="Ações de alertas">
+                <div class="ac-toolbar__group">
+                  <button type="button" class="ac-btn">Silenciar</button>
+                </div>
+              </div>
+            </header>
+            <div class="ac-panel__body">
+              <p>
+                Nenhum alerta crítico no momento. Alertas recentes serão listados aqui assim que ocorrerem.
+              </p>
+            </div>
+          </section>
+        </main>
+      </div>
+      <footer class="ac-footer" role="contentinfo">
+        <p>© 2024 Marco Cloud. Todos os direitos reservados.</p>
+      </footer>
+    </div>
+    <div class="ac-overlay" id="login-overlay" hidden>
+      <div class="ac-overlay__backdrop" data-overlay-dismiss="true"></div>
+      <div
+        class="ac-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="login-title"
+        aria-describedby="login-desc"
+        tabindex="-1"
+      >
+        <header class="ac-dialog__header">
+          <h2 id="login-title">Acesso restrito</h2>
+          <button type="button" class="ac-btn ac-btn--ghost js-close" aria-label="Fechar janela de login">
+            ×
+          </button>
+        </header>
+        <div class="ac-dialog__body">
+          <p id="login-desc">Informe as credenciais corporativas para continuar.</p>
+          <form class="ac-form">
+            <label class="ac-field">
+              <span>E-mail</span>
+              <input type="email" name="email" autocomplete="username" required />
+            </label>
+            <label class="ac-field">
+              <span>Senha</span>
+              <input type="password" name="password" autocomplete="current-password" required />
+            </label>
+            <div class="ac-form__actions">
+              <button type="submit" class="ac-btn">Entrar</button>
+              <button type="button" class="ac-btn ac-btn--ghost js-close">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <script src="app.js" type="module"></script>
+  </body>
+</html>
