@@ -1180,6 +1180,19 @@
         box-shadow: 0 10px 22px var(--accent-shadow);
       }
 
+      [data-export-button][disabled],
+      button[data-exporting='true'] {
+        cursor: progress;
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      button[data-exporting='true']::after {
+        content: '…';
+        margin-left: 6px;
+        font-weight: 700;
+      }
+
       .panel-body {
         margin-top: var(--layout-gap);
         display: grid;
@@ -1637,6 +1650,101 @@
         align-items: center;
       }
 
+      .export-feedback {
+        position: fixed;
+        right: var(--space-lg);
+        bottom: var(--space-lg);
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: 12px 18px;
+        border-radius: var(--radius-medium);
+        border: 1px solid var(--accent-border);
+        background: var(--surface-strong);
+        box-shadow: 0 18px 32px var(--shadow-base);
+        font-size: 0.85rem;
+        z-index: 999;
+      }
+
+      .export-feedback[data-state='loading'] {
+        border-color: var(--accent-border);
+        background: var(--accent-surface);
+        color: var(--accent-strong);
+      }
+
+      .export-feedback[data-state='success'] {
+        border-color: var(--success-border);
+        background: var(--success-soft);
+        color: var(--success);
+      }
+
+      .export-feedback[data-state='error'] {
+        border-color: var(--danger-border);
+        background: var(--danger-soft);
+        color: var(--danger);
+      }
+
+      .export-feedback__icon {
+        font-size: 1rem;
+        line-height: 1;
+      }
+
+      @media print {
+        body {
+          background: #ffffff !important;
+          color: #000000 !important;
+          box-shadow: none !important;
+        }
+
+        header.app-header,
+        footer,
+        nav,
+        .miniapp-panel,
+        .panel-actions,
+        .miniapp-rail,
+        .export-feedback,
+        [data-action='home'],
+        [data-panel-menu],
+        [data-panel-close],
+        [data-panel-trigger] {
+          display: none !important;
+        }
+
+        main {
+          width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+
+        .view {
+          display: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+
+        body[data-print-section] .view.is-print-target {
+          display: block !important;
+        }
+
+        body[data-print-section] .view.is-print-target .card {
+          background: transparent !important;
+          border: none !important;
+          box-shadow: none !important;
+        }
+
+        body[data-print-section] .view.is-print-target .card header {
+          page-break-inside: avoid;
+        }
+
+        body[data-print-section] .view.is-print-target table {
+          page-break-inside: auto;
+        }
+
+        a.back-action {
+          display: none !important;
+        }
+      }
+
       @media (max-width: 1200px) {
         .status-area {
           align-items: flex-start;
@@ -1866,6 +1974,15 @@
                 <span>Home</span><span>Mini-apps</span><span>Painel de Operações</span>
               </p>
             </div>
+            <div class="panel-actions">
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-painel"
+              >
+                Exportar painel
+              </button>
+            </div>
           </header>
           <p class="panel-note">Masters base preparados para receber os subcards.</p>
           <div class="master-grid">
@@ -1908,7 +2025,13 @@
             </div>
             <div class="panel-actions">
               <button type="button">Criar nova tarefa</button>
-              <button type="button">Exportar planilha</button>
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-tarefas"
+              >
+                Exportar planilha
+              </button>
             </div>
           </header>
 
@@ -2000,6 +2123,13 @@
               </p>
             </div>
             <div class="panel-actions">
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-conta"
+              >
+                Exportar relatório
+              </button>
               <button type="button">Gerar link mágico</button>
               <button type="button">Desvincular dispositivo</button>
             </div>
@@ -2115,7 +2245,13 @@
               </p>
             </div>
             <div class="panel-actions">
-              <button type="button">Exportar config</button>
+              <button
+                type="button"
+                data-export-button
+                data-export-target="mini-app-config"
+              >
+                Exportar config
+              </button>
               <button type="button">Ver auditoria</button>
             </div>
           </header>
@@ -2182,6 +2318,18 @@
         <span>Versão 0.2.0 • Protótipo navegável AppBase + MiniApps</span>
       </div>
     </footer>
+
+    <div
+      class="export-feedback"
+      data-export-feedback
+      hidden
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    >
+      <span class="export-feedback__icon" data-export-icon aria-hidden="true">⏳</span>
+      <span data-export-message>Preparando exportação…</span>
+    </div>
 
     <script>
       const views = document.querySelectorAll('.view');
@@ -2356,6 +2504,126 @@
       ];
 
       const THEME_STORAGE_KEY = 'marco-ui-theme';
+
+      const COMMON_EXPORT_EXCLUDES = [
+        'Voltar para a tela principal',
+        'Exportar painel',
+        'Exportar planilha',
+        'Exportar relatório',
+        'Exportar config',
+        'Criar nova tarefa',
+        'Gerar link mágico',
+        'Desvincular dispositivo',
+        'Atualizar catálogos',
+        'Ver licenças ativas',
+        'Ver auditoria',
+      ];
+
+      const exportRegistry = {
+        'mini-app-painel': {
+          title: 'Marco · Painel de Operações',
+          subtitle: 'Mini-app • Painel de Operações',
+          description: 'Resumo do painel operacional com masters e áreas de expansão.',
+          fileName: 'painel-operacoes',
+          shortLabel: 'Painel de Operações',
+          headings: ['KPIs do sistema', 'Dados / Resumos', 'Outros painéis', 'Área p/ expandir'],
+          excluded: [
+            'Mini-app • Painel de Operações',
+            'Masters base preparados para receber os subcards.',
+          ],
+        },
+        'mini-app-tarefas': {
+          title: 'Marco · Gestor de Tarefas',
+          subtitle: 'Mini-app • Gestor de Tarefas',
+          description: 'Exportação da visão de tarefas, filtros ativos e dicas do sistema.',
+          fileName: 'gestor-tarefas',
+          shortLabel: 'Gestor de Tarefas',
+          headings: ['Mini-app • Gestor de Tarefas', 'Dicas do sistema'],
+          excluded: ['Mini-app • Gestor de Tarefas'],
+        },
+        'mini-app-conta': {
+          title: 'Marco · Conta & Backup',
+          subtitle: 'Mini-app • Conta & Backup',
+          description: 'Detalhes de identidade, dispositivos ativos e storage sincronizado.',
+          fileName: 'conta-backup',
+          shortLabel: 'Conta & Backup',
+          headings: [
+            'Identidade & Sessão',
+            'Backup & Storage',
+            'Dispositivos ativos',
+            'Livro-razão de conformidade',
+            'Direitos do titular prontos para 1 clique',
+          ],
+          excluded: ['Mini-app • Conta & Backup'],
+        },
+        'mini-app-config': {
+          title: 'Marco · Configuração & Operação',
+          subtitle: 'Mini-app • Configuração & Operação',
+          description: 'Snapshot da configuração resolvida e eventos de observabilidade.',
+          fileName: 'config-operacao',
+          shortLabel: 'Configuração & Operação',
+          headings: ['Configuração resolvida', 'Checklist LGPD-first', 'Observabilidade'],
+          excluded: ['Mini-app • Configuração & Operação'],
+        },
+      };
+
+      const PRINT_CLEANUP_DELAY = 600;
+
+      const exportFeedback = (() => {
+        const container = document.querySelector('[data-export-feedback]');
+        const message = container?.querySelector('[data-export-message]');
+        const icon = container?.querySelector('[data-export-icon]');
+        let hideTimeout = null;
+
+        function setState(state, text) {
+          if (!container) {
+            return;
+          }
+          container.dataset.state = state;
+          container.hidden = false;
+          if (message) {
+            message.textContent = text;
+          }
+          if (icon) {
+            icon.textContent = state === 'loading' ? '⏳' : state === 'success' ? '✅' : '⚠️';
+          }
+          if (hideTimeout) {
+            window.clearTimeout(hideTimeout);
+            hideTimeout = null;
+          }
+          if (state !== 'loading') {
+            hideTimeout = window.setTimeout(() => {
+              container.hidden = true;
+              container.removeAttribute('data-state');
+            }, 4000);
+          }
+        }
+
+        function hide() {
+          if (!container) {
+            return;
+          }
+          container.hidden = true;
+          container.removeAttribute('data-state');
+          if (hideTimeout) {
+            window.clearTimeout(hideTimeout);
+            hideTimeout = null;
+          }
+        }
+
+        return {
+          loading(text) {
+            setState('loading', text);
+          },
+          success(text) {
+            setState('success', text);
+          },
+          error(text) {
+            setState('error', text);
+          },
+          hide,
+        };
+      })();
 
       const AppBase = (() => {
         const modules = new Map();
@@ -2618,6 +2886,7 @@
       updateAccountDetails(bootConfig, sessionState, backupSnapshot);
       buildObservabilityTable();
       connectMiniAppTriggers();
+      initExportActions();
       document.querySelectorAll('[data-action="home"]').forEach((element) => {
         element.addEventListener('click', (event) => {
           event.preventDefault();
@@ -3051,6 +3320,433 @@
 
           container.appendChild(card);
         });
+      }
+
+      function initExportActions() {
+        document.querySelectorAll('[data-export-button]').forEach((button) => {
+          if (button.dataset.exportBound === 'true') {
+            return;
+          }
+          button.dataset.exportBound = 'true';
+          button.addEventListener('click', () => {
+            handleExportRequest(button.dataset.exportTarget, button);
+          });
+        });
+      }
+
+      async function handleExportRequest(targetId, button) {
+        if (!targetId || !exportRegistry[targetId]) {
+          console.warn('Export target não mapeado', targetId);
+          return;
+        }
+        const section = document.getElementById(targetId);
+        if (!section) {
+          console.warn('Seção de exportação não encontrada', targetId);
+          return;
+        }
+        const config = exportRegistry[targetId];
+        const exportDate = new Date();
+        exportFeedback.loading(`Preparando exportação de ${config.shortLabel ?? config.title}…`);
+        setExportButtonLoading(button, true);
+        try {
+          const structure = buildExportStructure(section, config, exportDate);
+          const entries = mapItemsToEntries(structure);
+          const pdfBytes = generateSimplePdf(entries);
+          const fileTimestamp = createFileTimestamp(exportDate);
+          const fileName = `${config.fileName ?? targetId}-${fileTimestamp}.pdf`;
+          const supportsFile = typeof File === 'function';
+          const pdfBlob = supportsFile
+            ? new File([pdfBytes], fileName, { type: 'application/pdf' })
+            : new Blob([pdfBytes], { type: 'application/pdf' });
+          triggerDownload(pdfBlob, fileName);
+          let shared = false;
+          if (
+            supportsFile &&
+            typeof navigator !== 'undefined' &&
+            typeof navigator.canShare === 'function'
+          ) {
+            try {
+              if (navigator.canShare({ files: [pdfBlob] })) {
+                await navigator.share({
+                  files: [pdfBlob],
+                  title: config.title,
+                  text: 'Exportação gerada no Sistema Operacional Marco.',
+                });
+                shared = true;
+              }
+            } catch (shareError) {
+              if (!shareError || shareError.name !== 'AbortError') {
+                console.warn('Compartilhamento não concluído', shareError);
+              }
+            }
+          }
+          registerExportAudit(config, exportDate);
+          exportFeedback.success(
+            shared
+              ? `Exportação compartilhada com sucesso para ${config.shortLabel ?? config.title}.`
+              : `Exportação gerada para ${config.shortLabel ?? config.title}.`,
+          );
+        } catch (error) {
+          console.error('Erro ao exportar seção', error);
+          exportFeedback.error('Não foi possível gerar o PDF desta seção.');
+          tryPrintFallback(section, targetId);
+        } finally {
+          setExportButtonLoading(button, false);
+        }
+      }
+
+      function setExportButtonLoading(button, isLoading) {
+        if (!button) {
+          return;
+        }
+        if (isLoading) {
+          if (!button.dataset.originalLabel) {
+            button.dataset.originalLabel = button.textContent?.trim() ?? '';
+          }
+          button.dataset.exporting = 'true';
+          button.disabled = true;
+          button.textContent = 'Exportando';
+          return;
+        }
+        button.disabled = false;
+        button.removeAttribute('data-exporting');
+        const originalLabel = button.dataset.originalLabel;
+        if (typeof originalLabel === 'string') {
+          button.textContent = originalLabel;
+          delete button.dataset.originalLabel;
+        }
+      }
+
+      function buildExportStructure(section, config, exportDate) {
+        const structure = [{ type: 'title', text: config.title }];
+        const subtitle =
+          config.subtitle ?? section.querySelector('header h2')?.textContent?.trim() ?? null;
+        if (subtitle) {
+          structure.push({ type: 'subtitle', text: subtitle });
+        }
+        structure.push({ type: 'meta', text: `Gerado em: ${formatFullTimestamp(exportDate)}` });
+        if (config.description) {
+          structure.push({ type: 'meta', text: config.description });
+        }
+        structure.push({ type: 'spacer' });
+        extractSectionLines(section, config).forEach((item) => structure.push(item));
+        return structure;
+      }
+
+      function extractSectionLines(section, config) {
+        const excludes = new Set(COMMON_EXPORT_EXCLUDES);
+        (config.excluded ?? []).forEach((phrase) => excludes.add(phrase));
+        const ignoreContains = config.ignorePhrases ?? [];
+        const rawLines = section.innerText.split('\n').map((line) => line.trim());
+        const items = [];
+        let previousContent = '';
+        rawLines.forEach((line) => {
+          if (!line) {
+            if (items.length && items[items.length - 1].type !== 'spacer') {
+              items.push({ type: 'spacer' });
+            }
+            previousContent = '';
+            return;
+          }
+          if (excludes.has(line)) {
+            return;
+          }
+          if (ignoreContains.some((phrase) => line.includes(phrase))) {
+            return;
+          }
+          const normalized = line.replace(/\s+/g, ' ').trim();
+          if (!normalized || normalized === previousContent) {
+            return;
+          }
+          if (config.headings?.includes(normalized)) {
+            if (!items.length || items[items.length - 1].type !== 'spacer') {
+              items.push({ type: 'spacer' });
+            }
+            items.push({ type: 'heading', text: normalized });
+            items.push({ type: 'spacer' });
+            previousContent = '';
+            return;
+          }
+          if (/^[-•]/.test(normalized)) {
+            items.push({ type: 'list', text: normalized.replace(/^[-•]\s*/, '') });
+          } else {
+            items.push({ type: 'text', text: normalized });
+          }
+          previousContent = normalized;
+        });
+        while (items.length && items[items.length - 1].type === 'spacer') {
+          items.pop();
+        }
+        return items;
+      }
+
+      function mapItemsToEntries(items) {
+        const entries = [];
+        items.forEach((item) => {
+          switch (item.type) {
+            case 'title':
+              entries.push({ text: item.text, fontSize: 18, leading: 28, indent: 0 });
+              break;
+            case 'subtitle':
+              entries.push({ text: item.text, fontSize: 12, leading: 20, indent: 0 });
+              break;
+            case 'meta':
+              entries.push({ text: item.text, fontSize: 10, leading: 16, indent: 0 });
+              break;
+            case 'heading':
+              entries.push({ text: item.text, fontSize: 13, leading: 22, indent: 0 });
+              break;
+            case 'list':
+              entries.push({ text: item.text, fontSize: 11, leading: 18, indent: 20, prefix: '-' });
+              break;
+            case 'spacer':
+              entries.push({ text: '', fontSize: 11, leading: 14, indent: 0 });
+              break;
+            default:
+              entries.push({ text: item.text, fontSize: 11, leading: 18, indent: 0 });
+              break;
+          }
+        });
+        return entries;
+      }
+
+      function generateSimplePdf(entries) {
+        const pageWidth = 595.28;
+        const pageHeight = 841.89;
+        const margin = 56;
+        const startY = pageHeight - margin;
+        const pages = [];
+        let currentPage = [];
+        let cursorY = startY;
+
+        entries.forEach((entry) => {
+          const fontSize = entry.fontSize ?? 12;
+          const leading = entry.leading ?? Math.round(fontSize * 1.35);
+          const indent = entry.indent ?? 0;
+          const prefix = entry.prefix ?? '';
+          if (!entry.text) {
+            if (cursorY - leading < margin && currentPage.length) {
+              pages.push(currentPage);
+              currentPage = [];
+              cursorY = startY;
+            }
+            cursorY -= leading;
+            currentPage.push({ text: '', fontSize, indent, prefix: '', leading, y: cursorY });
+            return;
+          }
+          const availableWidth = pageWidth - margin * 2 - indent;
+          const maxChars = Math.max(16, Math.floor(availableWidth / (fontSize * 0.55)));
+          const wrapped = wrapTextForPdf(entry.text, maxChars);
+          wrapped.forEach((line, index) => {
+            if (cursorY - leading < margin && currentPage.length) {
+              pages.push(currentPage);
+              currentPage = [];
+              cursorY = startY;
+            }
+            cursorY -= leading;
+            currentPage.push({
+              text: line,
+              fontSize,
+              indent,
+              prefix: index === 0 ? prefix : '',
+              leading,
+              y: cursorY,
+            });
+          });
+        });
+
+        if (currentPage.length || !pages.length) {
+          pages.push(currentPage);
+        }
+
+        const objects = [];
+        const pageIds = [];
+        const contentIds = [];
+        pages.forEach((_, index) => {
+          const pageId = 4 + index * 2;
+          const contentId = pageId + 1;
+          pageIds.push(pageId);
+          contentIds.push(contentId);
+        });
+        const kidsList = pageIds.map((id) => `${id} 0 R`).join(' ');
+        objects.push({ id: 1, body: '<< /Type /Catalog /Pages 2 0 R >>' });
+        objects.push({ id: 2, body: `<< /Type /Pages /Kids [${kidsList}] /Count ${pages.length} >>` });
+        objects.push({ id: 3, body: '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>' });
+
+        const textEncoder = new TextEncoder();
+        pages.forEach((lines, index) => {
+          const pageId = pageIds[index];
+          const contentId = contentIds[index];
+          const contentParts = ['BT'];
+          let currentFontSize = null;
+          lines.forEach((line) => {
+            if (!line.text && !line.prefix) {
+              return;
+            }
+            const fontSize = line.fontSize ?? 12;
+            if (currentFontSize !== fontSize) {
+              contentParts.push(`/F1 ${fontSize.toFixed(2)} Tf`);
+              currentFontSize = fontSize;
+            }
+            const y = line.y.toFixed(2);
+            if (line.prefix) {
+              const prefixText = escapePdfText(line.prefix === '•' ? '-' : line.prefix);
+              contentParts.push(`1 0 0 1 ${margin.toFixed(2)} ${y} Tm (${prefixText}) Tj`);
+            }
+            if (line.text) {
+              const x = (margin + line.indent).toFixed(2);
+              const content = escapePdfText(line.text);
+              contentParts.push(`1 0 0 1 ${x} ${y} Tm (${content}) Tj`);
+            }
+          });
+          contentParts.push('ET');
+          const contentString = contentParts.join('\n');
+          const contentBytes = textEncoder.encode(contentString);
+          const contentBody = `<< /Length ${contentBytes.length} >>\nstream\n${contentString}\nendstream`;
+          objects.push({
+            id: pageId,
+            body: `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth.toFixed(2)} ${pageHeight.toFixed(2)}] /Resources << /Font << /F1 3 0 R >> >> /Contents ${contentId} 0 R >>`,
+          });
+          objects.push({ id: contentId, body: contentBody });
+        });
+
+        const pdfParts = ['%PDF-1.4\n'];
+        const offsets = [0];
+        let offset = pdfParts[0].length;
+        objects.forEach((object) => {
+          const objectString = `${object.id} 0 obj\n${object.body}\nendobj\n`;
+          offsets.push(offset);
+          pdfParts.push(objectString);
+          offset += objectString.length;
+        });
+        const xrefPosition = offset;
+        pdfParts.push(`xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`);
+        for (let index = 1; index <= objects.length; index += 1) {
+          pdfParts.push(`${offsets[index].toString().padStart(10, '0')} 00000 n \n`);
+        }
+        pdfParts.push(`trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefPosition}\n%%EOF`);
+        return textEncoder.encode(pdfParts.join(''));
+      }
+
+      function wrapTextForPdf(text, maxChars) {
+        const clean = text.replace(/\s+/g, ' ').trim();
+        if (!clean) {
+          return [''];
+        }
+        const words = clean.split(' ');
+        const lines = [];
+        let current = '';
+        words.forEach((word) => {
+          if (!word) {
+            return;
+          }
+          const tentative = current ? `${current} ${word}` : word;
+          if (tentative.length > maxChars) {
+            if (current) {
+              lines.push(current);
+              current = '';
+            }
+            if (word.length > maxChars) {
+              let remaining = word;
+              while (remaining.length > maxChars) {
+                lines.push(remaining.slice(0, maxChars));
+                remaining = remaining.slice(maxChars);
+              }
+              current = remaining;
+            } else {
+              current = word;
+            }
+          } else {
+            current = tentative;
+          }
+        });
+        if (current) {
+          lines.push(current);
+        }
+        return lines.length ? lines : [''];
+      }
+
+      function escapePdfText(text) {
+        return text
+          .replace(/\\/g, '\\\\')
+          .replace(/\(/g, '\\(')
+          .replace(/\)/g, '\\)')
+          .replace(/\r?\n/g, ' ');
+      }
+
+      function triggerDownload(file, fallbackName) {
+        if (!file) {
+          return;
+        }
+        const url = URL.createObjectURL(file);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = 'name' in file && file.name ? file.name : fallbackName;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+      }
+
+      function createFileTimestamp(date) {
+        const pad = (value) => value.toString().padStart(2, '0');
+        return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}`;
+      }
+
+      function formatFullTimestamp(date) {
+        const pad = (value) => value.toString().padStart(2, '0');
+        return `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
+
+      function formatAuditTimestamp(date) {
+        const pad = (value) => value.toString().padStart(2, '0');
+        return `${pad(date.getDate())}/${pad(date.getMonth() + 1)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+      }
+
+      function registerExportAudit(config, exportDate) {
+        const timestamp = formatAuditTimestamp(exportDate);
+        sessionState.auditTrail.unshift({
+          event: 'export_generated',
+          description: `Exportação ${config.shortLabel ?? config.title} concluída`,
+          timestamp,
+        });
+        if (sessionState.auditTrail.length > 20) {
+          sessionState.auditTrail.length = 20;
+        }
+        backupSnapshot.lastExport = timestamp;
+        updateAccountDetails(bootConfig, sessionState, backupSnapshot);
+      }
+
+      function tryPrintFallback(section, sectionId) {
+        if (!section) {
+          return;
+        }
+        preparePrintLayout(section, sectionId);
+        try {
+          window.print();
+        } catch (printError) {
+          console.warn('Impressão de fallback não disponível', printError);
+        } finally {
+          window.setTimeout(() => {
+            clearPrintLayout(section);
+          }, PRINT_CLEANUP_DELAY);
+        }
+      }
+
+      function preparePrintLayout(section, sectionId) {
+        if (!section) {
+          return;
+        }
+        document.body.dataset.printSection = sectionId;
+        section.classList.add('is-print-target');
+      }
+
+      function clearPrintLayout(section) {
+        if (!section) {
+          return;
+        }
+        delete document.body.dataset.printSection;
+        section.classList.remove('is-print-target');
       }
 
       function buildObservabilityTable() {
