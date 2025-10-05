@@ -1,4 +1,6 @@
 :root {
+  --ac-border-width: 1px;
+  --ac-border-width-strong: 2px;
   --ac-bg: #ffffff;
   --ac-text: #1f2937;
   --ac-primary: #1f3a8a;
@@ -57,7 +59,7 @@ input {
   font: inherit;
   padding: 8px 12px;
   border-radius: 10px;
-  border: 2px solid var(--ac-border);
+  border: var(--ac-border-width) solid var(--ac-border);
   background: #fff;
   color: var(--ac-text);
 }
@@ -81,7 +83,7 @@ input {
 .ac-appbar,
 .ac-footer {
   background: #fff;
-  border: 3px solid var(--ac-border);
+  border: var(--ac-border-width-strong) solid var(--ac-border);
   border-radius: 14px;
   padding: 16px 20px;
   display: flex;
@@ -106,7 +108,7 @@ input {
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  border: 3px solid var(--ac-border);
+  border: var(--ac-border-width-strong) solid var(--ac-border);
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -136,11 +138,12 @@ input {
 
 .ac-btn {
   border-radius: 14px;
-  border: 2px solid var(--ac-border);
+  border: var(--ac-border-width) solid var(--ac-border);
   background: var(--ac-bg);
   padding: 8px 18px;
   font-weight: 600;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .ac-btn:hover,
@@ -148,6 +151,7 @@ input {
   background: var(--ac-primary);
   border-color: var(--ac-primary);
   color: #fff;
+  box-shadow: 0 0 0 calc(var(--ac-border-width) * 3) rgba(31, 58, 138, 0.28);
 }
 
 .ac-btn--ghost {
@@ -190,7 +194,7 @@ input {
 .ac-card {
   background: var(--ac-card-bg);
   color: var(--ac-card-ink);
-  border: 2px solid var(--ac-border);
+  border: var(--ac-border-width) solid var(--ac-border);
   border-radius: 16px;
   padding: 12px 14px;
   display: grid;
@@ -200,7 +204,7 @@ input {
 
 .ac-card.is-active {
   border-color: var(--ac-accent);
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.25);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.25);
 }
 
 .ac-card__head {
@@ -224,15 +228,17 @@ input {
 }
 
 .ac-kebab {
-  border: 2px solid transparent;
+  border: var(--ac-border-width) solid transparent;
   border-radius: 12px;
   padding: 4px 8px;
   font-size: 1.2rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ac-kebab:hover,
 .ac-kebab:focus-visible {
   border-color: var(--ac-accent);
+  box-shadow: 0 0 0 calc(var(--ac-border-width) * 3) rgba(249, 115, 22, 0.25);
 }
 
 .ac-meta {
@@ -268,7 +274,7 @@ input {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  border: 2px solid var(--ac-border);
+  border: var(--ac-border-width) solid var(--ac-border);
   background: var(--ac-muted);
   display: inline-block;
 }
@@ -284,7 +290,7 @@ input {
 }
 
 .ac-stage {
-  border: 3px solid var(--ac-border);
+  border: var(--ac-border-width-strong) solid var(--ac-border);
   border-radius: 18px;
   background: #fff;
   padding: 20px;
@@ -329,11 +335,16 @@ input {
   gap: 8px;
   padding: 6px 14px;
   border-radius: 999px;
-  border: 2px solid var(--ac-border);
+  border: var(--ac-border-width) solid var(--ac-border);
   background: var(--ac-crit-bg);
   color: var(--ac-crit);
   font-weight: 600;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.ac-switch:focus-visible {
+  box-shadow: 0 0 0 calc(var(--ac-border-width) * 4) rgba(15, 23, 42, 0.3);
 }
 
 .ac-switch .ac-dot {
@@ -375,7 +386,7 @@ input {
 
 .ac-tile {
   background: var(--ac-tile-bg);
-  border: 2px solid var(--ac-tile-border);
+  border: var(--ac-border-width) solid var(--ac-tile-border);
   border-radius: 20px;
   padding: 18px;
   display: grid;
@@ -442,7 +453,7 @@ input {
   background: var(--ac-bg);
   text-align: left;
   padding: 12px;
-  border-bottom: 2px solid var(--ac-border);
+  border-bottom: var(--ac-border-width) solid var(--ac-border);
 }
 
 .ac-table tbody td {
@@ -502,7 +513,7 @@ input {
 .ac-sheet {
   width: min(720px, 100%);
   background: #fff;
-  border: 3px solid var(--ac-border);
+  border: var(--ac-border-width-strong) solid var(--ac-border);
   border-radius: 20px;
   display: grid;
   grid-template-rows: auto 1fr auto;
@@ -519,11 +530,11 @@ input {
 }
 
 .ac-sheet__head {
-  border-bottom: 2px solid var(--ac-border);
+  border-bottom: var(--ac-border-width) solid var(--ac-border);
 }
 
 .ac-sheet__foot {
-  border-top: 2px solid var(--ac-border);
+  border-top: var(--ac-border-width) solid var(--ac-border);
   flex-wrap: wrap;
 }
 
@@ -552,15 +563,17 @@ input {
 }
 
 .ac-sheet__close {
-  border: 2px solid transparent;
+  border: var(--ac-border-width) solid transparent;
   border-radius: 12px;
   padding: 6px 10px;
   font-size: 1.1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .ac-sheet__close:hover,
 .ac-sheet__close:focus-visible {
   border-color: var(--ac-accent);
+  box-shadow: 0 0 0 calc(var(--ac-border-width) * 3) rgba(249, 115, 22, 0.25);
 }
 
 .ac-form-grid {
