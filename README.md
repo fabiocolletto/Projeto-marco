@@ -29,8 +29,8 @@ referência descrito na especificação Visual & Interação — R1.0.
 
 1. Clone ou baixe este repositório.
 2. Abra `appbase/index.html` em um navegador (Chrome, Edge, Firefox ou Safari).
-   - Em ambientes onde o redirecionamento inicial é necessário, `index.html` na
-     raiz segue apontando para `src/index.html`.
+   - O `index.html` na raiz redireciona automaticamente para essa versão.
+   - Se precisar da versão legada modular, abra `src/index.html` diretamente.
 3. Interaja com as etiquetas no rail para alternar os painéis do palco.
 4. Utilize os toggles de Sync/Backup, exporte a tabela de eventos em CSV e abra o
    overlay de login para testar o fluxo completo.
