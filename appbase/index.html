@@ -11,117 +11,107 @@
     <div class="ac-app">
       <header class="ac-appbar">
         <div class="ac-brand">
-          <div class="ac-logo" aria-hidden="true">5h</div>
+          <div class="ac-logo" aria-hidden="true">
+            <img
+              src="../assets/app/brand/icon-light-500.png"
+              alt=""
+              width="48"
+              height="48"
+            />
+          </div>
           <div class="ac-headings">
             <div class="ac-h1">Projeto Marco</div>
-            <div class="ac-h2">AppBase</div>
+            <div class="ac-h2">Painel de Controles</div>
           </div>
         </div>
-        <nav class="ac-appmenu" aria-label="Menu do sistema">
-          <button class="ac-btn ac-sys" type="button">Sistema ⋯</button>
-        </nav>
-        <div class="ac-breadcrumbs">
-          <span id="breadcrumbs-primary">Painel de controle</span>
+        <nav class="ac-breadcrumbs" aria-label="Localização">
+          <span id="breadcrumbs-primary">Painel de Controles</span>
           <span class="ac-bullet" aria-hidden="true">•</span>
-          <span class="ac-muted" id="breadcrumbs-secondary">Visão detalhada</span>
-        </div>
+          <span class="ac-muted" id="breadcrumbs-secondary">Visão integrada</span>
+        </nav>
+        <button
+          class="ac-iconbtn js-panel-focus"
+          type="button"
+          aria-label="Abrir Painel de Controles"
+        >
+          <span aria-hidden="true">⚙️</span>
+        </button>
       </header>
 
       <div class="ac-layout">
-        <nav class="ac-rail" aria-label="Etiquetas">
-          <section
-            class="ac-card is-active js-etiq"
-            data-panel="painel-controle"
-            aria-current="page"
-          >
-            <div class="ac-card__head">
-              <div>
-                <h3 class="ac-card__title">Painel de controle</h3>
-                <p class="ac-card__subtitle" id="user-name">Fabio</p>
-              </div>
-              <button class="ac-kebab" type="button" aria-label="Opções">⋯</button>
-            </div>
-            <div class="ac-meta">
-              <div class="ac-meta-row">
-                <span class="t">Último login:</span>
-                <span id="meta-login">05/10/2025 09:12:00</span>
-              </div>
-              <div class="ac-meta-row">
-                <span class="t">Último sync:</span>
-                <span id="meta-sync"></span>
-              </div>
-              <div class="ac-meta-row">
-                <span class="t">Último backup:</span>
-                <span id="meta-backup"></span>
-              </div>
-            </div>
-            <div class="ac-badges">
-              <span class="ac-badge">
-                <span id="kpi-conn" class="ac-dot ac-dot--ok" aria-hidden="true"></span>
-                <span class="ac-label">Conexão</span>
-              </span>
-              <span class="ac-badge">
-                <span id="kpi-sync" class="ac-dot ac-dot--crit" aria-hidden="true"></span>
-                <span class="ac-label">Sync</span>
-              </span>
-              <span class="ac-badge">
-                <span id="kpi-backup" class="ac-dot ac-dot--crit" aria-hidden="true"></span>
-                <span class="ac-label">Backup</span>
-              </span>
-            </div>
-          </section>
+        <nav class="ac-rail" aria-label="Miniapps">
+          <div class="ac-rail__stack" role="list" aria-label="Miniapps fixos">
+            <article class="ac-miniapp is-active" role="listitem" aria-current="page">
+              <header class="ac-miniapp__head">
+                <h3 class="ac-miniapp__title">Painel de Controles</h3>
+                <span class="ac-miniapp__tag">Principal</span>
+              </header>
+              <section class="ac-card ac-card--panel" aria-labelledby="miniapp-panel-title">
+                <div class="ac-card__head">
+                  <div>
+                    <h3 id="miniapp-panel-title" class="ac-card__title">Status geral</h3>
+                    <p class="ac-card__subtitle" id="user-name">Fabio</p>
+                  </div>
+                  <button class="ac-kebab" type="button" aria-label="Opções">⋯</button>
+                </div>
+                <div class="ac-meta">
+                  <div class="ac-meta-row">
+                    <span class="t">Último login:</span>
+                    <span id="meta-login">05/10/2025 09:12:00</span>
+                  </div>
+                  <div class="ac-meta-row">
+                    <span class="t">Último sync:</span>
+                    <span id="meta-sync"></span>
+                  </div>
+                  <div class="ac-meta-row">
+                    <span class="t">Último backup:</span>
+                    <span id="meta-backup"></span>
+                  </div>
+                </div>
+                <div class="ac-badges">
+                  <span class="ac-badge">
+                    <span id="kpi-conn" class="ac-dot ac-dot--ok" aria-hidden="true"></span>
+                    <span class="ac-label">Conexão</span>
+                  </span>
+                  <span class="ac-badge">
+                    <span id="kpi-sync" class="ac-dot ac-dot--crit" aria-hidden="true"></span>
+                    <span class="ac-label">Sync</span>
+                  </span>
+                  <span class="ac-badge">
+                    <span id="kpi-backup" class="ac-dot ac-dot--crit" aria-hidden="true"></span>
+                    <span class="ac-label">Backup</span>
+                  </span>
+                </div>
+              </section>
+            </article>
 
-          <section class="ac-card js-etiq" data-panel="market">
-            <div class="ac-card__head">
-              <div>
-                <h3 class="ac-card__title">Marketplace</h3>
-                <p class="ac-card__subtitle">Catálogo</p>
-              </div>
-              <button class="ac-kebab" type="button" aria-label="Opções">⋯</button>
-            </div>
-            <div class="ac-badges">
-              <span class="ac-badge">
-                <span class="ac-dot ac-dot--ok" aria-hidden="true"></span>
-                <span class="ac-label">Online</span>
-              </span>
-            </div>
-          </section>
+            <article class="ac-miniapp" role="listitem">
+              <div class="ac-miniapp__placeholder">Slot livre para miniapp</div>
+            </article>
 
-          <section class="ac-card js-etiq" data-panel="settings">
-            <div class="ac-card__head">
-              <div>
-                <h3 class="ac-card__title">Configurações</h3>
-                <p class="ac-card__subtitle">Sistema</p>
-              </div>
-              <button class="ac-kebab" type="button" aria-label="Opções">⋯</button>
-            </div>
-            <div class="ac-badges">
-              <span class="ac-badge">
-                <span class="ac-dot" aria-hidden="true"></span>
-                <span class="ac-label">Padrões</span>
-              </span>
-            </div>
-          </section>
+            <article class="ac-miniapp" role="listitem">
+              <div class="ac-miniapp__placeholder">Slot livre para miniapp</div>
+            </article>
+          </div>
         </nav>
 
         <main class="ac-stage" role="main">
-          <section id="panel-painel-controle" class="js-panel" aria-labelledby="panel-title-pc">
+          <section
+            id="panel-controles"
+            aria-labelledby="panel-title-controles"
+          >
             <div class="ac-stage__head">
               <div class="ac-stage__titles">
-                <h2 id="panel-title-pc" class="ac-title-lg">Painel de controle</h2>
-                <div class="ac-sub">Visão detalhada</div>
+                <h2
+                  id="panel-title-controles"
+                  class="ac-title-lg"
+                  tabindex="-1"
+                >
+                  Painel de Controles
+                </h2>
+                <div class="ac-sub">Visão integrada</div>
               </div>
-              <div class="ac-toolbar" role="group" aria-label="Ações rápidas">
-                <button class="ac-switch js-toggle-sync is-off" type="button" aria-pressed="false">
-                  <span class="ac-dot" aria-hidden="true"></span>
-                  <span class="ac-switch__label">Sync desativada</span>
-                </button>
-                <button class="ac-switch js-toggle-backup is-off" type="button" aria-pressed="false">
-                  <span class="ac-dot" aria-hidden="true"></span>
-                  <span class="ac-switch__label">Backup desativado</span>
-                </button>
-                <button class="ac-btn js-export" type="button">Exportar CSV</button>
-              </div>
+              <div class="ac-stage__beta" role="status">Versão beta</div>
             </div>
 
             <div class="ac-grid">
@@ -143,6 +133,12 @@
                 <p class="ac-v">Última: <span id="v-sync"></span></p>
                 <p class="ac-v">Provedor: <span id="v-sync-provider">Google Drive</span></p>
                 <p class="ac-v">Pendências offline: <span id="v-pending">0</span></p>
+                <div class="ac-actions">
+                  <button class="ac-switch js-toggle-sync is-off" type="button" aria-pressed="false">
+                    <span class="ac-dot" aria-hidden="true"></span>
+                    <span class="ac-switch__label">Sync desativada</span>
+                  </button>
+                </div>
               </div>
               <div class="ac-tile span-4">
                 <div class="ac-tile__head">
@@ -151,6 +147,12 @@
                 <p class="ac-v">Último: <span id="v-backup"></span></p>
                 <p class="ac-v">Destino: <span id="v-backdest">Servidor 5Horas</span></p>
                 <p class="ac-v">Tamanho total: <span id="v-backsize">128 GB</span></p>
+                <div class="ac-actions">
+                  <button class="ac-switch js-toggle-backup is-off" type="button" aria-pressed="false">
+                    <span class="ac-dot" aria-hidden="true"></span>
+                    <span class="ac-switch__label">Backup desativado</span>
+                  </button>
+                </div>
               </div>
 
               <div class="ac-tile span-6">
@@ -218,34 +220,38 @@
                     </tbody>
                   </table>
                 </div>
+                <div class="ac-actions">
+                  <button class="ac-btn js-export" type="button">Exportar CSV</button>
+                </div>
               </div>
-            </div>
-          </section>
 
-          <section id="panel-market" class="js-panel" hidden aria-labelledby="panel-title-market">
-            <div class="ac-stage__head">
-              <div class="ac-stage__titles">
-                <h2 id="panel-title-market" class="ac-title-lg">Marketplace</h2>
-                <div class="ac-sub">Catálogo</div>
+              <div class="ac-tile span-6">
+                <div class="ac-tile__head">
+                  <p class="ac-tile__title">Marketplace</p>
+                  <span class="ac-status ac-status--ok">Catálogo online</span>
+                </div>
+                <p class="ac-v">Miniapps disponíveis e instalados recentemente.</p>
+                <ul class="ac-list">
+                  <li><strong>Novos:</strong> Auditoria Fiscal · Dashboard Financeiro</li>
+                  <li><strong>Atualizados:</strong> CRM Field · Inventário Mobile</li>
+                  <li><strong>Disponibilidade:</strong> 24 miniapps ativos</li>
+                </ul>
               </div>
-            </div>
-            <div class="ac-grid">
-              <div class="ac-tile span-12">
-                <p class="ac-v">Miniapps disponíveis/instalados.</p>
-              </div>
-            </div>
-          </section>
 
-          <section id="panel-settings" class="js-panel" hidden aria-labelledby="panel-title-settings">
-            <div class="ac-stage__head">
-              <div class="ac-stage__titles">
-                <h2 id="panel-title-settings" class="ac-title-lg">Configurações</h2>
-                <div class="ac-sub">Sistema</div>
-              </div>
-            </div>
-            <div class="ac-grid">
-              <div class="ac-tile span-12">
-                <p class="ac-v">Preferências gerais.</p>
+              <div class="ac-tile span-6">
+                <div class="ac-tile__head">
+                  <p class="ac-tile__title">Configurações do Sistema</p>
+                  <span class="ac-status">Padrões monitorados</span>
+                </div>
+                <p class="ac-v">Preferências centrais consolidadas no painel.</p>
+                <ul class="ac-list">
+                  <li>Idioma: Português (Brasil)</li>
+                  <li>Fuso horário: GMT-3</li>
+                  <li>Atualizações automáticas: Ativas</li>
+                </ul>
+                <div class="ac-actions">
+                  <button class="ac-btn ac-btn--ghost" type="button">Abrir preferências</button>
+                </div>
               </div>
             </div>
           </section>

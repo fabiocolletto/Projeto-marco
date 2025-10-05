@@ -111,9 +111,15 @@ input {
   border: var(--ac-border-width-strong) solid var(--ac-border);
   display: grid;
   place-items: center;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--ac-primary);
+  background: #fff;
+  overflow: hidden;
+}
+
+.ac-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .ac-headings {
@@ -130,10 +136,6 @@ input {
 .ac-h2 {
   font-size: 1rem;
   color: var(--ac-muted);
-}
-
-.ac-appmenu {
-  margin-left: auto;
 }
 
 .ac-btn {
@@ -166,6 +168,7 @@ input {
   display: flex;
   gap: 6px;
   align-items: center;
+  margin-left: auto;
 }
 
 .ac-bullet {
@@ -188,7 +191,77 @@ input {
   display: grid;
   gap: 12px;
   padding-right: 4px;
-  overflow-y: auto;
+  overflow-y: visible;
+  align-self: start;
+}
+
+.ac-rail__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fff;
+  border: var(--ac-border-width-strong) solid var(--ac-border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 12px 32px var(--ac-shadow);
+}
+
+.ac-miniapp {
+  border: var(--ac-border-width) solid rgba(15, 23, 42, 0.12);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(230, 237, 255, 0.35);
+  display: grid;
+  gap: 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.ac-miniapp.is-active {
+  border-color: var(--ac-accent);
+  background: rgba(230, 237, 255, 0.65);
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.18);
+}
+
+.ac-miniapp__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.ac-miniapp__title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ac-primary);
+}
+
+.ac-miniapp__tag {
+  border-radius: 999px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ac-muted);
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.ac-miniapp__placeholder {
+  min-height: 72px;
+  border-radius: 12px;
+  border: 2px dashed rgba(15, 23, 42, 0.25);
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  color: var(--ac-muted);
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.ac-card--panel {
+  max-height: 280px;
+  overflow: auto;
+  display: grid;
+  gap: 12px;
 }
 
 .ac-card {
@@ -225,6 +298,28 @@ input {
   margin: 0;
   color: var(--ac-muted);
   font-size: 0.9rem;
+}
+
+.ac-iconbtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  margin-left: 6px;
+}
+
+.ac-iconbtn:hover,
+.ac-iconbtn:focus-visible {
+  background: var(--ac-primary);
+  border-color: var(--ac-primary);
+  color: #fff;
+  box-shadow: 0 0 0 calc(var(--ac-border-width) * 3) rgba(31, 58, 138, 0.28);
 }
 
 .ac-kebab {
@@ -323,10 +418,26 @@ input {
   color: var(--ac-muted);
 }
 
-.ac-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+.ac-stage__beta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-card-bg);
+  color: var(--ac-primary);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.ac-stage__beta::before {
+  content: '';
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ac-accent);
 }
 
 .ac-switch {
@@ -404,6 +515,31 @@ input {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--ac-primary);
+}
+
+.ac-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ac-muted);
+  background: rgba(15, 23, 42, 0.08);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.ac-status--ok {
+  color: var(--ac-ok);
+  background: var(--ac-ok-bg);
+}
+
+.ac-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: var(--ac-text);
 }
 
 .ac-actions {

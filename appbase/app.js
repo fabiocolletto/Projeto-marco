@@ -5,8 +5,6 @@
   const sheet = overlay.querySelector('.ac-sheet');
   const title = byId('login-sheet-title');
   const loginForm = document.getElementById('login-form');
-  const breadcrumbsPrimary = byId('breadcrumbs-primary');
-  const breadcrumbsSecondary = byId('breadcrumbs-secondary');
   let lastFocusedElement = null;
 
   function logStub(topic, payload = {}) {
@@ -15,37 +13,6 @@
 
   function formatNow() {
     return new Date().toLocaleString('pt-BR');
-  }
-
-  function updateBreadcrumbs(card) {
-    const titleEl = card.querySelector('.ac-card__title');
-    const subtitleEl = card.querySelector('.ac-card__subtitle');
-    breadcrumbsPrimary.textContent = titleEl ? titleEl.textContent.trim() : '';
-    breadcrumbsSecondary.textContent = subtitleEl
-      ? subtitleEl.textContent.trim()
-      : '';
-  }
-
-  function selectPanel(id, card) {
-    const panels = document.querySelectorAll('.js-panel');
-    panels.forEach((panel) => {
-      if (panel.id === `panel-${id}`) {
-        panel.hidden = false;
-      } else {
-        panel.hidden = true;
-      }
-    });
-    document.querySelectorAll('.js-etiq').forEach((etiq) => {
-      const isTarget = etiq.dataset.panel === id;
-      etiq.classList.toggle('is-active', isTarget);
-      if (isTarget) {
-        etiq.setAttribute('aria-current', 'page');
-      } else {
-        etiq.removeAttribute('aria-current');
-      }
-    });
-    updateBreadcrumbs(card);
-    logStub('ui/panel/select', { id });
   }
 
   function setDotState(el, isOn) {
@@ -260,15 +227,6 @@
     }
   }
 
-  function bindPanelSwitcher() {
-    document.querySelectorAll('.js-etiq').forEach((card) => {
-      card.addEventListener('click', () => {
-        const id = card.dataset.panel;
-        selectPanel(id, card);
-      });
-    });
-  }
-
   function bindToggles() {
     const syncButton = document.querySelector('.js-toggle-sync');
     const backupButton = document.querySelector('.js-toggle-backup');
@@ -294,11 +252,26 @@
     }
   }
 
+  function bindPanelFocus() {
+    const focusButton = document.querySelector('.js-panel-focus');
+    const panel = document.getElementById('panel-controles');
+    const heading = document.getElementById('panel-title-controles');
+    if (!focusButton || !panel) return;
+
+    focusButton.addEventListener('click', () => {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (heading && typeof heading.focus === 'function') {
+        heading.focus();
+      }
+      logStub('ui/panel/focus', { id: 'painel-controles' });
+    });
+  }
+
   function init() {
-    bindPanelSwitcher();
     bindToggles();
     bindTableControls();
     bindOverlayActions();
+    bindPanelFocus();
   }
 
   document.addEventListener('DOMContentLoaded', init);
