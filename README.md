@@ -2,17 +2,17 @@
 
 Protótipo navegável do **AppBase Marco** pronto para ser aberto diretamente em um
 navegador moderno sem build. A versão R1.0 consolida o shell completo com AppBar,
-rail de etiquetas, palco de painéis e overlay de login, agora organizado em
-arquivos dedicados dentro de `appbase/`.
+rail de etiquetas, palco central e miniapps carregados por vanilla JS dentro da
+pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 
 ## Estrutura do repositório
 
 ```
 .
 ├── appbase/
-│   ├── index.html            # Shell do AppBase + painel de controle
-│   ├── app.css               # Tokens `--ac-*` e componentes visuais
-│   └── app.js                # Interações (toggles, overlay, foco do painel, exportação)
+│   ├── index.html            # Shell do AppBase + MiniApp “Painel de controle”
+│   ├── app.css               # Tokens `--ac-*`, grid responsivo e overlays
+│   └── app.js                # Store reativa, serviços mock, toggles e exportação
 ├── assets/                   # Logos e imagens utilizadas pelo protótipo
 ├── index.html                # Redirecionamento (GitHub Pages)
 ├── src/                      # Versão anterior do protótipo modular
@@ -21,44 +21,52 @@ arquivos dedicados dentro de `appbase/`.
 └── agent.md                  # Diretrizes operacionais para contribuições
 ```
 
-A pasta `src/` preserva o protótipo completo com mini-apps dinâmicos utilizado
-nas versões anteriores. A nova pasta `appbase/` foca no shell estático de
-referência descrito na especificação Visual & Interação — R1.0.
+A pasta `src/` preserva o protótipo modular utilizado nas primeiras iterações.
+A pasta `appbase/` concentra a implementação atual do shell R1.0 com o novo
+MiniApp “Painel de controle”.
 
 ## Como executar
 
 1. Clone ou baixe este repositório.
 2. Abra `appbase/index.html` em um navegador (Chrome, Edge, Firefox ou Safari).
    - O `index.html` na raiz redireciona automaticamente para essa versão.
-   - Se precisar da versão legada modular, abra `src/index.html` diretamente.
-3. Utilize o botão de engrenagem na AppBar para focar o Painel de Controles ou
-   role manualmente até o palco principal.
-4. Explore a pilha de miniapps no rail esquerdo (slots livres + Painel de
-   Controles), acione os toggles de Sync/Backup, exporte a tabela de eventos em
-   CSV e abra o overlay de login para testar o fluxo completo.
+   - Para consultar a versão legada modular, abra `src/index.html` diretamente.
+3. Se nenhuma etiqueta estiver ativa o palco permanece vazio. Clique na etiqueta
+   “Painel de controle” (ou use o kebab para expandir/recolher) para carregar o
+   painel completo.
+4. Utilize a toolbar do painel para alternar Sync/Backup e exportar a tabela de
+   eventos filtrada. Abra os overlays de Login, Sync ou Backup pelos botões ⋯
+   dos tiles para testar os fluxos de gerenciamento.
 
-## Destaques da versão AppBase R1.0
+## MiniApp “Painel de controle” — destaques
 
-- **Layout 100vh** com AppBar fixa, rail de 280px e palco central rolável.
-- **Toggles coloridos** (verde/vermelho) sincronizados com os indicadores do
-  rail, registrando stubs `sync/toggle` e `backup/toggle`.
-- **Identidade visual atualizada** com o logotipo oficial 5Horas na AppBar e o
-  selo "Versão beta" destacado no topo do painel de controles.
-- **Tabela de eventos** com header sticky, ordenação por coluna e exportação CSV
-  (`eventos.csv`).
-- **Marketplace e Configurações integrados** ao painel principal em tiles
-  dedicados para consulta rápida.
-- **Rail reorganizado** com contêiner branco para miniapps e Painel de Controles
-  limitado em altura, preparado para hospedar novos módulos.
-- **Overlay de login** com campos Nome/E-mail/Telefone, lista de dispositivos e
-  ações que disparam os stubs (`auth/login/open`, `auth/login/save`,
-  `auth/session/logout`, `devices/disconnect`).
-- **Acessibilidade**: botões reais, `aria-pressed` nos toggles, overlay com
-  `role="dialog"`, foco gerenciado e fechamento via `Esc` ou backdrop.
+- **Etiqueta dinâmica** com metadados opcionais (último login/sync/backup) e dots
+  conectados ao estado global (`syncOn`, `backupOn`, `conexao`).
+- **Palco em tela cheia** sem painel direito, com cabeçalho azul, subtítulo e
+  toolbar de pills coloridas (verde ON, vermelho OFF) sincronizadas entre o rail
+  e os overlays.
+- **Grid responsivo** (12 colunas quebrando para 1 coluna < 900px) com os tiles:
+  Login, Sincronização, Backup, Conectividade, Segurança e Eventos, todos em
+  pt-BR e sem placeholders quando o valor é vazio.
+- **Tabela de eventos** com filtro live, filtro por tipo, ordenação por coluna,
+  cabeçalho sticky, hover, rolagem vertical e exportação CSV baseada no DOM
+  filtrado.
+- **Overlays acessíveis** (`role="dialog"`, `aria-modal`, foco gerenciado,
+  fechamento por Esc/backdrop) para Login, Sync e Backup, cada um refletindo o
+  estado atual do store (toggles, dispositivos, histórico) e disparando eventos
+  na telemetria local.
+- **Camada de serviço mock** que expõe os contratos REST (GET/PUT/DELETE)
+  esperados. As ações retornam Promises, atualizam a store e registram eventos
+  (`Sync`, `Backup`, `Login`) com timestamps em `pt-BR`.
+- **Arquitetura montável**: o miniapp exporta `window.PainelMiniApp.mount` e
+  `unmount`, permitindo que o shell principal carregue/descadastre o módulo sem
+  vazamentos de listener.
+- **Acessibilidade**: `aria-current` na etiqueta ativa, `aria-pressed` nas pills,
+  foco visível e navegação por teclado em rail, painel, tabelas e overlays.
 
 ## Próximos passos sugeridos
 
-- Integrar dados reais ao painel de controle utilizando os stubs definidos.
-- Expandir os placeholders de Marketplace e Configurações com mini-apps reais.
-- Harmonizar o visual do protótipo completo (`src/`) com os novos tokens `ac-*`
-  para facilitar a evolução unificada.
+- Conectar os serviços mock aos endpoints reais descritos na especificação.
+- Persistir os eventos exportados no backend para rastreabilidade completa.
+- Expandir o shell para carregar múltiplos miniapps montando/desmontando via
+  `window.PainelMiniApp` conforme o rail evoluir.
