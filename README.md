@@ -58,6 +58,21 @@ habilitados via configuração local. Toda a experiência continua em um único 
 4. No mini-app Marketplace, clique em **Habilitar/Desabilitar** para simular a
    alteração da lista de mini-apps ativos (mini-apps padrão permanecem bloqueados).
 
+## Exportação de relatórios
+
+- Os mini-apps **Painel de Operações**, **Gestor de Tarefas**, **Conta & Backup** e
+  **Configuração & Operação** possuem botões "Exportar" no cabeçalho. Cada ação gera
+  um PDF textual com o conteúdo visível da seção e faz o download automaticamente.
+- Sempre que o dispositivo oferecer suporte ao [Web Share API com arquivos], o Marco
+  também abre o fluxo de compartilhamento após gerar o PDF (Chrome/Edge no Android,
+  Safari 16.4+ no iOS/iPadOS com contexto seguro). Em navegadores sem suporte, o
+  download local continua funcionando normalmente.
+- Caso o PDF não possa ser montado, a interface ativa um modo de impressão dedicado
+  (atalho `Ctrl/Cmd + P`) graças às regras `@media print`, permitindo salvar o mesmo
+  conteúdo em PDF via diálogo do navegador.
+
+[Web Share API com arquivos]: https://developer.mozilla.org/en-US/docs/Web/API/Navigator/share#sharing_files
+
 ## Estrutura
 
 ```
