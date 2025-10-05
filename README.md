@@ -32,6 +32,23 @@ habilitados via configuração local. Toda a experiência continua em um único 
   cartões bloqueados para itens obrigatórios.
 - **Dados dinâmicos simulados** para sessão, dispositivos, storage, auditoria e KPIs.
 
+## Tema claro/escuro
+
+- O `AppBase.boot` define `document.documentElement.dataset.theme` com o valor
+  informado em `config.ui.theme` (ou `light` como padrão). Em seguida, a
+  preferência persistida no `localStorage` (`marco-ui-theme`) é reaplicada antes
+  de qualquer interação.
+- Um toggle na barra superior alterna entre claro/escuro, atualiza o dataset e
+  grava a escolha, garantindo que o tema se mantenha nas próximas visitas.
+
+### Forçando um tema para testes
+
+- A forma mais rápida é usar o próprio toggle na interface.
+- Via console do navegador: `localStorage.setItem('marco-ui-theme', 'dark')` ou
+  `localStorage.setItem('marco-ui-theme', 'light')` seguido de `location.reload()`.
+- Para retornar ao comportamento padrão do boot, execute
+  `localStorage.removeItem('marco-ui-theme')` e recarregue a página.
+
 ## Como executar
 
 1. Baixe ou clone este repositório.
