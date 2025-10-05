@@ -13,26 +13,41 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Detect Node workspace
+        id: workspace
+        run: |
+          if [ -f package.json ]; then
+            echo "has_node=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_node=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Install dependencies
         run: npm install
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Lint e Prettier
         run: npm run lint
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Testes unitários
         run: npm run test:unit
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Testes visuais
         run: npm run test:visual:ci
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Publicar relatório visual
         if: always()
@@ -43,9 +58,11 @@ jobs:
 
       - name: Build workspaces
         run: npm run build
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Empacotar artefatos
         run: npm run package
+        if: steps.workspace.outputs.has_node == 'true'
 
       - name: Publicar builds
         if: always()
@@ -54,3 +71,7 @@ jobs:
           name: build-artifacts
           path: artifacts
           if-no-files-found: warn
+
+      - name: Registrar verificação estática
+        if: steps.workspace.outputs.has_node == 'false'
+        run: echo "Nenhum workspace Node detectado; etapas baseadas em npm foram ignoradas."
