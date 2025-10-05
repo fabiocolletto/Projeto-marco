@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema Operacional Marco</title>
+    <style>
+      :root {
+        --bg-primary: #0b1021;
+        --bg-secondary: #101833;
+        --bg-tertiary: #0f162c;
+        --surface: rgba(19, 28, 53, 0.85);
+        --surface-strong: rgba(24, 34, 63, 0.95);
+        --accent: #38bdf8;
+        --accent-strong: #0ea5e9;
+        --success: #22c55e;
+        --warning: #f97316;
+        --danger: #ef4444;
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5f5;
+        --border-color: rgba(148, 163, 184, 0.24);
+        --shadow-elevated: 0 24px 60px rgba(8, 14, 40, 0.45);
+        --radius-large: 24px;
+        --radius-medium: 18px;
+        --radius-small: 12px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(circle at top, #1e293b 0%, #0b1021 45%, #05070f 100%);
+        color: var(--text-primary);
+        display: flex;
+        flex-direction: column;
+      }
+
+      a,
+      button {
+        font-family: inherit;
+      }
+
+      header.app-header {
+        padding: 32px clamp(24px, 4vw, 60px);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .app-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, var(--accent-strong), #6366f1);
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .title-group h1 {
+        margin: 0;
+        font-size: clamp(1.8rem, 3vw, 2.6rem);
+      }
+
+      .title-group p {
+        margin: 6px 0 0;
+        color: var(--text-secondary);
+        max-width: 520px;
+        font-size: 0.95rem;
+      }
+
+      .status-area {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: flex-end;
+      }
+
+      .status-indicator {
+        padding: 10px 20px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(34, 197, 94, 0.15);
+        color: var(--success);
+      }
+
+      .status-indicator::before {
+        content: "";
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: currentColor;
+        box-shadow: 0 0 10px currentColor;
+      }
+
+      .status-meta {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        text-align: right;
+      }
+
+      main {
+        flex: 1;
+        padding: 0 clamp(24px, 4vw, 60px) 48px;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+        animation: fadeIn 200ms ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .main-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        gap: 28px;
+        align-items: stretch;
+      }
+
+      .card {
+        background: var(--surface);
+        border-radius: var(--radius-large);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-elevated);
+        padding: 28px;
+        backdrop-filter: blur(18px);
+      }
+
+      .card header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .card header h2,
+      .card header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+      }
+
+      .panel-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .panel-actions button,
+      .pill-button {
+        border: none;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.14);
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 120ms ease, background 120ms ease;
+      }
+
+      .panel-actions button:hover,
+      .pill-button:hover {
+        transform: translateY(-1px);
+        background: rgba(148, 163, 184, 0.24);
+      }
+
+      .panel-body {
+        margin-top: 24px;
+        display: grid;
+        gap: 24px;
+      }
+
+      .panel-body .status-strip {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 18px;
+      }
+
+      .status-tile {
+        border-radius: var(--radius-medium);
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        background: linear-gradient(145deg, rgba(14, 165, 233, 0.18), rgba(14, 116, 233, 0.12));
+        padding: 18px;
+      }
+
+      .status-tile strong {
+        display: block;
+        font-size: 1.6rem;
+        margin-bottom: 6px;
+      }
+
+      .status-tile span {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .panel-highlights {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+      }
+
+      .highlight-card {
+        border-radius: var(--radius-medium);
+        background: var(--surface-strong);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        padding: 20px;
+      }
+
+      .highlight-card h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .highlight-card p {
+        margin: 8px 0 0;
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+      }
+
+      .mini-apps header p {
+        margin: 4px 0 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .mini-app-grid {
+        margin-top: 22px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .mini-app-card {
+        border-radius: var(--radius-medium);
+        border: 1px solid rgba(56, 189, 248, 0.3);
+        background: rgba(15, 118, 255, 0.12);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        cursor: pointer;
+        transition: transform 120ms ease, box-shadow 120ms ease, border 120ms ease;
+      }
+
+      .mini-app-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(56, 189, 248, 0.6);
+        box-shadow: 0 20px 40px rgba(2, 132, 199, 0.25);
+      }
+
+      .mini-app-card span.label {
+        font-size: 0.95rem;
+        font-weight: 600;
+      }
+
+      .mini-app-card span.meta {
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+      }
+
+      .mini-app-card .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--accent);
+      }
+
+      .view header .breadcrumbs {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+      }
+
+      .view header .breadcrumbs span + span::before {
+        content: "›";
+        margin: 0 8px;
+        color: rgba(148, 163, 184, 0.5);
+      }
+
+      .grid-two {
+        margin-top: 26px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 22px;
+      }
+
+      .kpi-board {
+        display: grid;
+        gap: 14px;
+      }
+
+      .kpi-item {
+        background: rgba(56, 189, 248, 0.15);
+        border: 1px solid rgba(56, 189, 248, 0.4);
+        border-radius: var(--radius-medium);
+        padding: 16px;
+      }
+
+      .kpi-item strong {
+        font-size: 1.4rem;
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .data-card {
+        background: var(--surface-strong);
+        border-radius: var(--radius-medium);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        padding: 18px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .data-card h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .data-card ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: grid;
+        gap: 6px;
+      }
+
+      .expansion-area {
+        margin-top: 26px;
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px dashed rgba(56, 189, 248, 0.4);
+        border-radius: var(--radius-medium);
+        padding: 24px;
+      }
+
+      .expansion-area h4 {
+        margin: 0 0 8px;
+      }
+
+      .expansion-area p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .table-wrapper {
+        margin-top: 24px;
+        background: var(--surface-strong);
+        border-radius: var(--radius-large);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        padding: 24px;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 620px;
+      }
+
+      table thead {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        color: var(--text-secondary);
+      }
+
+      table th,
+      table td {
+        padding: 14px 18px;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+        text-align: left;
+      }
+
+      table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      table td strong {
+        color: var(--text-primary);
+      }
+
+      .system-tips {
+        margin-top: 20px;
+        border-radius: var(--radius-medium);
+        border: 1px solid rgba(248, 250, 252, 0.12);
+        background: rgba(15, 23, 42, 0.8);
+        padding: 20px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .system-tips h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .system-tips ul {
+        margin: 0;
+        padding-left: 18px;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: grid;
+        gap: 6px;
+      }
+
+      footer {
+        padding: 24px clamp(24px, 4vw, 60px) 40px;
+        color: rgba(203, 213, 225, 0.6);
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .back-action {
+        margin-top: 22px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        color: var(--accent);
+        font-size: 0.9rem;
+      }
+
+      .back-action svg {
+        width: 16px;
+        height: 16px;
+        fill: currentColor;
+      }
+
+      @media (max-width: 960px) {
+        header.app-header {
+          align-items: flex-start;
+        }
+
+        .status-area {
+          align-items: flex-start;
+        }
+
+        .main-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 640px) {
+        header.app-header {
+          padding: 24px;
+        }
+
+        main {
+          padding: 0 24px 32px;
+        }
+
+        .card {
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="logo-area">
+        <span class="app-badge">Marco</span>
+        <div class="title-group">
+          <h1>Sistema Operacional Marco</h1>
+          <p>
+            Console unificado para monitorar KPIs, centralizar dados operacionais e
+            acionar mini-apps críticos da operação.
+          </p>
+        </div>
+      </div>
+      <div class="status-area">
+        <span class="status-indicator">Status operacional: Online</span>
+        <div class="status-meta">
+          <span>Última sincronização: 12/03/2024 • 18:42</span>
+          <span>Usuário conectado: <strong>ana.souza</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="tela-principal" class="view active">
+        <div class="main-layout">
+          <section class="card painel-principal">
+            <header>
+              <div>
+                <h2>Painel principal</h2>
+                <p class="breadcrumbs"><span>Home</span><span>Painel</span></p>
+              </div>
+              <div class="panel-actions">
+                <button type="button">Dados / KPIs</button>
+                <button type="button">Atualizar status</button>
+              </div>
+            </header>
+
+            <div class="panel-body">
+              <div class="status-strip">
+                <div class="status-tile">
+                  <span>Fluxo de tarefas concluídas</span>
+                  <strong>82%</strong>
+                  <span>Meta mínima: 75%</span>
+                </div>
+                <div class="status-tile">
+                  <span>Capacidade operacional</span>
+                  <strong>92%</strong>
+                  <span>Atualizado há 3 min</span>
+                </div>
+                <div class="status-tile">
+                  <span>Alertas ativos</span>
+                  <strong>3</strong>
+                  <span>2 críticos • 1 monitorando</span>
+                </div>
+              </div>
+
+              <div class="panel-highlights">
+                <article class="highlight-card">
+                  <h4>Fila de aprovações</h4>
+                  <p>Documentos aguardando revisão jurídica e financeira.</p>
+                  <button class="pill-button" data-target="mini-app-painel">
+                    Abrir mini-app Painel
+                  </button>
+                </article>
+                <article class="highlight-card">
+                  <h4>Equipes em campo</h4>
+                  <p>9 equipes confirmadas • 2 deslocamentos em andamento.</p>
+                </article>
+                <article class="highlight-card">
+                  <h4>Tarefas prioritárias</h4>
+                  <p>4 tarefas vencendo hoje. Sincronize com o mini-app de tarefas.</p>
+                  <button class="pill-button" data-target="mini-app-tarefas">
+                    Abrir mini-app Tarefas
+                  </button>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <aside class="card mini-apps">
+            <header>
+              <div>
+                <h3>Mini-apps conectados</h3>
+                <p>Selecione um mini-app para expandir os dados específicos.</p>
+              </div>
+            </header>
+            <div class="mini-app-grid">
+              <article class="mini-app-card" data-target="mini-app-painel">
+                <span class="label">Painel de Operações</span>
+                <span class="meta">KPIs, dados mestres, status de recursos</span>
+                <span class="cta">Abrir painel detalhado →</span>
+              </article>
+              <article class="mini-app-card" data-target="mini-app-tarefas">
+                <span class="label">Gestor de Tarefas</span>
+                <span class="meta">Cronogramas, responsáveis e dados consumidos</span>
+                <span class="cta">Abrir lista de tarefas →</span>
+              </article>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="mini-app-painel" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2>Mini-app • Painel de Operações</h2>
+              <p class="breadcrumbs">
+                <span>Home</span><span>Mini-apps</span><span>Painel de Operações</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button type="button">Publicar dados</button>
+              <button type="button">Sincronizar recursos</button>
+            </div>
+          </header>
+
+          <div class="grid-two">
+            <div class="kpi-board">
+              <div class="kpi-item">
+                <span>KPIs críticos</span>
+                <strong>05</strong>
+                <span>Última auditoria: há 12 minutos</span>
+              </div>
+              <div class="kpi-item">
+                <span>Disponibilidade de recursos</span>
+                <strong>87%</strong>
+                <span>Infraestrutura, equipes, fornecedores</span>
+              </div>
+              <div class="kpi-item">
+                <span>Tickets em observação</span>
+                <strong>11</strong>
+                <span>4 aguardando confirmação de dados</span>
+              </div>
+            </div>
+            <div class="data-card">
+              <h4>Dados recentes</h4>
+              <ul>
+                <li>Upload do inventário consolidado • 12/03 • 18:12</li>
+                <li>Backup automático enviado para cofre seguro • 17:40</li>
+                <li>Checklist de conformidade assinado por <strong>ribeiro.l</strong></li>
+              </ul>
+              <button class="pill-button" type="button">Central de backups</button>
+            </div>
+          </div>
+
+          <div class="grid-two" style="margin-top: 24px">
+            <div class="data-card">
+              <h4>Controles de dados</h4>
+              <ul>
+                <li>Dashboard de arquivos de dados</li>
+                <li>Monitor de integrações • API, CSV, manual</li>
+                <li>Workflow de liberação de novos datasets</li>
+              </ul>
+            </div>
+            <div class="data-card">
+              <h4>Rotinas automatizadas</h4>
+              <ul>
+                <li>Validação de consistência diária • 07:00</li>
+                <li>Sincronização com CRM às 11:30 e 17:30</li>
+                <li>Alertas push para divergências críticas</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="expansion-area">
+            <h4>Área para expansão e visualizações futuras</h4>
+            <p>
+              Reserve este espaço para componentes adicionais do mini-app (gráficos,
+              integrações em tempo real, modais). Mantém a hierarquia prevista no
+              esboço original para evoluções incrementais.
+            </p>
+          </div>
+
+          <a class="back-action" data-action="home">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z" />
+            </svg>
+            Voltar para a tela principal
+          </a>
+        </section>
+      </section>
+
+      <section id="mini-app-tarefas" class="view">
+        <section class="card">
+          <header>
+            <div>
+              <h2>Mini-app • Gestor de Tarefas</h2>
+              <p class="breadcrumbs">
+                <span>Home</span><span>Mini-apps</span><span>Gestor de Tarefas</span>
+              </p>
+            </div>
+            <div class="panel-actions">
+              <button type="button">Criar nova tarefa</button>
+              <button type="button">Exportar planilha</button>
+            </div>
+          </header>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Tarefas</th>
+                  <th scope="col">Responsáveis</th>
+                  <th scope="col">Datas</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Dados consumidos</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Revisar contrato principal</strong></td>
+                  <td>Carla Nogueira</td>
+                  <td>12/03 → 14/03</td>
+                  <td><span class="status-indicator" style="background: rgba(56, 189, 248, 0.15); color: var(--accent)">Em curso</span></td>
+                  <td>Base jurídica v2</td>
+                </tr>
+                <tr>
+                  <td><strong>Sincronizar planilha de fornecedores</strong></td>
+                  <td>Equipe Operações</td>
+                  <td>12/03 → 13/03</td>
+                  <td><span class="status-indicator" style="background: rgba(34, 197, 94, 0.15); color: var(--success)">Concluído</span></td>
+                  <td>Inventário homologado</td>
+                </tr>
+                <tr>
+                  <td><strong>Testar backups incrementais</strong></td>
+                  <td>Marcos Lima</td>
+                  <td>11/03 → 15/03</td>
+                  <td><span class="status-indicator" style="background: rgba(249, 115, 22, 0.15); color: var(--warning)">Atenção</span></td>
+                  <td>Snapshots AWS 22h</td>
+                </tr>
+                <tr>
+                  <td><strong>Validar checklist de campo</strong></td>
+                  <td>Fernanda Dias</td>
+                  <td>10/03 → 12/03</td>
+                  <td><span class="status-indicator" style="background: rgba(239, 68, 68, 0.15); color: var(--danger)">Crítico</span></td>
+                  <td>Dossiê Equipes Norte</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="system-tips">
+            <h4>Dicas do sistema</h4>
+            <ul>
+              <li>Use filtros por status para focar nos itens críticos do dia.</li>
+              <li>Os cartões de dados consumidos indicam a fonte principal da tarefa.</li>
+              <li>Atualizações automáticas acontecem a cada 15 minutos.</li>
+            </ul>
+          </div>
+
+          <a class="back-action" data-action="home">
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M12.707 15.707a1 1 0 01-1.414 0L5.586 10l5.707-5.707a1 1 0 111.414 1.414L8.414 10l4.293 4.293a1 1 0 010 1.414z" />
+            </svg>
+            Voltar para a tela principal
+          </a>
+        </section>
+      </section>
+    </main>
+
+    <footer>
+      <span>© 2024 Marco • Sistema Operacional Modular</span>
+      <span>Versão 0.1.0 • Layout baseado no esboço inicial do projeto</span>
+    </footer>
+
+    <script>
+      const views = document.querySelectorAll(".view");
+      const appRoot = document.documentElement;
+
+      function activateView(id) {
+        views.forEach((view) => {
+          view.classList.toggle("active", view.id === id);
+        });
+        if (window.scrollY > 0) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        appRoot.setAttribute("data-view", id);
+      }
+
+      document.querySelectorAll("[data-target]").forEach((element) => {
+        element.addEventListener("click", () => activateView(element.dataset.target));
+      });
+
+      document.querySelectorAll('[data-action="home"]').forEach((element) => {
+        element.addEventListener("click", (event) => {
+          event.preventDefault();
+          activateView("tela-principal");
+        });
+      });
+    </script>
+  </body>
+</html>
