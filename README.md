@@ -33,6 +33,8 @@ habilitados via configuração local. Toda a experiência continua em um único 
 - **Dados dinâmicos simulados** para sessão, dispositivos, storage, auditoria e KPIs.
 - **Preferência de tema** claro/escuro/automático persistida por tenant e exposta na
   barra superior para troca rápida.
+- **Estilos segmentados em camadas** separando tokens de design e componentes para
+  facilitar manutenção futura sem abandonar o formato single-file.
 
 ## Como executar
 

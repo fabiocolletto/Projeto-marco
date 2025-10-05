@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Marco · AppBase + MiniApps</title>
-    <style>
+    <style id="design-tokens">
+      /* Camada de tokens e paletas base */
       :root {
         --bg-primary: #f6f8fc;
         --bg-secondary: #e8edfa;
@@ -60,6 +61,9 @@
         --border-strong: rgba(99, 102, 241, 0.45);
         --shadow-elevated: 0 28px 64px rgba(8, 47, 73, 0.38);
       }
+    </style>
+    <style id="app-styles">
+      /* Camadas de layout, componentes e utilidades */
 
       * {
         box-sizing: border-box;
@@ -1887,7 +1891,7 @@
           </p>
         </header>
         <div class="session-lock-status" data-lock-status data-tone="neutral">
-          Preparando mecanismos de autenticação seguro...
+          Preparando mecanismos de autenticação seguros...
         </div>
         <section class="session-lock-section">
           <header>
@@ -3766,7 +3770,7 @@
         id: 'mini-app-config',
         card: {
           label: 'Configuração & Operação',
-          meta: 'Parametros, observabilidade e auditoria',
+          meta: 'Parâmetros, observabilidade e auditoria',
           cta: 'Abrir configurações',
         },
         badges: ['Schemas', 'Logs'],
