@@ -31,6 +31,8 @@ habilitados via configuração local. Toda a experiência continua em um único 
 - **Marketplace interativo** com toggles para ativar/desativar mini-apps opcionais e
   cartões bloqueados para itens obrigatórios.
 - **Dados dinâmicos simulados** para sessão, dispositivos, storage, auditoria e KPIs.
+- **Preferência de tema** claro/escuro/automático persistida por tenant e exposta na
+  barra superior para troca rápida.
 
 ## Como executar
 

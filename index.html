@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,6 +37,28 @@
         --space-xxl: 48px;
         --layout-gutter: clamp(24px, 5vw, 60px);
         --layout-gap: clamp(20px, 3vw, 28px);
+      }
+
+      :root[data-theme='dark'] {
+        --bg-primary: #0b1220;
+        --bg-secondary: #0f1a32;
+        --bg-tertiary: #14223d;
+        --surface: rgba(15, 23, 42, 0.88);
+        --surface-strong: rgba(15, 23, 42, 0.94);
+        --accent: #5b8aff;
+        --accent-strong: #a5b4fc;
+        --lavender: #c084fc;
+        --success: #4ade80;
+        --success-soft: rgba(74, 222, 128, 0.16);
+        --warning: #fbbf24;
+        --warning-soft: rgba(251, 191, 36, 0.18);
+        --danger: #f87171;
+        --danger-soft: rgba(248, 113, 113, 0.18);
+        --text-primary: #f8fafc;
+        --text-secondary: rgba(226, 232, 240, 0.76);
+        --border-color: rgba(148, 163, 184, 0.45);
+        --border-strong: rgba(99, 102, 241, 0.45);
+        --shadow-elevated: 0 28px 64px rgba(8, 47, 73, 0.38);
       }
 
       * {
@@ -328,6 +350,72 @@
         box-shadow: none;
       }
 
+      .session-controls {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: var(--space-xs);
+        min-width: 220px;
+      }
+
+      .session-controls-label {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        font-weight: 600;
+      }
+
+      .theme-toggle {
+        display: inline-flex;
+        gap: 4px;
+        padding: 4px;
+        border-radius: 999px;
+        border: 1px solid var(--border-color);
+        background: var(--surface-strong);
+        box-shadow: var(--shadow-elevated);
+      }
+
+      .theme-toggle button {
+        border: none;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--text-secondary);
+        background: transparent;
+        transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+      }
+
+      .theme-toggle button:hover,
+      .theme-toggle button:focus-visible {
+        background: rgba(79, 110, 247, 0.16);
+        color: var(--accent-strong);
+        outline: none;
+      }
+
+      .theme-toggle button[aria-pressed='true'] {
+        background: var(--accent);
+        color: #0f172a;
+        box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.25);
+      }
+
+      :root[data-theme='dark'] .theme-toggle button:hover,
+      :root[data-theme='dark'] .theme-toggle button:focus-visible {
+        background: rgba(165, 180, 252, 0.16);
+        color: var(--accent-strong);
+      }
+
+      :root[data-theme='dark'] .theme-toggle button[aria-pressed='true'] {
+        color: #0f172a;
+      }
+
+      .theme-status {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+
       .logo-area {
         display: flex;
         align-items: center;
@@ -365,6 +453,10 @@
         flex-direction: column;
         gap: 12px;
         align-items: flex-end;
+      }
+
+      .status-area + .session-controls {
+        margin-left: auto;
       }
 
       .status-indicator {
@@ -1741,6 +1833,15 @@
         .status-meta {
           text-align: left;
         }
+
+        .session-controls {
+          align-items: flex-start;
+          min-width: unset;
+        }
+
+        .status-area + .session-controls {
+          margin-left: 0;
+        }
       }
 
       @media (max-width: 720px) {
@@ -1924,6 +2025,15 @@
           <span data-ref="status-sync">Último sync:</span>
           <span data-ref="status-ready">Tempo até READY:</span>
         </div>
+      </div>
+      <div class="session-controls">
+        <span class="session-controls-label">Preferências</span>
+        <div class="theme-toggle" role="group" aria-label="Alternar tema do AppBase">
+          <button type="button" data-theme-toggle="light" aria-pressed="false">Claro</button>
+          <button type="button" data-theme-toggle="dark" aria-pressed="false">Escuro</button>
+          <button type="button" data-theme-toggle="auto" aria-pressed="true">Auto</button>
+        </div>
+        <span class="theme-status" data-theme-current>Tema automático</span>
       </div>
     </header>
 
@@ -2415,12 +2525,129 @@
     </footer>
 
     <script>
+      const tenantContext = { tenantId: null, userId: null };
+      const GLOBAL_THEME_KEY = 'marco::global::theme-preference';
+      let themePreferenceKey = GLOBAL_THEME_KEY;
+      let themeControlElements = null;
+      let currentThemeMode = null;
+      let themeMediaQuery = null;
+
+      function resolveSystemTheme() {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+
+      function updateThemeIndicators(mode, resolved) {
+        if (!themeControlElements) {
+          return;
+        }
+        themeControlElements.buttons.forEach((button) => {
+          button.setAttribute('aria-pressed', button.dataset.themeToggle === mode ? 'true' : 'false');
+        });
+        if (themeControlElements.statusEl) {
+          let label = '';
+          if (mode === 'dark') {
+            label = 'Tema escuro ativo';
+          } else if (mode === 'light') {
+            label = 'Tema claro ativo';
+          } else {
+            label = `Tema automático (${resolved === 'dark' ? 'escuro' : 'claro'})`;
+          }
+          themeControlElements.statusEl.textContent = label;
+        }
+      }
+
+      function handleSystemThemeChange() {
+        if (currentThemeMode !== 'auto') {
+          return;
+        }
+        const resolved = resolveSystemTheme();
+        document.documentElement.dataset.theme = resolved;
+        updateThemeIndicators('auto', resolved);
+      }
+
+      function configureThemeWatcher(mode) {
+        if (themeMediaQuery) {
+          themeMediaQuery.removeEventListener('change', handleSystemThemeChange);
+          themeMediaQuery = null;
+        }
+        if (mode === 'auto') {
+          themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+          themeMediaQuery.addEventListener('change', handleSystemThemeChange);
+        }
+      }
+
+      function setThemeMode(mode, { persist = true } = {}) {
+        const root = document.documentElement;
+        const resolved = mode === 'auto' ? resolveSystemTheme() : mode;
+        currentThemeMode = mode;
+        root.dataset.themeMode = mode;
+        root.dataset.theme = resolved;
+        if (persist) {
+          localStorage.setItem(themePreferenceKey, mode);
+        }
+        configureThemeWatcher(mode);
+        updateThemeIndicators(mode, resolved);
+      }
+
+      function handleThemeToggle(event) {
+        const mode = event.currentTarget?.dataset.themeToggle ?? 'auto';
+        setThemeMode(mode);
+      }
+
+      function resolveThemePreference() {
+        const stored = localStorage.getItem(themePreferenceKey);
+        if (stored) {
+          return stored;
+        }
+        if (themePreferenceKey !== GLOBAL_THEME_KEY) {
+          const fallback = localStorage.getItem(GLOBAL_THEME_KEY);
+          if (fallback) {
+            localStorage.setItem(themePreferenceKey, fallback);
+            return fallback;
+          }
+        }
+        return 'auto';
+      }
+
+      function attachThemeListeners() {
+        if (!themeControlElements) {
+          return;
+        }
+        themeControlElements.buttons.forEach((button) => {
+          button.removeEventListener('click', handleThemeToggle);
+          button.addEventListener('click', handleThemeToggle);
+        });
+      }
+
+      function initThemeControls(force = false) {
+        const buttons = Array.from(document.querySelectorAll('[data-theme-toggle]'));
+        if (!buttons.length) {
+          return;
+        }
+        const statusEl = document.querySelector('[data-theme-current]');
+        themeControlElements = { buttons, statusEl };
+
+        const tenantId = tenantContext?.tenantId ?? null;
+        const nextKey = tenantId ? `marco::${tenantId}::theme-preference` : GLOBAL_THEME_KEY;
+        const keyChanged = themePreferenceKey !== nextKey;
+        themePreferenceKey = nextKey;
+
+        if (force || keyChanged || currentThemeMode === null) {
+          const preference = resolveThemePreference();
+          setThemeMode(preference, { persist: false });
+        } else {
+          updateThemeIndicators(currentThemeMode, document.documentElement.dataset.theme);
+        }
+
+        attachThemeListeners();
+      }
+
       const lockOverlay = document.querySelector('[data-lock-overlay]');
       const sessionLock = createSessionLock(lockOverlay);
       const authUI = createAuthUI(lockOverlay);
-      const tenantContext = { tenantId: null, userId: null };
       const authController = createAuthController(sessionLock, authUI, tenantContext);
 
+      initThemeControls();
       authController.initialise();
 
       const views = document.querySelectorAll('.view');
@@ -3565,10 +3792,12 @@
 
       tenantContext.tenantId = bootConfig.tenantId;
       tenantContext.userId = bootConfig.userId;
+      initThemeControls(true);
       authController.syncContext({ tenantId: bootConfig.tenantId, userId: bootConfig.userId });
 
       AppBase.boot(bootConfig)
         .then(() => {
+          initThemeControls();
           updateHeaderSession(bootConfig, sessionState);
           updateHomeSnapshot(dashboardSnapshot);
           updateAccountDetails(bootConfig, sessionState, backupSnapshot);
