@@ -29,46 +29,81 @@
           <span class="ac-bullet" aria-hidden="true">•</span>
           <span class="ac-muted" id="breadcrumbs-secondary">Visão integrada</span>
         </nav>
-        <button
-          class="ac-iconbtn js-panel-focus"
-          type="button"
-          aria-label="Abrir Painel de Controles"
-        >
-          <span aria-hidden="true">⚙️</span>
-        </button>
+        <div class="ac-appbar__actions">
+          <span class="ac-beta-pill" role="status">Versão beta</span>
+          <button
+            class="ac-iconbtn js-panel-focus"
+            type="button"
+            aria-label="Abrir Painel de Controles"
+          >
+            <span aria-hidden="true">⚙️</span>
+          </button>
+        </div>
       </header>
 
       <div class="ac-layout">
         <nav class="ac-rail" aria-label="Miniapps">
           <div class="ac-rail__stack" role="list" aria-label="Miniapps fixos">
             <article class="ac-miniapp is-active" role="listitem" aria-current="page">
-              <header class="ac-miniapp__head">
-                <h3 class="ac-miniapp__title">Painel de Controles</h3>
-                <span class="ac-miniapp__tag">Principal</span>
-              </header>
-              <section class="ac-card ac-card--panel" aria-labelledby="miniapp-panel-title">
-                <div class="ac-card__head">
-                  <div>
-                    <h3 id="miniapp-panel-title" class="ac-card__title">Status geral</h3>
-                    <p class="ac-card__subtitle" id="user-name">Fabio</p>
+              <section
+                class="ac-miniapp__card ac-card ac-card--panel"
+                aria-labelledby="miniapp-panel-title"
+              >
+                <header class="ac-miniapp__header">
+                  <div class="ac-miniapp__legend">
+                    <h3 class="ac-miniapp__title" id="miniapp-panel-title">
+                      Painel de Controles
+                    </h3>
+                    <div class="ac-miniapp__meta">
+                      <span class="ac-miniapp__tag">Principal</span>
+                      <span class="ac-miniapp__subtitle" id="user-name">Fabio</span>
+                    </div>
                   </div>
-                  <button class="ac-kebab" type="button" aria-label="Opções">⋯</button>
+                  <div
+                    class="ac-miniapp__shortcuts"
+                    role="group"
+                    aria-label="Acessos rápidos"
+                  >
+                    <button
+                      class="ac-miniapp__shortcut"
+                      type="button"
+                      aria-label="Abrir painel de login"
+                    >
+                      Login
+                    </button>
+                    <button
+                      class="ac-miniapp__shortcut"
+                      type="button"
+                      aria-label="Abrir painel de sincronização"
+                    >
+                      Sync
+                    </button>
+                    <button
+                      class="ac-miniapp__shortcut"
+                      type="button"
+                      aria-label="Abrir painel de backup"
+                    >
+                      Backup
+                    </button>
+                  </div>
+                </header>
+                <div class="ac-miniapp__summary" aria-live="polite">
+                  <div class="ac-miniapp__summary-item">
+                    <span class="ac-miniapp__label">Último login</span>
+                    <span id="meta-login" class="ac-miniapp__value"
+                      >05/10/2025 09:12:00</span
+                    >
+                  </div>
+                  <div class="ac-miniapp__summary-item">
+                    <span class="ac-miniapp__label">Último sync</span>
+                    <span id="meta-sync" class="ac-miniapp__value"></span>
+                  </div>
+                  <div class="ac-miniapp__summary-item">
+                    <span class="ac-miniapp__label">Último backup</span>
+                    <span id="meta-backup" class="ac-miniapp__value"></span>
+                  </div>
                 </div>
-                <div class="ac-meta">
-                  <div class="ac-meta-row">
-                    <span class="t">Último login:</span>
-                    <span id="meta-login">05/10/2025 09:12:00</span>
-                  </div>
-                  <div class="ac-meta-row">
-                    <span class="t">Último sync:</span>
-                    <span id="meta-sync"></span>
-                  </div>
-                  <div class="ac-meta-row">
-                    <span class="t">Último backup:</span>
-                    <span id="meta-backup"></span>
-                  </div>
-                </div>
-                <div class="ac-badges">
+                <div class="ac-badges ac-miniapp__health">
                   <span class="ac-badge">
                     <span id="kpi-conn" class="ac-dot ac-dot--ok" aria-hidden="true"></span>
                     <span class="ac-label">Conexão</span>
@@ -85,11 +120,11 @@
               </section>
             </article>
 
-            <article class="ac-miniapp" role="listitem">
+            <article class="ac-miniapp ac-miniapp--empty" role="listitem">
               <div class="ac-miniapp__placeholder">Slot livre para miniapp</div>
             </article>
 
-            <article class="ac-miniapp" role="listitem">
+            <article class="ac-miniapp ac-miniapp--empty" role="listitem">
               <div class="ac-miniapp__placeholder">Slot livre para miniapp</div>
             </article>
           </div>
@@ -111,7 +146,6 @@
                 </h2>
                 <div class="ac-sub">Visão integrada</div>
               </div>
-              <div class="ac-stage__beta" role="status">Versão beta</div>
             </div>
 
             <div class="ac-grid">
