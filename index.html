@@ -24,10 +24,10 @@
         --text-secondary: #5f6c8a;
         --border-color: rgba(187, 195, 216, 0.6);
         --border-strong: rgba(99, 102, 241, 0.28);
-        --shadow-elevated: 0 18px 48px rgba(31, 42, 68, 0.12);
-        --radius-large: 26px;
-        --radius-medium: 18px;
-        --radius-small: 12px;
+        --shadow-elevated: none;
+        --radius-large: 0;
+        --radius-medium: 0;
+        --radius-small: 0;
         --space-2xs: 6px;
         --space-xs: 10px;
         --space-sm: 14px;
@@ -80,18 +80,17 @@
       }
 
       header.app-header {
-        margin-top: var(--space-xxl);
-        padding: var(--space-xl) var(--layout-gutter);
+        margin-top: var(--space-xl);
+        padding: var(--space-lg) var(--layout-gutter);
         display: flex;
         flex-wrap: wrap;
         gap: var(--layout-gap);
         align-items: center;
         justify-content: space-between;
         background: var(--surface);
-        border-radius: var(--radius-large);
         border: 1px solid var(--border-color);
-        box-shadow: var(--shadow-elevated);
-        backdrop-filter: blur(14px);
+        border-radius: 0;
+        box-shadow: none;
       }
 
       .logo-area {
@@ -192,16 +191,99 @@
       }
 
       .main-layout {
+        margin-top: var(--space-lg);
         display: grid;
-        gap: var(--layout-gap);
-        grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
-        align-items: start;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: minmax(260px, auto);
+        width: 100%;
+        border: 1px solid var(--border-color);
+        border-radius: 0;
+        overflow: hidden;
+        gap: 0;
       }
 
-      .miniapp-column {
+      .main-layout > .app-block {
+        padding: var(--space-lg);
         display: flex;
         flex-direction: column;
-        gap: var(--layout-gap);
+        gap: var(--space-md);
+        background: var(--surface-strong);
+        border-left: 1px solid var(--border-color);
+        border-top: 1px solid var(--border-color);
+      }
+
+      .main-layout > .app-block:nth-child(1),
+      .main-layout > .app-block:nth-child(2) {
+        border-top: none;
+      }
+
+      .main-layout > .app-block:nth-child(1),
+      .main-layout > .app-block:nth-child(3) {
+        border-left: none;
+      }
+
+      .main-layout .card {
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 0;
+        background: transparent;
+      }
+
+      .app-metrics-grid,
+      .app-metrics-highlights {
+        display: grid;
+        gap: var(--space-sm);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .app-metric,
+      .app-highlight {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .app-metric span,
+      .app-highlight span {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+      }
+
+      .app-metric strong,
+      .app-highlight strong {
+        font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+        color: var(--text-primary);
+      }
+
+      @media (max-width: 960px) {
+        .main-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .main-layout > .app-block {
+          border-left: none;
+        }
+
+        .main-layout > .app-block:nth-child(2) {
+          border-top: 1px solid var(--border-color);
+        }
+      }
+
+      @media (max-width: 720px) {
+        .app-metrics-grid,
+        .app-metrics-highlights {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 520px) {
+        .app-metrics-grid,
+        .app-metrics-highlights {
+          grid-template-columns: 1fr;
+        }
       }
 
       .miniapp-list header {
@@ -311,11 +393,6 @@
         width: 16px;
         height: 16px;
         fill: currentColor;
-      }
-
-      .primary-stack {
-        display: grid;
-        gap: var(--layout-gap);
       }
 
       .client-panel header,
@@ -1399,8 +1476,8 @@
         color: var(--text-secondary);
         border-top: 1px solid var(--border-color);
         background: var(--surface);
-        border-radius: var(--radius-large) var(--radius-large) 0 0;
-        box-shadow: 0 -12px 32px rgba(31, 42, 68, 0.08);
+        border-radius: 0;
+        box-shadow: none;
       }
 
       .footer-brand {
@@ -1422,18 +1499,6 @@
       }
 
       @media (max-width: 1200px) {
-        .main-layout {
-          grid-template-columns: minmax(0, 1fr);
-        }
-
-        .miniapp-column {
-          order: 2;
-        }
-
-        .primary-stack {
-          order: 1;
-        }
-
         .status-area {
           align-items: flex-start;
         }
@@ -1469,6 +1534,13 @@
   </head>
   <body>
     <header class="app-header">
+      <!-- BEGIN: logo-picture-responsive -->
+      <picture>
+        <source srcset="/Projeto-marco/assets/app/brand/logo-dark-800.webp 800w, /Projeto-marco/assets/app/brand/logo-dark-400.webp 400w" media="(prefers-color-scheme: dark)" type="image/webp">
+        <source srcset="/Projeto-marco/assets/app/brand/logo-light-800.webp 800w, /Projeto-marco/assets/app/brand/logo-light-400.webp 400w" media="(prefers-color-scheme: light)" type="image/webp">
+        <img src="/Projeto-marco/assets/app/brand/logo-light-400.webp" alt="Logo 5 Horas" width="400" height="100" loading="eager" decoding="async">
+      </picture>
+      <!-- END: logo-picture-responsive -->
       <div class="logo-area">
         <div class="app-badge">Marco</div>
         <div class="title-group">
@@ -1495,64 +1567,95 @@
     <main>
       <section id="tela-principal" class="view active">
         <div class="main-layout">
-          <aside class="miniapp-column">
-            <section class="card miniapp-list">
-              <header>
-                <h3>Mini-app resumos</h3>
-                <p>
-                  <span data-ref="miniapp-count">0</span> habilitados para
-                  <span data-ref="summary-tenant">-</span>
-                </p>
-              </header>
-              <div class="miniapp-rail" id="mini-app-grid"></div>
-            </section>
-          </aside>
-          <section class="primary-stack">
-            <section class="card client-panel">
-              <header>
-                <span class="eyebrow">Painel cliente</span>
-                <h2>Painel principal</h2>
-                <p>Área reservada para os componentes do cliente conforme o desenho base.</p>
-              </header>
-              <div class="placeholder-area large"></div>
-            </section>
-            <section
-              class="card miniapp-panel is-collapsed"
-              id="miniapp-panel-card"
-              aria-live="polite"
-            >
-              <header class="miniapp-panel-header">
-                <div class="miniapp-panel-context">
-                  <span class="mini-app-chip" data-panel-chip>Mini-app não selecionado</span>
-                  <button
-                    type="button"
-                    class="icon-button"
-                    data-panel-menu
-                    aria-label="Abrir MiniAppPanel"
-                    aria-expanded="false"
-                  >
-                    <svg viewBox="0 0 16 16" aria-hidden="true">
-                      <path
-                        d="M2.5 8a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
-                      />
-                    </svg>
-                    <span class="sr-only">Alternar MiniAppPanel</span>
-                  </button>
-                </div>
-                <div class="miniapp-panel-meta">
-                  <p data-panel-meta>Selecione um mini-app na coluna à esquerda para visualizar os masters.</p>
-                  <button type="button" class="pill-button miniapp-panel-close" data-panel-close hidden>
-                    Fechar painel
-                  </button>
-                </div>
-              </header>
-              <div class="miniapp-panel-body">
-                <div class="panel-placeholder" data-panel-placeholder>
-                  Selecione um mini-app na coluna à esquerda e utilize o menu de três pontos para abrir o MiniAppPanel.
-                </div>
-                <div class="panel-content" data-panel-content hidden></div>
+          <section class="card app-block miniapp-list">
+            <header>
+              <h3>Mini-app resumos</h3>
+              <p>
+                <span data-ref="miniapp-count">0</span> habilitados para
+                <span data-ref="summary-tenant">-</span>
+              </p>
+            </header>
+            <div class="miniapp-rail" id="mini-app-grid"></div>
+          </section>
+          <section class="card app-block app-metrics">
+            <header>
+              <span class="eyebrow">Indicadores</span>
+              <h2>Snapshot operacional</h2>
+              <p>Resumo rápido de fluxo, capacidade e alertas do tenant ativo.</p>
+            </header>
+            <div class="app-metrics-grid">
+              <article class="app-metric">
+                <span>Fluxo de tarefas</span>
+                <strong data-ref="metric-task-flow">—</strong>
+              </article>
+              <article class="app-metric">
+                <span>Capacidade</span>
+                <strong data-ref="metric-capacity">—</strong>
+              </article>
+              <article class="app-metric">
+                <span>Alertas</span>
+                <strong data-ref="metric-alerts">—</strong>
+              </article>
+            </div>
+            <div class="app-metrics-highlights">
+              <article class="app-highlight">
+                <span>Aprovações</span>
+                <strong data-ref="highlight-approvals">—</strong>
+              </article>
+              <article class="app-highlight">
+                <span>Equipes em campo</span>
+                <strong data-ref="highlight-field-teams">—</strong>
+              </article>
+              <article class="app-highlight">
+                <span>Tarefas críticas</span>
+                <strong data-ref="highlight-priority">—</strong>
+              </article>
+            </div>
+          </section>
+          <section class="card app-block client-panel">
+            <header>
+              <span class="eyebrow">Painel cliente</span>
+              <h2>Painel principal</h2>
+              <p>Área reservada para os componentes do cliente conforme o desenho base.</p>
+            </header>
+            <div class="placeholder-area large"></div>
+          </section>
+          <section
+            class="card app-block miniapp-panel is-collapsed"
+            id="miniapp-panel-card"
+            aria-live="polite"
+          >
+            <header class="miniapp-panel-header">
+              <div class="miniapp-panel-context">
+                <span class="mini-app-chip" data-panel-chip>Mini-app não selecionado</span>
+                <button
+                  type="button"
+                  class="icon-button"
+                  data-panel-menu
+                  aria-label="Abrir MiniAppPanel"
+                  aria-expanded="false"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M2.5 8a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm4 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z"
+                    />
+                  </svg>
+                  <span class="sr-only">Alternar MiniAppPanel</span>
+                </button>
               </div>
-            </section>
+              <div class="miniapp-panel-meta">
+                <p data-panel-meta>Selecione um mini-app na coluna à esquerda para visualizar os masters.</p>
+                <button type="button" class="pill-button miniapp-panel-close" data-panel-close hidden>
+                  Fechar painel
+                </button>
+              </div>
+            </header>
+            <div class="miniapp-panel-body">
+              <div class="panel-placeholder" data-panel-placeholder>
+                Selecione um mini-app na coluna à esquerda e utilize o menu de três pontos para abrir o MiniAppPanel.
+              </div>
+              <div class="panel-content" data-panel-content hidden></div>
+            </div>
           </section>
         </div>
       </section>
