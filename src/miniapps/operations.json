@@ -1,0 +1,38 @@
+{
+  "key": "operations",
+  "module": {
+    "type": "template"
+  },
+  "meta": {
+    "id": "mini-app-painel",
+    "card": {
+      "label": "Painel de Operações",
+      "labelKey": "miniapps.operations.label",
+      "meta": "KPIs, dados mestres e status de recursos",
+      "metaKey": "miniapps.operations.meta",
+      "cta": "Abrir painel detalhado",
+      "ctaKey": "miniapps.operations.cta"
+    },
+    "badges": ["KPIs", "Alertas"],
+    "badgeKeys": ["miniapps.operations.badge1", "miniapps.operations.badge2"],
+    "panel": {
+      "template": "panel-template-operations",
+      "meta": "Masters do painel operacional prontos para receber subcards.",
+      "metaKey": "miniapps.operations.panel"
+    },
+    "marketplace": {
+      "title": "Painel de Operações",
+      "titleKey": "market.catalog.operations.title",
+      "description": "KPIs, dados mestres e status unificado do tenant.",
+      "descriptionKey": "market.catalog.operations.description",
+      "capabilities": ["KPIs", "Alertas", "Workflow"],
+      "capabilityKeys": [
+        "market.catalog.operations.capability1",
+        "market.catalog.operations.capability2",
+        "market.catalog.operations.capability3"
+      ],
+      "license": "Base",
+      "licenseKey": "market.catalog.operations.license"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "key": "tasks",
+  "module": {
+    "type": "template"
+  },
+  "meta": {
+    "id": "mini-app-tarefas",
+    "card": {
+      "label": "Gestor de Tarefas",
+      "labelKey": "miniapps.tasks.label",
+      "meta": "Cronogramas, responsáveis e dados consumidos",
+      "metaKey": "miniapps.tasks.meta",
+      "cta": "Abrir lista de tarefas",
+      "ctaKey": "miniapps.tasks.cta"
+    },
+    "badges": ["Workflow", "Autosave"],
+    "badgeKeys": ["miniapps.tasks.badge1", "miniapps.tasks.badge2"],
+    "panel": {
+      "template": "panel-template-tasks",
+      "meta": "Masters do gestor focados em filtros e status prioritários.",
+      "metaKey": "miniapps.tasks.panel"
+    },
+    "marketplace": {
+      "title": "Gestor de Tarefas",
+      "titleKey": "market.catalog.tasks.title",
+      "description": "Cronogramas, responsáveis e dependências críticas.",
+      "descriptionKey": "market.catalog.tasks.description",
+      "capabilities": ["Quadro", "Alertas", "Exportação"],
+      "capabilityKeys": [
+        "market.catalog.tasks.capability1",
+        "market.catalog.tasks.capability2",
+        "market.catalog.tasks.capability3"
+      ],
+      "license": "Base",
+      "licenseKey": "market.catalog.tasks.license"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "key": "analytics",
+  "module": {
+    "type": "placeholder"
+  },
+  "meta": {
+    "marketplace": {
+      "title": "Insights Avançados",
+      "titleKey": "market.catalog.analytics.title",
+      "description": "Visualizações analíticas e previsões operacionais.",
+      "descriptionKey": "market.catalog.analytics.description",
+      "capabilities": ["Forecast", "Análises", "Dashboards"],
+      "capabilityKeys": [
+        "market.catalog.analytics.capability1",
+        "market.catalog.analytics.capability2",
+        "market.catalog.analytics.capability3"
+      ],
+      "license": "Add-on",
+      "licenseKey": "market.catalog.analytics.license",
+      "comingSoon": true,
+      "comingSoonKey": "market.catalog.analytics.soon"
+    }
+  }
+}

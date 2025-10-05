@@ -337,7 +337,7 @@ export function updateAccountDetails(config, session, backup) {
       card.className = 'storage-card';
       const statusText = translateWithFallback(data?.statusKey, data?.status ?? '—');
       const relativeSync = data?.lastSync ? formatRelativeTime(data.lastSync) : '';
-      const syncText = relativeSync || data?.lastSync ?? '—';
+      const syncText = relativeSync || (data?.lastSync ?? '—');
       card.innerHTML = `
               <strong>${data?.name ?? providerKey.toUpperCase()}</strong>
               <span>${translateWithFallback('account.backup.statusLabel', `Status: ${statusText}`, {
@@ -358,7 +358,8 @@ export function updateAccountDetails(config, session, backup) {
       const card = document.createElement('article');
       card.className = 'device-card';
       const statusText = translateWithFallback(device.statusKey, device.status);
-      const typeText = translateWithFallback(device.typeKey, device.type ?? '—') || device.type ?? '—';
+      const typeText =
+        translateWithFallback(device.typeKey, device.type ?? '—') || (device.type ?? '—');
       const lastActivityText = device.lastActivity ? formatRelativeTime(device.lastActivity) : device.lastActivity ?? '—';
       card.innerHTML = `
               <header>
@@ -512,7 +513,7 @@ function createMiniAppCard(meta, key) {
   return article;
 }
 
-export function buildMarketplace(catalog, appBase = AppBase) {
+export function buildMarketplace(catalog = [], appBase = AppBase) {
   storedCatalog = catalog;
   const container = document.getElementById('market-grid');
   if (!container) {
@@ -527,8 +528,8 @@ export function buildMarketplace(catalog, appBase = AppBase) {
     const header = document.createElement('header');
     header.innerHTML = `
             <div>
-              <h4>${translateWithFallback(item.titleKey, item.title)}</h4>
-              <p>${translateWithFallback(item.descriptionKey, item.description)}</p>
+              <h4>${translateWithFallback(item.titleKey, item.title ?? item.key)}</h4>
+              <p>${translateWithFallback(item.descriptionKey, item.description ?? '')}</p>
             </div>
           `;
     card.appendChild(header);
@@ -549,9 +550,14 @@ export function buildMarketplace(catalog, appBase = AppBase) {
     const statusRow = document.createElement('div');
     statusRow.className = 'chip-row';
     const statusChip = document.createElement('span');
-    if (item.comingSoon) {
+    const isComingSoon = Boolean(item.comingSoon);
+    const comingSoonLabel = item.comingSoonKey
+      ? translateWithFallback(item.comingSoonKey, translateWithFallback('market.catalog.comingSoon', 'Em breve'))
+      : translateWithFallback('market.catalog.comingSoon', 'Em breve');
+
+    if (isComingSoon) {
       statusChip.className = 'chip neutral';
-      statusChip.textContent = translateWithFallback('market.catalog.comingSoon', 'Em breve');
+      statusChip.textContent = comingSoonLabel;
     } else if (appBase.isEnabled(item.key)) {
       statusChip.className = 'chip success';
       statusChip.textContent = translateWithFallback('market.catalog.enabled', 'Ativo');
@@ -572,10 +578,10 @@ export function buildMarketplace(catalog, appBase = AppBase) {
     card.appendChild(statusRow);
 
     const footer = document.createElement('footer');
-    if (item.comingSoon) {
+    if (isComingSoon) {
       const info = document.createElement('span');
       info.className = 'chip neutral';
-      info.textContent = translateWithFallback('market.catalog.soonMessage', 'Catálogo agendado para Q3');
+      info.textContent = translateWithFallback('market.catalog.soonMessage', comingSoonLabel);
       footer.appendChild(info);
     } else {
       const toggle = document.createElement('button');

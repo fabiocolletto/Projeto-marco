@@ -15,6 +15,7 @@ HTML estático e JavaScript vanilla.
 │   ├── index.html             # Página principal do AppBase + mini-apps
 │   ├── locales/               # Arquivos de tradução (JSON)
 │   ├── scripts/               # AppBase, mocks, UI e módulos de exportação
+│   ├── miniapps/              # Manifestos declarativos dos mini-apps
 │   └── styles/                # Tokens de design e estilos de componentes
 ├── MARCO_BLUEPRINT.md         # Blueprint consolidado do AppBase
 ├── README.md                  # Este documento
@@ -36,7 +37,10 @@ HTML estático e JavaScript vanilla.
 - **AppBase modular** (`src/scripts/app-base.js`): registra mini-apps, controla
   toggles e expõe a configuração resolvida.
 - **Mocks e snapshots** (`src/scripts/state.js`): simula KPIs, sessão, catálogo
-  de marketplace, observabilidade e auditoria com suporte a traduções.
+  de marketplace, observabilidade e auditoria com suporte a traduções e expõe o
+  contrato `bootConfig` com a lista `miniApps`.
+- **Manifestos de mini-app** (`src/miniapps/*.json`): definem metadados, painéis
+  e dados de marketplace consumidos dinamicamente no boot.
 - **Camada de UI** (`src/scripts/ui.js`): renderiza cards, conecta eventos,
   atualiza métricas e aplica traduções dinâmicas (incluindo time relative e
   textos do marketplace).
