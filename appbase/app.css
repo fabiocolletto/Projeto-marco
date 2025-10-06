@@ -67,6 +67,12 @@ select {
   color: inherit;
 }
 
+input[aria-invalid='true'],
+select[aria-invalid='true'] {
+  border-color: var(--ac-crit);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+}
+
 select {
   appearance: none;
   background-image: linear-gradient(45deg, transparent 50%, var(--ac-border) 50%),
@@ -707,6 +713,25 @@ select {
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ac-feedback {
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: var(--ac-border-width) solid transparent;
+  font-size: 0.95rem;
+}
+
+.ac-feedback--error {
+  background: var(--ac-crit-bg);
+  border-color: var(--ac-crit);
+  color: var(--ac-crit);
+}
+
+.ac-feedback--success {
+  background: var(--ac-ok-bg);
+  border-color: var(--ac-ok);
+  color: var(--ac-ok);
 }
 
 @media (max-width: 640px) {

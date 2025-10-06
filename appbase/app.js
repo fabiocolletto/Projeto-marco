@@ -46,6 +46,10 @@
       telefone: '+55 11 99999-0000',
       conta: '5Horas',
     },
+    auth: {
+      hasAccount: true,
+      isAuthenticated: true,
+    },
     status: {
       conexao: 'ok',
       syncOn: false,
@@ -253,6 +257,46 @@
           },
         });
       },
+      registerAccount(payload) {
+        const now = formatDateTime();
+        const nomeCompleto = (payload.nomeCompleto || '').trim();
+        const primeiroNome = nomeCompleto.split(/\s+/).filter(Boolean)[0] || 'Usuário';
+        const contaBase = (payload.email || '').split('@')[0] || primeiroNome.toLowerCase();
+        const state = store.getState();
+        return Promise.resolve({
+          user: {
+            id: `u-${Date.now()}`,
+            nome: primeiroNome,
+            nomeCompleto: nomeCompleto || primeiroNome,
+            email: payload.email || '',
+            telefone: payload.telefone || '',
+            conta: contaBase || 'nova-conta',
+          },
+          status: {
+            conexao: 'ok',
+            syncOn: false,
+            backupOn: false,
+            lastLogin: now,
+            lastSync: '',
+            lastBackup: '',
+          },
+          sessions: { devices: [] },
+          sec: {
+            ...state.sec,
+            ultimoAcesso: now,
+            sessoes: 1,
+          },
+          auth: {
+            hasAccount: true,
+            isAuthenticated: true,
+          },
+          event: {
+            type: 'account_created',
+            msg: `Conta criada para ${primeiroNome}`,
+            src: 'Painel de controle',
+          },
+        });
+      },
       deleteSession(id) {
         const state = store.getState();
         const devices = state.sessions.devices.filter((device) => device.id !== id);
@@ -340,6 +384,24 @@
           }));
         });
       },
+      registerUser(payload) {
+        return services.registerAccount(payload).then((response) => {
+          store.setState((state) => ({
+            ...state,
+            user: response.user,
+            status: response.status,
+            sessions: response.sessions,
+            sec: response.sec,
+            auth: response.auth,
+            eventos: appendEvent(
+              state.eventos,
+              response.event.type,
+              response.event.msg,
+              response.event.src
+            ),
+          }));
+        });
+      },
       logoff() {
         store.setState((state) => ({
           ...state,
@@ -419,6 +481,8 @@
     eventsSearch: '',
     eventsType: 'all',
     sort: { key: 'time', direction: 'desc' },
+    loginFeedback: { message: '', type: null },
+    loginMode: 'login',
   };
 
   const elements = {};
@@ -438,6 +502,7 @@
     const stage = document.getElementById('painel-stage');
     const stageEmpty = document.querySelector('[data-stage-empty]');
     const loginForm = document.querySelector('[data-login-form]');
+    const loginOverlay = document.querySelector('[data-overlay="login"]');
 
     Object.assign(elements, {
       app: document.querySelector('.ac-app'),
@@ -496,7 +561,7 @@
           : [],
       },
       overlays: {
-        login: document.querySelector('[data-overlay="login"]'),
+        login: loginOverlay,
         sync: document.querySelector('[data-overlay="sync"]'),
         backup: document.querySelector('[data-overlay="backup"]'),
       },
@@ -506,9 +571,24 @@
           nome: loginForm?.querySelector('[name="nome"]') || null,
           email: loginForm?.querySelector('[name="email"]') || null,
           telefone: loginForm?.querySelector('[name="telefone"]') || null,
+          senha: loginForm?.querySelector('[name="senha"]') || null,
+          confirmacao: loginForm?.querySelector('[name="confirmacao"]') || null,
         },
         devicesBody: document.querySelector('[data-login-devices-body]'),
         title: document.getElementById('login-dialog-title'),
+        subtitle: document.querySelector('[data-auth-subtitle]'),
+        feedback: document.querySelector('[data-auth-feedback]'),
+        primaryAction: loginOverlay?.querySelector('[data-action="login-save"]') || null,
+        sheet: document.querySelector('[data-auth-overlay]'),
+        overlay: loginOverlay,
+        visibility: {
+          login: loginOverlay
+            ? Array.from(loginOverlay.querySelectorAll('[data-auth-visibility="login"]'))
+            : [],
+          register: loginOverlay
+            ? Array.from(loginOverlay.querySelectorAll('[data-auth-visibility="register"]'))
+            : [],
+        },
       },
       syncOverlay: {
         provider: document.querySelector('[data-sync-provider]'),
@@ -531,13 +611,103 @@
     dot.classList.toggle('ac-dot--crit', !ok);
   }
 
+  function updateLoginVisibility(mode) {
+    uiState.loginMode = mode;
+    const loginElements = elements.login;
+    if (!loginElements) return;
+    if (loginElements.sheet) {
+      loginElements.sheet.setAttribute('data-auth-mode', mode);
+    }
+    if (loginElements.overlay) {
+      loginElements.overlay.setAttribute('data-auth-mode', mode);
+    }
+    loginElements.visibility?.login?.forEach((node) => {
+      node.hidden = mode !== 'login';
+    });
+    loginElements.visibility?.register?.forEach((node) => {
+      node.hidden = mode !== 'register';
+    });
+    const button = loginElements.primaryAction;
+    if (button) {
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+      button.textContent = mode === 'register' ? 'Criar conta' : 'Salvar';
+    }
+  }
+
+  function setLoginPrimaryBusy(isBusy) {
+    const button = elements.login?.primaryAction;
+    if (!button) return;
+    button.disabled = isBusy;
+    if (isBusy) {
+      button.setAttribute('aria-busy', 'true');
+    } else {
+      button.removeAttribute('aria-busy');
+    }
+    const mode = uiState.loginMode;
+    if (mode === 'register') {
+      button.textContent = isBusy ? 'Criando conta…' : 'Criar conta';
+    } else {
+      button.textContent = isBusy ? 'Salvando…' : 'Salvar';
+    }
+  }
+
+  function clearLoginFieldValidity() {
+    const fields = elements.login?.fields;
+    if (!fields) return;
+    Object.values(fields).forEach((field) => {
+      if (field) {
+        field.removeAttribute('aria-invalid');
+      }
+    });
+  }
+
+  function markFieldInvalid(field) {
+    if (!field) return;
+    field.setAttribute('aria-invalid', 'true');
+  }
+
+  function applyLoginFeedback() {
+    const feedback = elements.login?.feedback;
+    if (!feedback) return;
+    const { message, type } = uiState.loginFeedback;
+    feedback.classList.remove('ac-feedback--error', 'ac-feedback--success');
+    if (!message) {
+      feedback.hidden = true;
+      feedback.textContent = '';
+      return;
+    }
+    feedback.hidden = false;
+    feedback.textContent = message;
+    if (type === 'error') {
+      feedback.classList.add('ac-feedback--error');
+    } else if (type === 'success') {
+      feedback.classList.add('ac-feedback--success');
+    }
+  }
+
+  function setLoginFeedback(type, message) {
+    uiState.loginFeedback = {
+      type: type && message ? type : null,
+      message: message || '',
+    };
+    applyLoginFeedback();
+  }
+
   function renderCard(state) {
     if (!elements.card) return;
+    const hasAccount = state.auth?.hasAccount !== false && Boolean(state.user?.id);
+    const user = state.user || {};
     if (elements.userName) {
-      elements.userName.textContent = state.user.nome;
+      elements.userName.textContent = user.nome || '—';
     }
     if (elements.cardMeta.login.value) {
-      elements.cardMeta.login.value.textContent = state.status.lastLogin;
+      elements.cardMeta.login.value.textContent = hasAccount
+        ? state.status.lastLogin
+        : '—';
+    }
+    if (elements.cardMeta.login.container) {
+      elements.cardMeta.login.container.hidden = !hasAccount;
     }
     if (elements.cardMeta.sync.value) {
       elements.cardMeta.sync.value.textContent = state.status.lastSync || '';
@@ -558,14 +728,16 @@
 
   function renderStage(state) {
     if (!elements.stage) return;
+    const hasAccount = state.auth?.hasAccount !== false && Boolean(state.user?.id);
+    const user = state.user || {};
     if (elements.loginUser) {
-      elements.loginUser.textContent = state.user.nome;
+      elements.loginUser.textContent = user.nome || '—';
     }
     if (elements.loginAccount) {
-      elements.loginAccount.textContent = state.user.conta;
+      elements.loginAccount.textContent = hasAccount ? user.conta || '—' : '—';
     }
     if (elements.loginLast) {
-      elements.loginLast.textContent = state.status.lastLogin;
+      elements.loginLast.textContent = hasAccount ? state.status.lastLogin : '—';
     }
 
     if (elements.syncProvider) {
@@ -702,19 +874,67 @@
 
   function renderLoginOverlay(state) {
     if (!elements.login.form) return;
+    clearLoginFieldValidity();
     const fields = elements.login.fields;
-    if (fields.nome) fields.nome.value = state.user.nomeCompleto;
-    if (fields.email) fields.email.value = state.user.email;
-    if (fields.telefone) fields.telefone.value = state.user.telefone;
-    if (elements.login.title) {
-      elements.login.title.textContent = `Login — ${state.user.nome}`;
+    const user = state.user || {};
+    const hasAccount = state.auth?.hasAccount !== false && Boolean(user.id);
+    const mode = hasAccount ? 'login' : 'register';
+
+    updateLoginVisibility(mode);
+
+    if (fields.nome) fields.nome.value = user.nomeCompleto || '';
+    if (fields.email) fields.email.value = user.email || '';
+    if (fields.telefone) fields.telefone.value = user.telefone || '';
+    if (fields.senha) {
+      if (mode === 'login') {
+        fields.senha.value = '********';
+        fields.senha.disabled = true;
+        fields.senha.required = false;
+        fields.senha.setAttribute('aria-disabled', 'true');
+      } else {
+        fields.senha.value = '';
+        fields.senha.disabled = false;
+        fields.senha.required = true;
+        fields.senha.removeAttribute('aria-disabled');
+      }
+      fields.senha.removeAttribute('aria-invalid');
     }
+    if (fields.confirmacao) {
+      if (mode === 'login') {
+        fields.confirmacao.value = '';
+        fields.confirmacao.disabled = true;
+        fields.confirmacao.required = false;
+      } else {
+        fields.confirmacao.disabled = false;
+        fields.confirmacao.required = true;
+      }
+      fields.confirmacao.removeAttribute('aria-invalid');
+    }
+
+    if (elements.login.title) {
+      elements.login.title.textContent =
+        mode === 'login'
+          ? `Login — ${user.nome || 'Conta'}`
+          : 'Cadastro de acesso';
+    }
+    if (elements.login.subtitle) {
+      elements.login.subtitle.textContent =
+        mode === 'login'
+          ? 'Atualize os dados de acesso da conta atual.'
+          : 'Crie sua conta para acessar o painel.';
+    }
+
+    applyLoginFeedback();
 
     const tbody = elements.login.devicesBody;
     if (!tbody) return;
     tbody.innerHTML = '';
+    if (mode !== 'login') {
+      return;
+    }
     const fragment = document.createDocumentFragment();
-    state.sessions.devices.forEach((device) => {
+    const devices = state.sessions?.devices || [];
+    devices.forEach((device) => {
       const tr = document.createElement('tr');
       const name = document.createElement('td');
       name.textContent = device.nome;
@@ -866,6 +1086,10 @@
     overlay.setAttribute('aria-hidden', 'true');
     overlay.removeEventListener('click', handleOverlayBackdrop, true);
     document.removeEventListener('keydown', handleOverlayEsc, true);
+    if (openOverlayId === 'login') {
+      setLoginPrimaryBusy(false);
+      setLoginFeedback(null, '');
+    }
     if (lastOverlayTrigger && typeof lastOverlayTrigger.focus === 'function') {
       lastOverlayTrigger.focus();
     }
@@ -933,6 +1157,9 @@
     const trigger = event.target.closest('[data-overlay-open]');
     if (!trigger) return;
     const id = trigger.dataset.overlayOpen;
+    if (id === 'login') {
+      setLoginFeedback(null, '');
+    }
     openOverlay(id, trigger);
   }
 
@@ -948,12 +1175,112 @@
     if (!actionBtn) return;
     const action = actionBtn.dataset.action;
     if (action === 'login-save') {
+      if (!elements.login.form || !activeStore) return;
       const formData = new FormData(elements.login.form);
-      actions.saveLogin({
-        nomeCompleto: formData.get('nome') || '',
-        email: formData.get('email') || '',
-        telefone: formData.get('telefone') || '',
-      });
+      const state = activeStore.getState();
+      const hasAccount =
+        state.auth?.hasAccount !== false && Boolean(state.user?.id);
+      const fields = elements.login.fields;
+      if (!fields) return;
+      if (!hasAccount) {
+        clearLoginFieldValidity();
+        const nomeCompleto = (formData.get('nome') || '').trim();
+        const email = (formData.get('email') || '').toString().trim();
+        const telefone = (formData.get('telefone') || '').toString().trim();
+        const senha = (formData.get('senha') || '').toString();
+        const confirmacao = (formData.get('confirmacao') || '').toString();
+        if (fields.nome) fields.nome.value = nomeCompleto;
+        if (fields.email) fields.email.value = email;
+        if (fields.telefone) fields.telefone.value = telefone;
+        const errors = [];
+        const invalidFields = [];
+        const pushInvalid = (field) => {
+          if (field && !invalidFields.includes(field)) {
+            invalidFields.push(field);
+          }
+        };
+
+        if (!nomeCompleto) {
+          errors.push('Informe o nome completo.');
+          markFieldInvalid(fields.nome);
+          pushInvalid(fields.nome);
+        }
+        if (!email) {
+          errors.push('Informe um e-mail.');
+          markFieldInvalid(fields.email);
+          pushInvalid(fields.email);
+        } else if (fields.email && !fields.email.checkValidity()) {
+          errors.push('Informe um e-mail válido.');
+          markFieldInvalid(fields.email);
+          pushInvalid(fields.email);
+        }
+        if (!senha) {
+          errors.push('Defina uma senha.');
+          markFieldInvalid(fields.senha);
+          pushInvalid(fields.senha);
+        }
+        if (!confirmacao) {
+          errors.push('Confirme a senha.');
+          markFieldInvalid(fields.confirmacao);
+          pushInvalid(fields.confirmacao);
+        }
+        if (senha && confirmacao && senha !== confirmacao) {
+          errors.push('As senhas precisam ser iguais.');
+          markFieldInvalid(fields.senha);
+          markFieldInvalid(fields.confirmacao);
+          pushInvalid(fields.senha);
+          pushInvalid(fields.confirmacao);
+        }
+
+        if (errors.length) {
+          setLoginFeedback('error', errors.join(' '));
+          invalidFields[0]?.focus();
+          return;
+        }
+
+        setLoginFeedback(null, '');
+        setLoginPrimaryBusy(true);
+        actions
+          .registerUser({
+            nomeCompleto,
+            email,
+            telefone,
+            senha,
+          })
+          .then(() => {
+            setLoginFeedback('success', 'Conta criada com sucesso!');
+            setTimeout(() => {
+              closeOverlay();
+              setLoginFeedback(null, '');
+            }, 600);
+          })
+          .catch((error) => {
+            console.error(error);
+            setLoginPrimaryBusy(false);
+            setLoginFeedback(
+              'error',
+              'Não foi possível criar a conta. Tente novamente.'
+            );
+          });
+        return;
+      }
+
+      actions
+        .saveLogin({
+          nomeCompleto: formData.get('nome') || '',
+          email: formData.get('email') || '',
+          telefone: formData.get('telefone') || '',
+        })
+        .then(() => {
+          setLoginFeedback('success', 'Dados de login atualizados.');
+        })
+        .catch((error) => {
+          console.error(error);
+          setLoginFeedback(
+            'error',
+            'Não foi possível atualizar os dados de login agora.'
+          );
+        });
     } else if (action === 'login-logoff') {
       actions.logoff();
     } else if (action === 'sessions-kill') {

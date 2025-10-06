@@ -355,11 +355,22 @@
         role="dialog"
         aria-modal="true"
         aria-labelledby="login-dialog-title"
+        data-auth-overlay
       >
         <header class="ac-sheet__head">
-          <h4 id="login-dialog-title" class="ac-sheet__title" tabindex="-1">
-            Login — Fabio
-          </h4>
+          <div class="ac-sheet__titles">
+            <h4
+              id="login-dialog-title"
+              class="ac-sheet__title"
+              tabindex="-1"
+              data-auth-title
+            >
+              Login — Fabio
+            </h4>
+            <p class="ac-sheet__subtitle" data-auth-subtitle>
+              Atualize os dados de acesso da conta atual.
+            </p>
+          </div>
           <button
             class="ac-iconbtn ac-iconbtn--small"
             type="button"
@@ -370,6 +381,16 @@
           </button>
         </header>
         <div class="ac-sheet__body">
+          <p class="ac-muted" data-auth-visibility="register" hidden>
+            Crie a sua conta preenchendo todos os campos abaixo.
+          </p>
+          <div
+            class="ac-feedback"
+            data-auth-feedback
+            role="status"
+            aria-live="polite"
+            hidden
+          ></div>
           <form class="ac-form-grid" data-login-form autocomplete="off">
             <label class="ac-field">
               <span class="ac-field__label">Nome completo</span>
@@ -383,13 +404,17 @@
               <span class="ac-field__label">Telefone</span>
               <input name="telefone" type="tel" />
             </label>
-            <label class="ac-field">
+            <label class="ac-field" data-auth-field="senha">
               <span class="ac-field__label">Senha</span>
-              <input name="senha" type="password" value="********" autocomplete="new-password" />
+              <input name="senha" type="password" autocomplete="new-password" />
+            </label>
+            <label class="ac-field" data-auth-visibility="register" hidden>
+              <span class="ac-field__label">Confirme a senha</span>
+              <input name="confirmacao" type="password" autocomplete="new-password" />
             </label>
           </form>
 
-          <section class="ac-sheet__section">
+          <section class="ac-sheet__section" data-auth-visibility="login">
             <h5 class="ac-sheet__subtitle">Dispositivos conectados</h5>
             <div class="ac-table-wrap ac-table-wrap--inner">
               <table class="ac-table ac-table--compact" data-login-devices>
@@ -407,12 +432,33 @@
           </section>
         </div>
         <footer class="ac-sheet__foot">
-          <button class="ac-btn" type="button" data-action="login-save">Salvar</button>
-          <button class="ac-btn" type="button" data-action="login-change-password">
+          <button class="ac-btn" type="button" data-action="login-save">
+            Salvar
+          </button>
+          <button
+            class="ac-btn"
+            type="button"
+            data-action="login-change-password"
+            data-auth-visibility="login"
+          >
             Trocar senha
           </button>
-          <button class="ac-btn" type="button" data-action="login-logoff">Fazer logoff</button>
-          <button class="ac-btn" type="button" data-action="sessions-kill">Desconectar todos os dispositivos</button>
+          <button
+            class="ac-btn"
+            type="button"
+            data-action="login-logoff"
+            data-auth-visibility="login"
+          >
+            Fazer logoff
+          </button>
+          <button
+            class="ac-btn"
+            type="button"
+            data-action="sessions-kill"
+            data-auth-visibility="login"
+          >
+            Desconectar todos os dispositivos
+          </button>
         </footer>
       </section>
     </div>
