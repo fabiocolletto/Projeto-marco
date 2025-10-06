@@ -12,7 +12,7 @@ pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 ├── appbase/
 │   ├── index.html            # Shell do AppBase + MiniApp “Painel de controle”
 │   ├── app.css               # Tokens `--ac-*`, grid responsivo e overlays
-│   └── app.js                # Store reativa, serviços mock, toggles e exportação
+│   └── app.js                # Controle do painel, cadastro local e interações vanilla
 ├── assets/                   # Logos e imagens utilizadas pelo protótipo
 ├── index.html                # Redirecionamento (GitHub Pages)
 ├── src/                      # Versão anterior do protótipo modular
@@ -31,49 +31,38 @@ MiniApp “Painel de controle”.
 2. Abra `appbase/index.html` em um navegador (Chrome, Edge, Firefox ou Safari).
    - O `index.html` na raiz redireciona automaticamente para essa versão.
    - Para consultar a versão legada modular, abra `src/index.html` diretamente.
-3. Se nenhuma etiqueta estiver ativa o palco permanece vazio. Clique na etiqueta
-   “Painel de controle” (ou use o kebab para expandir/recolher) para carregar o
-   painel completo.
-4. Ao iniciar, o AppBase consulta o IndexedDB local. Caso não exista um backup,
-   o overlay de Login abre automaticamente para cadastrar o usuário e liberar o
-   painel. Os dados salvos permanecem disponíveis entre visitas.
-5. Utilize a toolbar do painel para alternar Sync/Backup e exportar a tabela de
-   eventos filtrada. Abra os overlays de Login, Sync ou Backup pelos botões ⋯
-   dos tiles para testar os fluxos de gerenciamento.
+3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
+   botão “Começar cadastro” ou clique na etiqueta “Painel de controle” para
+   abrir o formulário de Login.
+4. Os dados cadastrados são guardados apenas no `localStorage` do navegador. Ao
+   salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
+   último acesso, e essas informações permanecem disponíveis em visitas
+   futuras.
+5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
+   cadastro ativo. O overlay de Login pode ser reaberto para editar o usuário a
+   qualquer momento.
 
 ## MiniApp “Painel de controle” — destaques
 
-- **Etiqueta dinâmica** com metadados opcionais (último login/sync/backup) e dots
-  conectados ao estado global (`syncOn`, `backupOn`, `conexao`).
-- **Palco em tela cheia** sem painel direito, com cabeçalho azul, subtítulo e
-  toolbar de pills coloridas (verde ON, vermelho OFF) sincronizadas entre o rail
-  e os overlays.
-- **Grid responsivo** (12 colunas quebrando para 1 coluna < 900px) com os tiles:
-  Login, Sincronização, Backup, Conectividade, Segurança e Eventos, todos em
-  pt-BR e sem placeholders quando o valor é vazio.
-- **Tabela de eventos** com filtro live, filtro por tipo, ordenação por coluna,
-  cabeçalho sticky, hover, rolagem vertical e exportação CSV baseada no DOM
-  filtrado.
-- **Overlays acessíveis** (`role="dialog"`, `aria-modal`, foco gerenciado,
-  fechamento por Esc/backdrop) para Login, Sync e Backup, cada um refletindo o
-  estado atual do store (toggles, dispositivos, histórico) e disparando eventos
-  na telemetria local. O overlay de Login confirma imediatamente quando os
-  dados do usuário são gravados no IndexedDB local.
-- **Backup local persistente** gravado no IndexedDB: cadastro de usuário,
-  configurações de sync/backup e histórico são reaplicados ao reabrir o
-  aplicativo, que também sinaliza quando ainda não existe documento salvo.
-- **Camada de serviço mock** que expõe os contratos REST (GET/PUT/DELETE)
-  esperados. As ações retornam Promises, atualizam a store e registram eventos
-  (`Sync`, `Backup`, `Login`) com timestamps em `pt-BR`.
-- **Arquitetura montável**: o miniapp exporta `window.PainelMiniApp.mount` e
-  `unmount`, permitindo que o shell principal carregue/descadastre o módulo sem
-  vazamentos de listener.
-- **Acessibilidade**: `aria-current` na etiqueta ativa, `aria-pressed` nas pills,
-  foco visível e navegação por teclado em rail, painel, tabelas e overlays.
+- **Etiqueta simplificada** exibe o primeiro nome cadastrado, o último acesso e
+  o status (vermelho quando vazio, verde quando configurado), mantendo o rail
+  coerente com o palco.
+- **Palco dedicado ao Login**, com tile único que mostra nome completo, conta e
+  horário do último acesso. O botão ⋯ recolhe/exibe o painel sem perder o
+  cadastro.
+- **Overlay de Login acessível** (`role="dialog"`, `aria-modal`, foco gerenciado
+  e fechamento por Esc/backdrop) com feedback imediato de sucesso ou erro ao
+  salvar.
+- **Persistência local leve**: os dados são gravados no `localStorage`,
+  reaplicados automaticamente na próxima visita e podem ser editados a qualquer
+  momento sem dependências de sync/backup.
 
 ## Próximos passos sugeridos
 
-- Conectar os serviços mock aos endpoints reais descritos na especificação.
-- Persistir os eventos exportados no backend para rastreabilidade completa.
-- Expandir o shell para carregar múltiplos miniapps montando/desmontando via
-  `window.PainelMiniApp` conforme o rail evoluir.
+- Reintroduzir gradualmente os módulos de sincronização, backup e eventos a
+  partir deste núcleo enxuto, validando compatibilidade antes de expandir o
+  escopo.
+- Avaliar a integração com um backend real de autenticação quando o fluxo de
+  cadastro estiver validado com usuários.
+- Ampliar a suíte de testes end-to-end cobrindo cenários de edição contínua,
+  múltiplos cadastros e comportamento em navegadores móveis.

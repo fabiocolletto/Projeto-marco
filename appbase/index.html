@@ -27,7 +27,7 @@
         <nav class="ac-breadcrumbs" aria-label="Localização">
           <span id="breadcrumbs-primary">Painel de controles</span>
           <span class="ac-bullet" aria-hidden="true">•</span>
-          <span class="ac-muted" id="breadcrumbs-secondary">Visão detalhada</span>
+          <span class="ac-muted" id="breadcrumbs-secondary">Cadastro</span>
         </nav>
         <div class="ac-appbar__actions">
           <button
@@ -59,7 +59,7 @@
             <header class="ac-miniapp-card__head">
               <div class="ac-miniapp-card__titles">
                 <p id="miniapp-title" class="ac-miniapp-card__title">Painel de controle</p>
-                <p class="ac-miniapp-card__subtitle" data-user-name>Fabio</p>
+                <p class="ac-miniapp-card__subtitle" data-user-name>Não configurado</p>
               </div>
               <button
                 class="ac-iconbtn ac-iconbtn--small"
@@ -75,30 +75,14 @@
             <dl class="ac-miniapp-card__meta">
               <div data-meta="login">
                 <dt>Último login</dt>
-                <dd data-meta-value="login">05/10/2025 09:12:00</dd>
-              </div>
-              <div data-meta="sync" hidden>
-                <dt>Último sync</dt>
-                <dd data-meta-value="sync"></dd>
-              </div>
-              <div data-meta="backup" hidden>
-                <dt>Último backup</dt>
-                <dd data-meta-value="backup"></dd>
+                <dd data-meta-value="login">—</dd>
               </div>
             </dl>
 
             <div class="ac-miniapp-card__kpis" role="group" aria-label="Status do painel">
               <span class="ac-kpi" data-kpi="conexao">
-                <span class="ac-dot ac-dot--ok" aria-hidden="true"></span>
-                <span>Conexão</span>
-              </span>
-              <span class="ac-kpi" data-kpi="sync">
                 <span class="ac-dot ac-dot--crit" aria-hidden="true"></span>
-                <span>Sync</span>
-              </span>
-              <span class="ac-kpi" data-kpi="backup">
-                <span class="ac-dot ac-dot--crit" aria-hidden="true"></span>
-                <span>Backup</span>
+                <span>Status</span>
               </span>
             </div>
           </article>
@@ -126,33 +110,6 @@
                 <p class="ac-subtitle">Visão detalhada</p>
               </div>
               <div class="ac-stage__actions">
-                <div class="ac-stage__toolbar" role="group" aria-label="Ações do painel">
-                  <button
-                    class="ac-pill-toggle"
-                    type="button"
-                    data-toggle="sync"
-                    data-label-on="Sync ativada"
-                    data-label-off="Sync desativada"
-                    aria-pressed="false"
-                  >
-                    <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
-                    <span class="ac-pill-toggle__text">Sync desativada</span>
-                  </button>
-                  <button
-                    class="ac-pill-toggle"
-                    type="button"
-                    data-toggle="backup"
-                    data-label-on="Backup ativado"
-                    data-label-off="Backup desativado"
-                    aria-pressed="false"
-                  >
-                    <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
-                    <span class="ac-pill-toggle__text">Backup desativado</span>
-                  </button>
-                  <button class="ac-btn" type="button" data-export-events>
-                    Exportar CSV
-                  </button>
-                </div>
                 <button
                   class="ac-iconbtn ac-iconbtn--small ac-stage__close"
                   type="button"
@@ -165,7 +122,7 @@
             </header>
 
             <div class="ac-grid">
-              <article class="ac-tile ac-tile--span-4" data-tile="login">
+              <article class="ac-tile ac-tile--span-12" data-tile="login">
                 <header class="ac-tile__head">
                   <h3 class="ac-tile__title">Login</h3>
                   <button
@@ -180,177 +137,17 @@
                 <dl class="ac-tile__meta">
                   <div>
                     <dt>Usuário</dt>
-                    <dd data-login-user>Fabio</dd>
+                    <dd data-login-user>Não configurado</dd>
                   </div>
                   <div>
                     <dt>Conta</dt>
-                    <dd data-login-account>5Horas</dd>
+                    <dd data-login-account>—</dd>
                   </div>
                   <div>
                     <dt>Último acesso</dt>
-                    <dd data-login-last>05/10/2025 09:12:00</dd>
+                    <dd data-login-last>—</dd>
                   </div>
                 </dl>
-              </article>
-
-              <article class="ac-tile ac-tile--span-4" data-tile="sync">
-                <header class="ac-tile__head">
-                  <h3 class="ac-tile__title">Sincronização</h3>
-                  <button
-                    type="button"
-                    class="ac-iconbtn ac-iconbtn--small"
-                    data-overlay-open="sync"
-                    aria-label="Abrir detalhes de sincronização"
-                  >
-                    <span aria-hidden="true">⋯</span>
-                  </button>
-                </header>
-                <dl class="ac-tile__meta">
-                  <div>
-                    <dt>Última</dt>
-                    <dd data-sync-last></dd>
-                  </div>
-                  <div>
-                    <dt>Provedor</dt>
-                    <dd data-sync-provider>Google Drive</dd>
-                  </div>
-                  <div>
-                    <dt>Pendências offline</dt>
-                    <dd data-sync-pending>0</dd>
-                  </div>
-                </dl>
-              </article>
-
-              <article class="ac-tile ac-tile--span-4" data-tile="backup">
-                <header class="ac-tile__head">
-                  <h3 class="ac-tile__title">Backup</h3>
-                  <button
-                    type="button"
-                    class="ac-iconbtn ac-iconbtn--small"
-                    data-overlay-open="backup"
-                    aria-label="Abrir detalhes de backup"
-                  >
-                    <span aria-hidden="true">⋯</span>
-                  </button>
-                </header>
-                <dl class="ac-tile__meta">
-                  <div>
-                    <dt>Último</dt>
-                    <dd data-backup-last></dd>
-                  </div>
-                  <div>
-                    <dt>Destino</dt>
-                    <dd data-backup-destination>Servidor 5Horas</dd>
-                  </div>
-                  <div>
-                    <dt>Tamanho total</dt>
-                    <dd data-backup-total>—</dd>
-                  </div>
-                </dl>
-              </article>
-
-              <article class="ac-tile ac-tile--span-6" data-tile="net">
-                <header class="ac-tile__head">
-                  <h3 class="ac-tile__title">Conectividade</h3>
-                </header>
-                <dl class="ac-tile__meta">
-                  <div>
-                    <dt>Endpoint</dt>
-                    <dd data-net-endpoint class="ac-mono">api.marco.local</dd>
-                  </div>
-                  <div>
-                    <dt>Região</dt>
-                    <dd data-net-region>br-south</dd>
-                  </div>
-                  <div>
-                    <dt>Latência</dt>
-                    <dd data-net-latency>42ms</dd>
-                  </div>
-                  <div>
-                    <dt>Perdas</dt>
-                    <dd data-net-loss>0%</dd>
-                  </div>
-                </dl>
-              </article>
-
-              <article class="ac-tile ac-tile--span-6" data-tile="sec">
-                <header class="ac-tile__head">
-                  <h3 class="ac-tile__title">Segurança</h3>
-                </header>
-                <dl class="ac-tile__meta">
-                  <div>
-                    <dt>Último acesso</dt>
-                    <dd data-sec-last>05/10/2025 09:12:00</dd>
-                  </div>
-                  <div>
-                    <dt>Sessões ativas</dt>
-                    <dd data-sec-sessions>3</dd>
-                  </div>
-                  <div>
-                    <dt>Token expira</dt>
-                    <dd data-sec-expire>31/12/2025 23:59</dd>
-                  </div>
-                  <div>
-                    <dt>Escopos</dt>
-                    <dd data-sec-scopes>read:store, write:sync</dd>
-                  </div>
-                </dl>
-              </article>
-
-              <article class="ac-tile ac-tile--span-12" data-tile="events">
-                <header class="ac-tile__head">
-                  <h3 class="ac-tile__title">Eventos</h3>
-                </header>
-                <form class="ac-events-filter" data-events-filter role="search">
-                  <label class="ac-field">
-                    <span class="ac-field__label">Filtro rápido</span>
-                    <input
-                      type="search"
-                      placeholder="Buscar (ex.: backup, login, 09:40)"
-                      autocomplete="off"
-                      data-events-search
-                    />
-                  </label>
-                  <label class="ac-field">
-                    <span class="ac-field__label">Tipo</span>
-                    <select data-events-type>
-                      <option value="all">Todos os tipos</option>
-                      <option value="Backup">Backup</option>
-                      <option value="Sync">Sync</option>
-                      <option value="Login">Login</option>
-                      <option value="Ping">Ping</option>
-                    </select>
-                  </label>
-                </form>
-                <div class="ac-table-wrap" data-events-table-wrap>
-                  <table class="ac-table" data-events-table>
-                    <thead>
-                      <tr>
-                        <th scope="col">
-                          <button type="button" class="ac-th" data-sort="time">
-                            Hora <span aria-hidden="true">↕</span>
-                          </button>
-                        </th>
-                        <th scope="col">
-                          <button type="button" class="ac-th" data-sort="type">
-                            Tipo <span aria-hidden="true">↕</span>
-                          </button>
-                        </th>
-                        <th scope="col">
-                          <button type="button" class="ac-th" data-sort="msg">
-                            Mensagem <span aria-hidden="true">↕</span>
-                          </button>
-                        </th>
-                        <th scope="col">
-                          <button type="button" class="ac-th" data-sort="src">
-                            Origem <span aria-hidden="true">↕</span>
-                          </button>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody data-events-body></tbody>
-                  </table>
-                </div>
               </article>
             </div>
           </section>
@@ -371,7 +168,7 @@
       >
         <header class="ac-sheet__head">
           <h4 id="login-dialog-title" class="ac-sheet__title" tabindex="-1">
-            Login — Fabio
+            Login — Não configurado
           </h4>
           <button
             class="ac-iconbtn ac-iconbtn--small"
@@ -415,167 +212,18 @@
           ></p>
 
           <section class="ac-sheet__section">
-            <h5 class="ac-sheet__subtitle">Dispositivos conectados</h5>
-            <div class="ac-table-wrap ac-table-wrap--inner">
-              <table class="ac-table ac-table--compact" data-login-devices>
-                <thead>
-                  <tr>
-                    <th scope="col">Dispositivo</th>
-                    <th scope="col">Local</th>
-                    <th scope="col">Último acesso</th>
-                    <th scope="col" class="ac-table__actions">Ação</th>
-                  </tr>
-                </thead>
-                <tbody data-login-devices-body></tbody>
-              </table>
-            </div>
+            <h5 class="ac-sheet__subtitle">Resumo</h5>
+            <p>Os dados permanecem salvos apenas neste navegador.</p>
           </section>
         </div>
         <footer class="ac-sheet__foot">
           <button class="ac-btn" type="submit" form="login-form" data-action="login-save">
             Salvar
           </button>
-          <button class="ac-btn" type="button" data-action="login-change-password">
-            Trocar senha
+          <button class="ac-btn" type="button" data-overlay-close>
+            Cancelar
           </button>
-          <button class="ac-btn" type="button" data-action="login-logoff">Fazer logoff</button>
-          <button class="ac-btn" type="button" data-action="sessions-kill">Desconectar todos os dispositivos</button>
         </footer>
-      </section>
-    </div>
-
-    <div class="ac-overlay" data-overlay="sync" aria-hidden="true">
-      <section
-        class="ac-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="sync-dialog-title"
-      >
-        <header class="ac-sheet__head">
-          <h4 id="sync-dialog-title" class="ac-sheet__title" tabindex="-1">
-            Sincronização — Fabio
-          </h4>
-          <button
-            class="ac-iconbtn ac-iconbtn--small"
-            type="button"
-            aria-label="Fechar"
-            data-overlay-close
-          >
-            ✖
-          </button>
-        </header>
-        <div class="ac-sheet__body">
-          <section class="ac-sheet__section ac-sheet__section--stack">
-            <button
-              class="ac-pill-toggle"
-              type="button"
-              data-toggle="sync"
-              data-label-on="Sync ativada"
-              data-label-off="Sync desativada"
-              aria-pressed="false"
-            >
-              <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
-              <span class="ac-pill-toggle__text">Sync desativada</span>
-            </button>
-            <label class="ac-field">
-              <span class="ac-field__label">Provedor</span>
-              <select data-sync-provider>
-                <option value="Google Drive">Google Drive</option>
-                <option value="OneDrive">OneDrive</option>
-              </select>
-            </label>
-          </section>
-
-          <section class="ac-sheet__section">
-            <h5 class="ac-sheet__subtitle">Dispositivos sincronizados</h5>
-            <div class="ac-table-wrap ac-table-wrap--inner">
-              <table class="ac-table ac-table--compact" data-sync-devices>
-                <thead>
-                  <tr>
-                    <th scope="col">Dispositivo</th>
-                    <th scope="col">Última sincronização</th>
-                    <th scope="col">Habilitado</th>
-                  </tr>
-                </thead>
-                <tbody data-sync-devices-body></tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="ac-sheet__section">
-            <h5 class="ac-sheet__subtitle">Últimas sincronizações</h5>
-            <div class="ac-table-wrap ac-table-wrap--inner">
-              <table class="ac-table ac-table--compact" data-sync-history>
-                <thead>
-                  <tr>
-                    <th scope="col">Data</th>
-                    <th scope="col">Duração</th>
-                    <th scope="col">Itens</th>
-                  </tr>
-                </thead>
-                <tbody data-sync-history-body></tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-      </section>
-    </div>
-
-    <div class="ac-overlay" data-overlay="backup" aria-hidden="true">
-      <section
-        class="ac-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="backup-dialog-title"
-      >
-        <header class="ac-sheet__head">
-          <h4 id="backup-dialog-title" class="ac-sheet__title" tabindex="-1">
-            Backup — Fabio
-          </h4>
-          <button
-            class="ac-iconbtn ac-iconbtn--small"
-            type="button"
-            aria-label="Fechar"
-            data-overlay-close
-          >
-            ✖
-          </button>
-        </header>
-        <div class="ac-sheet__body">
-          <section class="ac-sheet__section ac-sheet__section--stack">
-            <button
-              class="ac-pill-toggle"
-              type="button"
-              data-toggle="backup"
-              data-label-on="Backup ativado"
-              data-label-off="Backup desativado"
-              aria-pressed="false"
-            >
-              <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
-              <span class="ac-pill-toggle__text">Backup desativado</span>
-            </button>
-            <p class="ac-sheet__status">
-              Servidor seguro 5Horas • Criptografia automática
-            </p>
-          </section>
-
-          <section class="ac-sheet__section">
-            <h5 class="ac-sheet__subtitle">Últimos backups</h5>
-            <div class="ac-table-wrap ac-table-wrap--inner">
-              <table class="ac-table ac-table--compact" data-backup-history>
-                <thead>
-                  <tr>
-                    <th scope="col">Data</th>
-                    <th scope="col">Tipo</th>
-                    <th scope="col">Tamanho</th>
-                    <th scope="col">Status</th>
-                  </tr>
-                </thead>
-                <tbody data-backup-history-body></tbody>
-              </table>
-            </div>
-          </section>
-        </div>
       </section>
     </div>
   </body>
