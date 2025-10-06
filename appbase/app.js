@@ -419,6 +419,7 @@
       stage,
       stageEmpty,
       stageTitle: stage?.querySelector('#painel-stage-title') || null,
+      stageClose: stage?.querySelector('[data-stage-close]') || null,
       loginUser: stage?.querySelector('[data-login-user]') || null,
       loginAccount: stage?.querySelector('[data-login-account]') || null,
       loginLast: stage?.querySelector('[data-login-last]') || null,
@@ -907,6 +908,11 @@
     togglePanelState();
   }
 
+  function handleStageClose(event) {
+    event.preventDefault();
+    closePanel();
+  }
+
   function handleToggleClick(event) {
     if (!actions) return;
     const button = event.target.closest('[data-toggle]');
@@ -1084,6 +1090,7 @@
 
     addListener(elements.card, 'click', handleCardClick);
     addListener(elements.togglePanel, 'click', handleTogglePanelButton);
+    addListener(elements.stageClose, 'click', handleStageClose);
     addListener(elements.app, 'click', handleToggleClick);
     addListener(elements.app, 'click', handleOverlayOpen);
     addListener(elements.app, 'click', handleOverlayClose);

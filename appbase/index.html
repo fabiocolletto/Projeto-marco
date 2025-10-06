@@ -125,31 +125,41 @@
                 </h2>
                 <p class="ac-subtitle">Visão detalhada</p>
               </div>
-              <div class="ac-stage__toolbar" role="group" aria-label="Ações do painel">
+              <div class="ac-stage__actions">
+                <div class="ac-stage__toolbar" role="group" aria-label="Ações do painel">
+                  <button
+                    class="ac-pill-toggle"
+                    type="button"
+                    data-toggle="sync"
+                    data-label-on="Sync ativada"
+                    data-label-off="Sync desativada"
+                    aria-pressed="false"
+                  >
+                    <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
+                    <span class="ac-pill-toggle__text">Sync desativada</span>
+                  </button>
+                  <button
+                    class="ac-pill-toggle"
+                    type="button"
+                    data-toggle="backup"
+                    data-label-on="Backup ativado"
+                    data-label-off="Backup desativado"
+                    aria-pressed="false"
+                  >
+                    <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
+                    <span class="ac-pill-toggle__text">Backup desativado</span>
+                  </button>
+                  <button class="ac-btn" type="button" data-export-events>
+                    Exportar CSV
+                  </button>
+                </div>
                 <button
-                  class="ac-pill-toggle"
+                  class="ac-iconbtn ac-iconbtn--small ac-stage__close"
                   type="button"
-                  data-toggle="sync"
-                  data-label-on="Sync ativada"
-                  data-label-off="Sync desativada"
-                  aria-pressed="false"
+                  aria-label="Fechar painel de controle"
+                  data-stage-close
                 >
-                  <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
-                  <span class="ac-pill-toggle__text">Sync desativada</span>
-                </button>
-                <button
-                  class="ac-pill-toggle"
-                  type="button"
-                  data-toggle="backup"
-                  data-label-on="Backup ativado"
-                  data-label-off="Backup desativado"
-                  aria-pressed="false"
-                >
-                  <span class="ac-pill-toggle__dot" aria-hidden="true"></span>
-                  <span class="ac-pill-toggle__text">Backup desativado</span>
-                </button>
-                <button class="ac-btn" type="button" data-export-events>
-                  Exportar CSV
+                  <span aria-hidden="true">×</span>
                 </button>
               </div>
             </header>
