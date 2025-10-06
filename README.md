@@ -57,7 +57,8 @@ MiniApp “Painel de controle”.
 - **Overlays acessíveis** (`role="dialog"`, `aria-modal`, foco gerenciado,
   fechamento por Esc/backdrop) para Login, Sync e Backup, cada um refletindo o
   estado atual do store (toggles, dispositivos, histórico) e disparando eventos
-  na telemetria local.
+  na telemetria local. O overlay de Login confirma imediatamente quando os
+  dados do usuário são gravados no IndexedDB local.
 - **Backup local persistente** gravado no IndexedDB: cadastro de usuário,
   configurações de sync/backup e histórico são reaplicados ao reabrir o
   aplicativo, que também sinaliza quando ainda não existe documento salvo.

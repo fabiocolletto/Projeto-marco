@@ -383,7 +383,12 @@
           </button>
         </header>
         <div class="ac-sheet__body">
-          <form class="ac-form-grid" data-login-form autocomplete="off">
+          <form
+            id="login-form"
+            class="ac-form-grid"
+            data-login-form
+            autocomplete="off"
+          >
             <label class="ac-field">
               <span class="ac-field__label">Nome completo</span>
               <input name="nome" type="text" required />
@@ -427,7 +432,9 @@
           </section>
         </div>
         <footer class="ac-sheet__foot">
-          <button class="ac-btn" type="button" data-action="login-save">Salvar</button>
+          <button class="ac-btn" type="submit" form="login-form" data-action="login-save">
+            Salvar
+          </button>
           <button class="ac-btn" type="button" data-action="login-change-password">
             Trocar senha
           </button>
