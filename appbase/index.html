@@ -86,12 +86,20 @@
               </span>
             </div>
           </article>
+
         </nav>
 
         <main class="ac-stage" role="main">
           <div class="ac-stage__empty" data-stage-empty>
-            <p>Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.</p>
-            <button class="ac-btn" type="button" data-overlay-open="login">
+            <p data-stage-empty-message>
+              Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.
+            </p>
+            <button
+              class="ac-btn"
+              type="button"
+              data-overlay-open="login"
+              data-stage-empty-action
+            >
               Começar cadastro
             </button>
           </div>
@@ -148,6 +156,41 @@
                     <dd data-login-last>—</dd>
                   </div>
                 </dl>
+              </article>
+              <article
+                class="ac-tile ac-tile--span-12 ac-history"
+                data-login-log
+                aria-labelledby="login-log-title"
+              >
+                <header class="ac-tile__head ac-history__head">
+                  <div class="ac-history__titles">
+                    <h3 id="login-log-title" class="ac-tile__title">
+                      Histórico de acessos
+                    </h3>
+                    <p class="ac-history__subtitle">
+                      Acompanhe logins e logoffs registrados neste navegador.
+                    </p>
+                  </div>
+                </header>
+                <div class="ac-history__body">
+                  <div
+                    class="ac-table-wrap ac-table-wrap--inner"
+                    data-login-log-table
+                  >
+                    <table class="ac-table ac-table--compact" aria-live="polite">
+                      <thead>
+                        <tr>
+                          <th scope="col">Evento</th>
+                          <th scope="col">Horário</th>
+                        </tr>
+                      </thead>
+                      <tbody data-login-log-body></tbody>
+                    </table>
+                  </div>
+                  <p class="ac-history__empty" data-login-log-empty>
+                    Nenhum evento registrado até o momento.
+                  </p>
+                </div>
               </article>
             </div>
           </section>
@@ -214,6 +257,32 @@
           <section class="ac-sheet__section">
             <h5 class="ac-sheet__subtitle">Resumo</h5>
             <p>Os dados permanecem salvos apenas neste navegador.</p>
+          </section>
+
+          <section class="ac-sheet__section ac-session" data-session-controls>
+            <div class="ac-session__intro">
+              <h5 class="ac-sheet__subtitle">Gerenciar sessão</h5>
+              <p class="ac-session__description">
+                Encerre a sessão atual mantendo os dados cadastrados ou remova tudo
+                deste navegador.
+              </p>
+            </div>
+            <div class="ac-session__actions" role="group" aria-label="Controles de sessão">
+              <button
+                class="ac-btn ac-btn--ghost"
+                type="button"
+                data-action="logout-preserve"
+              >
+                Encerrar sessão
+              </button>
+              <button
+                class="ac-btn ac-btn--ghost ac-btn--danger"
+                type="button"
+                data-action="logout-clear"
+              >
+                Encerrar e remover dados
+              </button>
+            </div>
           </section>
         </div>
         <footer class="ac-sheet__foot">

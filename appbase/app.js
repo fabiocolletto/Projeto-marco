@@ -2,6 +2,7 @@
   const STORAGE_KEY = 'marco-appbase:user';
   const DEFAULT_TITLE = 'Projeto Marco — AppBase';
   const FEEDBACK_TIMEOUT = 2200;
+  const VALID_HISTORY_TYPES = ['login', 'logout'];
 
   const elements = {
     card: document.querySelector('[data-miniapp="painel"]'),
@@ -13,6 +14,8 @@
     stageTitle: document.getElementById('painel-stage-title'),
     stageClose: document.querySelector('[data-stage-close]'),
     stageEmpty: document.querySelector('[data-stage-empty]'),
+    stageEmptyMessage: document.querySelector('[data-stage-empty-message]'),
+    stageEmptyAction: document.querySelector('[data-stage-empty-action]'),
     loginUser: document.querySelector('[data-login-user]'),
     loginAccount: document.querySelector('[data-login-account]'),
     loginLast: document.querySelector('[data-login-last]'),
@@ -21,6 +24,11 @@
     overlayForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
     breadcrumbsSecondary: document.getElementById('breadcrumbs-secondary'),
+    logTableWrap: document.querySelector('[data-login-log-table]'),
+    logTableBody: document.querySelector('[data-login-log-body]'),
+    logEmpty: document.querySelector('[data-login-log-empty]'),
+    logoutButton: document.querySelector('[data-action="logout-preserve"]'),
+    logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
   };
 
   const overlayOpenButtons = Array.from(
@@ -31,7 +39,7 @@
   );
 
   let state = normaliseState(loadState());
-  let panelOpen = hasUser(state);
+  let panelOpen = hasUser(state) && state.sessionActive;
   let activeOverlayTrigger = null;
   let overlayVisible = false;
   let feedbackTimer = null;
@@ -44,20 +52,29 @@
     }
   }
 
+  function getEmptyState() {
+    return {
+      user: null,
+      lastLogin: '',
+      sessionActive: false,
+      history: [],
+    };
+  }
+
   function loadState() {
     if (!canUseStorage()) {
-      return { user: null, lastLogin: '' };
+      return getEmptyState();
     }
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
       if (!stored) {
-        return { user: null, lastLogin: '' };
+        return getEmptyState();
       }
       const parsed = JSON.parse(stored);
       return normaliseState(parsed);
     } catch (error) {
       console.warn('AppBase: falha ao carregar dados persistidos', error);
-      return { user: null, lastLogin: '' };
+      return getEmptyState();
     }
   }
 
@@ -73,7 +90,7 @@
   }
 
   function normaliseState(raw) {
-    const base = { user: null, lastLogin: '' };
+    const base = getEmptyState();
     if (!raw || typeof raw !== 'object') {
       return base;
     }
@@ -82,7 +99,9 @@
       typeof raw.lastLogin === 'string' && raw.lastLogin.trim()
         ? raw.lastLogin
         : '';
-    return { user, lastLogin };
+    const history = normaliseHistory(raw.history);
+    const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
+    return { user, lastLogin, history, sessionActive };
   }
 
   function normaliseUser(rawUser) {
@@ -107,11 +126,66 @@
     return { nomeCompleto, email, telefone };
   }
 
+  function normaliseHistory(rawHistory) {
+    if (!Array.isArray(rawHistory)) {
+      return [];
+    }
+    return rawHistory
+      .map((entry) => normaliseHistoryEntry(entry))
+      .filter(Boolean)
+      .sort((a, b) => {
+        if (a.timestamp === b.timestamp) {
+          return 0;
+        }
+        return a.timestamp > b.timestamp ? -1 : 1;
+      });
+  }
+
+  function normaliseHistoryEntry(rawEntry) {
+    if (!rawEntry || typeof rawEntry !== 'object') {
+      return null;
+    }
+    const type = VALID_HISTORY_TYPES.includes(rawEntry.type)
+      ? rawEntry.type
+      : null;
+    const timestamp =
+      typeof rawEntry.timestamp === 'string' && rawEntry.timestamp.trim()
+        ? rawEntry.timestamp
+        : '';
+    if (!type || !timestamp) {
+      return null;
+    }
+    const mode = rawEntry.mode === 'preserve' || rawEntry.mode === 'clear'
+      ? rawEntry.mode
+      : undefined;
+    return mode ? { type, timestamp, mode } : { type, timestamp };
+  }
+
   function hasUser(currentState = state) {
     return Boolean(
       currentState.user &&
         (currentState.user.nomeCompleto || currentState.user.email)
     );
+  }
+
+  function isLoggedIn(currentState = state) {
+    return hasUser(currentState) && Boolean(currentState.sessionActive);
+  }
+
+  function createHistoryEntry(type, options = {}) {
+    if (!VALID_HISTORY_TYPES.includes(type)) {
+      return null;
+    }
+    const base = {
+      type,
+      timestamp: options.timestamp && typeof options.timestamp === 'string'
+        ? options.timestamp
+        : nowIso(),
+    };
+    if (options.mode === 'preserve' || options.mode === 'clear') {
+      base.mode = options.mode;
+    }
+    return normaliseHistoryEntry(base);
   }
 
   function getDisplayName(user) {
@@ -181,23 +255,31 @@
     updateOverlayTitle();
     updateBreadcrumbs();
     updateLoginFormFields();
+    updateLogHistory();
+    updateLogControls();
   }
 
   function updateDocumentTitle() {
-    const title = hasUser() ? `Projeto Marco — ${getFirstName(state.user)}` : DEFAULT_TITLE;
+    const title = isLoggedIn()
+      ? `Projeto Marco — ${getFirstName(state.user)}`
+      : DEFAULT_TITLE;
     document.title = title;
   }
 
   function updateCard() {
     const hasData = hasUser();
+    const loggedIn = isLoggedIn();
+    if (elements.card) {
+      elements.card.classList.toggle('is-active', loggedIn && panelOpen);
+    }
     if (elements.cardSubtitle) {
       elements.cardSubtitle.textContent = hasData
         ? getFirstName(state.user)
         : 'Não configurado';
     }
     if (elements.statusDot) {
-      elements.statusDot.classList.toggle('ac-dot--ok', hasData);
-      elements.statusDot.classList.toggle('ac-dot--crit', !hasData);
+      elements.statusDot.classList.toggle('ac-dot--ok', loggedIn);
+      elements.statusDot.classList.toggle('ac-dot--crit', !loggedIn);
     }
     if (elements.metaLogin) {
       elements.metaLogin.textContent = hasData
@@ -208,19 +290,32 @@
 
   function updateStage() {
     const hasData = hasUser();
+    const loggedIn = isLoggedIn();
 
     if (elements.stageEmpty) {
-      elements.stageEmpty.hidden = hasData;
+      elements.stageEmpty.hidden = loggedIn;
+    }
+
+    if (elements.stageEmptyMessage) {
+      elements.stageEmptyMessage.textContent = hasData
+        ? 'Sessão encerrada. Acesse novamente para visualizar o painel.'
+        : 'Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.';
+    }
+
+    if (elements.stageEmptyAction) {
+      elements.stageEmptyAction.textContent = hasData
+        ? 'Acessar novamente'
+        : 'Começar cadastro';
     }
 
     if (elements.toggleButton) {
-      const expanded = hasData && panelOpen;
+      const expanded = loggedIn && panelOpen;
       elements.toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       elements.toggleButton.disabled = !hasData;
     }
 
     if (elements.stage) {
-      if (hasData && panelOpen) {
+      if (loggedIn && panelOpen) {
         elements.stage.hidden = false;
       } else {
         elements.stage.hidden = true;
@@ -282,6 +377,63 @@
     }
     if (telefoneInput && telefoneInput.value !== user.telefone) {
       telefoneInput.value = user.telefone;
+    }
+  }
+
+  function getHistoryLabel(entry) {
+    if (!entry) {
+      return '';
+    }
+    if (entry.type === 'login') {
+      return 'Login realizado';
+    }
+    if (entry.type === 'logout') {
+      if (entry.mode === 'preserve') {
+        return 'Logoff (dados mantidos)';
+      }
+      if (entry.mode === 'clear') {
+        return 'Logoff (dados removidos)';
+      }
+      return 'Logoff';
+    }
+    return '';
+  }
+
+  function updateLogHistory() {
+    if (!elements.logTableBody || !elements.logTableWrap || !elements.logEmpty) {
+      return;
+    }
+    elements.logTableBody.textContent = '';
+    const history = Array.isArray(state.history) ? state.history : [];
+    if (history.length === 0) {
+      elements.logTableWrap.hidden = true;
+      elements.logEmpty.hidden = false;
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    history.forEach((entry) => {
+      const row = document.createElement('tr');
+      const eventCell = document.createElement('td');
+      eventCell.textContent = getHistoryLabel(entry);
+      const timeCell = document.createElement('td');
+      timeCell.textContent = formatDateTime(entry.timestamp);
+      row.appendChild(eventCell);
+      row.appendChild(timeCell);
+      fragment.appendChild(row);
+    });
+
+    elements.logTableBody.appendChild(fragment);
+    elements.logTableWrap.hidden = false;
+    elements.logEmpty.hidden = true;
+  }
+
+  function updateLogControls() {
+    if (elements.logoutButton) {
+      elements.logoutButton.disabled = !isLoggedIn();
+    }
+    if (elements.logoutClearButton) {
+      elements.logoutClearButton.disabled = !hasUser();
     }
   }
 
@@ -365,14 +517,24 @@
       return;
     }
 
+    const timestamp = nowIso();
+    const historyEntry = createHistoryEntry('login', { timestamp });
     panelOpen = true;
-    setState({
-      user: {
-        nomeCompleto: nome,
-        email,
-        telefone,
-      },
-      lastLogin: nowIso(),
+    setState((previous) => {
+      const nextHistory = historyEntry
+        ? [historyEntry, ...(previous.history || [])]
+        : previous.history || [];
+      return {
+        ...previous,
+        user: {
+          nomeCompleto: nome,
+          email,
+          telefone,
+        },
+        lastLogin: timestamp,
+        sessionActive: true,
+        history: nextHistory,
+      };
     });
 
     setLoginFeedback('success', 'Cadastro atualizado com sucesso.');
@@ -388,7 +550,7 @@
   }
 
   function openPanel(trigger) {
-    if (!hasUser()) {
+    if (!isLoggedIn()) {
       openLoginOverlay(trigger);
       return;
     }
@@ -401,7 +563,7 @@
   }
 
   function togglePanel(trigger) {
-    if (!hasUser()) {
+    if (!isLoggedIn()) {
       openLoginOverlay(trigger);
       return;
     }
@@ -430,6 +592,43 @@
     }
   }
 
+  function handleLogoutPreserve() {
+    if (!isLoggedIn()) {
+      return;
+    }
+    const timestamp = nowIso();
+    const historyEntry = createHistoryEntry('logout', {
+      timestamp,
+      mode: 'preserve',
+    });
+    panelOpen = false;
+    closeLoginOverlay({ focusTrigger: false });
+    setState((previous) => {
+      const nextHistory = historyEntry
+        ? [historyEntry, ...(previous.history || [])]
+        : previous.history || [];
+      return {
+        ...previous,
+        sessionActive: false,
+        history: nextHistory,
+      };
+    });
+  }
+
+  function handleLogoutClear() {
+    if (!hasUser()) {
+      return;
+    }
+    panelOpen = false;
+    closeLoginOverlay({ focusTrigger: false });
+    setState({
+      user: null,
+      lastLogin: '',
+      sessionActive: false,
+      history: [],
+    });
+  }
+
   function handleOverlayPointer(event) {
     if (!elements.overlay || event.target !== elements.overlay) {
       return;
@@ -454,6 +653,20 @@
     elements.stageClose.addEventListener('click', (event) => {
       event.preventDefault();
       handleStageClose();
+    });
+  }
+
+  if (elements.logoutButton) {
+    elements.logoutButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      handleLogoutPreserve();
+    });
+  }
+
+  if (elements.logoutClearButton) {
+    elements.logoutClearButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      handleLogoutClear();
     });
   }
 

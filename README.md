@@ -42,7 +42,11 @@ MiniApp “Painel de controle”.
 5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
    cadastro ativo. O overlay de Login pode ser reaberto para editar o usuário a
    qualquer momento.
-6. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
+6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
+   remover dados” para registrar logoff preservando ou eliminando as
+   informações. O histórico de acessos exibe os eventos mais recentes de login e
+   logoff na mesma área detalhada.
+7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
    (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
 
 ## MiniApp “Painel de controle” — destaques
@@ -59,6 +63,10 @@ MiniApp “Painel de controle”.
 - **Persistência local leve**: os dados são gravados no `localStorage`,
   reaplicados automaticamente na próxima visita e podem ser editados a qualquer
   momento sem dependências de sync/backup.
+- **Histórico de acessos e controles de sessão**: o painel detalhado lista os
+  registros de login/logoff com rolagem a partir de cinco eventos. Os botões de
+  encerrar sessão agora ficam dentro do overlay de cadastro, permitindo manter os
+  dados salvos para um retorno futuro ou limpar tudo do navegador.
 
 ## Tecnologias adotadas e compatibilidade
 
