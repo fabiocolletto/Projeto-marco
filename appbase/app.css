@@ -508,6 +508,11 @@ select {
   font-size: 0.95rem;
 }
 
+.ac-history__empty--stage {
+  margin-top: 24px;
+  max-width: 320px;
+}
+
 .ac-mono {
   font-family: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Consolas,
     'Liberation Mono', monospace;
