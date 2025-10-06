@@ -34,7 +34,10 @@ MiniApp “Painel de controle”.
 3. Se nenhuma etiqueta estiver ativa o palco permanece vazio. Clique na etiqueta
    “Painel de controle” (ou use o kebab para expandir/recolher) para carregar o
    painel completo.
-4. Utilize a toolbar do painel para alternar Sync/Backup e exportar a tabela de
+4. Ao iniciar, o AppBase consulta o IndexedDB local. Caso não exista um backup,
+   o overlay de Login abre automaticamente para cadastrar o usuário e liberar o
+   painel. Os dados salvos permanecem disponíveis entre visitas.
+5. Utilize a toolbar do painel para alternar Sync/Backup e exportar a tabela de
    eventos filtrada. Abra os overlays de Login, Sync ou Backup pelos botões ⋯
    dos tiles para testar os fluxos de gerenciamento.
 
@@ -55,6 +58,9 @@ MiniApp “Painel de controle”.
   fechamento por Esc/backdrop) para Login, Sync e Backup, cada um refletindo o
   estado atual do store (toggles, dispositivos, histórico) e disparando eventos
   na telemetria local.
+- **Backup local persistente** gravado no IndexedDB: cadastro de usuário,
+  configurações de sync/backup e histórico são reaplicados ao reabrir o
+  aplicativo, que também sinaliza quando ainda não existe documento salvo.
 - **Camada de serviço mock** que expõe os contratos REST (GET/PUT/DELETE)
   esperados. As ações retornam Promises, atualizam a store e registram eventos
   (`Sync`, `Backup`, `Login`) com timestamps em `pt-BR`.
