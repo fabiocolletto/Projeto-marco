@@ -1271,6 +1271,7 @@
     const action = actionBtn.dataset.action;
     if (action === 'login-save') {
       event.preventDefault();
+      handleLoginSave();
       return;
     } else if (action === 'login-logoff') {
       actions.logoff();
@@ -1283,6 +1284,9 @@
 
   function handleLoginSave() {
     if (!elements.login.form || !activeStore) return;
+    if (uiState.loginMode === 'register' && elements.login?.primaryAction?.disabled) {
+      return;
+    }
     const state = activeStore.getState();
     const registered = isUserRegistered(state);
     const hasAccount = state.auth?.hasAccount !== false && registered;
@@ -1447,7 +1451,7 @@
   }
 
   function escapeCsvValue(value) {
-    if (value.includes(";") || value.includes("\"") || value.includes("\\n")) {
+    if (value.includes(';') || value.includes('"') || value.includes('\n')) {
       return `"${value.replace(/"/g, '""')}"`;
     }
     return value;
