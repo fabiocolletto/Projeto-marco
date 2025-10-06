@@ -42,6 +42,9 @@ MiniApp “Painel de controle”.
 
 - **Etiqueta dinâmica** com metadados opcionais (último login/sync/backup) e dots
   conectados ao estado global (`syncOn`, `backupOn`, `conexao`).
+- **Overlay de login/cadastro** que alterna automaticamente conforme a existência
+  de conta, valida campos obrigatórios (incluindo confirmação de senha), mostra
+  feedback inline e cria novos usuários bloqueando o botão até a conclusão.
 - **Palco em tela cheia** sem painel direito, com cabeçalho azul, subtítulo e
   toolbar de pills coloridas (verde ON, vermelho OFF) sincronizadas entre o rail
   e os overlays.

@@ -16,6 +16,14 @@
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
+  const getEventTypeLabel = (type) => {
+    if (!type) return '';
+    if (type === 'account_created') {
+      return 'Cadastro';
+    }
+    return type;
+  };
+
   function createStore(initialState) {
     let state = clone(initialState);
     const listeners = new Set();
@@ -831,7 +839,10 @@
       const matchesType = typeFilter === 'all' || event.type === typeFilter;
       if (!matchesType) return false;
       if (!searchTerm) return true;
-      const haystack = `${event.time} ${event.type} ${event.msg} ${event.src}`.toLowerCase();
+      const haystack = `${event.time} ${event.type} ${getEventTypeLabel(
+        event.type
+      )} ${event.msg} ${event.src}`
+        .toLowerCase();
       return haystack.includes(searchTerm);
     });
 
@@ -845,6 +856,14 @@
         };
         return (toMinutes(a.time) - toMinutes(b.time)) * dir;
       }
+      if (key === 'type') {
+        return (
+          getEventTypeLabel(a.type).localeCompare(getEventTypeLabel(b.type), 'pt-BR', {
+            sensitivity: 'base',
+            numeric: true,
+          }) * dir
+        );
+      }
       return (
         a[key].localeCompare(b[key], 'pt-BR', {
           sensitivity: 'base',
@@ -853,17 +872,26 @@
       );
     });
 
-    currentEventsView = sorted;
+    currentEventsView = sorted.map((event) => ({
+      ...event,
+      displayType: getEventTypeLabel(event.type),
+    }));
 
     const tbody = elements.events.body;
     tbody.innerHTML = '';
     const fragment = document.createDocumentFragment();
-    sorted.forEach((event) => {
+    currentEventsView.forEach((event) => {
       const tr = document.createElement('tr');
-      tr.dataset.type = event.type.toLowerCase();
-      ['time', 'type', 'msg', 'src'].forEach((key) => {
+      tr.dataset.type = (event.type || '').toLowerCase();
+      const columns = [
+        event.time,
+        event.displayType || event.type,
+        event.msg,
+        event.src,
+      ];
+      columns.forEach((value) => {
         const td = document.createElement('td');
-        td.textContent = event[key];
+        td.textContent = value;
         tr.appendChild(td);
       });
       fragment.appendChild(tr);
@@ -1256,11 +1284,13 @@
           })
           .catch((error) => {
             console.error(error);
-            setLoginPrimaryBusy(false);
             setLoginFeedback(
               'error',
               'Não foi possível criar a conta. Tente novamente.'
             );
+          })
+          .finally(() => {
+            setLoginPrimaryBusy(false);
           });
         return;
       }
@@ -1358,14 +1388,14 @@
     const csvRows = [header.join(';')];
     rows.forEach((row) => {
       csvRows.push(
-        [row.time, row.type, row.msg, row.src]
+        [row.time, row.displayType || row.type, row.msg, row.src]
           .map((value) => escapeCsvValue(String(value)))
           .join(';')
       );
     });
-      const blob = new Blob([csvRows.join('\n')], {
-        type: 'text/csv;charset=utf-8;',
-      });
+    const blob = new Blob([csvRows.join('\n')], {
+      type: 'text/csv;charset=utf-8;',
+    });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
