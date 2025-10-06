@@ -802,11 +802,11 @@
     renderLoginOverlay(state);
     renderSyncOverlay(state);
     renderBackupOverlay(state);
-    const registered = isUserRegistered(state);
-    if (registered && !panelOpen) {
-      openPanel();
-    } else if (!registered && panelOpen) {
-      closePanel();
+    if (elements.stage) {
+      elements.stage.hidden = !panelOpen;
+    }
+    if (elements.stageEmpty) {
+      elements.stageEmpty.hidden = panelOpen;
     }
   }
 
@@ -840,9 +840,6 @@
   }
 
   function togglePanelState() {
-    if (!panelOpen && activeStore && !isUserRegistered(activeStore.getState())) {
-      return;
-    }
     if (panelOpen) {
       closePanel();
     } else {
@@ -900,17 +897,13 @@
 
   function handleCardClick(event) {
     if (event.target.closest('[data-toggle-panel]')) return;
-    if (activeStore && !isUserRegistered(activeStore.getState())) {
-      return;
+    if (!panelOpen) {
+      openPanel();
     }
-    openPanel();
   }
 
   function handleTogglePanelButton(event) {
     event.stopPropagation();
-    if (!panelOpen && activeStore && !isUserRegistered(activeStore.getState())) {
-      return;
-    }
     togglePanelState();
   }
 
