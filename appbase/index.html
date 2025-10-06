@@ -17,6 +17,7 @@
               alt=""
               width="48"
               height="48"
+              data-brand-icon
             />
           </div>
           <div class="ac-headings">
@@ -24,27 +25,19 @@
             <span class="ac-h2">Painel de controles</span>
           </div>
         </div>
-        <nav class="ac-breadcrumbs" aria-label="Localização">
-          <span id="breadcrumbs-primary">Painel de controles</span>
-          <span class="ac-bullet" aria-hidden="true">•</span>
-          <span class="ac-muted" id="breadcrumbs-secondary">Cadastro</span>
-        </nav>
         <div class="ac-appbar__actions">
           <button
-            class="ac-iconbtn"
+            class="ac-theme-toggle"
             type="button"
-            aria-haspopup="menu"
-            aria-expanded="false"
-            aria-label="Abrir menu do sistema"
-            data-system-menu
+            data-theme-toggle
+            aria-pressed="false"
+            aria-label="Ativar modo escuro"
+            title="Ativar modo escuro"
           >
-            <span aria-hidden="true">⋯</span>
+            <span class="ac-theme-toggle__icon" data-theme-toggle-icon aria-hidden="true"
+              >🌙</span
+            >
           </button>
-          <menu class="ac-appbar__menu" data-system-menu-panel hidden>
-            <button type="button">Preferências</button>
-            <button type="button">Atalhos</button>
-            <button type="button">Ajuda</button>
-          </menu>
         </div>
       </header>
 

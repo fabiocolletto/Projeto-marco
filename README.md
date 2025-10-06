@@ -39,16 +39,19 @@ MiniApp “Painel de controle”.
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
    último acesso, e essas informações permanecem disponíveis em visitas
    futuras.
-5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
+5. A AppBar traz um botão de alternância de tema que troca entre os modos claro
+   e escuro. A escolha é reaplicada automaticamente em visitas futuras.
+6. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
    cadastro ativo. O overlay de Login pode ser reaberto para editar o usuário a
    qualquer momento.
-6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
+7. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
    logoff na mesma área detalhada, sinalizando a ausência de registros tanto na
    tabela quanto no estado vazio do palco.
-7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
-   (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
+8. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
+   (a suíte Playwright valida cadastro, persistência, comportamento da etiqueta e
+   alternância de tema).
 
 ## MiniApp “Painel de controle” — destaques
 
@@ -61,6 +64,9 @@ MiniApp “Painel de controle”.
 - **Overlay de Login acessível** (`role="dialog"`, `aria-modal`, foco gerenciado
   e fechamento por Esc/backdrop) com feedback imediato de sucesso ou erro ao
   salvar.
+- **Alternância de tema persistente**: a AppBar inclui um botão que alterna os
+  tokens claros/escuros e grava a preferência no `localStorage` para manter a
+  experiência consistente entre visitas.
 - **Persistência local leve**: os dados são gravados no `localStorage`,
   reaplicados automaticamente na próxima visita e podem ser editados a qualquer
   momento sem dependências de sync/backup.
