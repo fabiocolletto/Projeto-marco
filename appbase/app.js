@@ -1264,16 +1264,7 @@
 
   function handleCardClick(event) {
     if (event.target.closest('[data-toggle-panel]')) return;
-
-    const cardIsActive = elements.card?.classList.contains('is-active');
-
-    if (panelOpen) {
-      togglePanelState();
-    } else if (cardIsActive) {
-      closePanel();
-    } else {
-      openPanel();
-    }
+    togglePanelState();
   }
 
   function handleTogglePanelButton(event) {
