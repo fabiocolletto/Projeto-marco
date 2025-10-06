@@ -292,7 +292,7 @@
           sec: {
             ...state.sec,
             ultimoAcesso: now,
-            sessoes: 1,
+            sessoes: 0,
           },
           auth: {
             hasAccount: true,
