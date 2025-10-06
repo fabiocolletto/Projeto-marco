@@ -898,7 +898,9 @@
 
   function handleCardClick(event) {
     if (event.target.closest('[data-toggle-panel]')) return;
-    if (!panelOpen) {
+    if (panelOpen) {
+      togglePanelState();
+    } else {
       openPanel();
     }
   }
