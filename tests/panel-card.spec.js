@@ -84,17 +84,34 @@ async function closeServer(server) {
   });
 }
 
-async function closeLoginOverlay(page) {
-  const overlay = page.locator('[data-overlay="login"]');
-  if ((await overlay.getAttribute('aria-hidden')) === 'false') {
-    const closeButton = overlay.locator('[data-overlay-close]');
-    await closeButton.click();
-    await expect(overlay).toHaveAttribute('aria-hidden', 'true');
-  }
-}
-
 let serverInstance;
 let baseURL;
+
+async function resetApp(page) {
+  await page.goto(`${baseURL}/index.html`);
+  await page.evaluate(() => window.localStorage.clear());
+  await page.reload();
+}
+
+async function registerUser(page, { nome, email, telefone = '' }) {
+  const overlayTrigger = page.locator('[data-overlay-open="login"]').first();
+  await overlayTrigger.click();
+  const overlay = page.locator('[data-overlay="login"]');
+  await expect(overlay).toHaveAttribute('aria-hidden', 'false');
+
+  await overlay.locator('input[name="nome"]').fill(nome);
+  await overlay.locator('input[name="email"]').fill(email);
+  await overlay.locator('input[name="telefone"]').fill(telefone);
+
+  await overlay.locator('[data-action="login-save"]').click();
+  await expect(overlay.locator('[data-login-feedback]')).toHaveText(
+    'Cadastro atualizado com sucesso.'
+  );
+
+  const closeButton = overlay.locator('[data-overlay-close]').first();
+  await closeButton.click();
+  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+}
 
 test.beforeAll(async () => {
   const rootDir = path.resolve(__dirname, '..', 'appbase');
@@ -107,14 +124,59 @@ test.afterAll(async () => {
   await closeServer(serverInstance);
 });
 
+test('cadastro atualiza etiqueta, painel e breadcrumbs', async ({ page }) => {
+  await resetApp(page);
+
+  const stage = page.locator('#painel-stage');
+  const stageEmpty = page.locator('[data-stage-empty]');
+  const overlay = page.locator('[data-overlay="login"]');
+
+  await expect(stage).toBeHidden();
+  await expect(stageEmpty).toBeVisible();
+  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+
+  await registerUser(page, {
+    nome: 'Maria Fernanda',
+    email: 'maria@example.com',
+    telefone: '11999990000',
+  });
+
+  await expect(stage).toBeVisible();
+  await expect(stageEmpty).toBeHidden();
+  await expect(page.locator('[data-toggle-panel]')).toHaveAttribute(
+    'aria-expanded',
+    'true'
+  );
+
+  await expect(page.locator('[data-user-name]')).toHaveText('Maria');
+  await expect(page.locator('[data-login-user]')).toHaveText('Maria Fernanda');
+  await expect(page.locator('[data-login-account]')).toHaveText('maria');
+  await expect(page.locator('[data-login-last]')).not.toHaveText('—');
+  await expect(page.locator('[data-meta-value="login"]')).not.toHaveText('—');
+  await expect(page.locator('#breadcrumbs-secondary')).toHaveText(
+    'Cadastro de Maria'
+  );
+  await expect(page).toHaveTitle('Projeto Marco — Maria');
+
+  await page.reload();
+  await expect(page.locator('[data-user-name]')).toHaveText('Maria');
+  await expect(stage).toBeVisible();
+});
+
 test('etiqueta abre o painel e o botão ⋯ alterna o estado', async ({ page }) => {
-  await page.goto(`${baseURL}/index.html`);
-  await closeLoginOverlay(page);
+  await resetApp(page);
+  await registerUser(page, {
+    nome: 'Carlos Souza',
+    email: 'carlos@example.com',
+  });
 
   const stage = page.locator('#painel-stage');
   const cardTitle = page.locator('[data-miniapp="painel"] .ac-miniapp-card__title');
   const toggleButton = page.locator('[data-miniapp="painel"] [data-toggle-panel]');
 
+  await expect(stage).toBeVisible();
+
+  await toggleButton.click();
   await expect(stage).toBeHidden();
 
   await cardTitle.click();
