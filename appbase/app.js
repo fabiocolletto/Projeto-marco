@@ -16,6 +16,38 @@
 
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
+  const getDisplayValue = (value, fallback = '—') => {
+    if (value === null || value === undefined) {
+      return fallback;
+    }
+    if (typeof value === 'number') {
+      return Number.isNaN(value) ? fallback : String(value);
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed ? trimmed : fallback;
+    }
+    return value;
+  };
+
+  const getConfiguredValue = (value) => getDisplayValue(value, 'Não configurado');
+
+  const getUserDisplayName = (user) => {
+    if (!user) return 'Não configurado';
+    const name = getConfiguredValue(user.nome);
+    if (name !== 'Não configurado') {
+      return name.trim();
+    }
+    const full = getConfiguredValue(user.nomeCompleto);
+    if (full !== 'Não configurado') {
+      return full.split(/\s+/)[0];
+    }
+    return 'Não configurado';
+  };
+
+  const isUserRegistered = (state) =>
+    Boolean(state?.user && state.user.id && state.user.id.trim());
+
   function createStore(initialState) {
     let state = clone(initialState);
     const listeners = new Set();
@@ -39,91 +71,31 @@
 
   const initialState = {
     user: {
-      id: 'u1',
-      nome: 'Fabio',
-      nomeCompleto: 'Fabio Henrique',
-      email: 'fabio@5horas.app',
-      telefone: '+55 11 99999-0000',
-      conta: '5Horas',
+      id: '',
+      nome: '',
+      nomeCompleto: '',
+      email: '',
+      telefone: '',
+      conta: '',
     },
     status: {
-      conexao: 'ok',
+      conexao: 'offline',
       syncOn: false,
       backupOn: false,
-      lastLogin: '05/10/2025 09:12:00',
+      lastLogin: '',
       lastSync: '',
       lastBackup: '',
     },
     sync: {
-      provider: 'Google Drive',
+      provider: '',
       pendenciasOffline: 0,
-      devices: [
-        {
-          id: 'd1',
-          nome: 'Notebook',
-          ultimaSync: '05/10/2025 09:10:00',
-          habilitado: true,
-        },
-        {
-          id: 'd2',
-          nome: 'Cliente web',
-          ultimaSync: '05/10/2025 09:40:00',
-          habilitado: true,
-        },
-        {
-          id: 'd3',
-          nome: 'Mobile iOS',
-          ultimaSync: '04/10/2025 22:05:11',
-          habilitado: false,
-        },
-      ],
-      historico: [
-        {
-          id: 'h1',
-          data: '05/10/2025 09:40:00',
-          duracao: '08s',
-          itens: '3 itens',
-        },
-        {
-          id: 'h2',
-          data: '05/10/2025 08:55:12',
-          duracao: '14s',
-          itens: '12 itens',
-        },
-        {
-          id: 'h3',
-          data: '04/10/2025 22:05:11',
-          duracao: '25s',
-          itens: '28 itens',
-        },
-      ],
+      devices: [],
+      historico: [],
     },
     backup: {
-      destino: 'Servidor 5Horas',
-      total: '—',
-      historico: [
-        {
-          id: 'b1',
-          data: '04/10/2025 23:20:00',
-          tipo: 'Incremental',
-          tamanho: '1,4 GB',
-          status: 'Concluído',
-        },
-        {
-          id: 'b2',
-          data: '03/10/2025 23:18:11',
-          tipo: 'Completo',
-          tamanho: '12,8 GB',
-          status: 'Concluído',
-        },
-        {
-          id: 'b3',
-          data: '02/10/2025 23:30:45',
-          tipo: 'Incremental',
-          tamanho: '1,1 GB',
-          status: 'Concluído',
-        },
-      ],
+      destino: '',
+      total: '',
+      historico: [],
     },
     net: {
       endpoint: 'api.marco.local',
@@ -138,41 +110,9 @@
       escopos: 'read:store, write:sync',
     },
     sessions: {
-      devices: [
-        {
-          id: 's1',
-          nome: 'Notebook Fabio',
-          local: 'São Paulo, BR',
-          ultimoAcesso: '05/10/2025 09:12:00',
-        },
-        {
-          id: 's2',
-          nome: 'Cliente web',
-          local: 'São Paulo, BR',
-          ultimoAcesso: '05/10/2025 09:40:00',
-        },
-        {
-          id: 's3',
-          nome: 'Mobile iOS',
-          local: 'Campinas, BR',
-          ultimoAcesso: '04/10/2025 22:05:11',
-        },
-      ],
+      devices: [],
     },
-    eventos: [
-      { time: '09:41', type: 'Backup', msg: 'Backup concluído em 12s', src: 'agente#1' },
-      { time: '09:40', type: 'Sync', msg: 'Sync aplicado: 3 registros', src: 'cliente-web' },
-      { time: '09:12', type: 'Login', msg: 'Login bem-sucedido', src: 'Fabio · 187.22.10.4' },
-      { time: '08:55', type: 'Ping', msg: 'Ping servidor: 41ms', src: 'probe' },
-      { time: '08:40', type: 'Backup', msg: 'Backup agendado iniciado', src: 'agente#1' },
-      { time: '08:35', type: 'Sync', msg: 'Sync diferido aguardando rede', src: 'cliente-mobile' },
-      { time: '08:20', type: 'Login', msg: 'Sessão autenticada', src: 'Fabio · 187.22.10.4' },
-      { time: '07:58', type: 'Ping', msg: 'Ping servidor: 45ms', src: 'probe' },
-      { time: '07:15', type: 'Backup', msg: 'Backup incremental iniciado', src: 'agente#1' },
-      { time: '07:00', type: 'Sync', msg: 'Sync automático concluído', src: 'cliente-web' },
-      { time: '06:45', type: 'Ping', msg: 'Ping servidor: 44ms', src: 'probe' },
-      { time: '06:20', type: 'Login', msg: 'Sessão encerrada por inatividade', src: 'Mobile iOS' },
-    ],
+    eventos: [],
   };
 
   function createServices(store) {
@@ -246,11 +186,24 @@
       },
       putUser(payload) {
         const state = store.getState();
+        const nextUser = {
+          ...state.user,
+          ...payload,
+        };
+        if (!nextUser.id) {
+          nextUser.id = `u-${Date.now()}`;
+        }
+        if ((!nextUser.nome || !nextUser.nome.trim()) && nextUser.nomeCompleto) {
+          nextUser.nome = nextUser.nomeCompleto.trim().split(/\s+/)[0];
+        }
+        if ((!nextUser.conta || !nextUser.conta.trim()) && nextUser.email) {
+          const [account] = nextUser.email.split('@');
+          if (account) {
+            nextUser.conta = account;
+          }
+        }
         return Promise.resolve({
-          user: {
-            ...state.user,
-            ...payload,
-          },
+          user: nextUser,
         });
       },
       deleteSession(id) {
@@ -533,89 +486,107 @@
 
   function renderCard(state) {
     if (!elements.card) return;
+    const registered = isUserRegistered(state);
     if (elements.userName) {
-      elements.userName.textContent = state.user.nome;
+      elements.userName.textContent = getUserDisplayName(state.user);
     }
     if (elements.cardMeta.login.value) {
-      elements.cardMeta.login.value.textContent = state.status.lastLogin;
+      elements.cardMeta.login.value.textContent = getDisplayValue(
+        state.status.lastLogin
+      );
     }
     if (elements.cardMeta.sync.value) {
-      elements.cardMeta.sync.value.textContent = state.status.lastSync || '';
+      elements.cardMeta.sync.value.textContent = getDisplayValue(
+        state.status.lastSync
+      );
     }
     if (elements.cardMeta.sync.container) {
-      elements.cardMeta.sync.container.hidden = !state.status.lastSync;
+      elements.cardMeta.sync.container.hidden = false;
     }
     if (elements.cardMeta.backup.value) {
-      elements.cardMeta.backup.value.textContent = state.status.lastBackup || '';
+      elements.cardMeta.backup.value.textContent = getDisplayValue(
+        state.status.lastBackup
+      );
     }
     if (elements.cardMeta.backup.container) {
-      elements.cardMeta.backup.container.hidden = !state.status.lastBackup;
+      elements.cardMeta.backup.container.hidden = false;
     }
-    setDotState(elements.kpis.conexao, state.status.conexao === 'ok');
-    setDotState(elements.kpis.sync, state.status.syncOn);
-    setDotState(elements.kpis.backup, state.status.backupOn);
+    setDotState(
+      elements.kpis.conexao,
+      registered && state.status.conexao === 'ok'
+    );
+    setDotState(elements.kpis.sync, registered && state.status.syncOn);
+    setDotState(elements.kpis.backup, registered && state.status.backupOn);
   }
 
   function renderStage(state) {
     if (!elements.stage) return;
     if (elements.loginUser) {
-      elements.loginUser.textContent = state.user.nome;
+      elements.loginUser.textContent = getUserDisplayName(state.user);
     }
     if (elements.loginAccount) {
-      elements.loginAccount.textContent = state.user.conta;
+      elements.loginAccount.textContent = getConfiguredValue(state.user.conta);
     }
     if (elements.loginLast) {
-      elements.loginLast.textContent = state.status.lastLogin;
+      elements.loginLast.textContent = getDisplayValue(state.status.lastLogin);
     }
 
     if (elements.syncProvider) {
-      elements.syncProvider.textContent = state.sync.provider;
+      elements.syncProvider.textContent = getConfiguredValue(state.sync.provider);
     }
     if (elements.syncPending) {
-      elements.syncPending.textContent = String(state.sync.pendenciasOffline);
+      if (typeof state.sync.pendenciasOffline === 'number') {
+        elements.syncPending.textContent = String(state.sync.pendenciasOffline);
+      } else {
+        elements.syncPending.textContent = getDisplayValue(
+          state.sync.pendenciasOffline
+        );
+      }
     }
     if (elements.syncLast) {
-      elements.syncLast.textContent = state.status.lastSync;
+      elements.syncLast.textContent = getDisplayValue(state.status.lastSync);
       const wrap = elements.syncLast.closest('div');
-      if (wrap) wrap.hidden = !state.status.lastSync;
+      if (wrap) wrap.hidden = false;
     }
 
     if (elements.backupLast) {
-      elements.backupLast.textContent = state.status.lastBackup;
+      elements.backupLast.textContent = getDisplayValue(state.status.lastBackup);
       const wrap = elements.backupLast.closest('div');
-      if (wrap) wrap.hidden = !state.status.lastBackup;
+      if (wrap) wrap.hidden = false;
     }
     if (elements.backupDestination) {
-      elements.backupDestination.textContent = state.backup.destino;
+      elements.backupDestination.textContent = getConfiguredValue(
+        state.backup.destino
+      );
     }
     if (elements.backupTotal) {
-      elements.backupTotal.textContent = state.backup.total;
+      elements.backupTotal.textContent = getDisplayValue(state.backup.total);
     }
 
     if (elements.net.endpoint) {
-      elements.net.endpoint.textContent = state.net.endpoint;
+      elements.net.endpoint.textContent = getConfiguredValue(state.net.endpoint);
     }
     if (elements.net.regiao) {
-      elements.net.regiao.textContent = state.net.regiao;
+      elements.net.regiao.textContent = getConfiguredValue(state.net.regiao);
     }
     if (elements.net.latencia) {
-      elements.net.latencia.textContent = state.net.lat;
+      elements.net.latencia.textContent = getDisplayValue(state.net.lat);
     }
     if (elements.net.perdas) {
-      elements.net.perdas.textContent = state.net.perdas;
+      elements.net.perdas.textContent = getDisplayValue(state.net.perdas);
     }
 
     if (elements.sec.ultimo) {
-      elements.sec.ultimo.textContent = state.sec.ultimoAcesso;
+      elements.sec.ultimo.textContent = getDisplayValue(state.sec.ultimoAcesso);
     }
     if (elements.sec.sessoes) {
-      elements.sec.sessoes.textContent = String(state.sec.sessoes);
+      elements.sec.sessoes.textContent = getDisplayValue(state.sec.sessoes);
     }
     if (elements.sec.expira) {
-      elements.sec.expira.textContent = state.sec.tokenExpira;
+      elements.sec.expira.textContent = getDisplayValue(state.sec.tokenExpira);
     }
     if (elements.sec.escopos) {
-      elements.sec.escopos.textContent = state.sec.escopos;
+      elements.sec.escopos.textContent = getConfiguredValue(state.sec.escopos);
     }
 
     updateToggleGroup('sync', state.status.syncOn);
@@ -703,11 +674,13 @@
   function renderLoginOverlay(state) {
     if (!elements.login.form) return;
     const fields = elements.login.fields;
-    if (fields.nome) fields.nome.value = state.user.nomeCompleto;
-    if (fields.email) fields.email.value = state.user.email;
-    if (fields.telefone) fields.telefone.value = state.user.telefone;
+    if (fields.nome) fields.nome.value = state.user.nomeCompleto || '';
+    if (fields.email) fields.email.value = state.user.email || '';
+    if (fields.telefone) fields.telefone.value = state.user.telefone || '';
     if (elements.login.title) {
-      elements.login.title.textContent = `Login — ${state.user.nome}`;
+      elements.login.title.textContent = `Login — ${getUserDisplayName(
+        state.user
+      )}`;
     }
 
     const tbody = elements.login.devicesBody;
@@ -738,10 +711,17 @@
 
   function renderSyncOverlay(state) {
     if (elements.syncOverlay.title) {
-      elements.syncOverlay.title.textContent = `Sincronização — ${state.user.nome}`;
+      elements.syncOverlay.title.textContent = `Sincronização — ${getUserDisplayName(
+        state.user
+      )}`;
     }
     if (elements.syncOverlay.provider) {
-      elements.syncOverlay.provider.value = state.sync.provider;
+      const provider = state.sync.provider || '';
+      if (provider) {
+        elements.syncOverlay.provider.value = provider;
+      } else {
+        elements.syncOverlay.provider.selectedIndex = -1;
+      }
     }
 
     const devicesBody = elements.syncOverlay.devicesBody;
@@ -796,7 +776,9 @@
 
   function renderBackupOverlay(state) {
     if (elements.backupOverlay.title) {
-      elements.backupOverlay.title.textContent = `Backup — ${state.user.nome}`;
+      elements.backupOverlay.title.textContent = `Backup — ${getUserDisplayName(
+        state.user
+      )}`;
     }
     const historyBody = elements.backupOverlay.historyBody;
     if (!historyBody) return;
@@ -820,6 +802,12 @@
     renderLoginOverlay(state);
     renderSyncOverlay(state);
     renderBackupOverlay(state);
+    const registered = isUserRegistered(state);
+    if (registered && !panelOpen) {
+      openPanel();
+    } else if (!registered && panelOpen) {
+      closePanel();
+    }
   }
 
   function openPanel() {
@@ -852,6 +840,9 @@
   }
 
   function togglePanelState() {
+    if (!panelOpen && activeStore && !isUserRegistered(activeStore.getState())) {
+      return;
+    }
     if (panelOpen) {
       closePanel();
     } else {
@@ -909,11 +900,17 @@
 
   function handleCardClick(event) {
     if (event.target.closest('[data-toggle-panel]')) return;
+    if (activeStore && !isUserRegistered(activeStore.getState())) {
+      return;
+    }
     openPanel();
   }
 
   function handleTogglePanelButton(event) {
     event.stopPropagation();
+    if (!panelOpen && activeStore && !isUserRegistered(activeStore.getState())) {
+      return;
+    }
     togglePanelState();
   }
 
@@ -1112,7 +1109,6 @@
 
     unsubscribe = activeStore.subscribe(render);
     render(activeStore.getState());
-    openPanel();
   }
 
   function unmount() {
