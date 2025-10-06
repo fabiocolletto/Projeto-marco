@@ -24,6 +24,38 @@
     return type;
   };
 
+  const getDisplayValue = (value, fallback = '—') => {
+    if (value === null || value === undefined) {
+      return fallback;
+    }
+    if (typeof value === 'number') {
+      return Number.isNaN(value) ? fallback : String(value);
+    }
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed ? trimmed : fallback;
+    }
+    return value;
+  };
+
+  const getConfiguredValue = (value) => getDisplayValue(value, 'Não configurado');
+
+  const getUserDisplayName = (user) => {
+    if (!user) return 'Não configurado';
+    const name = getConfiguredValue(user.nome);
+    if (name !== 'Não configurado') {
+      return name.trim();
+    }
+    const full = getConfiguredValue(user.nomeCompleto);
+    if (full !== 'Não configurado') {
+      return full.split(/\s+/)[0];
+    }
+    return 'Não configurado';
+  };
+
+  const isUserRegistered = (state) =>
+    Boolean(state?.user && state.user.id && state.user.id.trim());
+
   function createStore(initialState) {
     let state = clone(initialState);
     const listeners = new Set();
@@ -704,98 +736,115 @@
 
   function renderCard(state) {
     if (!elements.card) return;
-    const hasAccount = state.auth?.hasAccount !== false && Boolean(state.user?.id);
-    const user = state.user || {};
+    const registered = isUserRegistered(state);
     if (elements.userName) {
-      elements.userName.textContent = user.nome || '—';
+      elements.userName.textContent = getUserDisplayName(state.user);
     }
     if (elements.cardMeta.login.value) {
-      elements.cardMeta.login.value.textContent = hasAccount
-        ? state.status.lastLogin
+      elements.cardMeta.login.value.textContent = registered
+        ? getDisplayValue(state.status.lastLogin)
         : '—';
     }
     if (elements.cardMeta.login.container) {
-      elements.cardMeta.login.container.hidden = !hasAccount;
+      elements.cardMeta.login.container.hidden = !registered;
     }
     if (elements.cardMeta.sync.value) {
-      elements.cardMeta.sync.value.textContent = state.status.lastSync || '';
+      elements.cardMeta.sync.value.textContent = getDisplayValue(
+        state.status.lastSync
+      );
     }
     if (elements.cardMeta.sync.container) {
-      elements.cardMeta.sync.container.hidden = !state.status.lastSync;
+      elements.cardMeta.sync.container.hidden = false;
     }
     if (elements.cardMeta.backup.value) {
-      elements.cardMeta.backup.value.textContent = state.status.lastBackup || '';
+      elements.cardMeta.backup.value.textContent = getDisplayValue(
+        state.status.lastBackup
+      );
     }
     if (elements.cardMeta.backup.container) {
-      elements.cardMeta.backup.container.hidden = !state.status.lastBackup;
+      elements.cardMeta.backup.container.hidden = false;
     }
-    setDotState(elements.kpis.conexao, state.status.conexao === 'ok');
-    setDotState(elements.kpis.sync, state.status.syncOn);
-    setDotState(elements.kpis.backup, state.status.backupOn);
+    setDotState(
+      elements.kpis.conexao,
+      registered && state.status.conexao === 'ok'
+    );
+    setDotState(elements.kpis.sync, registered && state.status.syncOn);
+    setDotState(elements.kpis.backup, registered && state.status.backupOn);
   }
 
   function renderStage(state) {
     if (!elements.stage) return;
-    const hasAccount = state.auth?.hasAccount !== false && Boolean(state.user?.id);
-    const user = state.user || {};
+    const registered = isUserRegistered(state);
     if (elements.loginUser) {
-      elements.loginUser.textContent = user.nome || '—';
+      elements.loginUser.textContent = getUserDisplayName(state.user);
     }
     if (elements.loginAccount) {
-      elements.loginAccount.textContent = hasAccount ? user.conta || '—' : '—';
+      elements.loginAccount.textContent = registered
+        ? getConfiguredValue(state.user.conta)
+        : '—';
     }
     if (elements.loginLast) {
-      elements.loginLast.textContent = hasAccount ? state.status.lastLogin : '—';
+      elements.loginLast.textContent = registered
+        ? getDisplayValue(state.status.lastLogin)
+        : '—';
     }
 
     if (elements.syncProvider) {
-      elements.syncProvider.textContent = state.sync.provider;
+      elements.syncProvider.textContent = getConfiguredValue(state.sync.provider);
     }
     if (elements.syncPending) {
-      elements.syncPending.textContent = String(state.sync.pendenciasOffline);
+      if (typeof state.sync.pendenciasOffline === 'number') {
+        elements.syncPending.textContent = String(state.sync.pendenciasOffline);
+      } else {
+        elements.syncPending.textContent = getDisplayValue(
+          state.sync.pendenciasOffline
+        );
+      }
     }
     if (elements.syncLast) {
-      elements.syncLast.textContent = state.status.lastSync;
+      elements.syncLast.textContent = getDisplayValue(state.status.lastSync);
       const wrap = elements.syncLast.closest('div');
-      if (wrap) wrap.hidden = !state.status.lastSync;
+      if (wrap) wrap.hidden = false;
     }
 
     if (elements.backupLast) {
-      elements.backupLast.textContent = state.status.lastBackup;
+      elements.backupLast.textContent = getDisplayValue(state.status.lastBackup);
       const wrap = elements.backupLast.closest('div');
-      if (wrap) wrap.hidden = !state.status.lastBackup;
+      if (wrap) wrap.hidden = false;
     }
     if (elements.backupDestination) {
-      elements.backupDestination.textContent = state.backup.destino;
+      elements.backupDestination.textContent = getConfiguredValue(
+        state.backup.destino
+      );
     }
     if (elements.backupTotal) {
-      elements.backupTotal.textContent = state.backup.total;
+      elements.backupTotal.textContent = getDisplayValue(state.backup.total);
     }
 
     if (elements.net.endpoint) {
-      elements.net.endpoint.textContent = state.net.endpoint;
+      elements.net.endpoint.textContent = getConfiguredValue(state.net.endpoint);
     }
     if (elements.net.regiao) {
-      elements.net.regiao.textContent = state.net.regiao;
+      elements.net.regiao.textContent = getConfiguredValue(state.net.regiao);
     }
     if (elements.net.latencia) {
-      elements.net.latencia.textContent = state.net.lat;
+      elements.net.latencia.textContent = getDisplayValue(state.net.lat);
     }
     if (elements.net.perdas) {
-      elements.net.perdas.textContent = state.net.perdas;
+      elements.net.perdas.textContent = getDisplayValue(state.net.perdas);
     }
 
     if (elements.sec.ultimo) {
-      elements.sec.ultimo.textContent = state.sec.ultimoAcesso;
+      elements.sec.ultimo.textContent = getDisplayValue(state.sec.ultimoAcesso);
     }
     if (elements.sec.sessoes) {
-      elements.sec.sessoes.textContent = String(state.sec.sessoes);
+      elements.sec.sessoes.textContent = getDisplayValue(state.sec.sessoes);
     }
     if (elements.sec.expira) {
-      elements.sec.expira.textContent = state.sec.tokenExpira;
+      elements.sec.expira.textContent = getDisplayValue(state.sec.tokenExpira);
     }
     if (elements.sec.escopos) {
-      elements.sec.escopos.textContent = state.sec.escopos;
+      elements.sec.escopos.textContent = getConfiguredValue(state.sec.escopos);
     }
 
     updateToggleGroup('sync', state.status.syncOn);
@@ -905,8 +954,8 @@
     clearLoginFieldValidity();
     const fields = elements.login.fields;
     const user = state.user || {};
-    const hasAccount = state.auth?.hasAccount !== false && Boolean(user.id);
-    const mode = hasAccount ? 'login' : 'register';
+    const registered = isUserRegistered(state);
+    const mode = registered ? 'login' : 'register';
 
     updateLoginVisibility(mode);
 
@@ -942,7 +991,7 @@
     if (elements.login.title) {
       elements.login.title.textContent =
         mode === 'login'
-          ? `Login — ${user.nome || 'Conta'}`
+          ? `Login — ${getUserDisplayName(user)}`
           : 'Cadastro de acesso';
     }
     if (elements.login.subtitle) {
@@ -1068,6 +1117,12 @@
     renderLoginOverlay(state);
     renderSyncOverlay(state);
     renderBackupOverlay(state);
+    const registered = isUserRegistered(state);
+    if (registered && !panelOpen) {
+      openPanel();
+    } else if (!registered && panelOpen) {
+      closePanel();
+    }
   }
 
   function openPanel() {
@@ -1100,6 +1155,9 @@
   }
 
   function togglePanelState() {
+    if (!panelOpen && activeStore && !isUserRegistered(activeStore.getState())) {
+      return;
+    }
     if (panelOpen) {
       closePanel();
     } else {
@@ -1161,11 +1219,17 @@
 
   function handleCardClick(event) {
     if (event.target.closest('[data-toggle-panel]')) return;
+    if (activeStore && !isUserRegistered(activeStore.getState())) {
+      return;
+    }
     openPanel();
   }
 
   function handleTogglePanelButton(event) {
     event.stopPropagation();
+    if (!panelOpen && activeStore && !isUserRegistered(activeStore.getState())) {
+      return;
+    }
     togglePanelState();
   }
 
@@ -1173,6 +1237,9 @@
     if (!actions) return;
     const button = event.target.closest('[data-toggle]');
     if (!button) return;
+    if (activeStore && !isUserRegistered(activeStore.getState())) {
+      return;
+    }
     const type = button.dataset.toggle;
     if (type === 'sync') {
       actions.toggleSync(!activeStore.getState().status.syncOn);
@@ -1217,8 +1284,8 @@
   function handleLoginSave() {
     if (!elements.login.form || !activeStore) return;
     const state = activeStore.getState();
-    const hasAccount =
-      state.auth?.hasAccount !== false && Boolean(state.user?.id);
+    const registered = isUserRegistered(state);
+    const hasAccount = state.auth?.hasAccount !== false && registered;
     const fields = elements.login.fields;
     if (!fields) return;
     const getTrimmedValue = (field) => (field ? field.value.trim() : '');
@@ -1490,7 +1557,6 @@
 
     unsubscribe = activeStore.subscribe(render);
     render(activeStore.getState());
-    openPanel();
   }
 
   function unmount() {
