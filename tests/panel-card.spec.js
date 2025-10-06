@@ -261,7 +261,9 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
 
   await expect(page.locator('[data-user-name]')).toHaveText('Não configurado');
   await expect(logRows).toHaveCount(0);
-  await expect(page.locator('[data-login-log-empty]')).toBeVisible();
+  await expect(
+    page.locator('[data-stage-empty] [data-login-log-empty]')
+  ).toBeVisible();
   await expect(page.locator('[data-action="logout-clear"]')).toBeDisabled();
   await expect(page.locator('[data-stage-empty-message]')).toHaveText(
     'Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.'
