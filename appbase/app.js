@@ -1203,114 +1203,8 @@
     if (!actionBtn) return;
     const action = actionBtn.dataset.action;
     if (action === 'login-save') {
-      if (!elements.login.form || !activeStore) return;
-      const formData = new FormData(elements.login.form);
-      const state = activeStore.getState();
-      const hasAccount =
-        state.auth?.hasAccount !== false && Boolean(state.user?.id);
-      const fields = elements.login.fields;
-      if (!fields) return;
-      if (!hasAccount) {
-        clearLoginFieldValidity();
-        const nomeCompleto = (formData.get('nome') || '').trim();
-        const email = (formData.get('email') || '').toString().trim();
-        const telefone = (formData.get('telefone') || '').toString().trim();
-        const senha = (formData.get('senha') || '').toString();
-        const confirmacao = (formData.get('confirmacao') || '').toString();
-        if (fields.nome) fields.nome.value = nomeCompleto;
-        if (fields.email) fields.email.value = email;
-        if (fields.telefone) fields.telefone.value = telefone;
-        const errors = [];
-        const invalidFields = [];
-        const pushInvalid = (field) => {
-          if (field && !invalidFields.includes(field)) {
-            invalidFields.push(field);
-          }
-        };
-
-        if (!nomeCompleto) {
-          errors.push('Informe o nome completo.');
-          markFieldInvalid(fields.nome);
-          pushInvalid(fields.nome);
-        }
-        if (!email) {
-          errors.push('Informe um e-mail.');
-          markFieldInvalid(fields.email);
-          pushInvalid(fields.email);
-        } else if (fields.email && !fields.email.checkValidity()) {
-          errors.push('Informe um e-mail válido.');
-          markFieldInvalid(fields.email);
-          pushInvalid(fields.email);
-        }
-        if (!senha) {
-          errors.push('Defina uma senha.');
-          markFieldInvalid(fields.senha);
-          pushInvalid(fields.senha);
-        }
-        if (!confirmacao) {
-          errors.push('Confirme a senha.');
-          markFieldInvalid(fields.confirmacao);
-          pushInvalid(fields.confirmacao);
-        }
-        if (senha && confirmacao && senha !== confirmacao) {
-          errors.push('As senhas precisam ser iguais.');
-          markFieldInvalid(fields.senha);
-          markFieldInvalid(fields.confirmacao);
-          pushInvalid(fields.senha);
-          pushInvalid(fields.confirmacao);
-        }
-
-        if (errors.length) {
-          setLoginFeedback('error', errors.join(' '));
-          invalidFields[0]?.focus();
-          return;
-        }
-
-        setLoginFeedback(null, '');
-        setLoginPrimaryBusy(true);
-        actions
-          .registerUser({
-            nomeCompleto,
-            email,
-            telefone,
-            senha,
-          })
-          .then(() => {
-            setLoginFeedback('success', 'Conta criada com sucesso!');
-            setTimeout(() => {
-              closeOverlay();
-              setLoginFeedback(null, '');
-            }, 600);
-          })
-          .catch((error) => {
-            console.error(error);
-            setLoginFeedback(
-              'error',
-              'Não foi possível criar a conta. Tente novamente.'
-            );
-          })
-          .finally(() => {
-            setLoginPrimaryBusy(false);
-          });
-        return;
-      }
-
-      actions
-        .saveLogin({
-          nomeCompleto: formData.get('nome') || '',
-          email: formData.get('email') || '',
-          telefone: formData.get('telefone') || '',
-        })
-        .then(() => {
-          setLoginFeedback('success', 'Dados de login atualizados.');
-        })
-        .catch((error) => {
-          console.error(error);
-          setLoginFeedback(
-            'error',
-            'Não foi possível atualizar os dados de login agora.'
-          );
-        });
+      event.preventDefault();
+      return;
     } else if (action === 'login-logoff') {
       actions.logoff();
     } else if (action === 'sessions-kill') {
@@ -1318,6 +1212,123 @@
     } else if (action === 'login-change-password') {
       actions.changePassword();
     }
+  }
+
+  function handleLoginSave() {
+    if (!elements.login.form || !activeStore) return;
+    const state = activeStore.getState();
+    const hasAccount =
+      state.auth?.hasAccount !== false && Boolean(state.user?.id);
+    const fields = elements.login.fields;
+    if (!fields) return;
+    const getTrimmedValue = (field) => (field ? field.value.trim() : '');
+    const values = {
+      nomeCompleto: getTrimmedValue(fields.nome),
+      email: getTrimmedValue(fields.email),
+      telefone: getTrimmedValue(fields.telefone),
+      senha: fields.senha ? fields.senha.value : '',
+      confirmacao: fields.confirmacao ? fields.confirmacao.value : '',
+    };
+    if (fields.nome) fields.nome.value = values.nomeCompleto;
+    if (fields.email) fields.email.value = values.email;
+    if (fields.telefone) fields.telefone.value = values.telefone;
+    if (!hasAccount) {
+      clearLoginFieldValidity();
+      const errors = [];
+      const invalidFields = [];
+      const pushInvalid = (field) => {
+        if (field && !invalidFields.includes(field)) {
+          invalidFields.push(field);
+        }
+      };
+
+      if (!values.nomeCompleto) {
+        errors.push('Informe o nome completo.');
+        markFieldInvalid(fields.nome);
+        pushInvalid(fields.nome);
+      }
+      if (!values.email) {
+        errors.push('Informe um e-mail.');
+        markFieldInvalid(fields.email);
+        pushInvalid(fields.email);
+      } else if (fields.email && !fields.email.checkValidity()) {
+        errors.push('Informe um e-mail válido.');
+        markFieldInvalid(fields.email);
+        pushInvalid(fields.email);
+      }
+      if (!values.senha) {
+        errors.push('Defina uma senha.');
+        markFieldInvalid(fields.senha);
+        pushInvalid(fields.senha);
+      }
+      if (!values.confirmacao) {
+        errors.push('Confirme a senha.');
+        markFieldInvalid(fields.confirmacao);
+        pushInvalid(fields.confirmacao);
+      }
+      if (
+        values.senha &&
+        values.confirmacao &&
+        values.senha !== values.confirmacao
+      ) {
+        errors.push('As senhas precisam ser iguais.');
+        markFieldInvalid(fields.senha);
+        markFieldInvalid(fields.confirmacao);
+        pushInvalid(fields.senha);
+        pushInvalid(fields.confirmacao);
+      }
+
+      if (errors.length) {
+        setLoginFeedback('error', errors.join(' '));
+        invalidFields[0]?.focus();
+        return;
+      }
+
+      setLoginFeedback(null, '');
+      setLoginPrimaryBusy(true);
+      actions
+        .registerUser({
+          nomeCompleto: values.nomeCompleto,
+          email: values.email,
+          telefone: values.telefone,
+          senha: values.senha,
+        })
+        .then(() => {
+          setLoginFeedback('success', 'Conta criada com sucesso!');
+          setTimeout(() => {
+            closeOverlay();
+            setLoginFeedback(null, '');
+          }, 600);
+        })
+        .catch((error) => {
+          console.error(error);
+          setLoginFeedback(
+            'error',
+            'Não foi possível criar a conta. Tente novamente.'
+          );
+        })
+        .finally(() => {
+          setLoginPrimaryBusy(false);
+        });
+      return;
+    }
+
+    actions
+      .saveLogin({
+        nomeCompleto: values.nomeCompleto,
+        email: values.email,
+        telefone: values.telefone,
+      })
+      .then(() => {
+        setLoginFeedback('success', 'Dados de login atualizados.');
+      })
+      .catch((error) => {
+        console.error(error);
+        setLoginFeedback(
+          'error',
+          'Não foi possível atualizar os dados de login agora.'
+        );
+      });
   }
 
   function handleSessionDisconnect(event) {
@@ -1455,6 +1466,16 @@
     addListener(elements.app, 'click', handleOverlayOpen);
     addListener(elements.app, 'click', handleOverlayClose);
     addListener(elements.app, 'click', handleLoginActions);
+    addListener(elements.login.form, 'submit', (event) => {
+      event.preventDefault();
+      handleLoginSave();
+    });
+    addListener(elements.login.form, 'keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        handleLoginSave();
+      }
+    });
     addListener(elements.app, 'click', handleSessionDisconnect);
     addListener(elements.app, 'click', handleSyncDeviceToggle);
     addListener(elements.syncOverlay.provider, 'change', handleSyncProviderChange);
