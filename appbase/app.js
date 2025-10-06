@@ -26,7 +26,7 @@
     breadcrumbsSecondary: document.getElementById('breadcrumbs-secondary'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
-    logEmpty: document.querySelector('[data-login-log-empty]'),
+    logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
     logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
   };
@@ -400,14 +400,20 @@
   }
 
   function updateLogHistory() {
-    if (!elements.logTableBody || !elements.logTableWrap || !elements.logEmpty) {
+    if (
+      !elements.logTableBody ||
+      !elements.logTableWrap ||
+      elements.logEmpty.length === 0
+    ) {
       return;
     }
     elements.logTableBody.textContent = '';
     const history = Array.isArray(state.history) ? state.history : [];
     if (history.length === 0) {
       elements.logTableWrap.hidden = true;
-      elements.logEmpty.hidden = false;
+      elements.logEmpty.forEach((emptyElement) => {
+        emptyElement.hidden = false;
+      });
       return;
     }
 
@@ -425,7 +431,9 @@
 
     elements.logTableBody.appendChild(fragment);
     elements.logTableWrap.hidden = false;
-    elements.logEmpty.hidden = true;
+    elements.logEmpty.forEach((emptyElement) => {
+      emptyElement.hidden = true;
+    });
   }
 
   function updateLogControls() {

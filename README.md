@@ -45,7 +45,8 @@ MiniApp “Painel de controle”.
 6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
-   logoff na mesma área detalhada.
+   logoff na mesma área detalhada, sinalizando a ausência de registros tanto na
+   tabela quanto no estado vazio do palco.
 7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
    (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
 
