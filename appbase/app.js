@@ -1264,7 +1264,9 @@
 
   function handleCardClick(event) {
     if (event.target.closest('[data-toggle-panel]')) return;
-    togglePanelState();
+    if (!panelOpen) {
+      openPanel();
+    }
   }
 
   function handleTogglePanelButton(event) {
