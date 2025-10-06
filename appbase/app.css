@@ -714,6 +714,34 @@ select {
   gap: 24px;
 }
 
+.ac-feedback {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-card-bg);
+  color: var(--ac-card-ink);
+  font-weight: 500;
+  line-height: 1.4;
+  transition: opacity 0.2s ease;
+}
+
+.ac-feedback:empty {
+  display: none;
+}
+
+.ac-feedback--success {
+  background: var(--ac-ok-bg);
+  border-color: var(--ac-ok);
+  color: var(--ac-ok);
+}
+
+.ac-feedback--error {
+  background: var(--ac-crit-bg);
+  border-color: var(--ac-crit);
+  color: var(--ac-crit);
+}
+
 .ac-form-grid {
   display: grid;
   gap: 16px;

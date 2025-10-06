@@ -594,6 +594,7 @@
           email: loginForm?.querySelector('[name="email"]') || null,
           telefone: loginForm?.querySelector('[name="telefone"]') || null,
         },
+        feedback: document.querySelector('[data-login-feedback]'),
         devicesBody: document.querySelector('[data-login-devices-body]'),
         title: document.getElementById('login-dialog-title'),
       },
@@ -610,6 +611,25 @@
       systemMenu: document.querySelector('[data-system-menu]'),
       systemMenuPanel: document.querySelector('[data-system-menu-panel]'),
     });
+  }
+
+  function clearLoginFeedback() {
+    const feedback = elements.login?.feedback;
+    if (!feedback) return;
+    feedback.textContent = '';
+    feedback.classList.remove('ac-feedback--success', 'ac-feedback--error');
+  }
+
+  function setLoginFeedback(type, message) {
+    const feedback = elements.login?.feedback;
+    if (!feedback) return;
+    feedback.textContent = message;
+    feedback.classList.remove('ac-feedback--success', 'ac-feedback--error');
+    if (type === 'success') {
+      feedback.classList.add('ac-feedback--success');
+    } else if (type === 'error') {
+      feedback.classList.add('ac-feedback--error');
+    }
   }
 
   function setDotState(dot, ok) {
@@ -807,6 +827,7 @@
 
   function renderLoginOverlay(state) {
     if (!elements.login.form) return;
+    clearLoginFeedback();
     const fields = elements.login.fields;
     if (fields.nome) fields.nome.value = state.user.nomeCompleto || '';
     if (fields.email) fields.email.value = state.user.email || '';
@@ -983,7 +1004,8 @@
 
   function closeOverlay() {
     if (!openOverlayId) return;
-    const overlay = elements.overlays[openOverlayId];
+    const closingId = openOverlayId;
+    const overlay = elements.overlays[closingId];
     if (!overlay) return;
     overlay.setAttribute('aria-hidden', 'true');
     overlay.removeEventListener('click', handleOverlayBackdrop, true);
@@ -993,6 +1015,11 @@
     }
     openOverlayId = null;
     lastOverlayTrigger = null;
+    if (closingId === 'login') {
+      setTimeout(() => {
+        clearLoginFeedback();
+      }, 200);
+    }
   }
 
   function openOverlay(id, trigger) {
@@ -1092,11 +1119,16 @@
           telefone: formData.get('telefone') || '',
         })
         .then(() => {
+          setLoginFeedback('success', 'Dados salvos localmente em IndexedDB');
           openPanel();
           closeOverlay();
         })
         .catch((error) => {
           console.error('AppBase: falha ao salvar login', error);
+          setLoginFeedback(
+            'error',
+            'Não foi possível salvar os dados localmente. Tente novamente.'
+          );
         });
     } else if (action === 'login-logoff') {
       actions.logoff();
