@@ -33,15 +33,17 @@ MiniApp “Painel de controle”.
    - O `index.html` na raiz redireciona automaticamente para essa versão.
    - Para consultar a versão legada modular, abra `src/index.html` diretamente.
 3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
-   botão “Começar cadastro” ou clique na etiqueta “Painel de controle” para
-   abrir o formulário de Login.
+   botão “Começar cadastro” para acessar o formulário de Login. A etiqueta
+   “Painel de controle” apenas abre o painel principal, que expõe o botão ⋯
+   interno para reabrir o overlay quando necessário.
 4. Os dados cadastrados são guardados apenas no `localStorage` do navegador. Ao
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
    último acesso, e essas informações permanecem disponíveis em visitas
    futuras.
 5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
-   cadastro ativo. O overlay de Login pode ser reaberto para editar o usuário a
-   qualquer momento.
+   cadastro ativo. Para editar o cadastro, abra o painel pela etiqueta e acione
+   novamente o botão ⋯ disponível dentro da tile de Login (ou o CTA do estado
+   vazio do palco) para reabrir o overlay.
 6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
