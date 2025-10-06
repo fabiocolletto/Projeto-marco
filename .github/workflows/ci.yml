@@ -30,14 +30,42 @@ jobs:
         if: steps.workspace.outputs.has_node == 'true'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+        if: steps.workspace.outputs.has_node == 'true'
+
+      - name: Determinar versão do Playwright
+        id: playwright-version
+        if: steps.workspace.outputs.has_node == 'true'
+        run: |
+          version=$(node - <<'NODE'
+          const lock = require('./package-lock.json');
+          const fromPackages = lock.packages?.['node_modules/@playwright/test']?.version;
+          const fromDeps = lock.dependencies?.['@playwright/test']?.version;
+          const version = fromPackages || fromDeps;
+          if (!version) {
+            throw new Error('Não foi possível determinar a versão de @playwright/test');
+          }
+          console.log(version);
+          NODE
+          )
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ steps.playwright-version.outputs.version }}
         if: steps.workspace.outputs.has_node == 'true'
 
       - name: Instalar navegadores Playwright
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
         if: steps.workspace.outputs.has_node == 'true'
 
       - name: Testes end-to-end
+        run: npm test
+        if: steps.workspace.outputs.has_node == 'true'
+
+      - name: Testes end-to-end (cache restaurado)
         run: npm test
         if: steps.workspace.outputs.has_node == 'true'
 
