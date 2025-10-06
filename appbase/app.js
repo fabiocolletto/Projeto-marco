@@ -614,21 +614,33 @@
   }
 
   function clearLoginFeedback() {
-    const feedback = elements.login?.feedback;
+    const feedback =
+      elements.login?.feedback || document.querySelector('[data-login-feedback]');
     if (!feedback) return;
     feedback.textContent = '';
-    feedback.classList.remove('ac-feedback--success', 'ac-feedback--error');
+    feedback.classList.remove(
+      'ac-feedback--success',
+      'ac-feedback--error',
+      'ac-feedback--pending'
+    );
   }
 
   function setLoginFeedback(type, message) {
-    const feedback = elements.login?.feedback;
+    const feedback =
+      elements.login?.feedback || document.querySelector('[data-login-feedback]');
     if (!feedback) return;
     feedback.textContent = message;
-    feedback.classList.remove('ac-feedback--success', 'ac-feedback--error');
+    feedback.classList.remove(
+      'ac-feedback--success',
+      'ac-feedback--error',
+      'ac-feedback--pending'
+    );
     if (type === 'success') {
       feedback.classList.add('ac-feedback--success');
     } else if (type === 'error') {
       feedback.classList.add('ac-feedback--error');
+    } else if (type === 'pending') {
+      feedback.classList.add('ac-feedback--pending');
     }
   }
 
@@ -1105,31 +1117,65 @@
     }
   }
 
+  function processLoginSave(triggerButton) {
+    if (!actions) return;
+    const form =
+      elements.login?.form || document.querySelector('[data-login-form]');
+    if (!form) return;
+
+    const submitBtn =
+      triggerButton || form.querySelector('[data-action="login-save"]');
+    const originalLabel = submitBtn ? submitBtn.textContent : '';
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.dataset.loading = 'true';
+      submitBtn.textContent = 'Salvando…';
+    }
+
+    setLoginFeedback('pending', 'Salvando dados do usuário…');
+    const formData = new FormData(form);
+    return actions
+      .saveLogin({
+        nomeCompleto: formData.get('nome') || '',
+        email: formData.get('email') || '',
+        telefone: formData.get('telefone') || '',
+      })
+      .then(() => {
+        setLoginFeedback('success', 'Dados salvos localmente em IndexedDB');
+        openPanel();
+      })
+      .catch((error) => {
+        console.error('AppBase: falha ao salvar login', error);
+        setLoginFeedback(
+          'error',
+          'Não foi possível salvar os dados localmente. Tente novamente.'
+        );
+      })
+      .finally(() => {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = originalLabel;
+          submitBtn.removeAttribute('data-loading');
+        }
+      });
+  }
+
+  function handleLoginSubmit(event) {
+    if (!actions) return;
+    event.preventDefault();
+    const submitter =
+      event.submitter || event.target?.querySelector('[data-action="login-save"]');
+    processLoginSave(submitter || null);
+  }
+
   function handleLoginActions(event) {
     if (!actions) return;
     const actionBtn = event.target.closest('[data-action]');
     if (!actionBtn) return;
     const action = actionBtn.dataset.action;
     if (action === 'login-save') {
-      const formData = new FormData(elements.login.form);
-      actions
-        .saveLogin({
-          nomeCompleto: formData.get('nome') || '',
-          email: formData.get('email') || '',
-          telefone: formData.get('telefone') || '',
-        })
-        .then(() => {
-          setLoginFeedback('success', 'Dados salvos localmente em IndexedDB');
-          openPanel();
-          closeOverlay();
-        })
-        .catch((error) => {
-          console.error('AppBase: falha ao salvar login', error);
-          setLoginFeedback(
-            'error',
-            'Não foi possível salvar os dados localmente. Tente novamente.'
-          );
-        });
+      return;
     } else if (action === 'login-logoff') {
       actions.logoff();
     } else if (action === 'sessions-kill') {
@@ -1329,6 +1375,7 @@
     addListener(elements.app, 'click', handleOverlayOpen);
     addListener(elements.app, 'click', handleOverlayClose);
     addListener(elements.app, 'click', handleLoginActions);
+    addListener(elements.login.form, 'submit', handleLoginSubmit);
     addListener(elements.app, 'click', handleSessionDisconnect);
     addListener(elements.app, 'click', handleSyncDeviceToggle);
     addListener(elements.syncOverlay.provider, 'change', handleSyncProviderChange);

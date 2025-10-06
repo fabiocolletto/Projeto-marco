@@ -736,6 +736,12 @@ select {
   color: var(--ac-ok);
 }
 
+.ac-feedback--pending {
+  background: var(--ac-hover);
+  border-color: var(--ac-border);
+  color: var(--ac-border);
+}
+
 .ac-feedback--error {
   background: var(--ac-crit-bg);
   border-color: var(--ac-crit);
@@ -752,6 +758,12 @@ select {
   .ac-form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.ac-btn[data-loading='true'] {
+  cursor: progress;
+  opacity: 0.7;
+  pointer-events: none;
 }
 
 .ac-sheet__section {
