@@ -381,6 +381,17 @@ select {
   align-items: flex-start;
 }
 
+.ac-stage__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.ac-stage__close {
+  flex-shrink: 0;
+}
+
 .ac-stage__titles {
   display: grid;
   gap: 4px;
