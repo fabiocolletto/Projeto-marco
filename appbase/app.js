@@ -7,6 +7,13 @@
     return `${day} ${time}`;
   };
 
+  const formatDateTimeIso = (iso) => {
+    if (!iso) return '';
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) return '';
+    return formatDateTime(parsed);
+  };
+
   const formatTime = (date = new Date()) =>
     date.toLocaleTimeString('pt-BR', {
       hour: '2-digit',
@@ -53,6 +60,38 @@
       typeof window !== 'undefined' && typeof window.indexedDB !== 'undefined';
 
     let dbPromise = null;
+    const status = {
+      supported,
+      available: supported,
+      hasSnapshot: false,
+      dirty: false,
+      lastSnapshotAt: '',
+      lastError: supported ? '' : 'IndexedDB não suportado pelo navegador',
+      lastCheck: '',
+    };
+    const subscribers = new Set();
+
+    const nowIso = () => new Date().toISOString();
+
+    const notify = (update = {}) => {
+      const changed = Object.assign(status, update);
+      subscribers.forEach((listener) => {
+        listener({ ...changed });
+      });
+    };
+
+    const handleError = (message, error, extra = {}) => {
+      console.error(message, error);
+      const fallback = 'Falha ao acessar o armazenamento local';
+      const lastErrorMessage =
+        (error && (error.message || String(error))) || fallback;
+      notify({
+        available: false,
+        lastError: lastErrorMessage,
+        lastCheck: nowIso(),
+        ...extra,
+      });
+    };
 
     function openDatabase() {
       return new Promise((resolve, reject) => {
@@ -63,8 +102,14 @@
             db.createObjectStore(STORE_NAME);
           }
         };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          notify({ available: true, lastError: '', lastCheck: nowIso() });
+          resolve(request.result);
+        };
+        request.onerror = () => {
+          handleError('AppBase: falha ao abrir IndexedDB', request.error);
+          reject(request.error);
+        };
       });
     }
 
@@ -72,7 +117,7 @@
       if (!supported) return null;
       if (!dbPromise) {
         dbPromise = openDatabase().catch((error) => {
-          console.error('AppBase: falha ao abrir IndexedDB', error);
+          handleError('AppBase: falha ao abrir IndexedDB', error);
           return null;
         });
       }
@@ -89,11 +134,22 @@
         const request = store.get(DOC_KEY);
         request.onsuccess = () => {
           const result = request.result;
+          notify({
+            available: true,
+            hasSnapshot: Boolean(result),
+            dirty: false,
+            lastSnapshotAt: result?.updatedAt || '',
+            lastError: '',
+            lastCheck: nowIso(),
+          });
           resolve(result ? clone(result) : null);
         };
-        request.onerror = () => reject(request.error);
+        request.onerror = () => {
+          handleError('AppBase: falha ao carregar backup local', request.error);
+          reject(request.error);
+        };
       }).catch((error) => {
-        console.error('AppBase: falha ao carregar backup local', error);
+        handleError('AppBase: falha ao carregar backup local', error);
         return null;
       });
     }
@@ -130,15 +186,49 @@
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
         const request = store.put(snapshot, DOC_KEY);
-        request.onsuccess = () => resolve();
-        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          notify({
+            available: true,
+            hasSnapshot: true,
+            dirty: false,
+            lastSnapshotAt: snapshot.updatedAt,
+            lastError: '',
+            lastCheck: nowIso(),
+          });
+          resolve();
+        };
+        request.onerror = () => {
+          handleError('AppBase: falha ao salvar backup local', request.error, {
+            dirty: true,
+          });
+          reject(request.error);
+        };
       }).catch((error) => {
-        console.error('AppBase: falha ao salvar backup local', error);
+        handleError('AppBase: falha ao salvar backup local', error, {
+          dirty: true,
+        });
       });
     }
 
     return {
       isAvailable: supported,
+      getStatus() {
+        return { ...status };
+      },
+      onStatusChange(listener) {
+        if (typeof listener !== 'function') return () => {};
+        subscribers.add(listener);
+        listener({ ...status });
+        return () => {
+          subscribers.delete(listener);
+        };
+      },
+      markDirty() {
+        if (!supported) return;
+        if (!status.dirty) {
+          notify({ dirty: true, lastCheck: nowIso() });
+        }
+      },
       loadSnapshot,
       saveSnapshot,
     };
@@ -184,6 +274,13 @@
       lastLogin: '',
       lastSync: '',
       lastBackup: '',
+      storageAvailable: persistence.isAvailable,
+      snapshotActive: false,
+      snapshotDirty: false,
+      storageError: persistence.isAvailable
+        ? ''
+        : 'IndexedDB não suportado pelo navegador',
+      snapshotUpdatedAt: '',
     },
     sync: {
       provider: '',
@@ -365,6 +462,7 @@
               on ? 'Sync ativada pelo painel' : 'Sync desativada pelo painel'
             ),
           }));
+          persistence.markDirty();
           persist();
           return payload;
         });
@@ -383,6 +481,7 @@
                 `Provedor de sync alterado para ${provider}`
               ),
             }));
+            persistence.markDirty();
             persist();
             return payload;
           });
@@ -399,6 +498,7 @@
               on ? 'Backup ativado pelo painel' : 'Backup desativado pelo painel'
             ),
           }));
+          persistence.markDirty();
           persist();
           return payload;
         });
@@ -416,6 +516,7 @@
             },
             eventos: appendEvent(state.eventos, 'Login', 'Dados de login atualizados'),
           }));
+          persistence.markDirty();
           persist();
           return response;
         });
@@ -438,6 +539,7 @@
               'Todas as sessões foram encerradas'
             ),
           }));
+          persistence.markDirty();
           persist();
           return payload;
         });
@@ -457,6 +559,7 @@
               `Sessão desconectada (${label})`
             ),
           }));
+          persistence.markDirty();
           persist();
           return payload;
         });
@@ -475,6 +578,7 @@
               `${habilitado ? 'Habilitado' : 'Desabilitado'} sync em ${label}`
             ),
           }));
+          persistence.markDirty();
           persist();
           return payload;
         });
@@ -500,6 +604,46 @@
 
   const defaultStore = createStore(initialState);
   const defaultServices = createServices(defaultStore);
+
+  let lastPersistenceStatus = persistence.getStatus();
+
+  function mapPersistenceStatus(status) {
+    return {
+      storageAvailable: Boolean(status?.available),
+      snapshotActive: Boolean(status?.hasSnapshot),
+      snapshotDirty: Boolean(status?.dirty),
+      storageError: status?.available ? '' : status?.lastError || '',
+      snapshotUpdatedAt: status?.lastSnapshotAt || '',
+    };
+  }
+
+  function applyPersistenceStatus(store, status) {
+    if (!store || !status) return;
+    const mapped = mapPersistenceStatus(status);
+    const current = store.getState();
+    const prev = current.status;
+    if (
+      prev.storageAvailable === mapped.storageAvailable &&
+      prev.snapshotActive === mapped.snapshotActive &&
+      prev.snapshotDirty === mapped.snapshotDirty &&
+      prev.storageError === mapped.storageError &&
+      prev.snapshotUpdatedAt === mapped.snapshotUpdatedAt
+    ) {
+      return;
+    }
+    store.setState((state) => ({
+      ...state,
+      status: {
+        ...state.status,
+        ...mapped,
+      },
+    }));
+  }
+
+  persistence.onStatusChange((status) => {
+    lastPersistenceStatus = status;
+    applyPersistenceStatus(activeStore || defaultStore, status);
+  });
 
   const uiState = {
     eventsSearch: '',
@@ -650,6 +794,37 @@
     dot.classList.toggle('ac-dot--crit', !ok);
   }
 
+  function getBackupIndicator(state) {
+    if (!state) {
+      return { ok: false, message: '—' };
+    }
+    if (!isUserRegistered(state)) {
+      return { ok: false, message: '—' };
+    }
+    const status = state.status || {};
+    if (!status.backupOn) {
+      return { ok: false, message: 'Backup desativado' };
+    }
+    if (!status.storageAvailable) {
+      return {
+        ok: false,
+        message: status.storageError || 'IndexedDB indisponível',
+      };
+    }
+    if (status.snapshotDirty) {
+      return { ok: false, message: 'Alterações pendentes' };
+    }
+    if (!status.snapshotActive) {
+      return { ok: false, message: 'Nenhum backup local' };
+    }
+    const label =
+      status.lastBackup || formatDateTimeIso(status.snapshotUpdatedAt);
+    return {
+      ok: true,
+      message: getDisplayValue(label, 'Backup atualizado'),
+    };
+  }
+
   function renderCard(state) {
     if (!elements.card) return;
     const registered = isUserRegistered(state);
@@ -669,10 +844,9 @@
     if (elements.cardMeta.sync.container) {
       elements.cardMeta.sync.container.hidden = false;
     }
+    const backupIndicator = getBackupIndicator(state);
     if (elements.cardMeta.backup.value) {
-      elements.cardMeta.backup.value.textContent = getDisplayValue(
-        state.status.lastBackup
-      );
+      elements.cardMeta.backup.value.textContent = backupIndicator.message;
     }
     if (elements.cardMeta.backup.container) {
       elements.cardMeta.backup.container.hidden = false;
@@ -682,7 +856,7 @@
       registered && state.status.conexao === 'ok'
     );
     setDotState(elements.kpis.sync, registered && state.status.syncOn);
-    setDotState(elements.kpis.backup, registered && state.status.backupOn);
+    setDotState(elements.kpis.backup, registered && backupIndicator.ok);
   }
 
   function renderStage(state) {
@@ -716,14 +890,15 @@
     }
 
     if (elements.backupLast) {
-      elements.backupLast.textContent = getDisplayValue(state.status.lastBackup);
+      const indicator = getBackupIndicator(state);
+      elements.backupLast.textContent = indicator.message;
       const wrap = elements.backupLast.closest('div');
       if (wrap) wrap.hidden = false;
     }
     if (elements.backupDestination) {
-      elements.backupDestination.textContent = getConfiguredValue(
-        state.backup.destino
-      );
+      elements.backupDestination.textContent = state.status.storageAvailable
+        ? getConfiguredValue(state.backup.destino)
+        : getDisplayValue(state.status.storageError, 'IndexedDB indisponível');
     }
     if (elements.backupTotal) {
       elements.backupTotal.textContent = getDisplayValue(state.backup.total);
@@ -1360,6 +1535,10 @@
     activeStore = storeInstance || defaultStore;
     activeServices = storeInstance ? createServices(activeStore) : defaultServices;
     actions = createActions(activeStore, activeServices);
+
+    if (lastPersistenceStatus) {
+      applyPersistenceStatus(activeStore, lastPersistenceStatus);
+    }
 
     listeners.forEach((remove) => remove());
     listeners = [];
