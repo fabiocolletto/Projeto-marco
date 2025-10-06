@@ -398,15 +398,34 @@
         if (!nextUser.id) {
           nextUser.id = `u-${Date.now()}`;
         }
-        if ((!nextUser.nome || !nextUser.nome.trim()) && nextUser.nomeCompleto) {
-          nextUser.nome = nextUser.nomeCompleto.trim().split(/\s+/)[0];
+
+        const nomeCompleto =
+          typeof payload.nomeCompleto === 'string'
+            ? payload.nomeCompleto.trim()
+            : '';
+        if (nomeCompleto) {
+          nextUser.nomeCompleto = nomeCompleto;
+          nextUser.nome = nomeCompleto.split(/\s+/)[0];
         }
-        if ((!nextUser.conta || !nextUser.conta.trim()) && nextUser.email) {
-          const [account] = nextUser.email.split('@');
-          if (account) {
-            nextUser.conta = account;
+
+        const email =
+          typeof payload.email === 'string' ? payload.email.trim() : nextUser.email;
+        if (typeof email === 'string') {
+          nextUser.email = email;
+          if (email) {
+            const [account] = email.split('@');
+            if (account) {
+              nextUser.conta = account;
+            }
+          } else if (!nextUser.conta || !nextUser.conta.trim()) {
+            nextUser.conta = '';
           }
         }
+
+        if (typeof payload.telefone === 'string') {
+          nextUser.telefone = payload.telefone.trim();
+        }
+
         return Promise.resolve({
           user: nextUser,
         });
@@ -640,11 +659,6 @@
     }));
   }
 
-  persistence.onStatusChange((status) => {
-    lastPersistenceStatus = status;
-    applyPersistenceStatus(activeStore || defaultStore, status);
-  });
-
   const uiState = {
     eventsSearch: '',
     eventsType: 'all',
@@ -662,6 +676,11 @@
   let openOverlayId = null;
   let lastOverlayTrigger = null;
   let menuOpen = false;
+
+  persistence.onStatusChange((status) => {
+    lastPersistenceStatus = status;
+    applyPersistenceStatus(activeStore || defaultStore, status);
+  });
 
   function cacheElements() {
     const card = document.querySelector('[data-miniapp="painel"]');
@@ -1552,7 +1571,7 @@
     addListener(elements.stageClose, 'click', handleStageClose);
     addListener(elements.app, 'click', handleToggleClick);
     addListener(elements.app, 'click', handleOverlayOpen);
-    addListener(elements.app, 'click', handleOverlayClose);
+    addListener(document, 'click', handleOverlayClose);
     addListener(elements.app, 'click', handleLoginActions);
     addListener(elements.login.form, 'submit', handleLoginSubmit);
     addListener(elements.app, 'click', handleSessionDisconnect);
