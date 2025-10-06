@@ -803,41 +803,41 @@
     renderLoginOverlay(state);
     renderSyncOverlay(state);
     renderBackupOverlay(state);
-    if (elements.stage) {
-      elements.stage.hidden = !panelOpen;
+    applyPanelState(panelOpen);
+  }
+
+  function applyPanelState(isOpen) {
+    panelOpen = isOpen;
+    if (!elements.card || !elements.stage || !elements.togglePanel) return;
+
+    elements.card.classList.toggle('is-active', isOpen);
+    if (isOpen) {
+      elements.card.setAttribute('aria-current', 'page');
+    } else {
+      elements.card.removeAttribute('aria-current');
     }
+
+    elements.togglePanel.setAttribute('aria-expanded', String(isOpen));
+    elements.togglePanel.setAttribute(
+      'aria-label',
+      isOpen ? 'Recolher painel de controle' : 'Expandir painel de controle'
+    );
+
+    elements.stage.hidden = !isOpen;
     if (elements.stageEmpty) {
-      elements.stageEmpty.hidden = panelOpen;
+      elements.stageEmpty.hidden = isOpen;
     }
   }
 
   function openPanel() {
-    if (!elements.card || !elements.stage || !elements.togglePanel) return;
-    panelOpen = true;
-    elements.card.classList.add('is-active');
-    elements.card.setAttribute('aria-current', 'page');
-    elements.togglePanel.setAttribute('aria-expanded', 'true');
-    elements.togglePanel.setAttribute('aria-label', 'Recolher painel de controle');
-    elements.stage.hidden = false;
-    if (elements.stageEmpty) {
-      elements.stageEmpty.hidden = true;
-    }
+    applyPanelState(true);
     requestAnimationFrame(() => {
       elements.stageTitle?.focus();
     });
   }
 
   function closePanel() {
-    if (!elements.card || !elements.stage || !elements.togglePanel) return;
-    panelOpen = false;
-    elements.card.classList.remove('is-active');
-    elements.card.removeAttribute('aria-current');
-    elements.togglePanel.setAttribute('aria-expanded', 'false');
-    elements.togglePanel.setAttribute('aria-label', 'Expandir painel de controle');
-    elements.stage.hidden = true;
-    if (elements.stageEmpty) {
-      elements.stageEmpty.hidden = false;
-    }
+    applyPanelState(false);
   }
 
   function togglePanelState() {
@@ -898,8 +898,13 @@
 
   function handleCardClick(event) {
     if (event.target.closest('[data-toggle-panel]')) return;
+
+    const cardIsActive = elements.card?.classList.contains('is-active');
+
     if (panelOpen) {
       togglePanelState();
+    } else if (cardIsActive) {
+      closePanel();
     } else {
       openPanel();
     }
