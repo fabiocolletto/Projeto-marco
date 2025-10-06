@@ -270,7 +270,7 @@
     const hasData = hasUser();
     const loggedIn = isLoggedIn();
     if (elements.card) {
-      elements.card.classList.toggle('is-active', loggedIn && panelOpen);
+      elements.card.classList.toggle('is-active', panelOpen);
     }
     if (elements.cardSubtitle) {
       elements.cardSubtitle.textContent = hasData
@@ -290,10 +290,9 @@
 
   function updateStage() {
     const hasData = hasUser();
-    const loggedIn = isLoggedIn();
 
     if (elements.stageEmpty) {
-      elements.stageEmpty.hidden = loggedIn;
+      elements.stageEmpty.hidden = panelOpen;
     }
 
     if (elements.stageEmptyMessage) {
@@ -309,17 +308,13 @@
     }
 
     if (elements.toggleButton) {
-      const expanded = loggedIn && panelOpen;
+      const expanded = panelOpen;
       elements.toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       elements.toggleButton.disabled = !hasData;
     }
 
     if (elements.stage) {
-      if (loggedIn && panelOpen) {
-        elements.stage.hidden = false;
-      } else {
-        elements.stage.hidden = true;
-      }
+      elements.stage.hidden = !panelOpen;
     }
 
     if (elements.loginUser) {
@@ -557,11 +552,7 @@
     });
   }
 
-  function openPanel(trigger) {
-    if (!isLoggedIn()) {
-      openLoginOverlay(trigger);
-      return;
-    }
+  function openPanel() {
     const wasClosed = !panelOpen;
     panelOpen = true;
     updateUI();
@@ -570,11 +561,7 @@
     }
   }
 
-  function togglePanel(trigger) {
-    if (!isLoggedIn()) {
-      openLoginOverlay(trigger);
-      return;
-    }
+  function togglePanel() {
     panelOpen = !panelOpen;
     updateUI();
     if (panelOpen) {
@@ -589,7 +576,7 @@
     if (toggle && (event.target === toggle || toggle.contains(event.target))) {
       return;
     }
-    openPanel(elements.toggleButton || null);
+    openPanel();
   }
 
   function handleStageClose() {
@@ -653,7 +640,7 @@
   if (elements.toggleButton) {
     elements.toggleButton.addEventListener('click', (event) => {
       event.preventDefault();
-      togglePanel(elements.toggleButton);
+      togglePanel();
     });
   }
 
