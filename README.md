@@ -2,8 +2,9 @@
 
 Protótipo navegável do **AppBase Marco** pronto para ser aberto diretamente em um
 navegador moderno sem build. A versão R1.0 consolida o shell completo com AppBar,
-rail de etiquetas, palco central e miniapps carregados por vanilla JS dentro da
-pasta `appbase/`, seguindo as diretrizes do blueprint visual.
+rail de etiquetas, palco central e uma miniapp enxuta de cadastro executada com
+HTML, CSS e JavaScript vanilla na pasta `appbase/`, seguindo as diretrizes do
+blueprint visual.
 
 ## Estrutura do repositório
 
@@ -41,6 +42,8 @@ MiniApp “Painel de controle”.
 5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
    cadastro ativo. O overlay de Login pode ser reaberto para editar o usuário a
    qualquer momento.
+6. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
+   (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
 
 ## MiniApp “Painel de controle” — destaques
 
@@ -56,6 +59,26 @@ MiniApp “Painel de controle”.
 - **Persistência local leve**: os dados são gravados no `localStorage`,
   reaplicados automaticamente na próxima visita e podem ser editados a qualquer
   momento sem dependências de sync/backup.
+
+## Tecnologias adotadas e compatibilidade
+
+- **HTML + CSS + JavaScript vanilla**: toda a experiência roda como arquivos
+  estáticos, mantendo compatibilidade total com GitHub Pages e dispensando
+  bundlers ou frameworks. O shell segue os tokens `--ac-*` e classes `ac-*`
+  definidos no blueprint visual.
+- **Persistência via `localStorage`**: garante que o cadastro funcione offline,
+  sem dependências de sincronização ou backend. A normalização de dados cuida de
+  nomes, contas e datas para manter a UI consistente.
+- **Acessibilidade nativa**: o overlay utiliza `role="dialog"`, `aria-modal` e
+  gerenciamento de foco em JavaScript puro para oferecer uma experiência
+  compatível com leitores de tela sem exigir bibliotecas externas.
+- **Testes Playwright**: a suíte end-to-end roda com Node.js apenas em
+  desenvolvimento, validando o fluxo principal. Como as dependências ficam em
+  `devDependencies`, o deploy estático permanece leve.
+
+Esta combinação evita conflitos entre tecnologias, atende ao objetivo atual de
+cadastro simples e pode ser expandida gradualmente (por exemplo, com APIs reais
+de autenticação ou módulos adicionais) sem reescrever a base.
 
 ## Próximos passos sugeridos
 
