@@ -1,1 +1,103 @@
-"use strict";(function(){const CFG=(document.querySelector('meta[name=appbase-i18n]')?.content||'').split(';').reduce((a,p)=>{const[k,v]=p.trim().split('=');if(k) a[k]=v;return a;},{defaultLocale:'pt-BR',supportedLocales:'pt-BR,en-US,es-ES'});const LS='app.locale';const SUP=(CFG.supportedLocales||'pt-BR').split(',');const loc0=localStorage.getItem(LS)||CFG.defaultLocale||'pt-BR';function apply(dict){document.querySelectorAll('[data-i18n]').forEach(el=>{const key=el.getAttribute('data-i18n');const val=key.split('.').reduce((o,k)=>o&&o[k],dict);if(typeof val==='string') el.textContent=val;});}async function load(loc){if(!SUP.includes(loc)) return;try{const ts=Date.now();const res=await fetch(`./i18n/${loc}.json?ts=${ts}`,{cache:'no-store'});const dict=await res.json();apply(dict);window.dispatchEvent(new CustomEvent('app:i18n:locale_changed',{detail:{locale:loc}}));localStorage.setItem(LS,loc);}catch(e){console.warn('[i18n] load failed',e);}}window.AppBaseI18n={setLocale:load,getLocale:()=>localStorage.getItem(LS)||loc0,supported:SUP};load(loc0);})();
+"use strict";
+(function () {
+  const metaContent = document.querySelector('meta[name=appbase-i18n]')?.content || "";
+  const config = metaContent.split(";").reduce(
+    (acc, part) => {
+      const [key, value] = part.trim().split("=");
+      if (key) {
+        acc[key] = value;
+      }
+      return acc;
+    },
+    { defaultLocale: "pt-BR", supportedLocales: "pt-BR,en-US,es-ES" }
+  );
+
+  const STORAGE_KEY = "app.locale";
+  const SUPPORTED = (config.supportedLocales || "pt-BR")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  function readStoredLocale() {
+    try {
+      return window.localStorage.getItem(STORAGE_KEY);
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function storeLocale(locale) {
+    if (!SUPPORTED.includes(locale)) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(STORAGE_KEY, locale);
+    } catch (error) {
+      /* noop */
+    }
+  }
+
+  const storedLocale = readStoredLocale();
+  const fallbackLocale = SUPPORTED.includes(storedLocale)
+    ? storedLocale
+    : SUPPORTED.includes(config.defaultLocale)
+    ? config.defaultLocale
+    : SUPPORTED[0] || "pt-BR";
+
+  let currentLocale = fallbackLocale;
+  let currentDictionary = null;
+
+  function resolveValue(dictionary, key) {
+    return key.split(".").reduce((acc, segment) => (acc ? acc[segment] : null), dictionary);
+  }
+
+  function apply(dictionary) {
+    if (!dictionary) {
+      return;
+    }
+    currentDictionary = dictionary;
+    document.querySelectorAll("[data-i18n]").forEach((element) => {
+      const key = element.getAttribute("data-i18n");
+      if (!key) {
+        return;
+      }
+      const value = resolveValue(dictionary, key);
+      if (typeof value === "string") {
+        element.textContent = value;
+      }
+    });
+  }
+
+  async function load(locale) {
+    if (!SUPPORTED.includes(locale)) {
+      return;
+    }
+    try {
+      const response = await fetch(`./i18n/${locale}.json?ts=${Date.now()}`, {
+        cache: "no-store",
+      });
+      const dictionary = await response.json();
+      currentLocale = locale;
+      apply(dictionary);
+      window.dispatchEvent(
+        new CustomEvent("app:i18n:locale_changed", { detail: { locale } })
+      );
+      storeLocale(locale);
+    } catch (error) {
+      console.warn("[i18n] load failed", error);
+    }
+  }
+
+  function refresh() {
+    apply(currentDictionary);
+  }
+
+  window.AppBaseI18n = {
+    setLocale: load,
+    refresh,
+    getLocale: () => currentLocale,
+    supported: SUPPORTED,
+  };
+
+  load(currentLocale);
+})();

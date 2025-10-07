@@ -5,13 +5,22 @@
     "footer": { "login": { "ok": "Conectado" } },
     "settings": {
       "title": "Configuración",
+      "subtitle": "Gestiona el idioma y la región de AppBase.",
+      "close": "Cerrar panel de idiomas",
       "lang_card": {
         "title": "Idioma y Región",
+        "description": "Elige el idioma preferido para AppBase.",
         "select_label": "Idioma",
-        "apply": "Aplicar"
+        "apply": "Aplicar",
+        "options": {
+          "pt-BR": "Portugués (Brasil)",
+          "en-US": "Inglés (Estados Unidos)",
+          "es-ES": "Español (España)"
+        }
       },
       "log": {
-        "title": "Registro de comandos"
+        "title": "Registro de comandos",
+        "subtitle": "Historial de acciones de idioma."
       }
     }
   }

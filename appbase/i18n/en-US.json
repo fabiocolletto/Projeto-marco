@@ -5,13 +5,22 @@
     "footer": { "login": { "ok": "Connected" } },
     "settings": {
       "title": "Settings",
+      "subtitle": "Manage AppBase language and region.",
+      "close": "Close language panel",
       "lang_card": {
         "title": "Language & Region",
+        "description": "Choose the preferred language for AppBase.",
         "select_label": "Language",
-        "apply": "Apply"
+        "apply": "Apply",
+        "options": {
+          "pt-BR": "Portuguese (Brazil)",
+          "en-US": "English (United States)",
+          "es-ES": "Spanish (Spain)"
+        }
       },
       "log": {
-        "title": "Command log"
+        "title": "Command log",
+        "subtitle": "Records for language actions."
       }
     }
   }
