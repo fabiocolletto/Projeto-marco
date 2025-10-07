@@ -1,8 +1,19 @@
 (function () {
   const STORAGE_KEY = 'marco-appbase:user';
+  const THEME_STORAGE_KEY = 'marco-appbase:theme';
   const DEFAULT_TITLE = 'Projeto Marco — AppBase';
   const FEEDBACK_TIMEOUT = 2200;
   const VALID_HISTORY_TYPES = ['login', 'logout'];
+  const THEMES = { LIGHT: 'light', DARK: 'dark' };
+  const BRAND_ICONS = {
+    [THEMES.LIGHT]: '../assets/app/brand/icon-light-500.png',
+    [THEMES.DARK]: '../assets/app/brand/icon-dark-500.png',
+  };
+  const THEME_ICONS = { [THEMES.LIGHT]: '☀️', [THEMES.DARK]: '🌙' };
+  const THEME_LABELS = {
+    [THEMES.LIGHT]: 'Ativar modo escuro',
+    [THEMES.DARK]: 'Ativar modo claro',
+  };
 
   const elements = {
     card: document.querySelector('[data-miniapp="painel"]'),
@@ -23,12 +34,14 @@
     overlayTitle: document.getElementById('login-dialog-title'),
     overlayForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
-    breadcrumbsSecondary: document.getElementById('breadcrumbs-secondary'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
     logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
+    themeToggle: document.querySelector('[data-theme-toggle]'),
+    themeToggleIcon: document.querySelector('[data-theme-toggle-icon]'),
+    brandIcon: document.querySelector('[data-brand-icon]'),
   };
 
   const overlayOpenButtons = Array.from(
@@ -38,6 +51,7 @@
     document.querySelectorAll('[data-overlay-close]')
   );
 
+  let currentTheme = normaliseTheme(resolveInitialTheme());
   let state = normaliseState(loadState());
   let panelOpen = hasUser(state) && state.sessionActive;
   let activeOverlayTrigger = null;
@@ -49,6 +63,98 @@
       return typeof window !== 'undefined' && 'localStorage' in window;
     } catch (error) {
       return false;
+    }
+  }
+
+  function normaliseTheme(theme) {
+    return theme === THEMES.DARK ? THEMES.DARK : THEMES.LIGHT;
+  }
+
+  function loadThemePreference() {
+    if (!canUseStorage()) {
+      return null;
+    }
+    try {
+      const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+      if (stored === THEMES.DARK || stored === THEMES.LIGHT) {
+        return stored;
+      }
+      return null;
+    } catch (error) {
+      console.warn('AppBase: falha ao carregar tema persistido', error);
+      return null;
+    }
+  }
+
+  function saveThemePreference(theme) {
+    if (!canUseStorage()) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (error) {
+      console.warn('AppBase: falha ao salvar tema persistido', error);
+    }
+  }
+
+  function resolveInitialTheme() {
+    const stored = loadThemePreference();
+    if (stored) {
+      return stored;
+    }
+    return detectSystemTheme();
+  }
+
+  function detectSystemTheme() {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return THEMES.LIGHT;
+    }
+    try {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? THEMES.DARK
+        : THEMES.LIGHT;
+    } catch (error) {
+      return THEMES.LIGHT;
+    }
+  }
+
+  function setTheme(theme, { persist = true } = {}) {
+    const nextTheme = normaliseTheme(theme);
+    currentTheme = nextTheme;
+    document.documentElement.setAttribute('data-theme', nextTheme);
+    updateThemeAssets(nextTheme);
+    if (persist) {
+      saveThemePreference(nextTheme);
+    }
+  }
+
+  function updateThemeAssets(theme) {
+    updateBrandIcon(theme);
+    updateThemeToggle(theme);
+  }
+
+  function updateBrandIcon(theme) {
+    if (!elements.brandIcon) {
+      return;
+    }
+    const source = BRAND_ICONS[theme] || BRAND_ICONS[THEMES.LIGHT];
+    if (elements.brandIcon.getAttribute('src') !== source) {
+      elements.brandIcon.setAttribute('src', source);
+    }
+  }
+
+  function updateThemeToggle(theme) {
+    if (!elements.themeToggle) {
+      return;
+    }
+    const isDark = theme === THEMES.DARK;
+    const label = THEME_LABELS[theme] || THEME_LABELS[THEMES.LIGHT];
+    const icon = THEME_ICONS[theme] || THEME_ICONS[THEMES.LIGHT];
+    elements.themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+    elements.themeToggle.setAttribute('aria-label', label);
+    elements.themeToggle.setAttribute('title', label);
+    if (elements.themeToggleIcon) {
+      elements.themeToggleIcon.textContent = icon;
     }
   }
 
@@ -249,11 +355,11 @@
   }
 
   function updateUI() {
+    updateThemeAssets(currentTheme);
     updateDocumentTitle();
     updateCard();
     updateStage();
     updateOverlayTitle();
-    updateBreadcrumbs();
     updateLoginFormFields();
     updateLogHistory();
     updateLogControls();
@@ -340,19 +446,6 @@
     }
     const label = hasUser() ? getDisplayName(state.user) : 'Não configurado';
     elements.overlayTitle.textContent = `Login — ${label}`;
-  }
-
-  function updateBreadcrumbs() {
-    if (!elements.breadcrumbsSecondary) {
-      return;
-    }
-    if (hasUser()) {
-      elements.breadcrumbsSecondary.textContent = `Cadastro de ${getFirstName(
-        state.user
-      )}`;
-    } else {
-      elements.breadcrumbsSecondary.textContent = 'Cadastro';
-    }
   }
 
   function updateLoginFormFields() {
@@ -631,10 +724,20 @@
     closeLoginOverlay();
   }
 
+  setTheme(currentTheme, { persist: false });
   updateUI();
 
   if (elements.card) {
     elements.card.addEventListener('click', handleCardClick);
+  }
+
+  if (elements.themeToggle) {
+    elements.themeToggle.addEventListener('click', (event) => {
+      event.preventDefault();
+      const nextTheme =
+        currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
+      setTheme(nextTheme);
+    });
   }
 
   if (elements.toggleButton) {
