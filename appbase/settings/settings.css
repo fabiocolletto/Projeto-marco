@@ -1,89 +1,110 @@
-.ac-lang-stage {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.ac-lang-panel {
+.ac-locale-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 240px;
+  padding: 16px;
+  border-radius: 18px;
+  border: var(--ac-border-width-strong) solid var(--ac-border);
+  background: var(--ac-bg);
+  box-shadow: 0 22px 42px rgba(15, 23, 42, 0.18);
   display: grid;
-  gap: 24px;
-  padding: 32px;
-  background: transparent;
+  gap: 12px;
+  z-index: 40;
 }
 
-.ac-lang-panel__card {
-  position: relative;
-}
-
-.ac-lang-panel__body {
-  display: grid;
-  gap: 16px;
-}
-
-.ac-lang-panel__label {
+.ac-locale-menu__title {
+  margin: 0;
+  font-size: 0.85rem;
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--ac-muted);
 }
 
-.ac-lang-panel__select {
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: var(--ac-border-width) solid var(--ac-border);
-  background: var(--ac-bg);
-  font-size: 1rem;
-  color: var(--ac-primary);
-}
-
-.ac-lang-panel__select:focus-visible {
-  outline: 2px solid var(--ac-primary);
-  outline-offset: 2px;
-}
-
-.ac-lang-panel__actions {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.ac-lang-panel__actions .ac-btn {
-  min-width: 120px;
-}
-
-.ac-lang-log {
-  min-height: 180px;
-  max-height: 240px;
+.ac-locale-menu__list {
+  list-style: none;
   margin: 0;
-  padding: 16px;
-  border-radius: 16px;
-  border: var(--ac-border-width) solid rgba(15, 23, 42, 0.12);
-  background: rgba(15, 23, 42, 0.08);
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ac-locale-menu__item {
+  margin: 0;
+  padding: 0;
+}
+
+.ac-locale-menu__option {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--ac-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ac-locale-menu__option:hover,
+.ac-locale-menu__option:focus-visible {
+  background: rgba(59, 130, 246, 0.12);
   color: var(--ac-primary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  font-size: 0.85rem;
-  line-height: 1.4;
-  overflow: auto;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18);
+  outline: none;
 }
 
-:root[data-theme='dark'] .ac-lang-log {
-  background: rgba(15, 23, 42, 0.4);
-  border-color: rgba(148, 163, 184, 0.35);
-  color: rgba(226, 232, 240, 0.9);
-}
-
-.ac-header-action.is-active {
+.ac-locale-menu__option.is-selected {
   background: var(--ac-primary);
   color: var(--ac-on-primary);
-  border-color: var(--ac-primary);
-  border-radius: 999px;
-  box-shadow: 0 0 0 4px rgba(31, 58, 138, 0.24);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.24);
 }
 
-:root[data-theme='dark'] .ac-header-action.is-active {
-  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.28);
+.ac-locale-menu__flag {
+  font-size: 1.35rem;
+  line-height: 1;
 }
 
-.ac-header-action.is-active i {
-  filter: none;
+.ac-locale-menu__name {
+  display: block;
+  font-weight: 600;
+}
+
+.ac-locale-menu__check {
+  font-size: 0.95rem;
+  color: inherit;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ac-locale-menu__option.is-selected .ac-locale-menu__check {
+  opacity: 1;
+}
+
+:root[data-theme='dark'] .ac-locale-menu {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(148, 163, 184, 0.35);
+  box-shadow: 0 22px 42px rgba(15, 23, 42, 0.42);
+}
+
+:root[data-theme='dark'] .ac-locale-menu__option:hover,
+:root[data-theme='dark'] .ac-locale-menu__option:focus-visible {
+  background: rgba(96, 165, 250, 0.18);
+  color: rgba(226, 232, 240, 0.95);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.28);
+}
+
+:root[data-theme='dark'] .ac-locale-menu__option.is-selected {
+  background: rgba(96, 165, 250, 0.25);
+  color: rgba(226, 232, 240, 0.98);
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.32);
 }
 
 .ac-visually-hidden {

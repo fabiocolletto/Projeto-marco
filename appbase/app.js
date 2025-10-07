@@ -8,7 +8,7 @@ import {
   const FEEDBACK_TIMEOUT = 2200;
   const BUTTON_FEEDBACK_DURATION = 900;
   const BUTTON_FEEDBACK_CLASS = 'ac-feedback-active';
-  const VALID_HISTORY_TYPES = ['login', 'logout'];
+  const VALID_HISTORY_TYPES = ['login', 'logout', 'locale'];
   const THEMES = { LIGHT: 'light', DARK: 'dark' };
   const DEFAULT_TITLE_KEY = 'app.document.title.default';
   const TITLE_WITH_USER_KEY = 'app.document.title.user';
@@ -65,6 +65,12 @@ import {
     logout: 'app.history.event.logout',
     logoutPreserve: 'app.history.event.logout_preserve',
     logoutClear: 'app.history.event.logout_clear',
+    locale: 'app.history.event.locale_change',
+  };
+  const LOCALE_NAME_FALLBACKS = {
+    'pt-BR': 'Brasil · Português',
+    'en-US': 'Estados Unidos · Inglês',
+    'es-ES': 'Espanha · Espanhol',
   };
   const FOOTER_STATUS_KEYS = {
     connected: 'app.footer.status.connected',
@@ -128,6 +134,11 @@ import {
     [HISTORY_EVENT_KEYS.logout]: 'Logoff',
     [HISTORY_EVENT_KEYS.logoutPreserve]: 'Logoff (dados mantidos)',
     [HISTORY_EVENT_KEYS.logoutClear]: 'Logoff (dados removidos)',
+    [HISTORY_EVENT_KEYS.locale]: 'Idioma alterado para {{locale}}',
+    'app.locale.menu.title': 'Idioma do AppBase',
+    'app.locale.menu.options.pt-BR': 'Brasil · Português',
+    'app.locale.menu.options.en-US': 'Estados Unidos · Inglês',
+    'app.locale.menu.options.es-ES': 'Espanha · Espanhol',
     [FOOTER_STATUS_KEYS.connected]: 'Conectado',
     [FOOTER_STATUS_KEYS.disconnected]: 'Desconectado',
     [FOOTER_STATUS_LABEL_KEY]: 'Status:',
@@ -352,6 +363,8 @@ import {
   let fullscreenNotice = '';
   const buttonFeedbackTimers = new WeakMap();
   let passwordVisible = false;
+  let localeSyncInitialised = false;
+  let lastLocaleSeen = null;
 
   function canUseStorage() {
     try {
@@ -764,7 +777,22 @@ import {
     const mode = rawEntry.mode === 'preserve' || rawEntry.mode === 'clear'
       ? rawEntry.mode
       : undefined;
-    return mode ? { type, timestamp, mode } : { type, timestamp };
+    const locale =
+      typeof rawEntry.locale === 'string' && rawEntry.locale.trim()
+        ? rawEntry.locale.trim()
+        : '';
+    const localeLabel =
+      typeof rawEntry.localeLabel === 'string' && rawEntry.localeLabel.trim()
+        ? rawEntry.localeLabel.trim()
+        : '';
+    const entry = mode ? { type, timestamp, mode } : { type, timestamp };
+    if (locale) {
+      entry.locale = locale;
+    }
+    if (localeLabel) {
+      entry.localeLabel = localeLabel;
+    }
+    return entry;
   }
 
   function hasUser(currentState = state) {
@@ -791,7 +819,31 @@ import {
     if (options.mode === 'preserve' || options.mode === 'clear') {
       base.mode = options.mode;
     }
+    if (options.locale && typeof options.locale === 'string') {
+      base.locale = options.locale;
+    }
+    if (options.localeLabel && typeof options.localeLabel === 'string') {
+      base.localeLabel = options.localeLabel;
+    }
     return normaliseHistoryEntry(base);
+  }
+
+  function recordLocaleHistory(locale) {
+    if (!locale) {
+      return false;
+    }
+    const historyEntry = createHistoryEntry('locale', {
+      locale,
+      localeLabel: getLocaleLabel(locale),
+    });
+    if (!historyEntry) {
+      return false;
+    }
+    setState((previous) => ({
+      ...previous,
+      history: [historyEntry, ...(previous.history || [])],
+    }));
+    return true;
   }
 
   function getDisplayName(user) {
@@ -1151,6 +1203,32 @@ import {
     syncDirtyFlagFromForm();
   }
 
+  function getLocaleLabel(locale) {
+    if (!locale) {
+      return '';
+    }
+    const key = `app.locale.menu.options.${locale}`;
+    const fallback = Object.prototype.hasOwnProperty.call(
+      LOCALE_NAME_FALLBACKS,
+      locale
+    )
+      ? LOCALE_NAME_FALLBACKS[locale]
+      : locale;
+    const translated = translate(key, fallback);
+    return translated || fallback;
+  }
+
+  function getActiveLocale() {
+    if (!window.AppBaseI18n || typeof window.AppBaseI18n.getLocale !== 'function') {
+      return null;
+    }
+    try {
+      return window.AppBaseI18n.getLocale();
+    } catch (error) {
+      return null;
+    }
+  }
+
   function getHistoryLabel(entry) {
     if (!entry) {
       return '';
@@ -1178,6 +1256,15 @@ import {
         HISTORY_EVENT_KEYS.logout,
         fallbackFor(HISTORY_EVENT_KEYS.logout)
       );
+    }
+    if (entry.type === 'locale') {
+      const fallback = fallbackFor(HISTORY_EVENT_KEYS.locale, '');
+      const template = translate(HISTORY_EVENT_KEYS.locale, fallback);
+      const localeLabel = entry.localeLabel || getLocaleLabel(entry.locale);
+      const message = formatMessage(template || fallback, {
+        locale: localeLabel || entry.locale || '',
+      });
+      return message || fallback;
     }
     return '';
   }
@@ -1407,11 +1494,25 @@ import {
     focusPanelAccess();
   }
 
-  window.addEventListener('app:i18n:locale_changed', () => {
+  window.addEventListener('app:i18n:locale_changed', (event) => {
+    const detailLocale = event?.detail?.locale;
+    const currentLocale = detailLocale || getActiveLocale();
+    const shouldLog =
+      localeSyncInitialised && currentLocale && currentLocale !== lastLocaleSeen;
+    if (!localeSyncInitialised) {
+      localeSyncInitialised = true;
+    }
     if (window.AppBaseI18n && typeof window.AppBaseI18n.refresh === 'function') {
       window.AppBaseI18n.refresh();
     }
-    updateUI();
+    if (shouldLog) {
+      recordLocaleHistory(currentLocale);
+    } else {
+      updateUI();
+    }
+    if (currentLocale) {
+      lastLocaleSeen = currentLocale;
+    }
   });
 
   const fullscreenChangeEvents = [

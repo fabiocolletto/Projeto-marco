@@ -30,6 +30,16 @@
         "failure": "Não foi possível alternar o modo de tela cheia. Verifique as permissões do navegador."
       }
     },
+    "locale": {
+      "menu": {
+        "title": "Idioma do AppBase",
+        "options": {
+          "pt-BR": "Brasil · Português",
+          "en-US": "Estados Unidos · Inglês",
+          "es-ES": "Espanha · Espanhol"
+        }
+      }
+    },
     "rail": {
       "label": "Miniapps",
       "empty": "Slot vazio — Adicione um mini-app"
@@ -117,8 +127,8 @@
         }
       },
       "history": {
-        "title": "Histórico de acessos",
-        "subtitle": "Acompanhe logins e logoffs registrados neste navegador.",
+        "title": "Histórico de atividades",
+        "subtitle": "Acompanhe logins, logoffs e trocas de idioma registradas neste navegador.",
         "table": {
           "event": "Evento",
           "time": "Horário"
@@ -131,7 +141,8 @@
         "login": "Login realizado",
         "logout": "Logoff",
         "logout_preserve": "Logoff (dados mantidos)",
-        "logout_clear": "Logoff (dados removidos)"
+        "logout_clear": "Logoff (dados removidos)",
+        "locale_change": "Idioma alterado para {{locale}}"
       }
     },
     "footer": {
