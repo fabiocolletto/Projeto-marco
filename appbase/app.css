@@ -113,7 +113,7 @@ select {
   max-height: 100vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 12px;
+  gap: 0;
   padding: 0;
   overflow: hidden;
 }
@@ -122,7 +122,7 @@ select {
 .ac-footer {
   background: var(--ac-bg);
   border: var(--ac-border-width) solid var(--ac-border-soft);
-  border-radius: 16px;
+  border-radius: 0;
   padding: 16px 24px;
   display: flex;
   align-items: center;
@@ -240,7 +240,7 @@ select {
 .ac-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
-  gap: 12px;
+  gap: 0;
   min-height: 0;
   height: 100%;
 }
@@ -271,7 +271,7 @@ select {
   flex-direction: column;
   background: var(--ac-bg);
   border: var(--ac-border-width) solid var(--ac-border-soft);
-  border-radius: 20px;
+  border-radius: 0;
   padding: 16px;
   height: 100%;
   min-height: 0;
@@ -429,7 +429,7 @@ select {
   flex-direction: column;
   background: var(--ac-bg);
   border: var(--ac-border-width) solid var(--ac-border-soft);
-  border-radius: 18px;
+  border-radius: 0;
   padding: 0;
   position: relative;
   min-height: 0;
