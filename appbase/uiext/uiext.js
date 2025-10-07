@@ -8,13 +8,57 @@
     return document.querySelector(selector);
   }
 
-  function createIcon(action) {
-    const icon = document.createElement("i");
-    icon.className = ["ac-i", action.iconRef || ""].filter(Boolean).join(" ");
-    icon.setAttribute("aria-hidden", "true");
-    if (!icon.textContent) {
-      icon.textContent = "🌐";
+  const LOCALE_ACTION_ID = "app.locale";
+  const LOCALE_ICON_CLASS = "ac-locale-indicator";
+
+  function getCurrentLocale() {
+    const localeGetter = window.AppBaseI18n?.getLocale;
+    if (typeof localeGetter !== "function") {
+      return "";
     }
+    try {
+      return localeGetter.call(window.AppBaseI18n) || "";
+    } catch (error) {
+      return "";
+    }
+  }
+
+  function localeToInitials(locale) {
+    if (!locale) {
+      return "";
+    }
+    const primaryTag = `${locale}`.split(/[-_]/)[0] || "";
+    const letters = primaryTag.replace(/[^a-zA-Z]/g, "");
+    return letters.slice(0, 2).toUpperCase();
+  }
+
+  function applyLocaleInitials(target) {
+    if (!target) {
+      return;
+    }
+    const initials = localeToInitials(getCurrentLocale());
+    target.textContent = initials || "--";
+  }
+
+  function updateLocaleIndicators() {
+    document
+      .querySelectorAll(
+        `[${ACTION_ATTR}="${LOCALE_ACTION_ID}"] .${LOCALE_ICON_CLASS}`
+      )
+      .forEach((element) => applyLocaleInitials(element));
+  }
+
+  function createIcon(action) {
+    const icon = document.createElement("span");
+    icon.className = [
+      "ac-i",
+      LOCALE_ICON_CLASS,
+      action.iconRef || "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    icon.setAttribute("aria-hidden", "true");
+    applyLocaleInitials(icon);
     return icon;
   }
 
@@ -79,6 +123,7 @@
 
   function bindLocaleLabelUpdates() {
     window.addEventListener("app:i18n:locale_changed", () => {
+      updateLocaleIndicators();
       document
         .querySelectorAll(`.${ACTION_CLASS}`)
         .forEach((button) => updateButtonLabels(button));
@@ -88,8 +133,9 @@
   async function init() {
     const catalog = await loadCatalog();
     (catalog.header || [])
-      .filter((entry) => entry.id === "app.locale")
+      .filter((entry) => entry.id === LOCALE_ACTION_ID)
       .forEach(addHeaderAction);
+    updateLocaleIndicators();
     bindLocaleLabelUpdates();
   }
 
