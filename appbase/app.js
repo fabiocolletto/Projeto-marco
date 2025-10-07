@@ -1,44 +1,128 @@
 (function () {
   const STORAGE_KEY = 'marco-appbase:user';
   const THEME_STORAGE_KEY = 'marco-appbase:theme';
-  const DEFAULT_TITLE = 'Projeto Marco — AppBase';
   const FEEDBACK_TIMEOUT = 2200;
   const BUTTON_FEEDBACK_DURATION = 900;
   const BUTTON_FEEDBACK_CLASS = 'ac-feedback-active';
   const VALID_HISTORY_TYPES = ['login', 'logout'];
   const THEMES = { LIGHT: 'light', DARK: 'dark' };
-  const PANEL_ACCESS_LABELS = {
-    open: 'Abrir painel do usuário',
-    close: 'Fechar painel do usuário',
+  const DEFAULT_TITLE_KEY = 'app.document.title.default';
+  const TITLE_WITH_USER_KEY = 'app.document.title.user';
+  const PANEL_ACCESS_LABEL_KEYS = {
+    open: 'app.header.panel.trigger.open',
+    close: 'app.header.panel.trigger.close',
   };
   const BRAND_ICONS = {
     [THEMES.LIGHT]: '../assets/app/brand/icon-light-500.png',
     [THEMES.DARK]: '../assets/app/brand/icon-dark-500.png',
   };
   const THEME_ICONS = { [THEMES.LIGHT]: '☀️', [THEMES.DARK]: '🌙' };
-  const THEME_LABELS = {
-    [THEMES.LIGHT]: 'Ativar modo escuro',
-    [THEMES.DARK]: 'Ativar modo claro',
+  const THEME_LABEL_KEYS = {
+    [THEMES.LIGHT]: 'app.header.theme.light',
+    [THEMES.DARK]: 'app.header.theme.dark',
   };
-  const FULLSCREEN_UI = {
-    enter: {
-      label: 'Ativar tela cheia',
-      icon: '⛶',
-    },
-    exit: {
-      label: 'Sair da tela cheia',
-      icon: '🡼',
-    },
+  const FULLSCREEN_LABEL_KEYS = {
+    enter: 'app.header.fullscreen.enter',
+    exit: 'app.header.fullscreen.exit',
   };
-  const FULLSCREEN_MESSAGES = {
-    unsupported: 'Tela cheia não é suportada neste navegador.',
-    failure:
-      'Não foi possível alternar o modo de tela cheia. Verifique as permissões do navegador.',
+  const FULLSCREEN_ICONS = { enter: '⛶', exit: '🡼' };
+  const FULLSCREEN_MESSAGE_KEYS = {
+    unsupported: 'app.header.fullscreen.unsupported',
+    failure: 'app.header.fullscreen.failure',
   };
+  const STAGE_CLOSE_LABEL_KEY = 'app.panel.stage.close';
+  const STAGE_EMPTY_KEYS = {
+    empty: 'app.stage.empty.default',
+    return: 'app.stage.empty.return',
+  };
+  const SUMMARY_EMPTY_KEY = 'app.panel.summary.empty';
+  const PANEL_STATUS_LABEL_KEYS = {
+    connected: 'app.panel.kpis.status.states.connected',
+    disconnected: 'app.panel.kpis.status.states.disconnected',
+  };
+  const PANEL_STATUS_HINT_KEYS = {
+    empty: 'app.panel.kpis.status.hint.empty',
+    inactive: 'app.panel.kpis.status.hint.inactive',
+    active: 'app.panel.kpis.status.hint.active',
+  };
+  const PANEL_LAST_LOGIN_HINT_KEYS = {
+    empty: 'app.panel.kpis.last_login.hint.empty',
+    inactive: 'app.panel.kpis.last_login.hint.inactive',
+    active: 'app.panel.kpis.last_login.hint.active',
+  };
+  const PANEL_EVENTS_HINT_KEYS = {
+    empty: 'app.panel.kpis.events.hint.empty',
+    single: 'app.panel.kpis.events.hint.single',
+    multiple: 'app.panel.kpis.events.hint.multiple',
+  };
+  const HISTORY_EMPTY_KEY = 'app.history.empty';
+  const HISTORY_EVENT_KEYS = {
+    login: 'app.history.event.login',
+    logout: 'app.history.event.logout',
+    logoutPreserve: 'app.history.event.logout_preserve',
+    logoutClear: 'app.history.event.logout_clear',
+  };
+  const FOOTER_STATUS_KEYS = {
+    connected: 'app.footer.status.connected',
+    disconnected: 'app.footer.status.disconnected',
+  };
+  const FOOTER_STATUS_LABEL_KEY = 'app.footer.status.label';
+  const SESSION_ACTIONS_LABEL_KEY = 'app.panel.session.actions.label';
+  const RAIL_LABEL_KEY = 'app.rail.label';
+  const PANEL_KPIS_GROUP_LABEL_KEY = 'app.panel.kpis.group_label';
+  const LOGIN_ERROR_FEEDBACK_KEY = 'app.panel.form.feedback.error';
+  const LOGIN_SUCCESS_FEEDBACK_KEY = 'app.panel.form.feedback.success';
+  const FORM_PHONE_PLACEHOLDER_KEY = 'app.panel.form.fields.phone_placeholder';
   const STAGE_PANEL_OPEN_CLASS = 'ac-stage--panel-open';
+
+  const FALLBACKS = {
+    [DEFAULT_TITLE_KEY]: 'Projeto Marco — AppBase',
+    [TITLE_WITH_USER_KEY]: 'Projeto Marco — {{user}}',
+    [PANEL_ACCESS_LABEL_KEYS.open]: 'Abrir painel do usuário',
+    [PANEL_ACCESS_LABEL_KEYS.close]: 'Fechar painel do usuário',
+    [THEME_LABEL_KEYS[THEMES.LIGHT]]: 'Ativar modo escuro',
+    [THEME_LABEL_KEYS[THEMES.DARK]]: 'Ativar modo claro',
+    [FULLSCREEN_LABEL_KEYS.enter]: 'Ativar tela cheia',
+    [FULLSCREEN_LABEL_KEYS.exit]: 'Sair da tela cheia',
+    [FULLSCREEN_MESSAGE_KEYS.unsupported]:
+      'Tela cheia não é suportada neste navegador.',
+    [FULLSCREEN_MESSAGE_KEYS.failure]:
+      'Não foi possível alternar o modo de tela cheia. Verifique as permissões do navegador.',
+    [STAGE_CLOSE_LABEL_KEY]: 'Fechar painel de controle',
+    [STAGE_EMPTY_KEYS.empty]:
+      'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.',
+    [STAGE_EMPTY_KEYS.return]: 'Sessão encerrada. Acesse novamente para visualizar o painel.',
+    [SUMMARY_EMPTY_KEY]: 'Não configurado',
+    [PANEL_STATUS_LABEL_KEYS.connected]: 'Conectado',
+    [PANEL_STATUS_LABEL_KEYS.disconnected]: 'Desconectado',
+    [PANEL_STATUS_HINT_KEYS.empty]: 'Cadastre um usuário para iniciar a sessão.',
+    [PANEL_STATUS_HINT_KEYS.inactive]: 'Sessão encerrada. Abra o painel e salve para retomar.',
+    [PANEL_STATUS_HINT_KEYS.active]: 'Sessão ativa neste navegador.',
+    [PANEL_LAST_LOGIN_HINT_KEYS.empty]: 'Nenhum registro disponível.',
+    [PANEL_LAST_LOGIN_HINT_KEYS.inactive]: 'Último acesso registrado localmente.',
+    [PANEL_LAST_LOGIN_HINT_KEYS.active]: 'Atualizado automaticamente após o login.',
+    [PANEL_EVENTS_HINT_KEYS.empty]: 'Aguardando primeiro registro.',
+    [PANEL_EVENTS_HINT_KEYS.single]: '1 evento armazenado neste dispositivo.',
+    [PANEL_EVENTS_HINT_KEYS.multiple]: '{{count}} eventos armazenados neste dispositivo.',
+    [HISTORY_EMPTY_KEY]: 'Sem registros.',
+    [HISTORY_EVENT_KEYS.login]: 'Login realizado',
+    [HISTORY_EVENT_KEYS.logout]: 'Logoff',
+    [HISTORY_EVENT_KEYS.logoutPreserve]: 'Logoff (dados mantidos)',
+    [HISTORY_EVENT_KEYS.logoutClear]: 'Logoff (dados removidos)',
+    [FOOTER_STATUS_KEYS.connected]: 'Conectado',
+    [FOOTER_STATUS_KEYS.disconnected]: 'Desconectado',
+    [FOOTER_STATUS_LABEL_KEY]: 'Status:',
+    [SESSION_ACTIONS_LABEL_KEY]: 'Ações da sessão',
+    [RAIL_LABEL_KEY]: 'Miniapps',
+    [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
+    [LOGIN_ERROR_FEEDBACK_KEY]: 'Informe nome e e-mail para continuar.',
+    [LOGIN_SUCCESS_FEEDBACK_KEY]: 'Cadastro atualizado com sucesso.',
+    [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
+  };
 
   const elements = {
     stageShell: document.querySelector('[data-stage-shell]'),
+    railShell: document.querySelector('.ac-rail-shell'),
     stage: document.getElementById('painel-stage'),
     stageTitle: document.getElementById('painel-stage-title'),
     stageClose: document.querySelector('[data-stage-close]'),
@@ -56,11 +140,13 @@
     panelLastLoginHint: document.querySelector('[data-panel-last-login-hint]'),
     panelLoginCount: document.querySelector('[data-panel-login-count]'),
     panelLoginHint: document.querySelector('[data-panel-login-hint]'),
+    panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
     logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
+    sessionActions: document.querySelector('[data-session-actions]'),
     themeToggle: document.querySelector('[data-theme-toggle]'),
     themeToggleIcon: document.querySelector('[data-theme-toggle-icon]'),
     fullscreenToggle: document.querySelector('[data-fullscreen-toggle]'),
@@ -70,6 +156,70 @@
     footerStatusDot: document.querySelector('[data-footer-status-dot]'),
     footerStatusLabel: document.querySelector('[data-footer-status-label]'),
   };
+
+  function fallbackFor(key, defaultValue = '') {
+    if (key && Object.prototype.hasOwnProperty.call(FALLBACKS, key)) {
+      return FALLBACKS[key];
+    }
+    return defaultValue;
+  }
+
+  function translate(key, fallback) {
+    if (!key) {
+      return typeof fallback === 'string' ? fallback : '';
+    }
+    const resolvedFallback =
+      typeof fallback === 'string' && fallback ? fallback : fallbackFor(key, '');
+    if (window.AppBaseI18n && typeof window.AppBaseI18n.translate === 'function') {
+      const value = window.AppBaseI18n.translate(key);
+      if (typeof value === 'string' && value.trim()) {
+        return value;
+      }
+    }
+    const fallbackElement = document.querySelector(`[data-i18n="${key}"]`);
+    if (fallbackElement) {
+      const text = fallbackElement.textContent.trim();
+      if (text) {
+        return text;
+      }
+    }
+    return resolvedFallback;
+  }
+
+  function formatMessage(template, replacements = {}) {
+    if (typeof template !== 'string' || !template) {
+      return '';
+    }
+    return Object.keys(replacements).reduce((accumulator, placeholder) => {
+      const value = replacements[placeholder];
+      const pattern = new RegExp(`{{\\s*${placeholder}\\s*}}`, 'g');
+      return accumulator.replace(pattern, value);
+    }, template);
+  }
+
+  function setElementTextFromKey(element, key, options = {}) {
+    if (!element) {
+      return;
+    }
+    if (!key) {
+      element.removeAttribute('data-i18n');
+      return;
+    }
+    const { fallbackKey = key, replacements = {} } = options;
+    element.setAttribute('data-i18n', key);
+    const fallback = fallbackFor(fallbackKey, '');
+    const template = translate(key, fallback);
+    const value = formatMessage(template || fallback, replacements) || fallback;
+    element.textContent = value;
+  }
+
+  function clearElementTranslation(element, text = '') {
+    if (!element) {
+      return;
+    }
+    element.removeAttribute('data-i18n');
+    element.textContent = text;
+  }
 
   let currentTheme = normaliseTheme(resolveInitialTheme());
   let state = normaliseState(loadState());
@@ -187,7 +337,8 @@
       return;
     }
     const isDark = theme === THEMES.DARK;
-    const label = THEME_LABELS[theme] || THEME_LABELS[THEMES.LIGHT];
+    const labelKey = THEME_LABEL_KEYS[theme] || THEME_LABEL_KEYS[THEMES.LIGHT];
+    const label = translate(labelKey, fallbackFor(labelKey));
     const icon = THEME_ICONS[theme] || THEME_ICONS[THEMES.LIGHT];
     elements.themeToggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
     elements.themeToggle.setAttribute('aria-label', label);
@@ -328,12 +479,15 @@
     if (!elements.fullscreenToggle) {
       return;
     }
-    const state = active ? FULLSCREEN_UI.exit : FULLSCREEN_UI.enter;
+    const mode = active ? 'exit' : 'enter';
+    const labelKey = FULLSCREEN_LABEL_KEYS[mode];
+    const label = translate(labelKey, fallbackFor(labelKey));
     elements.fullscreenToggle.setAttribute('aria-pressed', active ? 'true' : 'false');
-    elements.fullscreenToggle.setAttribute('aria-label', state.label);
-    elements.fullscreenToggle.setAttribute('title', state.label);
+    elements.fullscreenToggle.setAttribute('aria-label', label);
+    elements.fullscreenToggle.setAttribute('title', label);
     if (elements.fullscreenToggleIcon) {
-      elements.fullscreenToggleIcon.textContent = state.icon;
+      const icon = FULLSCREEN_ICONS[mode] || FULLSCREEN_ICONS.enter;
+      elements.fullscreenToggleIcon.textContent = icon;
     }
   }
 
@@ -351,8 +505,12 @@
     }
     fullscreenSupported = isFullscreenSupported();
     if (!fullscreenSupported) {
-      hideFullscreenToggle(FULLSCREEN_MESSAGES.unsupported);
-      notifyFullscreenIssue(FULLSCREEN_MESSAGES.unsupported);
+      const message = translate(
+        FULLSCREEN_MESSAGE_KEYS.unsupported,
+        fallbackFor(FULLSCREEN_MESSAGE_KEYS.unsupported)
+      );
+      hideFullscreenToggle(message);
+      notifyFullscreenIssue(message);
       return;
     }
     showFullscreenToggle();
@@ -363,8 +521,12 @@
     event.preventDefault();
     applyButtonFeedback(event.currentTarget);
     if (!fullscreenSupported) {
-      notifyFullscreenIssue(FULLSCREEN_MESSAGES.unsupported, { announce: true });
-      hideFullscreenToggle(FULLSCREEN_MESSAGES.unsupported);
+      const unsupportedMessage = translate(
+        FULLSCREEN_MESSAGE_KEYS.unsupported,
+        fallbackFor(FULLSCREEN_MESSAGE_KEYS.unsupported)
+      );
+      notifyFullscreenIssue(unsupportedMessage, { announce: true });
+      hideFullscreenToggle(unsupportedMessage);
       return;
     }
     const target = getFullscreenTarget();
@@ -377,18 +539,26 @@
       })
       .catch((error) => {
         console.warn('AppBase: falha ao alternar tela cheia', error);
-        notifyFullscreenIssue(FULLSCREEN_MESSAGES.failure, { announce: true });
+        const failureMessage = translate(
+          FULLSCREEN_MESSAGE_KEYS.failure,
+          fallbackFor(FULLSCREEN_MESSAGE_KEYS.failure)
+        );
+        notifyFullscreenIssue(failureMessage, { announce: true });
         fullscreenSupported = false;
-        hideFullscreenToggle(FULLSCREEN_MESSAGES.failure);
+        hideFullscreenToggle(failureMessage);
         syncFullscreenStateFromDocument();
       });
   }
 
   function handleFullscreenError(event) {
     console.warn('AppBase: erro de tela cheia', event);
-    notifyFullscreenIssue(FULLSCREEN_MESSAGES.failure);
+    const failureMessage = translate(
+      FULLSCREEN_MESSAGE_KEYS.failure,
+      fallbackFor(FULLSCREEN_MESSAGE_KEYS.failure)
+    );
+    notifyFullscreenIssue(failureMessage);
     fullscreenSupported = false;
-    hideFullscreenToggle(FULLSCREEN_MESSAGES.failure);
+    hideFullscreenToggle(failureMessage);
     syncFullscreenStateFromDocument();
   }
 
@@ -530,7 +700,7 @@
 
   function getDisplayName(user) {
     if (!user) {
-      return 'Não configurado';
+      return translate(SUMMARY_EMPTY_KEY, fallbackFor(SUMMARY_EMPTY_KEY));
     }
     if (user.nomeCompleto) {
       return user.nomeCompleto;
@@ -539,16 +709,17 @@
       const [account] = user.email.split('@');
       return account || user.email;
     }
-    return 'Não configurado';
+    return translate(SUMMARY_EMPTY_KEY, fallbackFor(SUMMARY_EMPTY_KEY));
   }
 
   function getFirstName(user) {
     if (!user) {
-      return 'Não configurado';
+      return translate(SUMMARY_EMPTY_KEY, fallbackFor(SUMMARY_EMPTY_KEY));
     }
     if (user.nomeCompleto) {
       const [first] = user.nomeCompleto.split(/\s+/);
-      return first || 'Não configurado';
+      const trimmed = first ? first.trim() : '';
+      return trimmed || translate(SUMMARY_EMPTY_KEY, fallbackFor(SUMMARY_EMPTY_KEY));
     }
     return getDisplayName(user);
   }
@@ -569,9 +740,17 @@
     if (Number.isNaN(date.getTime())) {
       return '—';
     }
-    return date.toLocaleString('pt-BR', {
-      hour12: false,
-    });
+    const locale =
+      (window.AppBaseI18n && typeof window.AppBaseI18n.getLocale === 'function'
+        ? window.AppBaseI18n.getLocale()
+        : null) || 'pt-BR';
+    try {
+      return date.toLocaleString(locale, {
+        hour12: false,
+      });
+    } catch (error) {
+      return date.toLocaleString('pt-BR', { hour12: false });
+    }
   }
 
   function nowIso() {
@@ -593,6 +772,7 @@
     updateFullscreenToggle(fullscreenActive);
     updateDocumentTitle();
     updatePanelAccessControl();
+    updateAriaLabels();
     updateStatusSummary();
     updateStage();
     updateLoginFormFields();
@@ -601,10 +781,20 @@
   }
 
   function updateDocumentTitle() {
-    const title = isLoggedIn()
-      ? `Projeto Marco — ${getFirstName(state.user)}`
-      : DEFAULT_TITLE;
-    document.title = title;
+    const baseTitle = translate(DEFAULT_TITLE_KEY, fallbackFor(DEFAULT_TITLE_KEY));
+    if (isLoggedIn()) {
+      const firstName = getFirstName(state.user);
+      const template = translate(
+        TITLE_WITH_USER_KEY,
+        fallbackFor(TITLE_WITH_USER_KEY)
+      );
+      const personalised = formatMessage(template || baseTitle, {
+        user: firstName || '',
+      }).trim();
+      document.title = personalised || baseTitle;
+      return;
+    }
+    document.title = baseTitle;
   }
 
   function updatePanelAccessControl() {
@@ -612,12 +802,39 @@
       return;
     }
     const expanded = Boolean(panelOpen);
-    const label = expanded
-      ? PANEL_ACCESS_LABELS.close
-      : PANEL_ACCESS_LABELS.open;
+    const labelKey = expanded
+      ? PANEL_ACCESS_LABEL_KEYS.close
+      : PANEL_ACCESS_LABEL_KEYS.open;
+    const label = translate(labelKey, fallbackFor(labelKey));
     elements.panelAccess.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     elements.panelAccess.setAttribute('aria-label', label);
     elements.panelAccess.setAttribute('title', label);
+  }
+
+  function updateAriaLabels() {
+    if (elements.railShell) {
+      elements.railShell.setAttribute(
+        'aria-label',
+        translate(RAIL_LABEL_KEY, fallbackFor(RAIL_LABEL_KEY))
+      );
+    }
+    if (elements.panelKpisGroup) {
+      elements.panelKpisGroup.setAttribute(
+        'aria-label',
+        translate(PANEL_KPIS_GROUP_LABEL_KEY, fallbackFor(PANEL_KPIS_GROUP_LABEL_KEY))
+      );
+    }
+    if (elements.sessionActions) {
+      elements.sessionActions.setAttribute(
+        'aria-label',
+        translate(SESSION_ACTIONS_LABEL_KEY, fallbackFor(SESSION_ACTIONS_LABEL_KEY))
+      );
+    }
+    if (elements.stageClose) {
+      const label = translate(STAGE_CLOSE_LABEL_KEY, fallbackFor(STAGE_CLOSE_LABEL_KEY));
+      elements.stageClose.setAttribute('aria-label', label);
+      elements.stageClose.setAttribute('title', label);
+    }
   }
 
   function updateStatusSummary() {
@@ -627,9 +844,10 @@
       elements.footerStatusDot.classList.toggle('ac-dot--crit', !loggedIn);
     }
     if (elements.footerStatusLabel) {
-      elements.footerStatusLabel.textContent = loggedIn
-        ? 'Conectado'
-        : 'Desconectado';
+      const statusKey = loggedIn
+        ? FOOTER_STATUS_KEYS.connected
+        : FOOTER_STATUS_KEYS.disconnected;
+      setElementTextFromKey(elements.footerStatusLabel, statusKey);
     }
   }
 
@@ -642,9 +860,10 @@
     }
 
     if (elements.stageEmptyMessage) {
-      elements.stageEmptyMessage.textContent = hasData
-        ? 'Sessão encerrada. Acesse novamente para visualizar o painel.'
-        : 'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.';
+      const messageKey = hasData
+        ? STAGE_EMPTY_KEYS.return
+        : STAGE_EMPTY_KEYS.empty;
+      setElementTextFromKey(elements.stageEmptyMessage, messageKey);
     }
 
     if (elements.stage) {
@@ -656,19 +875,19 @@
     }
 
     if (elements.loginUser) {
-      elements.loginUser.textContent = hasData
-        ? getDisplayName(state.user)
-        : 'Não configurado';
+      if (hasData) {
+        clearElementTranslation(elements.loginUser, getDisplayName(state.user));
+      } else {
+        setElementTextFromKey(elements.loginUser, SUMMARY_EMPTY_KEY);
+      }
     }
     if (elements.loginAccount) {
-      elements.loginAccount.textContent = hasData
-        ? getAccount(state.user)
-        : '—';
+      const account = hasData ? getAccount(state.user) : '—';
+      clearElementTranslation(elements.loginAccount, account);
     }
     if (elements.loginLast) {
-      elements.loginLast.textContent = hasData
-        ? formatDateTime(state.lastLogin)
-        : '—';
+      const value = hasData ? formatDateTime(state.lastLogin) : '—';
+      clearElementTranslation(elements.loginLast, value);
     }
 
     updatePanelIndicators({ hasData, loggedIn });
@@ -690,33 +909,34 @@
     }
 
     if (elements.panelStatusLabel) {
-      elements.panelStatusLabel.textContent = loggedIn ? 'Conectado' : 'Desconectado';
+      const statusKey = loggedIn
+        ? PANEL_STATUS_LABEL_KEYS.connected
+        : PANEL_STATUS_LABEL_KEYS.disconnected;
+      setElementTextFromKey(elements.panelStatusLabel, statusKey);
     }
 
     if (elements.panelStatusHint) {
-      let message = 'Cadastre um usuário para iniciar a sessão.';
+      let hintKey = PANEL_STATUS_HINT_KEYS.empty;
       if (hasData && !loggedIn) {
-        message = 'Sessão encerrada. Abra o painel e salve para retomar.';
+        hintKey = PANEL_STATUS_HINT_KEYS.inactive;
+      } else if (loggedIn) {
+        hintKey = PANEL_STATUS_HINT_KEYS.active;
       }
-      if (loggedIn) {
-        message = 'Sessão ativa neste navegador.';
-      }
-      elements.panelStatusHint.textContent = message;
+      setElementTextFromKey(elements.panelStatusHint, hintKey);
     }
 
     if (elements.panelLastLogin) {
-      elements.panelLastLogin.textContent = hasData ? lastLoginValue : '—';
+      clearElementTranslation(elements.panelLastLogin, hasData ? lastLoginValue : '—');
     }
 
     if (elements.panelLastLoginHint) {
-      let hint = 'Nenhum registro disponível.';
+      let hintKey = PANEL_LAST_LOGIN_HINT_KEYS.empty;
       if (hasData && !loggedIn) {
-        hint = 'Último acesso registrado localmente.';
+        hintKey = PANEL_LAST_LOGIN_HINT_KEYS.inactive;
+      } else if (loggedIn) {
+        hintKey = PANEL_LAST_LOGIN_HINT_KEYS.active;
       }
-      if (loggedIn) {
-        hint = 'Atualizado automaticamente após o login.';
-      }
-      elements.panelLastLoginHint.textContent = hint;
+      setElementTextFromKey(elements.panelLastLoginHint, hintKey);
     }
 
     if (elements.panelLoginCount) {
@@ -724,13 +944,17 @@
     }
 
     if (elements.panelLoginHint) {
-      let hint = 'Aguardando primeiro registro.';
+      let hintKey = PANEL_EVENTS_HINT_KEYS.empty;
+      let replacements = {};
       if (historyCount === 1) {
-        hint = '1 evento armazenado neste dispositivo.';
+        hintKey = PANEL_EVENTS_HINT_KEYS.single;
       } else if (historyCount > 1) {
-        hint = `${historyCount} eventos armazenados neste dispositivo.`;
+        hintKey = PANEL_EVENTS_HINT_KEYS.multiple;
+        replacements = { count: historyCount };
       }
-      elements.panelLoginHint.textContent = hint;
+      setElementTextFromKey(elements.panelLoginHint, hintKey, {
+        replacements,
+      });
     }
   }
 
@@ -749,8 +973,14 @@
     if (emailInput && emailInput.value !== user.email) {
       emailInput.value = user.email;
     }
-    if (telefoneInput && telefoneInput.value !== user.telefone) {
-      telefoneInput.value = user.telefone;
+    if (telefoneInput) {
+      telefoneInput.setAttribute(
+        'placeholder',
+        translate(FORM_PHONE_PLACEHOLDER_KEY, fallbackFor(FORM_PHONE_PLACEHOLDER_KEY))
+      );
+      if (telefoneInput.value !== user.telefone) {
+        telefoneInput.value = user.telefone;
+      }
     }
   }
 
@@ -759,16 +989,28 @@
       return '';
     }
     if (entry.type === 'login') {
-      return 'Login realizado';
+      return translate(
+        HISTORY_EVENT_KEYS.login,
+        fallbackFor(HISTORY_EVENT_KEYS.login)
+      );
     }
     if (entry.type === 'logout') {
       if (entry.mode === 'preserve') {
-        return 'Logoff (dados mantidos)';
+        return translate(
+          HISTORY_EVENT_KEYS.logoutPreserve,
+          fallbackFor(HISTORY_EVENT_KEYS.logoutPreserve)
+        );
       }
       if (entry.mode === 'clear') {
-        return 'Logoff (dados removidos)';
+        return translate(
+          HISTORY_EVENT_KEYS.logoutClear,
+          fallbackFor(HISTORY_EVENT_KEYS.logoutClear)
+        );
       }
-      return 'Logoff';
+      return translate(
+        HISTORY_EVENT_KEYS.logout,
+        fallbackFor(HISTORY_EVENT_KEYS.logout)
+      );
     }
     return '';
   }
@@ -829,9 +1071,10 @@
     }
     elements.feedback.textContent = '';
     elements.feedback.classList.remove('ac-feedback--success', 'ac-feedback--error');
+    elements.feedback.removeAttribute('data-i18n');
   }
 
-  function setLoginFeedback(type, message) {
+  function setLoginFeedback(type, key, options = {}) {
     if (!elements.feedback) {
       return;
     }
@@ -839,7 +1082,12 @@
       window.clearTimeout(feedbackTimer);
       feedbackTimer = null;
     }
+    const { replacements = {}, fallback: fallbackOverride } = options;
+    const fallback = fallbackOverride || fallbackFor(key, '');
+    const template = translate(key, fallback);
+    const message = formatMessage(template || fallback, replacements) || fallback;
     elements.feedback.textContent = message;
+    elements.feedback.setAttribute('data-i18n', key);
     elements.feedback.classList.remove('ac-feedback--success', 'ac-feedback--error');
     const className = type === 'error' ? 'ac-feedback--error' : 'ac-feedback--success';
     elements.feedback.classList.add(className);
@@ -863,7 +1111,7 @@
     const telefone = String(formData.get('telefone') || '').trim();
 
     if (!nome || !email) {
-      setLoginFeedback('error', 'Informe nome e e-mail para continuar.');
+      setLoginFeedback('error', LOGIN_ERROR_FEEDBACK_KEY);
       return;
     }
 
@@ -887,7 +1135,7 @@
       };
     });
 
-    setLoginFeedback('success', 'Cadastro atualizado com sucesso.');
+    setLoginFeedback('success', LOGIN_SUCCESS_FEEDBACK_KEY);
   }
 
   function focusStageTitle() {
@@ -976,6 +1224,13 @@
     });
     focusPanelAccess();
   }
+
+  window.addEventListener('app:i18n:locale_changed', () => {
+    if (window.AppBaseI18n && typeof window.AppBaseI18n.refresh === 'function') {
+      window.AppBaseI18n.refresh();
+    }
+    updateUI();
+  });
 
   setTheme(currentTheme, { persist: false });
   updateUI();

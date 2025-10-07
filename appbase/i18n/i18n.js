@@ -48,7 +48,9 @@
   let currentDictionary = null;
 
   function resolveValue(dictionary, key) {
-    return key.split(".").reduce((acc, segment) => (acc ? acc[segment] : null), dictionary);
+    return key
+      .split(".")
+      .reduce((acc, segment) => (acc ? acc[segment] : null), dictionary);
   }
 
   function apply(dictionary) {
@@ -92,11 +94,20 @@
     apply(currentDictionary);
   }
 
+  function translate(key) {
+    if (!key || !currentDictionary) {
+      return null;
+    }
+    const value = resolveValue(currentDictionary, key);
+    return typeof value === "string" ? value : null;
+  }
+
   window.AppBaseI18n = {
     setLocale: load,
     refresh,
     getLocale: () => currentLocale,
     supported: SUPPORTED,
+    translate,
   };
 
   load(currentLocale);

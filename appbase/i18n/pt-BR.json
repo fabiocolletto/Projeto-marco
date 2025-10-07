@@ -1,8 +1,142 @@
 {
   "app": {
     "title": "Projeto Marco",
-    "header": { "darkmode": "Alternar tema", "locale": "Idioma" },
-    "footer": { "login": { "ok": "Conectado" } },
+    "document": {
+      "title": {
+        "default": "Projeto Marco — AppBase",
+        "user": "Projeto Marco — {{user}}"
+      }
+    },
+    "header": {
+      "subtitle": "Painel de controles",
+      "darkmode": "Alternar tema",
+      "locale": "Idioma",
+      "panel": {
+        "trigger": {
+          "open": "Abrir painel do usuário",
+          "close": "Fechar painel do usuário"
+        },
+        "title": "Painel de controle",
+        "subtitle": "Visão detalhada"
+      },
+      "theme": {
+        "light": "Ativar modo escuro",
+        "dark": "Ativar modo claro"
+      },
+      "fullscreen": {
+        "enter": "Ativar tela cheia",
+        "exit": "Sair da tela cheia",
+        "unsupported": "Tela cheia não é suportada neste navegador.",
+        "failure": "Não foi possível alternar o modo de tela cheia. Verifique as permissões do navegador."
+      }
+    },
+    "rail": {
+      "label": "Miniapps",
+      "empty": "Slot vazio — Adicione um mini-app"
+    },
+    "stage": {
+      "empty": {
+        "default": "Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.",
+        "return": "Sessão encerrada. Acesse novamente para visualizar o painel."
+      }
+    },
+    "panel": {
+      "stage": {
+        "title": "Painel de controle",
+        "subtitle": "Visão detalhada",
+        "close": "Fechar painel de controle"
+      },
+      "kpis": {
+        "title": "Indicadores",
+        "subtitle": "Resumo do painel em tempo real.",
+        "group_label": "Indicadores do painel",
+        "status": {
+          "label": "Status do painel",
+          "states": {
+            "connected": "Conectado",
+            "disconnected": "Desconectado"
+          },
+          "hint": {
+            "empty": "Cadastre um usuário para iniciar a sessão.",
+            "inactive": "Sessão encerrada. Abra o painel e salve para retomar.",
+            "active": "Sessão ativa neste navegador."
+          }
+        },
+        "last_login": {
+          "label": "Último acesso",
+          "hint": {
+            "empty": "Nenhum registro disponível.",
+            "inactive": "Último acesso registrado localmente.",
+            "active": "Atualizado automaticamente após o login."
+          }
+        },
+        "events": {
+          "label": "Eventos registrados",
+          "hint": {
+            "empty": "Aguardando primeiro registro.",
+            "single": "1 evento armazenado neste dispositivo.",
+            "multiple": "{{count}} eventos armazenados neste dispositivo."
+          }
+        }
+      },
+      "summary": {
+        "user": "Usuário",
+        "account": "Conta",
+        "last_login": "Último acesso",
+        "empty": "Não configurado"
+      },
+      "form": {
+        "title": "Cadastro",
+        "subtitle": "Atualize os dados salvos neste dispositivo.",
+        "fields": {
+          "name": "Nome completo",
+          "email": "E-mail",
+          "phone": "Telefone (opcional)",
+          "phone_placeholder": "(99) 99999-9999",
+          "password": "Senha"
+        },
+        "submit": "Salvar alterações",
+        "feedback": {
+          "error": "Informe nome e e-mail para continuar.",
+          "success": "Cadastro atualizado com sucesso."
+        }
+      },
+      "session": {
+        "current": "Sessão atual",
+        "description": "Encerre a sessão mantendo os dados armazenados neste navegador ou remova todas as informações do cadastro.",
+        "actions": {
+          "label": "Ações da sessão",
+          "logout": "Encerrar sessão",
+          "logout_clear": "Encerrar e remover dados"
+        }
+      },
+      "history": {
+        "title": "Histórico de acessos",
+        "subtitle": "Acompanhe logins e logoffs registrados neste navegador.",
+        "table": {
+          "event": "Evento",
+          "time": "Horário"
+        }
+      }
+    },
+    "history": {
+      "empty": "Sem registros.",
+      "event": {
+        "login": "Login realizado",
+        "logout": "Logoff",
+        "logout_preserve": "Logoff (dados mantidos)",
+        "logout_clear": "Logoff (dados removidos)"
+      }
+    },
+    "footer": {
+      "status": {
+        "label": "Status:",
+        "connected": "Conectado",
+        "disconnected": "Desconectado"
+      },
+      "meta": "Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1",
+      "login": { "ok": "Conectado" }
+    },
     "settings": {
       "title": "Configurações",
       "subtitle": "Gerencie idioma e região do AppBase.",

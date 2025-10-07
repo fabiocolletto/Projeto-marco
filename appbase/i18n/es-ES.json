@@ -1,8 +1,142 @@
 {
   "app": {
     "title": "Proyecto Marco",
-    "header": { "darkmode": "Cambiar tema", "locale": "Idioma" },
-    "footer": { "login": { "ok": "Conectado" } },
+    "document": {
+      "title": {
+        "default": "Proyecto Marco — AppBase",
+        "user": "Proyecto Marco — {{user}}"
+      }
+    },
+    "header": {
+      "subtitle": "Panel de controles",
+      "darkmode": "Cambiar tema",
+      "locale": "Idioma",
+      "panel": {
+        "trigger": {
+          "open": "Abrir panel del usuario",
+          "close": "Cerrar panel del usuario"
+        },
+        "title": "Panel de control",
+        "subtitle": "Vista detallada"
+      },
+      "theme": {
+        "light": "Activar modo oscuro",
+        "dark": "Activar modo claro"
+      },
+      "fullscreen": {
+        "enter": "Activar pantalla completa",
+        "exit": "Salir de pantalla completa",
+        "unsupported": "Pantalla completa no es compatible en este navegador.",
+        "failure": "No se pudo alternar el modo de pantalla completa. Revisa los permisos del navegador."
+      }
+    },
+    "rail": {
+      "label": "Miniapps",
+      "empty": "Espacio vacío — Añade una miniapp"
+    },
+    "stage": {
+      "empty": {
+        "default": "Ningún usuario registrado. Abre el panel en el encabezado para iniciar el registro.",
+        "return": "Sesión finalizada. Inicia sesión nuevamente para ver el panel."
+      }
+    },
+    "panel": {
+      "stage": {
+        "title": "Panel de control",
+        "subtitle": "Vista detallada",
+        "close": "Cerrar panel de control"
+      },
+      "kpis": {
+        "title": "Indicadores",
+        "subtitle": "Resumen del panel en tiempo real.",
+        "group_label": "Indicadores del panel",
+        "status": {
+          "label": "Estado del panel",
+          "states": {
+            "connected": "Conectado",
+            "disconnected": "Desconectado"
+          },
+          "hint": {
+            "empty": "Registra un usuario para iniciar la sesión.",
+            "inactive": "Sesión finalizada. Abre el panel y guarda para reanudar.",
+            "active": "Sesión activa en este navegador."
+          }
+        },
+        "last_login": {
+          "label": "Último acceso",
+          "hint": {
+            "empty": "Sin registros disponibles.",
+            "inactive": "Último acceso registrado localmente.",
+            "active": "Se actualiza automáticamente después del inicio de sesión."
+          }
+        },
+        "events": {
+          "label": "Eventos registrados",
+          "hint": {
+            "empty": "Esperando el primer registro.",
+            "single": "1 evento almacenado en este dispositivo.",
+            "multiple": "{{count}} eventos almacenados en este dispositivo."
+          }
+        }
+      },
+      "summary": {
+        "user": "Usuario",
+        "account": "Cuenta",
+        "last_login": "Último acceso",
+        "empty": "No configurado"
+      },
+      "form": {
+        "title": "Registro",
+        "subtitle": "Actualiza los datos guardados en este dispositivo.",
+        "fields": {
+          "name": "Nombre completo",
+          "email": "Correo electrónico",
+          "phone": "Teléfono (opcional)",
+          "phone_placeholder": "(99) 99999-9999",
+          "password": "Contraseña"
+        },
+        "submit": "Guardar cambios",
+        "feedback": {
+          "error": "Indica nombre y correo electrónico para continuar.",
+          "success": "Registro actualizado correctamente."
+        }
+      },
+      "session": {
+        "current": "Sesión actual",
+        "description": "Finaliza la sesión manteniendo los datos almacenados en este navegador o elimina toda la información del registro.",
+        "actions": {
+          "label": "Acciones de la sesión",
+          "logout": "Cerrar sesión",
+          "logout_clear": "Cerrar y eliminar datos"
+        }
+      },
+      "history": {
+        "title": "Historial de accesos",
+        "subtitle": "Sigue los inicios y cierres de sesión registrados en este navegador.",
+        "table": {
+          "event": "Evento",
+          "time": "Hora"
+        }
+      }
+    },
+    "history": {
+      "empty": "Sin registros.",
+      "event": {
+        "login": "Inicio de sesión realizado",
+        "logout": "Cierre de sesión",
+        "logout_preserve": "Cierre de sesión (datos mantenidos)",
+        "logout_clear": "Cierre de sesión (datos eliminados)"
+      }
+    },
+    "footer": {
+      "status": {
+        "label": "Estado:",
+        "connected": "Conectado",
+        "disconnected": "Desconectado"
+      },
+      "meta": "Desarrollado por 5Horas • Proyecto Marco — AppBase R1.1",
+      "login": { "ok": "Conectado" }
+    },
     "settings": {
       "title": "Configuración",
       "subtitle": "Gestiona el idioma y la región de AppBase.",
