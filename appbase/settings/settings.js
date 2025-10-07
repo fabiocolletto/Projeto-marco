@@ -7,9 +7,9 @@
   const OPEN_CLASS = "is-active";
 
   const LOCALE_META = {
-    "pt-BR": { flag: "🇧🇷", label: "Brasil · Português" },
-    "en-US": { flag: "🇺🇸", label: "Estados Unidos · Inglês" },
-    "es-ES": { flag: "🇪🇸", label: "Espanha · Espanhol" },
+    "pt-BR": { flag: "🇧🇷", label: "Brasil" },
+    "en-US": { flag: "🇺🇸", label: "Estados Unidos" },
+    "es-ES": { flag: "🇪🇸", label: "Espanha" },
   };
 
   let headerButton = null;

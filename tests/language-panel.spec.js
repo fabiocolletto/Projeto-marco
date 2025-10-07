@@ -1,9 +1,9 @@
 const { test, expect } = require('@playwright/test');
 
 const SUPPORTED_LOCALES = [
-  { code: 'pt-BR', flag: '🇧🇷', label: 'Brasil · Português' },
-  { code: 'en-US', flag: '🇺🇸', label: 'Estados Unidos · Inglês' },
-  { code: 'es-ES', flag: '🇪🇸', label: 'Espanha · Espanhol' },
+  { code: 'pt-BR', flag: '🇧🇷', label: 'Brasil' },
+  { code: 'en-US', flag: '🇺🇸', label: 'Estados Unidos' },
+  { code: 'es-ES', flag: '🇪🇸', label: 'Espanha' },
 ];
 
 async function openHostPanel(page) {
@@ -81,7 +81,7 @@ test('menu de idiomas reflete seleção atual e atualiza traduções', async ({ 
     .toHaveClass(/is-selected/);
   await expect(
     context.menu.locator('[data-locale-option="pt-BR"] .ac-locale-menu__name')
-  ).toHaveText('Brazil · Portuguese');
+  ).toHaveText('Brazil');
   await page.keyboard.press('Escape');
   await expect(context.localeButton).toHaveAttribute('aria-expanded', 'false');
   await expect(context.localeButton).toBeFocused();
