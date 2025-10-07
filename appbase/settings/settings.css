@@ -71,9 +71,15 @@
 }
 
 .ac-header-action.is-active {
-  background: rgba(59, 130, 246, 0.14);
-  color: var(--ac-primary);
-  border-radius: 10px;
+  background: var(--ac-primary);
+  color: var(--ac-on-primary);
+  border-color: var(--ac-primary);
+  border-radius: 999px;
+  box-shadow: 0 0 0 4px rgba(31, 58, 138, 0.24);
+}
+
+:root[data-theme='dark'] .ac-header-action.is-active {
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.28);
 }
 
 .ac-header-action.is-active i {

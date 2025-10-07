@@ -35,8 +35,10 @@
     failure:
       'Não foi possível alternar o modo de tela cheia. Verifique as permissões do navegador.',
   };
+  const STAGE_PANEL_OPEN_CLASS = 'ac-stage--panel-open';
 
   const elements = {
+    stageShell: document.querySelector('[data-stage-shell]'),
     stage: document.getElementById('painel-stage'),
     stageTitle: document.getElementById('painel-stage-title'),
     stageClose: document.querySelector('[data-stage-close]'),
@@ -654,6 +656,10 @@
 
     if (elements.stage) {
       elements.stage.hidden = !panelOpen;
+    }
+
+    if (elements.stageShell) {
+      elements.stageShell.classList.toggle(STAGE_PANEL_OPEN_CLASS, panelOpen);
     }
 
     if (elements.loginUser) {
