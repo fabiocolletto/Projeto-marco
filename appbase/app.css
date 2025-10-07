@@ -632,7 +632,7 @@ select {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 32px;
+  padding: 20px 24px 12px;
   border-bottom: var(--ac-border-width) solid var(--ac-panel-head-border);
   align-items: flex-start;
   background: var(--ac-panel-head-gradient);
@@ -652,7 +652,7 @@ select {
 
 .ac-stage__titles {
   display: grid;
-  gap: 4px;
+  gap: 2px;
 }
 
 .ac-title-lg {
@@ -708,7 +708,7 @@ select {
   }
 
   .ac-stage__head {
-    padding: 28px;
+    padding: 18px 20px 10px;
   }
 
   .ac-stage__panel {
@@ -726,7 +726,7 @@ select {
   }
 
   .ac-stage__head {
-    padding: 24px;
+    padding: 16px 16px 8px;
   }
 }
 
@@ -748,7 +748,7 @@ select {
 }
 
 .ac-panel {
-  padding: 32px;
+  padding: 16px 24px 32px;
   display: grid;
   gap: 24px;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -886,7 +886,7 @@ select {
 
 @media (max-width: 960px) {
   .ac-panel {
-    padding: 24px;
+    padding: 16px 20px 24px;
   }
 
   .ac-panel-card {
@@ -900,7 +900,7 @@ select {
 
 @media (max-width: 640px) {
   .ac-panel {
-    padding: 16px;
+    padding: 12px 16px 20px;
   }
 
   .ac-panel-card__title {
