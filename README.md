@@ -50,6 +50,16 @@ MiniApp “Painel de controle”.
 7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
    (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
 
+### Alternância de tema na AppBar
+
+A AppBar inclui um botão circular sem texto responsável por alternar entre os
+temas claro e escuro. O controle expõe um tooltip que indica a ação disponível,
+enquanto o rótulo acessível oscila entre “Ativar modo claro” e “Ativar modo
+escuro”. O ícone ☀️/🌙 muda junto com o tema ativo e o logotipo passa a carregar
+a versão correspondente (`icon-light-500.png` ou `icon-dark-500.png`). O estado
+escolhido fica registrado no `localStorage` na chave `marco-appbase:theme`,
+permitindo que a preferência seja restaurada automaticamente na próxima visita.
+
 ## MiniApp “Painel de controle” — destaques
 
 - **Etiqueta simplificada** exibe o primeiro nome cadastrado, o último acesso e
@@ -61,6 +71,12 @@ MiniApp “Painel de controle”.
 - **Overlay de Login acessível** (`role="dialog"`, `aria-modal`, foco gerenciado
   e fechamento por Esc/backdrop) com feedback imediato de sucesso ou erro ao
   salvar.
+- **Alternância de tema persistente**: a AppBar traz o mesmo botão circular sem
+  texto, com ícones ☀️/🌙 alinhados ao tema ativo, tooltip contextual e rótulos
+  acessíveis que descrevem a ação disponível. A marca também alterna entre os
+  arquivos `icon-light-500.png` e `icon-dark-500.png`. A chave
+  `marco-appbase:theme` no `localStorage` garante que a preferência retorne em
+  novas sessões.
 - **Persistência local leve**: os dados são gravados no `localStorage`,
   reaplicados automaticamente na próxima visita e podem ser editados a qualquer
   momento sem dependências de sync/backup.

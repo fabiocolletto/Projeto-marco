@@ -31,7 +31,7 @@ async function registerUser(page, { nome, email, telefone = '' }) {
   await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 }
 
-test('cadastro atualiza etiqueta, painel e breadcrumbs', async ({ page }) => {
+test('cadastro atualiza etiqueta e painel', async ({ page }) => {
   await resetApp(page);
 
   const stage = page.locator('#painel-stage');
@@ -60,9 +60,6 @@ test('cadastro atualiza etiqueta, painel e breadcrumbs', async ({ page }) => {
   await expect(page.locator('[data-login-account]')).toHaveText('maria');
   await expect(page.locator('[data-login-last]')).not.toHaveText('—');
   await expect(page.locator('[data-meta-value="login"]')).not.toHaveText('—');
-  await expect(page.locator('#breadcrumbs-secondary')).toHaveText(
-    'Cadastro de Maria'
-  );
   await expect(page).toHaveTitle('Projeto Marco — Maria');
 
   await page.reload();
