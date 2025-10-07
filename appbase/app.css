@@ -613,7 +613,7 @@ select {
 .ac-stage__panel {
   display: none;
   flex-direction: column;
-  row-gap: 24px;
+  row-gap: 0;
   flex: 1;
   min-height: 0;
   height: 100%;
@@ -750,7 +750,7 @@ select {
 .ac-panel {
   padding: 32px;
   display: grid;
-  gap: 0;
+  gap: 24px;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -761,7 +761,7 @@ select {
 .ac-panel-card {
   background: var(--ac-card-bg);
   border: var(--ac-border-width) solid var(--ac-border);
-  border-radius: 0;
+  border-radius: 24px;
   padding: 24px;
   display: grid;
   gap: 20px;
@@ -795,14 +795,14 @@ select {
 
 .ac-panel-kpis {
   display: grid;
-  gap: 0;
+  gap: 16px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
 .ac-kpi-card {
   background: var(--ac-bg);
   border: var(--ac-border-width) solid var(--ac-border-soft);
-  border-radius: 0;
+  border-radius: 16px;
   padding: 18px 20px;
   display: grid;
   gap: 8px;
