@@ -14,6 +14,21 @@
     [THEMES.LIGHT]: 'Ativar modo escuro',
     [THEMES.DARK]: 'Ativar modo claro',
   };
+  const FULLSCREEN_UI = {
+    enter: {
+      label: 'Ativar tela cheia',
+      icon: '⛶',
+    },
+    exit: {
+      label: 'Sair da tela cheia',
+      icon: '🡼',
+    },
+  };
+  const FULLSCREEN_MESSAGES = {
+    unsupported: 'Tela cheia não é suportada neste navegador.',
+    failure:
+      'Não foi possível alternar o modo de tela cheia. Verifique as permissões do navegador.',
+  };
 
   const elements = {
     card: document.querySelector('[data-miniapp="painel"]'),
@@ -41,6 +56,8 @@
     logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
     themeToggle: document.querySelector('[data-theme-toggle]'),
     themeToggleIcon: document.querySelector('[data-theme-toggle-icon]'),
+    fullscreenToggle: document.querySelector('[data-fullscreen-toggle]'),
+    fullscreenToggleIcon: document.querySelector('[data-fullscreen-toggle-icon]'),
     brandIcon: document.querySelector('[data-brand-icon]'),
   };
 
@@ -57,6 +74,9 @@
   let activeOverlayTrigger = null;
   let overlayVisible = false;
   let feedbackTimer = null;
+  let fullscreenSupported = isFullscreenSupported();
+  let fullscreenActive = isFullscreenActive();
+  let fullscreenNotice = '';
 
   function canUseStorage() {
     try {
@@ -156,6 +176,200 @@
     if (elements.themeToggleIcon) {
       elements.themeToggleIcon.textContent = icon;
     }
+  }
+
+  function getFullscreenTarget() {
+    if (typeof document === 'undefined') {
+      return null;
+    }
+    return (
+      document.querySelector('.ac-app') ||
+      document.documentElement ||
+      document.body ||
+      null
+    );
+  }
+
+  function getFullscreenElement() {
+    if (typeof document === 'undefined') {
+      return null;
+    }
+    return (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement ||
+      null
+    );
+  }
+
+  function isFullscreenSupported() {
+    if (typeof document === 'undefined') {
+      return false;
+    }
+    const target = getFullscreenTarget();
+    if (!target) {
+      return false;
+    }
+    const request =
+      target.requestFullscreen ||
+      target.webkitRequestFullscreen ||
+      target.mozRequestFullScreen ||
+      target.msRequestFullscreen;
+    const enabled =
+      document.fullscreenEnabled ||
+      document.webkitFullscreenEnabled ||
+      document.mozFullScreenEnabled ||
+      document.msFullscreenEnabled;
+    return Boolean(request && (enabled === undefined || enabled));
+  }
+
+  function isFullscreenActive() {
+    return Boolean(getFullscreenElement());
+  }
+
+  function enterFullscreen(target = getFullscreenTarget()) {
+    if (!target) {
+      return Promise.reject(new Error('Elemento inválido.'));
+    }
+    const request =
+      target.requestFullscreen ||
+      target.webkitRequestFullscreen ||
+      target.mozRequestFullScreen ||
+      target.msRequestFullscreen;
+    if (typeof request !== 'function') {
+      return Promise.reject(new Error('Fullscreen API indisponível.'));
+    }
+    try {
+      const result = request.call(target);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  function exitFullscreen() {
+    if (typeof document === 'undefined') {
+      return Promise.reject(new Error('Fullscreen API indisponível.'));
+    }
+    const exit =
+      document.exitFullscreen ||
+      document.webkitExitFullscreen ||
+      document.mozCancelFullScreen ||
+      document.msExitFullscreen;
+    if (typeof exit !== 'function') {
+      return Promise.reject(new Error('Fullscreen API indisponível.'));
+    }
+    try {
+      const result = exit.call(document);
+      return Promise.resolve(result);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+  }
+
+  function notifyFullscreenIssue(message, { announce = false } = {}) {
+    if (!message) {
+      return;
+    }
+    if (message !== fullscreenNotice) {
+      fullscreenNotice = message;
+      if (announce && typeof window !== 'undefined' && typeof window.alert === 'function') {
+        window.alert(message);
+      } else {
+        console.warn('AppBase:', message);
+      }
+    } else if (announce) {
+      console.warn('AppBase:', message);
+    }
+  }
+
+  function hideFullscreenToggle(message) {
+    if (!elements.fullscreenToggle) {
+      return;
+    }
+    elements.fullscreenToggle.hidden = true;
+    elements.fullscreenToggle.setAttribute('aria-hidden', 'true');
+    elements.fullscreenToggle.setAttribute('disabled', 'true');
+    if (message) {
+      elements.fullscreenToggle.setAttribute('title', message);
+    }
+  }
+
+  function showFullscreenToggle() {
+    if (!elements.fullscreenToggle) {
+      return;
+    }
+    elements.fullscreenToggle.hidden = false;
+    elements.fullscreenToggle.removeAttribute('aria-hidden');
+    elements.fullscreenToggle.removeAttribute('disabled');
+  }
+
+  function updateFullscreenToggle(active = fullscreenActive) {
+    if (!elements.fullscreenToggle) {
+      return;
+    }
+    const state = active ? FULLSCREEN_UI.exit : FULLSCREEN_UI.enter;
+    elements.fullscreenToggle.setAttribute('aria-pressed', active ? 'true' : 'false');
+    elements.fullscreenToggle.setAttribute('aria-label', state.label);
+    elements.fullscreenToggle.setAttribute('title', state.label);
+    if (elements.fullscreenToggleIcon) {
+      elements.fullscreenToggleIcon.textContent = state.icon;
+    }
+  }
+
+  function syncFullscreenStateFromDocument() {
+    fullscreenActive = isFullscreenActive();
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.classList.toggle('is-fullscreen', fullscreenActive);
+    }
+    updateFullscreenToggle(fullscreenActive);
+  }
+
+  function initialiseFullscreenToggle() {
+    if (!elements.fullscreenToggle) {
+      return;
+    }
+    fullscreenSupported = isFullscreenSupported();
+    if (!fullscreenSupported) {
+      hideFullscreenToggle(FULLSCREEN_MESSAGES.unsupported);
+      notifyFullscreenIssue(FULLSCREEN_MESSAGES.unsupported, { announce: true });
+      return;
+    }
+    showFullscreenToggle();
+    syncFullscreenStateFromDocument();
+  }
+
+  function handleFullscreenToggle(event) {
+    event.preventDefault();
+    if (!fullscreenSupported) {
+      notifyFullscreenIssue(FULLSCREEN_MESSAGES.unsupported, { announce: true });
+      hideFullscreenToggle(FULLSCREEN_MESSAGES.unsupported);
+      return;
+    }
+    const target = getFullscreenTarget();
+    const togglePromise = fullscreenActive
+      ? exitFullscreen()
+      : enterFullscreen(target);
+    Promise.resolve(togglePromise)
+      .then(() => {
+        syncFullscreenStateFromDocument();
+      })
+      .catch((error) => {
+        console.warn('AppBase: falha ao alternar tela cheia', error);
+        notifyFullscreenIssue(FULLSCREEN_MESSAGES.failure, { announce: true });
+        fullscreenSupported = false;
+        hideFullscreenToggle(FULLSCREEN_MESSAGES.failure);
+        syncFullscreenStateFromDocument();
+      });
+  }
+
+  function handleFullscreenError(event) {
+    console.warn('AppBase: erro de tela cheia', event);
+    notifyFullscreenIssue(FULLSCREEN_MESSAGES.failure, { announce: true });
+    fullscreenSupported = false;
+    hideFullscreenToggle(FULLSCREEN_MESSAGES.failure);
+    syncFullscreenStateFromDocument();
   }
 
   function getEmptyState() {
@@ -356,6 +570,7 @@
 
   function updateUI() {
     updateThemeAssets(currentTheme);
+    updateFullscreenToggle(fullscreenActive);
     updateDocumentTitle();
     updateCard();
     updateStage();
@@ -728,6 +943,28 @@
 
   setTheme(currentTheme, { persist: false });
   updateUI();
+  initialiseFullscreenToggle();
+
+  const fullscreenChangeEvents = [
+    'fullscreenchange',
+    'webkitfullscreenchange',
+    'mozfullscreenchange',
+    'MSFullscreenChange',
+  ];
+  const fullscreenErrorEvents = [
+    'fullscreenerror',
+    'webkitfullscreenerror',
+    'mozfullscreenerror',
+    'MSFullscreenError',
+  ];
+
+  fullscreenChangeEvents.forEach((eventName) => {
+    document.addEventListener(eventName, syncFullscreenStateFromDocument);
+  });
+
+  fullscreenErrorEvents.forEach((eventName) => {
+    document.addEventListener(eventName, handleFullscreenError);
+  });
 
   if (elements.card) {
     elements.card.addEventListener('click', handleCardClick);
@@ -740,6 +977,10 @@
         currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
       setTheme(nextTheme);
     });
+  }
+
+  if (elements.fullscreenToggle) {
+    elements.fullscreenToggle.addEventListener('click', handleFullscreenToggle);
   }
 
   if (elements.toggleButton) {
