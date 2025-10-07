@@ -1,9 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
 async function resetApp(page) {
-  await page.goto('/index.html');
+  await page.goto('/index.html', { waitUntil: 'load' });
+  await page.waitForLoadState('load');
+
   await page.evaluate(() => window.localStorage.clear());
-  await page.reload();
+
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForLoadState('load');
 }
 
 test('alternância de tema atualiza UI e persiste preferência', async ({ page }) => {
@@ -12,7 +16,8 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   await page.evaluate(() => {
     window.localStorage.setItem('marco-appbase:theme', 'light');
   });
-  await page.reload();
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForLoadState('load');
 
   const html = page.locator('html');
   const toggle = page.locator('[data-theme-toggle]');
@@ -37,7 +42,8 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   await expect(toggleIcon).toHaveText('🌙');
   await expect(brandIcon).toHaveAttribute('src', /icon-dark-500/);
 
-  await page.reload();
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForLoadState('load');
 
   await expect(html).toHaveAttribute('data-theme', 'dark');
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');

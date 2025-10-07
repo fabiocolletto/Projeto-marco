@@ -1,9 +1,13 @@
 const { test, expect } = require('@playwright/test');
 
 async function resetApp(page) {
-  await page.goto('/index.html');
+  await page.goto('/index.html', { waitUntil: 'load' });
+  await page.waitForLoadState('load');
+
   await page.evaluate(() => window.localStorage.clear());
-  await page.reload();
+
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForLoadState('load');
 }
 
 async function ensureLoginForm(page) {
@@ -78,7 +82,8 @@ test('cadastro atualiza painel e botão do cabeçalho', async ({ page }) => {
   await expect(page.locator('[data-panel-last-login]')).not.toHaveText('—');
   await expect(page).toHaveTitle('Projeto Marco — Maria');
 
-  await page.reload();
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForLoadState('load');
   await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
   await expect(stage).toBeVisible();
 });
