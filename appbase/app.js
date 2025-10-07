@@ -85,6 +85,17 @@ import {
   const LOGIN_PHONE_INVALID_FEEDBACK_KEY = 'app.panel.form.feedback.phone_invalid';
   const LOGIN_PASSWORD_MISSING_FEEDBACK_KEY =
     'app.panel.form.feedback.password_missing';
+  const LOGIN_PASSWORD_MISMATCH_FEEDBACK_KEY =
+    'app.panel.form.feedback.password_mismatch';
+  const LOGIN_PIN_LENGTH_FEEDBACK_KEY = 'app.panel.form.feedback.pin_length';
+  const LOGIN_EMAIL_DUPLICATE_FEEDBACK_KEY =
+    'app.panel.form.feedback.email_duplicate';
+  const LOGIN_OVERLAY_SELECT_FEEDBACK_KEY =
+    'app.login.sheet.feedback.select_user';
+  const LOGIN_OVERLAY_PIN_FEEDBACK_KEY =
+    'app.login.sheet.feedback.invalid_pin';
+  const LOGIN_OVERLAY_PIN_REQUIRED_FEEDBACK_KEY =
+    'app.login.sheet.feedback.pin_required';
   const FORM_PHONE_PLACEHOLDER_KEY = 'app.panel.form.fields.phone_placeholder';
   const PASSWORD_TOGGLE_LABEL_KEYS = {
     show: 'app.panel.form.fields.password_toggle.show',
@@ -143,9 +154,32 @@ import {
     [LOGIN_PHONE_INVALID_FEEDBACK_KEY]:
       'Informe um telefone brasileiro com 10 ou 11 dígitos.',
     [LOGIN_PASSWORD_MISSING_FEEDBACK_KEY]: 'Informe uma senha para continuar.',
+    [LOGIN_PASSWORD_MISMATCH_FEEDBACK_KEY]:
+      'O PIN informado não corresponde ao PIN atual.',
+    [LOGIN_PIN_LENGTH_FEEDBACK_KEY]:
+      'Informe um PIN com exatamente 4 dígitos.',
+    [LOGIN_EMAIL_DUPLICATE_FEEDBACK_KEY]: 'Este e-mail já está em uso.',
+    [LOGIN_OVERLAY_SELECT_FEEDBACK_KEY]: 'Selecione um usuário para entrar.',
+    [LOGIN_OVERLAY_PIN_FEEDBACK_KEY]: 'PIN incorreto. Tente novamente.',
+    [LOGIN_OVERLAY_PIN_REQUIRED_FEEDBACK_KEY]:
+      'Informe o PIN de 4 dígitos para continuar.',
     [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
     [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
     [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
+    'app.header.login': 'Fazer login',
+    'app.stage.empty.login': 'Fazer login',
+    'app.login.sheet.title': 'Escolha um usuário',
+    'app.login.sheet.users': 'Contas disponíveis',
+    'app.login.sheet.empty': 'Nenhum usuário cadastrado. Crie uma conta para continuar.',
+    'app.login.sheet.create': 'Criar novo cadastro',
+    'app.login.sheet.pin': 'Digite o PIN',
+    'app.login.sheet.submit': 'Entrar',
+    'app.login.sheet.cancel': 'Cancelar',
+    'app.confirm.title': 'Remover dados?',
+    'app.confirm.message':
+      'Esta ação removerá todos os dados do usuário selecionado neste dispositivo.',
+    'app.confirm.cancel': 'Manter dados',
+    'app.confirm.accept': 'Remover agora',
   };
 
   const elements = {
@@ -156,6 +190,7 @@ import {
     stageClose: document.querySelector('[data-stage-close]'),
     stageEmpty: document.querySelector('[data-stage-empty]'),
     stageEmptyMessage: document.querySelector('[data-stage-empty-message]'),
+    stageLogin: document.querySelector('[data-stage-login]'),
     loginUser: document.querySelector('[data-login-user]'),
     loginAccount: document.querySelector('[data-login-account]'),
     loginLast: document.querySelector('[data-login-last]'),
@@ -192,6 +227,20 @@ import {
     passwordInput: document.querySelector('[data-password-input]'),
     passwordToggle: document.querySelector('[data-password-toggle]'),
     passwordToggleIcon: document.querySelector('[data-password-toggle-icon]'),
+    loginTriggers: Array.from(document.querySelectorAll('[data-login-trigger]')),
+    pinPadForm: document.querySelector('[data-pin-pad="form"]'),
+    pinPadOverlay: document.querySelector('[data-pin-pad="overlay"]'),
+    loginOverlay: document.querySelector('[data-login-overlay]'),
+    loginOverlayClose: document.querySelector('[data-login-close]'),
+    loginOverlayCancel: document.querySelector('[data-login-cancel]'),
+    loginOverlayCreate: document.querySelector('[data-login-create]'),
+    loginOverlayUserList: document.querySelector('[data-login-user-list]'),
+    loginOverlayEmpty: document.querySelector('[data-login-empty]'),
+    loginOverlayFeedback: document.querySelector('[data-login-feedback]'),
+    confirmOverlay: document.querySelector('[data-confirm-overlay]'),
+    confirmCancel: document.querySelector('[data-confirm-cancel]'),
+    confirmAccept: document.querySelector('[data-confirm-accept]'),
+    confirmClose: document.querySelector('[data-confirm-close]'),
   };
 
   function fallbackFor(key, defaultValue = '') {
@@ -264,7 +313,7 @@ import {
 
   function isValidPhoneDigits(digits) {
     const numeric = sanitisePhoneDigits(digits);
-    return numeric.length === 0 || numeric.length === 10 || numeric.length === 11;
+    return numeric.length === 10 || numeric.length === 11;
   }
 
   function applyPhoneMaskToInput(input, digits) {
@@ -285,6 +334,53 @@ import {
         }
       }
     }
+  }
+
+  function isValidPin(value) {
+    return /^\d{4}$/.test(String(value || '').trim());
+  }
+
+  async function hashPin(pin) {
+    const value = String(pin || '').trim();
+    if (typeof window !== 'undefined' && window.crypto && window.crypto.subtle) {
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(value);
+        const digest = await window.crypto.subtle.digest('SHA-256', data);
+        const bytes = new Uint8Array(digest);
+        return Array.from(bytes)
+          .map((byte) => byte.toString(16).padStart(2, '0'))
+          .join('');
+      } catch (error) {
+        console.warn('AppBase: falha ao gerar hash do PIN', error);
+      }
+    }
+    return `plain:${value}`;
+  }
+
+  async function verifyPin(user, pin) {
+    if (!user) {
+      return { valid: false, hash: '', upgraded: false };
+    }
+    const value = String(pin || '').trim();
+    if (!isValidPin(value)) {
+      return { valid: false, hash: '', upgraded: false };
+    }
+    const hashed = await hashPin(value);
+    const stored = typeof user.pinHash === 'string' ? user.pinHash.trim() : '';
+    if (stored && stored === hashed) {
+      return { valid: true, hash: hashed, upgraded: false };
+    }
+    if (stored && stored.startsWith('plain:') && stored.slice(6) === value) {
+      return { valid: true, hash: hashed, upgraded: true };
+    }
+    if (stored && !stored.startsWith('plain:') && stored === value) {
+      return { valid: true, hash: hashed, upgraded: true };
+    }
+    if (!stored && !value) {
+      return { valid: false, hash: hashed, upgraded: false };
+    }
+    return { valid: false, hash: hashed, upgraded: false };
   }
 
   function updatePasswordToggle() {
@@ -316,6 +412,117 @@ import {
 
   function togglePasswordVisibility() {
     setPasswordVisibility(!passwordVisible);
+  }
+
+  function createPinPadController(container, options = {}) {
+    if (!container) {
+      return null;
+    }
+    const maxLength = 4;
+    const display = container.querySelector('[data-pin-display]');
+    const confirmButton = container.querySelector('[data-pin-confirm]');
+    const digitButtons = Array.from(container.querySelectorAll('[data-pin-digit]'));
+    const actionButtons = Array.from(container.querySelectorAll('[data-pin-action]'));
+    let value = '';
+
+    const targetInput = options.targetInput || null;
+
+    const render = () => {
+      const trimmed = value.slice(0, maxLength);
+      value = trimmed;
+      if (display) {
+        const filled = '•'.repeat(trimmed.length);
+        const empty = '○'.repeat(Math.max(0, maxLength - trimmed.length));
+        display.textContent = (filled + empty).split('').join(' ');
+      }
+      if (targetInput) {
+        targetInput.value = trimmed;
+        targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (confirmButton) {
+        confirmButton.disabled = trimmed.length !== maxLength;
+      }
+      if (typeof options.onChange === 'function') {
+        options.onChange(trimmed);
+      }
+    };
+
+    const appendDigit = (digit) => {
+      if (value.length >= maxLength) {
+        return;
+      }
+      value += digit;
+      render();
+    };
+
+    const clearValue = () => {
+      value = '';
+      render();
+    };
+
+    const backspace = () => {
+      if (!value) {
+        return;
+      }
+      value = value.slice(0, -1);
+      render();
+    };
+
+    digitButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const digit = button.getAttribute('data-pin-digit');
+        if (typeof digit === 'string' && digit.length === 1) {
+          appendDigit(digit);
+        }
+      });
+    });
+
+    actionButtons.forEach((button) => {
+      const action = button.getAttribute('data-pin-action');
+      if (action === 'clear') {
+        button.addEventListener('click', () => {
+          clearValue();
+        });
+      }
+      if (action === 'backspace') {
+        button.addEventListener('click', () => {
+          backspace();
+        });
+      }
+    });
+
+    if (confirmButton && typeof options.onSubmit === 'function') {
+      confirmButton.addEventListener('click', () => {
+        if (value.length === maxLength) {
+          options.onSubmit(value);
+        } else {
+          options.onSubmit('');
+        }
+      });
+    }
+
+    render();
+
+    return {
+      getValue() {
+        return value;
+      },
+      setValue(nextValue) {
+        value = String(nextValue || '').replace(/\D+/g, '').slice(0, maxLength);
+        render();
+      },
+      focusConfirm() {
+        if (confirmButton) {
+          confirmButton.focus();
+        }
+      },
+      enableConfirm(enable) {
+        if (!confirmButton) {
+          return;
+        }
+        confirmButton.disabled = enable ? value.length !== maxLength : true;
+      },
+    };
   }
 
   function setElementTextFromKey(element, key, options = {}) {
@@ -352,6 +559,14 @@ import {
   let fullscreenNotice = '';
   const buttonFeedbackTimers = new WeakMap();
   let passwordVisible = false;
+  let loginOverlayOpen = false;
+  let selectedLoginUserId = null;
+  let overlayMode = 'authenticate';
+  let pendingClearUserId = null;
+  let formPinPadController = null;
+  let overlayPinPadController = null;
+  let resetFormPinOnRender = true;
+  let panelMode = 'view';
 
   function canUseStorage() {
     try {
@@ -687,11 +902,25 @@ import {
 
   function getEmptyState() {
     return {
-      user: null,
-      lastLogin: '',
+      users: [],
+      activeUserId: null,
       sessionActive: false,
       history: [],
     };
+  }
+
+  function createUserId() {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return `user-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+  }
+
+  function cloneHistory(history) {
+    if (!Array.isArray(history)) {
+      return [];
+    }
+    return history.map((entry) => ({ ...entry }));
   }
 
   function normaliseState(raw) {
@@ -699,36 +928,133 @@ import {
     if (!raw || typeof raw !== 'object') {
       return base;
     }
-    const user = normaliseUser(raw.user);
-    const lastLogin =
-      typeof raw.lastLogin === 'string' && raw.lastLogin.trim()
-        ? raw.lastLogin
-        : '';
-    const history = normaliseHistory(raw.history);
-    const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
-    return { user, lastLogin, history, sessionActive };
+    const users = normaliseUsers(raw);
+    if (users.length === 0) {
+      return base;
+    }
+    const explicitActive = Object.prototype.hasOwnProperty.call(raw, 'activeUserId');
+    let activeUserId =
+      typeof raw.activeUserId === 'string' && raw.activeUserId.trim()
+        ? raw.activeUserId.trim()
+        : null;
+    if ((!activeUserId || !users.some((user) => user.id === activeUserId)) && !explicitActive) {
+      activeUserId = users[0].id;
+    }
+    const activeUser = users.find((user) => user.id === activeUserId) || null;
+    const sessionActive = Boolean(raw.sessionActive) && Boolean(activeUser);
+    const history = activeUser ? cloneHistory(activeUser.history) : [];
+    return {
+      users,
+      activeUserId: activeUser ? activeUser.id : null,
+      sessionActive,
+      history,
+    };
   }
 
-  function normaliseUser(rawUser) {
+  function normaliseUsers(rawState) {
+    const users = [];
+    if (rawState && Array.isArray(rawState.users)) {
+      rawState.users.forEach((rawUser) => {
+        const user = normaliseUserProfile(rawUser);
+        if (user) {
+          users.push(user);
+        }
+      });
+    }
+    if (users.length === 0 && rawState && rawState.user) {
+      const legacyUser = normaliseLegacyUser(rawState);
+      if (legacyUser) {
+        users.push(legacyUser);
+      }
+    }
+    return users;
+  }
+
+  function normaliseUserProfile(rawUser) {
+    if (!rawUser || typeof rawUser !== 'object') {
+      return null;
+    }
+    const id =
+      typeof rawUser.id === 'string' && rawUser.id.trim() ? rawUser.id.trim() : createUserId();
+    const nomeCompleto =
+      typeof rawUser.nomeCompleto === 'string' ? rawUser.nomeCompleto.trim() : '';
+    const email = typeof rawUser.email === 'string' ? rawUser.email.trim() : '';
+    const telefone = sanitisePhoneDigits(rawUser.telefone);
+    const pinHash =
+      typeof rawUser.pinHash === 'string' && rawUser.pinHash.trim()
+        ? rawUser.pinHash.trim()
+        : typeof rawUser.senha === 'string'
+        ? String(rawUser.senha).trim()
+        : '';
+    const lastLogin =
+      typeof rawUser.lastLogin === 'string' && rawUser.lastLogin.trim()
+        ? rawUser.lastLogin
+        : '';
+    const history = normaliseHistory(rawUser.history);
+    const createdAt =
+      typeof rawUser.createdAt === 'string' && rawUser.createdAt.trim()
+        ? rawUser.createdAt
+        : '';
+    const updatedAt =
+      typeof rawUser.updatedAt === 'string' && rawUser.updatedAt.trim()
+        ? rawUser.updatedAt
+        : '';
+
+    if (!nomeCompleto && !email && !telefone && !pinHash) {
+      return null;
+    }
+
+    return {
+      id,
+      nomeCompleto,
+      email,
+      telefone,
+      pinHash,
+      lastLogin,
+      history,
+      createdAt,
+      updatedAt,
+    };
+  }
+
+  function normaliseLegacyUser(rawState) {
+    if (!rawState || typeof rawState !== 'object') {
+      return null;
+    }
+    const details = normaliseLegacyUserDetails(rawState.user);
+    if (!details) {
+      return null;
+    }
+    const history = normaliseHistory(rawState.history);
+    const lastLogin =
+      typeof rawState.lastLogin === 'string' && rawState.lastLogin.trim()
+        ? rawState.lastLogin
+        : '';
+    return {
+      id: createUserId(),
+      nomeCompleto: details.nomeCompleto,
+      email: details.email,
+      telefone: details.telefone,
+      pinHash: details.senha || '',
+      lastLogin,
+      history,
+      createdAt: nowIso(),
+      updatedAt: nowIso(),
+    };
+  }
+
+  function normaliseLegacyUserDetails(rawUser) {
     if (!rawUser || typeof rawUser !== 'object') {
       return null;
     }
     const nomeCompleto =
-      typeof rawUser.nomeCompleto === 'string'
-        ? rawUser.nomeCompleto.trim()
-        : '';
-    const email =
-      typeof rawUser.email === 'string' ? rawUser.email.trim() : '';
+      typeof rawUser.nomeCompleto === 'string' ? rawUser.nomeCompleto.trim() : '';
+    const email = typeof rawUser.email === 'string' ? rawUser.email.trim() : '';
     const telefone = sanitisePhoneDigits(rawUser.telefone);
-    const senha =
-      typeof rawUser.senha === 'string'
-        ? rawUser.senha
-        : '';
-
+    const senha = typeof rawUser.senha === 'string' ? String(rawUser.senha).trim() : '';
     if (!nomeCompleto && !email && !telefone && !senha) {
       return null;
     }
-
     return { nomeCompleto, email, telefone, senha };
   }
 
@@ -751,9 +1077,7 @@ import {
     if (!rawEntry || typeof rawEntry !== 'object') {
       return null;
     }
-    const type = VALID_HISTORY_TYPES.includes(rawEntry.type)
-      ? rawEntry.type
-      : null;
+    const type = VALID_HISTORY_TYPES.includes(rawEntry.type) ? rawEntry.type : null;
     const timestamp =
       typeof rawEntry.timestamp === 'string' && rawEntry.timestamp.trim()
         ? rawEntry.timestamp
@@ -761,21 +1085,53 @@ import {
     if (!type || !timestamp) {
       return null;
     }
-    const mode = rawEntry.mode === 'preserve' || rawEntry.mode === 'clear'
-      ? rawEntry.mode
-      : undefined;
-    return mode ? { type, timestamp, mode } : { type, timestamp };
+    const entry = { type, timestamp };
+    if (rawEntry.mode === 'preserve' || rawEntry.mode === 'clear') {
+      entry.mode = rawEntry.mode;
+    }
+    if (typeof rawEntry.userId === 'string' && rawEntry.userId.trim()) {
+      entry.userId = rawEntry.userId.trim();
+    }
+    return entry;
+  }
+
+  function getUsers(currentState = state) {
+    return Array.isArray(currentState.users) ? currentState.users : [];
+  }
+
+  function getActiveUser(currentState = state) {
+    const users = getUsers(currentState);
+    if (!users.length) {
+      return null;
+    }
+    const { activeUserId } = currentState;
+    if (!activeUserId) {
+      return null;
+    }
+    return users.find((user) => user.id === activeUserId) || null;
+  }
+
+  function getUserById(id, currentState = state) {
+    if (!id) {
+      return null;
+    }
+    return getUsers(currentState).find((user) => user.id === id) || null;
+  }
+
+  function getActiveHistory(currentState = state) {
+    return Array.isArray(currentState.history) ? currentState.history : [];
+  }
+
+  function hasUsers(currentState = state) {
+    return getUsers(currentState).length > 0;
   }
 
   function hasUser(currentState = state) {
-    return Boolean(
-      currentState.user &&
-        (currentState.user.nomeCompleto || currentState.user.email)
-    );
+    return Boolean(getActiveUser(currentState));
   }
 
   function isLoggedIn(currentState = state) {
-    return hasUser(currentState) && Boolean(currentState.sessionActive);
+    return Boolean(getActiveUser(currentState) && currentState.sessionActive);
   }
 
   function createHistoryEntry(type, options = {}) {
@@ -784,12 +1140,16 @@ import {
     }
     const base = {
       type,
-      timestamp: options.timestamp && typeof options.timestamp === 'string'
-        ? options.timestamp
-        : nowIso(),
+      timestamp:
+        options.timestamp && typeof options.timestamp === 'string'
+          ? options.timestamp
+          : nowIso(),
     };
     if (options.mode === 'preserve' || options.mode === 'clear') {
       base.mode = options.mode;
+    }
+    if (typeof options.userId === 'string' && options.userId.trim()) {
+      base.userId = options.userId.trim();
     }
     return normaliseHistoryEntry(base);
   }
@@ -878,12 +1238,14 @@ import {
     updateLoginFormFields();
     updateLogHistory();
     updateLogControls();
+    updateLoginOverlayState();
   }
 
   function updateDocumentTitle() {
     const baseTitle = translate(DEFAULT_TITLE_KEY, fallbackFor(DEFAULT_TITLE_KEY));
     if (isLoggedIn()) {
-      const firstName = getFirstName(state.user);
+      const activeUser = getActiveUser();
+      const firstName = getFirstName(activeUser);
       const template = translate(
         TITLE_WITH_USER_KEY,
         fallbackFor(TITLE_WITH_USER_KEY)
@@ -975,8 +1337,9 @@ import {
   }
 
   function updateStage() {
-    const hasData = hasUser();
+    const hasData = hasUsers();
     const loggedIn = isLoggedIn();
+    const activeUser = getActiveUser();
 
     if (elements.stageEmpty) {
       elements.stageEmpty.hidden = panelOpen;
@@ -998,32 +1361,36 @@ import {
     }
 
     if (elements.loginUser) {
-      if (hasData) {
-        clearElementTranslation(elements.loginUser, getDisplayName(state.user));
+      if (activeUser) {
+        clearElementTranslation(elements.loginUser, getDisplayName(activeUser));
+      } else if (hasData) {
+        setElementTextFromKey(elements.loginUser, SUMMARY_EMPTY_KEY);
       } else {
         setElementTextFromKey(elements.loginUser, SUMMARY_EMPTY_KEY);
       }
     }
     if (elements.loginAccount) {
-      const account = hasData ? getAccount(state.user) : '—';
+      const account = activeUser ? getAccount(activeUser) : '—';
       clearElementTranslation(elements.loginAccount, account);
     }
     if (elements.loginLast) {
-      const value = hasData ? formatDateTime(state.lastLogin) : '—';
+      const value = activeUser && activeUser.lastLogin
+        ? formatDateTime(activeUser.lastLogin)
+        : '—';
       clearElementTranslation(elements.loginLast, value);
     }
 
-    updatePanelIndicators({ hasData, loggedIn });
+    updatePanelIndicators({ hasData, loggedIn, activeUser });
   }
 
   function getHistoryCount() {
-    const history = Array.isArray(state.history) ? state.history : [];
-    return history.length;
+    return getActiveHistory().length;
   }
 
-  function updatePanelIndicators({ hasData = hasUser(), loggedIn = isLoggedIn() } = {}) {
+  function updatePanelIndicators({ hasData = hasUsers(), loggedIn = isLoggedIn(), activeUser = getActiveUser() } = {}) {
     const historyCount = getHistoryCount();
-    const lastLoginValue = hasData ? formatDateTime(state.lastLogin) : '—';
+    const lastLoginValue =
+      activeUser && activeUser.lastLogin ? formatDateTime(activeUser.lastLogin) : '—';
 
     if (elements.panelStatusDot) {
       elements.panelStatusDot.classList.toggle('ac-dot--ok', loggedIn);
@@ -1099,14 +1466,23 @@ import {
 
   function computeFormDirtyState() {
     const snapshot = getLoginFormSnapshot();
-    const reference =
-      state.user || { nomeCompleto: '', email: '', telefone: '', senha: '' };
-    return (
-      snapshot.nomeCompleto !== (reference.nomeCompleto || '') ||
-      snapshot.email !== (reference.email || '') ||
-      snapshot.telefone !== (reference.telefone || '') ||
-      snapshot.senha !== (reference.senha || '')
-    );
+    const activeUser = getActiveUser();
+    const reference = activeUser
+      ? {
+          nomeCompleto: activeUser.nomeCompleto || '',
+          email: activeUser.email || '',
+          telefone: sanitisePhoneDigits(activeUser.telefone),
+        }
+      : { nomeCompleto: '', email: '', telefone: '' };
+    const baseDirty =
+      snapshot.nomeCompleto !== reference.nomeCompleto ||
+      snapshot.email !== reference.email ||
+      snapshot.telefone !== reference.telefone;
+    const isCreateMode = panelMode === 'create' || !activeUser;
+    if (isCreateMode) {
+      return baseDirty || snapshot.senha.length > 0;
+    }
+    return baseDirty;
   }
 
   function syncDirtyFlagFromForm() {
@@ -1122,26 +1498,41 @@ import {
       return;
     }
     const user = state.user || { nomeCompleto: '', email: '', telefone: '', senha: '' };
+    const activeUser = getActiveUser();
     const nomeInput = elements.loginForm.querySelector('[name="nome"]');
     const emailInput = elements.loginForm.querySelector('[name="email"]');
     const telefoneInput = elements.loginForm.querySelector('[name="telefone"]');
     const senhaInput = elements.loginForm.querySelector('[name="senha"]');
 
-    if (nomeInput && nomeInput.value !== user.nomeCompleto) {
-      nomeInput.value = user.nomeCompleto;
+    const nomeTarget = activeUser ? activeUser.nomeCompleto : '';
+    const emailTarget = activeUser ? activeUser.email : '';
+    const telefoneTarget = activeUser ? activeUser.telefone : '';
+
+    if (nomeInput && nomeInput.value !== nomeTarget) {
+      nomeInput.value = nomeTarget;
     }
-    if (emailInput && emailInput.value !== user.email) {
-      emailInput.value = user.email;
+    if (emailInput && emailInput.value !== emailTarget) {
+      emailInput.value = emailTarget;
     }
     if (telefoneInput) {
       telefoneInput.setAttribute(
         'placeholder',
         translate(FORM_PHONE_PLACEHOLDER_KEY, fallbackFor(FORM_PHONE_PLACEHOLDER_KEY))
       );
-      applyPhoneMaskToInput(telefoneInput, user.telefone);
+      if (!stateDirty) {
+        applyPhoneMaskToInput(telefoneInput, telefoneTarget);
+      } else {
+        applyPhoneMaskToInput(telefoneInput);
+      }
     }
-    if (senhaInput && senhaInput.value !== user.senha) {
-      senhaInput.value = user.senha;
+    if (senhaInput && resetFormPinOnRender) {
+      senhaInput.value = '';
+    }
+    if (resetFormPinOnRender && formPinPadController) {
+      formPinPadController.setValue('');
+    }
+    if (resetFormPinOnRender) {
+      resetFormPinOnRender = false;
     }
     if (elements.passwordInput) {
       setPasswordVisibility(passwordVisible);
@@ -1191,7 +1582,7 @@ import {
       return;
     }
     elements.logTableBody.textContent = '';
-    const history = Array.isArray(state.history) ? state.history : [];
+    const history = getActiveHistory();
     if (history.length === 0) {
       elements.logTableWrap.hidden = true;
       elements.logEmpty.forEach((emptyElement) => {
@@ -1220,11 +1611,12 @@ import {
   }
 
   function updateLogControls() {
+    const loggedIn = isLoggedIn();
     if (elements.logoutButton) {
-      elements.logoutButton.disabled = !isLoggedIn();
+      elements.logoutButton.disabled = !loggedIn;
     }
     if (elements.logoutClearButton) {
-      elements.logoutClearButton.disabled = !hasUser();
+      elements.logoutClearButton.disabled = !loggedIn;
     }
   }
 
@@ -1263,6 +1655,339 @@ import {
     }, FEEDBACK_TIMEOUT);
   }
 
+  function clearLoginOverlayFeedback() {
+    if (!elements.loginOverlayFeedback) {
+      return;
+    }
+    elements.loginOverlayFeedback.textContent = '';
+    elements.loginOverlayFeedback.classList.remove('ac-sheet__hint--error');
+    elements.loginOverlayFeedback.removeAttribute('data-i18n');
+  }
+
+  function setLoginOverlayFeedback(type, key) {
+    if (!elements.loginOverlayFeedback) {
+      return;
+    }
+    const fallback = fallbackFor(key, '');
+    const template = translate(key, fallback);
+    const message = formatMessage(template || fallback, {});
+    elements.loginOverlayFeedback.textContent = message;
+    elements.loginOverlayFeedback.setAttribute('data-i18n', key);
+    if (type === 'error') {
+      elements.loginOverlayFeedback.classList.add('ac-sheet__hint--error');
+    } else {
+      elements.loginOverlayFeedback.classList.remove('ac-sheet__hint--error');
+    }
+  }
+
+  function renderLoginOverlayUsers() {
+    if (!elements.loginOverlayUserList) {
+      return;
+    }
+    const users = getUsers();
+    elements.loginOverlayUserList.textContent = '';
+    if (elements.loginOverlayEmpty) {
+      elements.loginOverlayEmpty.hidden = users.length > 0;
+    }
+    if (users.length === 0) {
+      if (overlayPinPadController) {
+        overlayPinPadController.enableConfirm(false);
+        overlayPinPadController.setValue('');
+      }
+      selectedLoginUserId = null;
+      return;
+    }
+
+    if (!selectedLoginUserId || !users.some((user) => user.id === selectedLoginUserId)) {
+      selectedLoginUserId = users[0]?.id || null;
+    }
+
+    const fragment = document.createDocumentFragment();
+    users.forEach((user) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ac-user-tile';
+      button.setAttribute('role', 'listitem');
+      button.dataset.userId = user.id;
+      if (user.id === selectedLoginUserId) {
+        button.setAttribute('data-selected', 'true');
+      }
+
+      const content = document.createElement('div');
+      content.className = 'ac-user-tile__content';
+      const name = document.createElement('p');
+      name.className = 'ac-user-tile__name';
+      name.textContent = getDisplayName(user);
+      const meta = document.createElement('p');
+      meta.className = 'ac-user-tile__meta';
+      meta.textContent = user.email || getAccount(user);
+      content.appendChild(name);
+      content.appendChild(meta);
+
+      button.appendChild(content);
+      button.addEventListener('click', () => {
+        handleOverlayUserSelect(user.id);
+      });
+      fragment.appendChild(button);
+    });
+
+    elements.loginOverlayUserList.appendChild(fragment);
+    if (overlayPinPadController) {
+      overlayPinPadController.enableConfirm(Boolean(selectedLoginUserId));
+    }
+  }
+
+  function updateLoginOverlayState() {
+    if (!loginOverlayOpen) {
+      return;
+    }
+    renderLoginOverlayUsers();
+    if (overlayPinPadController) {
+      overlayPinPadController.enableConfirm(Boolean(selectedLoginUserId));
+    }
+  }
+
+  function handleOverlayUserSelect(userId) {
+    selectedLoginUserId = userId;
+    if (overlayPinPadController) {
+      overlayPinPadController.enableConfirm(Boolean(userId));
+    }
+    renderLoginOverlayUsers();
+    clearLoginOverlayFeedback();
+  }
+
+  function openLoginOverlay({ mode = 'authenticate' } = {}) {
+    if (!elements.loginOverlay) {
+      return;
+    }
+    overlayMode = mode;
+    loginOverlayOpen = true;
+    elements.loginOverlay.setAttribute('aria-hidden', 'false');
+    if (mode === 'create') {
+      selectedLoginUserId = null;
+    } else if (!selectedLoginUserId && hasUsers()) {
+      const user = getActiveUser();
+      selectedLoginUserId = user ? user.id : getUsers()[0]?.id || null;
+    }
+    clearLoginOverlayFeedback();
+    if (overlayPinPadController) {
+      overlayPinPadController.setValue('');
+      overlayPinPadController.enableConfirm(Boolean(selectedLoginUserId));
+    }
+    renderLoginOverlayUsers();
+    window.requestAnimationFrame(() => {
+      const focusTarget =
+        elements.loginOverlay.querySelector('[data-login-close]') ||
+        elements.loginOverlay.querySelector('button');
+      focusTarget?.focus();
+    });
+  }
+
+  function closeLoginOverlay({ restoreFocus = true } = {}) {
+    if (!elements.loginOverlay) {
+      return;
+    }
+    loginOverlayOpen = false;
+    elements.loginOverlay.setAttribute('aria-hidden', 'true');
+    clearLoginOverlayFeedback();
+    if (overlayPinPadController) {
+      overlayPinPadController.setValue('');
+    }
+    if (restoreFocus) {
+      focusPanelAccess();
+    }
+  }
+
+  async function handleOverlaySubmit(pin) {
+    if (!hasUsers()) {
+      setLoginOverlayFeedback('error', LOGIN_OVERLAY_SELECT_FEEDBACK_KEY);
+      return;
+    }
+    if (!selectedLoginUserId) {
+      setLoginOverlayFeedback('error', LOGIN_OVERLAY_SELECT_FEEDBACK_KEY);
+      return;
+    }
+    const user = getUserById(selectedLoginUserId);
+    if (!user) {
+      setLoginOverlayFeedback('error', LOGIN_OVERLAY_SELECT_FEEDBACK_KEY);
+      return;
+    }
+    if (!isValidPin(pin)) {
+      setLoginOverlayFeedback('error', LOGIN_OVERLAY_PIN_REQUIRED_FEEDBACK_KEY);
+      if (overlayPinPadController) {
+        overlayPinPadController.setValue('');
+      }
+      return;
+    }
+    const verification = await verifyPin(user, pin);
+    if (!verification.valid) {
+      setLoginOverlayFeedback('error', LOGIN_OVERLAY_PIN_FEEDBACK_KEY);
+      if (overlayPinPadController) {
+        overlayPinPadController.setValue('');
+      }
+      return;
+    }
+    const timestamp = nowIso();
+    const historyEntry = createHistoryEntry('login', {
+      timestamp,
+      userId: user.id,
+    });
+    resetFormPinOnRender = true;
+    await setState((previous) => {
+      let nextHistory = [];
+      const nextUsers = getUsers(previous).map((profile) => {
+        if (profile.id !== user.id) {
+          return profile;
+        }
+        const history = historyEntry
+          ? [historyEntry, ...(profile.history || [])]
+          : profile.history || [];
+        nextHistory = history;
+        return {
+          ...profile,
+          lastLogin: timestamp,
+          updatedAt: timestamp,
+          pinHash: verification.hash,
+          history,
+        };
+      });
+      return {
+        ...previous,
+        users: nextUsers,
+        activeUserId: user.id,
+        sessionActive: true,
+        history: nextHistory,
+      };
+    });
+    selectedLoginUserId = user.id;
+    panelMode = 'edit';
+    closeLoginOverlay({ restoreFocus: false });
+    setLoginFeedback('success', LOGIN_SUCCESS_FEEDBACK_KEY);
+    openPanel({ focus: true, force: true });
+  }
+
+  function handleLoginCreate() {
+    panelMode = 'create';
+    resetFormPinOnRender = true;
+    closeLoginOverlay({ restoreFocus: false });
+    selectedLoginUserId = null;
+    void setState((previous) => ({
+      ...previous,
+      activeUserId: null,
+      sessionActive: false,
+      history: [],
+    }));
+    openPanel({ focus: true, force: true });
+  }
+
+  function triggerLoginFlow() {
+    if (hasUsers()) {
+      openLoginOverlay();
+      return;
+    }
+    panelMode = 'create';
+    resetFormPinOnRender = true;
+    selectedLoginUserId = null;
+    openPanel({ focus: true, force: true });
+  }
+
+  function handleStageLogin() {
+    triggerLoginFlow();
+  }
+
+  function handleLoginTriggerEvent(event) {
+    if (event) {
+      event.preventDefault();
+      const button = event.currentTarget;
+      if (button) {
+        applyButtonFeedback(button);
+      }
+    }
+    triggerLoginFlow();
+  }
+
+  function openConfirmOverlay() {
+    if (!elements.confirmOverlay) {
+      return;
+    }
+    elements.confirmOverlay.setAttribute('aria-hidden', 'false');
+    window.requestAnimationFrame(() => {
+      const focusTarget =
+        elements.confirmOverlay.querySelector('[data-confirm-accept]') ||
+        elements.confirmOverlay.querySelector('button');
+      focusTarget?.focus();
+    });
+  }
+
+  function closeConfirmOverlay({ restoreFocus = true } = {}) {
+    if (!elements.confirmOverlay) {
+      return;
+    }
+    elements.confirmOverlay.setAttribute('aria-hidden', 'true');
+    pendingClearUserId = null;
+    if (restoreFocus) {
+      focusPanelAccess();
+    }
+  }
+
+  async function handleConfirmAccept() {
+    const targetId = pendingClearUserId;
+    closeConfirmOverlay({ restoreFocus: false });
+    if (!targetId) {
+      return;
+    }
+    const user = getUserById(targetId);
+    if (!user) {
+      pendingClearUserId = null;
+      focusPanelAccess();
+      return;
+    }
+    const timestamp = nowIso();
+    const historyEntry = createHistoryEntry('logout', {
+      timestamp,
+      mode: 'clear',
+      userId: targetId,
+    });
+    panelOpen = false;
+    resetFormPinOnRender = true;
+    clearLoginFeedback();
+    await setState((previous) => {
+      let nextUsers = getUsers(previous).map((profile) => {
+        if (profile.id !== targetId) {
+          return profile;
+        }
+        const history = historyEntry
+          ? [historyEntry, ...(profile.history || [])]
+          : profile.history || [];
+        return { ...profile, history };
+      });
+      nextUsers = nextUsers.filter((profile) => profile.id !== targetId);
+      const nextActiveId = nextUsers.length ? nextUsers[0].id : null;
+      return {
+        ...previous,
+        users: nextUsers,
+        activeUserId: nextActiveId,
+        sessionActive: false,
+        history: [],
+      };
+    });
+    pendingClearUserId = null;
+    selectedLoginUserId = getActiveUser()?.id || null;
+    if (loginOverlayOpen) {
+      renderLoginOverlayUsers();
+    }
+    if (hasUsers()) {
+      panelMode = 'view';
+    } else {
+      panelMode = 'create';
+    }
+    focusPanelAccess();
+  }
+
+  function handleConfirmCancel() {
+    closeConfirmOverlay();
+  }
+
   async function handleLoginSubmit(event) {
     event.preventDefault();
     if (!elements.loginForm) {
@@ -1276,15 +2001,10 @@ import {
     const nome = String(formData.get('nome') || '').trim();
     const email = String(formData.get('email') || '').trim();
     const telefoneDigits = sanitisePhoneDigits(formData.get('telefone'));
-    const senha = String(formData.get('senha') || '').trim();
+    const pin = String(formData.get('senha') || '').trim();
 
     if (!nome || !email) {
       setLoginFeedback('error', LOGIN_ERROR_FEEDBACK_KEY);
-      return;
-    }
-
-    if (!senha) {
-      setLoginFeedback('error', LOGIN_PASSWORD_MISSING_FEEDBACK_KEY);
       return;
     }
 
@@ -1296,28 +2016,121 @@ import {
       return;
     }
 
+    if (!isValidPin(pin)) {
+      setLoginFeedback('error', LOGIN_PIN_LENGTH_FEEDBACK_KEY);
+      return;
+    }
+
+    const activeUser = getActiveUser();
+    const users = getUsers();
+    const emailLower = email.toLowerCase();
     const timestamp = nowIso();
-    const historyEntry = createHistoryEntry('login', { timestamp });
-    panelOpen = true;
-    await setState((previous) => {
-      const nextHistory = historyEntry
-        ? [historyEntry, ...(previous.history || [])]
-        : previous.history || [];
-      return {
-        ...previous,
-        user: {
-          nomeCompleto: nome,
-          email,
-          telefone: telefoneDigits,
-          senha,
-        },
-        lastLogin: timestamp,
-        sessionActive: true,
-        history: nextHistory,
-      };
+
+    const duplicate = users.some((profile) => {
+      if (!profile.email) {
+        return false;
+      }
+      const sameEmail = profile.email.toLowerCase() === emailLower;
+      if (!sameEmail) {
+        return false;
+      }
+      if (activeUser && profile.id === activeUser.id) {
+        return false;
+      }
+      return true;
     });
 
+    if (duplicate) {
+      setLoginFeedback('error', LOGIN_EMAIL_DUPLICATE_FEEDBACK_KEY);
+      return;
+    }
+
+    const isEditingExisting = Boolean(activeUser && state.sessionActive);
+
+    if (isEditingExisting) {
+      const verification = await verifyPin(activeUser, pin);
+      if (!verification.valid) {
+        setLoginFeedback('error', LOGIN_PASSWORD_MISMATCH_FEEDBACK_KEY);
+        resetFormPinOnRender = true;
+        if (formPinPadController) {
+          formPinPadController.setValue('');
+        }
+        return;
+      }
+      const historyEntry = createHistoryEntry('login', {
+        timestamp,
+        userId: activeUser.id,
+      });
+      resetFormPinOnRender = true;
+      await setState((previous) => {
+        const nextUsers = getUsers(previous).map((profile) => {
+          if (profile.id !== activeUser.id) {
+            return profile;
+          }
+          const history = historyEntry
+            ? [historyEntry, ...(profile.history || [])]
+            : profile.history || [];
+          return {
+            ...profile,
+            nomeCompleto: nome,
+            email,
+            telefone: telefoneDigits,
+            pinHash: verification.hash,
+            lastLogin: timestamp,
+            updatedAt: timestamp,
+            history,
+          };
+        });
+        const nextHistory = historyEntry
+          ? [historyEntry, ...getActiveHistory(previous)]
+          : getActiveHistory(previous);
+        return {
+          ...previous,
+          users: nextUsers,
+          history: nextHistory,
+          sessionActive: true,
+          activeUserId: activeUser.id,
+        };
+      });
+      selectedLoginUserId = activeUser.id;
+      panelMode = 'edit';
+      setLoginFeedback('success', LOGIN_SUCCESS_FEEDBACK_KEY);
+      openPanel({ focus: true, force: true });
+      return;
+    }
+
+    const newUserId = createUserId();
+    const pinHash = await hashPin(pin);
+    const historyEntry = createHistoryEntry('login', {
+      timestamp,
+      userId: newUserId,
+    });
+    const userHistory = historyEntry ? [historyEntry] : [];
+    const newUser = {
+      id: newUserId,
+      nomeCompleto: nome,
+      email,
+      telefone: telefoneDigits,
+      pinHash,
+      lastLogin: timestamp,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      history: userHistory,
+    };
+    resetFormPinOnRender = true;
+    await setState((previous) => {
+      const previousUsers = getUsers(previous);
+      return {
+        users: [...previousUsers, newUser],
+        activeUserId: newUserId,
+        sessionActive: true,
+        history: userHistory,
+      };
+    });
+    selectedLoginUserId = newUserId;
+    panelMode = 'edit';
     setLoginFeedback('success', LOGIN_SUCCESS_FEEDBACK_KEY);
+    openPanel({ focus: true, force: true });
   }
 
   function focusStageTitle() {
@@ -1338,7 +2151,11 @@ import {
     });
   }
 
-  function openPanel({ focus = true } = {}) {
+  function openPanel({ focus = true, force = false } = {}) {
+    if (!force && hasUsers() && !isLoggedIn()) {
+      openLoginOverlay();
+      return;
+    }
     const wasClosed = !panelOpen;
     panelOpen = true;
     updateUI();
@@ -1359,6 +2176,8 @@ import {
   function togglePanelAccess() {
     if (panelOpen) {
       closePanel();
+    } else if (hasUsers() && !isLoggedIn()) {
+      openLoginOverlay();
     } else {
       openPanel();
     }
@@ -1372,39 +2191,56 @@ import {
     if (!isLoggedIn()) {
       return;
     }
+    const activeUser = getActiveUser();
+    if (!activeUser) {
+      return;
+    }
     const timestamp = nowIso();
     const historyEntry = createHistoryEntry('logout', {
       timestamp,
       mode: 'preserve',
+      userId: activeUser.id,
     });
     clearLoginFeedback();
     panelOpen = false;
+    resetFormPinOnRender = true;
     await setState((previous) => {
+      const nextUsers = getUsers(previous).map((profile) => {
+        if (profile.id !== activeUser.id) {
+          return profile;
+        }
+        const history = historyEntry
+          ? [historyEntry, ...(profile.history || [])]
+          : profile.history || [];
+        return {
+          ...profile,
+          history,
+        };
+      });
       const nextHistory = historyEntry
-        ? [historyEntry, ...(previous.history || [])]
-        : previous.history || [];
+        ? [historyEntry, ...getActiveHistory(previous)]
+        : getActiveHistory(previous);
       return {
         ...previous,
+        users: nextUsers,
         sessionActive: false,
         history: nextHistory,
       };
     });
+    panelMode = hasUsers() ? 'view' : 'create';
     focusPanelAccess();
   }
 
   async function handleLogoutClear() {
-    if (!hasUser()) {
+    if (!isLoggedIn()) {
       return;
     }
-    clearLoginFeedback();
-    panelOpen = false;
-    await setState({
-      user: null,
-      lastLogin: '',
-      sessionActive: false,
-      history: [],
-    });
-    focusPanelAccess();
+    const user = getActiveUser();
+    if (!user) {
+      return;
+    }
+    pendingClearUserId = user.id;
+    openConfirmOverlay();
   }
 
   window.addEventListener('app:i18n:locale_changed', () => {
@@ -1426,6 +2262,29 @@ import {
     'mozfullscreenerror',
     'MSFullscreenError',
   ];
+
+  function initialisePinPads() {
+    if (elements.pinPadForm) {
+      formPinPadController = createPinPadController(elements.pinPadForm, {
+        targetInput: elements.passwordInput,
+        onChange: () => {
+          if (!resetFormPinOnRender) {
+            syncDirtyFlagFromForm();
+          }
+        },
+      });
+    }
+    if (elements.pinPadOverlay) {
+      overlayPinPadController = createPinPadController(elements.pinPadOverlay, {
+        onChange: () => {
+          clearLoginOverlayFeedback();
+        },
+        onSubmit: (pin) => {
+          void handleOverlaySubmit(pin);
+        },
+      });
+    }
+  }
 
   function registerEventListeners() {
     fullscreenChangeEvents.forEach((eventName) => {
@@ -1479,6 +2338,23 @@ import {
       });
     }
 
+    if (Array.isArray(elements.loginTriggers)) {
+      elements.loginTriggers.forEach((button) => {
+        if (!button) {
+          return;
+        }
+        button.addEventListener('click', (event) => {
+          handleLoginTriggerEvent(event);
+        });
+      });
+    }
+
+    if (elements.stageLogin) {
+      elements.stageLogin.addEventListener('click', (event) => {
+        handleLoginTriggerEvent(event);
+      });
+    }
+
     if (elements.loginForm) {
       const handleFormMutation = () => {
         syncDirtyFlagFromForm();
@@ -1509,6 +2385,58 @@ import {
         }
       });
     }
+
+    if (elements.loginOverlayClose) {
+      elements.loginOverlayClose.addEventListener('click', (event) => {
+        event.preventDefault();
+        closeLoginOverlay();
+      });
+    }
+
+    if (elements.loginOverlayCancel) {
+      elements.loginOverlayCancel.addEventListener('click', (event) => {
+        event.preventDefault();
+        closeLoginOverlay();
+      });
+    }
+
+    if (elements.loginOverlayCreate) {
+      elements.loginOverlayCreate.addEventListener('click', (event) => {
+        event.preventDefault();
+        handleLoginCreate();
+      });
+    }
+
+    if (elements.confirmAccept) {
+      elements.confirmAccept.addEventListener('click', (event) => {
+        event.preventDefault();
+        void handleConfirmAccept();
+      });
+    }
+
+    if (elements.confirmCancel) {
+      elements.confirmCancel.addEventListener('click', (event) => {
+        event.preventDefault();
+        handleConfirmCancel();
+      });
+    }
+
+    if (elements.confirmClose) {
+      elements.confirmClose.addEventListener('click', (event) => {
+        event.preventDefault();
+        handleConfirmCancel();
+      });
+    }
+
+    window.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if (loginOverlayOpen) {
+          closeLoginOverlay();
+        } else if (pendingClearUserId) {
+          handleConfirmCancel();
+        }
+      }
+    });
   }
 
   async function boot() {
@@ -1520,9 +2448,11 @@ import {
       state = getEmptyState();
     }
 
-    panelOpen = hasUser(state) && state.sessionActive;
+    panelOpen = isLoggedIn();
+    panelMode = hasUsers() ? (isLoggedIn() ? 'edit' : 'view') : 'create';
 
     setTheme(currentTheme, { persist: false });
+    initialisePinPads();
     updateUI();
     initialiseFullscreenToggle();
     registerEventListeners();

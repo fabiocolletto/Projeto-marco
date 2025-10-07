@@ -46,6 +46,14 @@
             <span class="ac-theme-toggle__icon" aria-hidden="true">👤</span>
           </button>
           <button
+            class="ac-appbar__login"
+            type="button"
+            data-login-trigger
+            data-i18n="app.header.login"
+          >
+            Fazer login
+          </button>
+          <button
             class="ac-theme-toggle"
             type="button"
             data-theme-toggle
@@ -147,6 +155,14 @@
               >
                 Sem registros.
               </p>
+              <button
+                class="ac-btn ac-btn--primary ac-stage__login"
+                type="button"
+                data-stage-login
+                data-i18n="app.stage.empty.login"
+              >
+                Fazer login
+              </button>
             </div>
           </div>
 
@@ -339,12 +355,13 @@
                       class="ac-field__label"
                       data-i18n="app.panel.form.fields.phone"
                     >
-                      Telefone (opcional)
+                      Telefone
                     </span>
                     <input
                       name="telefone"
                       type="tel"
                       inputmode="tel"
+                      required
                       placeholder="(99) 99999-9999"
                       data-phone-input
                     />
@@ -362,6 +379,10 @@
                         type="password"
                         autocomplete="new-password"
                         required
+                        inputmode="none"
+                        maxlength="4"
+                        pattern="\\d{4}"
+                        readonly
                         data-password-input
                       />
                       <button
@@ -374,6 +395,23 @@
                       >
                         <span aria-hidden="true" data-password-toggle-icon>👁</span>
                       </button>
+                    </div>
+                    <div class="ac-pin-pad" data-pin-pad="form">
+                      <div class="ac-pin-pad__display" data-pin-display>••••</div>
+                      <div class="ac-pin-pad__grid">
+                        <button type="button" data-pin-digit="1">1</button>
+                        <button type="button" data-pin-digit="2">2</button>
+                        <button type="button" data-pin-digit="3">3</button>
+                        <button type="button" data-pin-digit="4">4</button>
+                        <button type="button" data-pin-digit="5">5</button>
+                        <button type="button" data-pin-digit="6">6</button>
+                        <button type="button" data-pin-digit="7">7</button>
+                        <button type="button" data-pin-digit="8">8</button>
+                        <button type="button" data-pin-digit="9">9</button>
+                        <button type="button" data-pin-action="clear" aria-label="Limpar">↺</button>
+                        <button type="button" data-pin-digit="0">0</button>
+                        <button type="button" data-pin-action="backspace" aria-label="Apagar">⌫</button>
+                      </div>
                     </div>
                   </label>
                   <div
@@ -541,6 +579,101 @@
           Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1
         </span>
       </footer>
+      <div class="ac-overlay" data-login-overlay aria-hidden="true">
+        <div class="ac-sheet" role="dialog" aria-modal="true" aria-labelledby="login-sheet-title">
+          <header class="ac-sheet__head">
+            <h2 class="ac-sheet__title" id="login-sheet-title" data-i18n="app.login.sheet.title">
+              Escolha um usuário
+            </h2>
+            <button class="ac-iconbtn" type="button" data-login-close aria-label="Fechar">
+              <span aria-hidden="true">×</span>
+            </button>
+          </header>
+          <div class="ac-sheet__body">
+            <section class="ac-sheet__section">
+              <h3 class="ac-sheet__subtitle" data-i18n="app.login.sheet.users">Contas disponíveis</h3>
+              <div class="ac-user-list" data-login-user-list role="list"></div>
+              <p class="ac-sheet__hint" data-login-empty data-i18n="app.login.sheet.empty">
+                Nenhum usuário cadastrado. Crie uma conta para continuar.
+              </p>
+              <button
+                class="ac-btn ac-btn--ghost"
+                type="button"
+                data-login-create
+                data-i18n="app.login.sheet.create"
+              >
+                Criar novo cadastro
+              </button>
+            </section>
+            <section class="ac-sheet__section ac-sheet__section--stack">
+              <h3 class="ac-sheet__subtitle" data-i18n="app.login.sheet.pin">Digite o PIN</h3>
+              <p class="ac-sheet__hint" data-login-feedback></p>
+              <div class="ac-pin-pad" data-pin-pad="overlay">
+                <div class="ac-pin-pad__display" data-pin-display>••••</div>
+                <div class="ac-pin-pad__grid">
+                  <button type="button" data-pin-digit="1">1</button>
+                  <button type="button" data-pin-digit="2">2</button>
+                  <button type="button" data-pin-digit="3">3</button>
+                  <button type="button" data-pin-digit="4">4</button>
+                  <button type="button" data-pin-digit="5">5</button>
+                  <button type="button" data-pin-digit="6">6</button>
+                  <button type="button" data-pin-digit="7">7</button>
+                  <button type="button" data-pin-digit="8">8</button>
+                  <button type="button" data-pin-digit="9">9</button>
+                  <button type="button" data-pin-action="clear" aria-label="Limpar">↺</button>
+                  <button type="button" data-pin-digit="0">0</button>
+                  <button type="button" data-pin-action="backspace" aria-label="Apagar">⌫</button>
+                </div>
+                <button
+                  class="ac-btn ac-btn--primary ac-pin-pad__submit"
+                  type="button"
+                  data-pin-confirm
+                  data-i18n="app.login.sheet.submit"
+                  disabled
+                >
+                  Entrar
+                </button>
+              </div>
+            </section>
+          </div>
+          <footer class="ac-sheet__foot">
+            <button class="ac-btn ac-btn--ghost" type="button" data-login-cancel data-i18n="app.login.sheet.cancel">
+              Cancelar
+            </button>
+          </footer>
+        </div>
+      </div>
+      <div class="ac-overlay" data-confirm-overlay aria-hidden="true">
+        <div
+          class="ac-sheet"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-sheet-title"
+          aria-describedby="confirm-sheet-description"
+        >
+          <header class="ac-sheet__head">
+            <h2 class="ac-sheet__title" id="confirm-sheet-title" data-i18n="app.confirm.title">
+              Remover dados?
+            </h2>
+            <button class="ac-iconbtn" type="button" data-confirm-close aria-label="Fechar">
+              <span aria-hidden="true">×</span>
+            </button>
+          </header>
+          <div class="ac-sheet__body">
+            <p class="ac-sheet__hint" id="confirm-sheet-description" data-i18n="app.confirm.message">
+              Esta ação removerá todos os dados do usuário selecionado neste dispositivo.
+            </p>
+          </div>
+          <footer class="ac-sheet__foot ac-sheet__foot--split">
+            <button class="ac-btn ac-btn--ghost" type="button" data-confirm-cancel data-i18n="app.confirm.cancel">
+              Manter dados
+            </button>
+            <button class="ac-btn ac-btn--danger" type="button" data-confirm-accept data-i18n="app.confirm.accept">
+              Remover agora
+            </button>
+          </footer>
+        </div>
+      </div>
     </div>
 
   </body>

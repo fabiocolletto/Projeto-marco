@@ -1445,6 +1445,149 @@ select {
   justify-content: flex-end;
 }
 
+.ac-sheet__foot--split {
+  justify-content: space-between;
+}
+
+.ac-sheet__hint {
+  margin: 0;
+  color: var(--ac-muted);
+  line-height: 1.5;
+}
+
+.ac-sheet__hint--error {
+  color: var(--ac-crit);
+}
+
+.ac-appbar__login {
+  margin-left: 12px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: transparent;
+  color: var(--ac-primary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.ac-appbar__login:hover,
+.ac-appbar__login:focus-visible {
+  background: var(--ac-hover);
+  color: var(--ac-card-ink);
+  border-color: var(--ac-primary);
+}
+
+.ac-appbar__login:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.25);
+}
+
+.ac-stage__login {
+  margin-top: 16px;
+}
+
+.ac-user-list {
+  display: grid;
+  gap: 12px;
+}
+
+.ac-user-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-card-bg);
+  color: var(--ac-card-ink);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.ac-user-tile__content {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.ac-user-tile__name {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ac-card-ink);
+}
+
+.ac-user-tile__meta {
+  margin: 0;
+  color: var(--ac-muted);
+  font-size: 0.9rem;
+}
+
+.ac-user-tile[data-selected='true'] {
+  border-color: var(--ac-primary);
+  background: var(--ac-hover);
+}
+
+.ac-user-tile:hover,
+.ac-user-tile:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--ac-primary);
+  outline: none;
+}
+
+.ac-pin-pad {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+}
+
+.ac-pin-pad__display {
+  min-width: 160px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  border: var(--ac-border-width-strong) solid var(--ac-border);
+  background: var(--ac-card-bg);
+  color: var(--ac-card-ink);
+  font-size: 1.6rem;
+  letter-spacing: 0.4rem;
+  text-align: center;
+}
+
+.ac-pin-pad__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 68px));
+  gap: 10px;
+}
+
+.ac-pin-pad__grid button {
+  padding: 12px;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-card-bg);
+  color: var(--ac-card-ink);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.ac-pin-pad__grid button:hover,
+.ac-pin-pad__grid button:focus-visible {
+  background: var(--ac-hover);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.ac-pin-pad__submit {
+  width: 100%;
+}
+
+.ac-pin-pad__submit[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .ac-sheet__status {
   margin: 0;
   color: var(--ac-muted);

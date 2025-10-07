@@ -10,6 +10,7 @@
     "header": {
       "subtitle": "Control dashboard",
       "darkmode": "Toggle theme",
+      "login": "Sign in",
       "locale": "Language",
       "panel": {
         "trigger": {
@@ -37,7 +38,8 @@
     "stage": {
       "empty": {
         "default": "No user registered. Open the header panel to start the registration.",
-        "return": "Session ended. Sign in again to view the panel."
+        "return": "Session ended. Sign in again to view the panel.",
+        "login": "Sign in"
       }
     },
     "panel": {
@@ -91,7 +93,7 @@
         "fields": {
           "name": "Full name",
           "email": "Email",
-          "phone": "Phone (optional)",
+          "phone": "Phone",
           "phone_placeholder": "(99) 99999-9999",
           "password": "Password",
           "password_toggle": {
@@ -104,7 +106,10 @@
           "error": "Provide name and email to continue.",
           "success": "Registration updated successfully.",
           "phone_invalid": "Enter a Brazilian phone number with 10 or 11 digits.",
-          "password_missing": "Enter a password to continue."
+          "password_missing": "Enter a password to continue.",
+          "password_mismatch": "The PIN does not match the current PIN.",
+          "pin_length": "Enter a 4-digit PIN.",
+          "email_duplicate": "This email is already in use."
         }
       },
       "session": {
@@ -133,6 +138,28 @@
         "logout_preserve": "Logoff (data kept)",
         "logout_clear": "Logoff (data removed)"
       }
+    },
+    "login": {
+      "sheet": {
+        "title": "Choose an account",
+        "users": "Available accounts",
+        "empty": "No user registered. Create an account to continue.",
+        "create": "Create new registration",
+        "pin": "Enter the PIN",
+        "submit": "Sign in",
+        "cancel": "Cancel",
+        "feedback": {
+          "select_user": "Select an account to continue.",
+          "invalid_pin": "Incorrect PIN. Try again.",
+          "pin_required": "Enter the 4-digit PIN to continue."
+        }
+      }
+    },
+    "confirm": {
+      "title": "Remove data?",
+      "message": "This action will remove all data for the selected user on this device.",
+      "cancel": "Keep data",
+      "accept": "Remove now"
     },
     "footer": {
       "status": {

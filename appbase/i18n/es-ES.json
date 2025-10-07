@@ -10,6 +10,7 @@
     "header": {
       "subtitle": "Panel de controles",
       "darkmode": "Cambiar tema",
+      "login": "Iniciar sesión",
       "locale": "Idioma",
       "panel": {
         "trigger": {
@@ -37,7 +38,8 @@
     "stage": {
       "empty": {
         "default": "Ningún usuario registrado. Abre el panel en el encabezado para iniciar el registro.",
-        "return": "Sesión finalizada. Inicia sesión nuevamente para ver el panel."
+        "return": "Sesión finalizada. Inicia sesión nuevamente para ver el panel.",
+        "login": "Iniciar sesión"
       }
     },
     "panel": {
@@ -91,7 +93,7 @@
         "fields": {
           "name": "Nombre completo",
           "email": "Correo electrónico",
-          "phone": "Teléfono (opcional)",
+          "phone": "Teléfono",
           "phone_placeholder": "(99) 99999-9999",
           "password": "Contraseña",
           "password_toggle": {
@@ -104,7 +106,10 @@
           "error": "Indica nombre y correo electrónico para continuar.",
           "success": "Registro actualizado correctamente.",
           "phone_invalid": "Ingresa un número de teléfono brasileño con 10 u 11 dígitos.",
-          "password_missing": "Ingresa una contraseña para continuar."
+          "password_missing": "Ingresa una contraseña para continuar.",
+          "password_mismatch": "El PIN no coincide con el PIN actual.",
+          "pin_length": "Introduce un PIN de 4 dígitos.",
+          "email_duplicate": "Este correo electrónico ya está en uso."
         }
       },
       "session": {
@@ -133,6 +138,28 @@
         "logout_preserve": "Cierre de sesión (datos mantenidos)",
         "logout_clear": "Cierre de sesión (datos eliminados)"
       }
+    },
+    "login": {
+      "sheet": {
+        "title": "Elige una cuenta",
+        "users": "Cuentas disponibles",
+        "empty": "No hay usuarios registrados. Crea una cuenta para continuar.",
+        "create": "Crear nuevo registro",
+        "pin": "Introduce el PIN",
+        "submit": "Iniciar sesión",
+        "cancel": "Cancelar",
+        "feedback": {
+          "select_user": "Selecciona una cuenta para continuar.",
+          "invalid_pin": "PIN incorrecto. Inténtalo de nuevo.",
+          "pin_required": "Introduce el PIN de 4 dígitos para continuar."
+        }
+      }
+    },
+    "confirm": {
+      "title": "¿Eliminar datos?",
+      "message": "Esta acción eliminará todos los datos del usuario seleccionado en este dispositivo.",
+      "cancel": "Mantener datos",
+      "accept": "Eliminar ahora"
     },
     "footer": {
       "status": {
