@@ -109,7 +109,7 @@ select {
 }
 
 .ac-app {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0;
@@ -119,13 +119,13 @@ select {
 
 @supports (height: 100svh) {
   .ac-app {
-    min-height: 100svh;
+    height: 100svh;
   }
 }
 
 @supports (height: 100dvh) {
   .ac-app {
-    min-height: 100dvh;
+    height: 100dvh;
   }
 }
 
@@ -504,6 +504,7 @@ select {
   padding: 0;
   position: relative;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -538,6 +539,7 @@ select {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
 }
 
