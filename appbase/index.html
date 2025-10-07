@@ -177,6 +177,37 @@
                 </p>
               </div>
               <div class="ac-stage__actions">
+                <div
+                  class="ac-stage__chips"
+                  role="group"
+                  aria-label="Status das integrações"
+                >
+                  <span class="ac-status-chip" role="status">
+                    <span class="ac-status-chip__icon" aria-hidden="true">☁️</span>
+                    <span
+                      class="ac-status-chip__label"
+                      data-i18n="app.stage.integrations.sync_disabled"
+                    >
+                      Sync desativada
+                    </span>
+                  </span>
+                  <span class="ac-status-chip" role="status">
+                    <span class="ac-status-chip__icon" aria-hidden="true">💾</span>
+                    <span
+                      class="ac-status-chip__label"
+                      data-i18n="app.stage.integrations.backup_disabled"
+                    >
+                      Backup desativado
+                    </span>
+                  </span>
+                  <button
+                    class="ac-btn ac-btn--outline ac-stage__export"
+                    type="button"
+                    data-i18n="app.stage.export"
+                  >
+                    Exportar
+                  </button>
+                </div>
                 <button
                   class="ac-iconbtn ac-iconbtn--small ac-stage__close"
                   type="button"
@@ -189,133 +220,458 @@
             </header>
 
             <div class="ac-panel" data-panel>
-              <article
-                class="ac-panel-card ac-panel-card--kpis"
-                aria-labelledby="painel-insights-title"
-              >
-                <header class="ac-panel-card__head">
-                  <div class="ac-panel-card__titles">
-                    <h3
-                      id="painel-insights-title"
-                      class="ac-panel-card__title"
-                      data-i18n="app.panel.kpis.title"
-                    >
-                      Indicadores
-                    </h3>
-                    <p
-                      class="ac-panel-card__subtitle"
-                      data-i18n="app.panel.kpis.subtitle"
-                    >
-                      Resumo do painel em tempo real.
-                    </p>
-                  </div>
-                </header>
-                <div
-                  class="ac-panel-kpis"
-                  role="group"
-                  aria-label="Indicadores do painel"
-                  data-panel-kpis-group
+              <div class="ac-panel__grid">
+                <article
+                  class="ac-panel-card ac-panel-card--overview"
+                  aria-labelledby="painel-login-title"
                 >
-                  <article class="ac-kpi-card" data-panel-kpi="status">
-                    <p
-                      class="ac-kpi-card__label"
-                      data-i18n="app.panel.kpis.status.label"
-                    >
-                      Status do painel
-                    </p>
-                    <div class="ac-kpi-card__value">
+                  <header class="ac-panel-card__head">
+                    <div class="ac-panel-card__titles">
+                      <h3
+                        id="painel-login-title"
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.overview.title"
+                      >
+                        Login
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.panel.overview.subtitle"
+                      >
+                        Usuário, conta e últimas credenciais registradas.
+                      </p>
+                    </div>
+                    <span class="ac-status-chip" role="status">
                       <span
                         class="ac-dot ac-dot--crit"
                         aria-hidden="true"
                         data-panel-status-dot
                       ></span>
                       <span
+                        class="ac-status-chip__label"
                         data-panel-status-label
                         data-i18n="app.panel.kpis.status.states.disconnected"
                       >
                         Desconectado
                       </span>
+                    </span>
+                  </header>
+                  <dl class="ac-panel-summary ac-info-list" role="list">
+                    <div>
+                      <dt data-i18n="app.panel.summary.user">Usuário</dt>
+                      <dd data-login-user data-i18n="app.panel.summary.empty">
+                        Não configurado
+                      </dd>
                     </div>
-                    <p
-                      class="ac-kpi-card__meta"
-                      data-panel-status-hint
-                      data-i18n="app.panel.kpis.status.hint.empty"
-                    >
-                      Cadastre um usuário para iniciar a sessão.
-                    </p>
-                  </article>
-                  <article class="ac-kpi-card" data-panel-kpi="last-login">
-                    <p
-                      class="ac-kpi-card__label"
-                      data-i18n="app.panel.kpis.last_login.label"
-                    >
-                      Último acesso
-                    </p>
-                    <p class="ac-kpi-card__value" data-panel-last-login>—</p>
-                    <p
-                      class="ac-kpi-card__meta"
-                      data-panel-last-login-hint
-                      data-i18n="app.panel.kpis.last_login.hint.empty"
-                    >
-                      Nenhum registro disponível.
-                    </p>
-                  </article>
-                  <article class="ac-kpi-card" data-panel-kpi="events">
-                    <p
-                      class="ac-kpi-card__label"
-                      data-i18n="app.panel.kpis.events.label"
-                    >
-                      Eventos registrados
-                    </p>
-                    <p class="ac-kpi-card__value" data-panel-login-count>0</p>
-                    <p
-                      class="ac-kpi-card__meta"
-                      data-panel-login-hint
-                      data-i18n="app.panel.kpis.events.hint.empty"
-                    >
-                      Aguardando primeiro registro.
-                    </p>
-                  </article>
-                </div>
-              </article>
+                    <div>
+                      <dt data-i18n="app.panel.summary.account">Conta</dt>
+                      <dd data-login-account>—</dd>
+                    </div>
+                    <div>
+                      <dt data-i18n="app.panel.summary.last_login">Último acesso</dt>
+                      <dd data-login-last>—</dd>
+                    </div>
+                  </dl>
+                  <div
+                    class="ac-session-status"
+                    role="group"
+                    aria-label="Indicadores do painel"
+                    data-panel-kpis-group
+                  >
+                    <article class="ac-session-status__item" data-panel-kpi="status">
+                      <p
+                        class="ac-session-status__label"
+                        data-i18n="app.panel.kpis.status.label"
+                      >
+                        Status da sessão
+                      </p>
+                      <p class="ac-session-status__value">
+                        <span
+                          class="ac-dot ac-dot--crit"
+                          aria-hidden="true"
+                          data-panel-status-dot
+                        ></span>
+                        <span
+                          data-panel-status-label
+                          data-i18n="app.panel.kpis.status.states.disconnected"
+                        >
+                          Desconectado
+                        </span>
+                      </p>
+                      <p
+                        class="ac-session-status__meta"
+                        data-panel-status-hint
+                        data-i18n="app.panel.kpis.status.hint.empty"
+                      >
+                        Cadastre um usuário para iniciar a sessão.
+                      </p>
+                    </article>
+                    <article class="ac-session-status__item" data-panel-kpi="last-login">
+                      <p
+                        class="ac-session-status__label"
+                        data-i18n="app.panel.kpis.last_login.label"
+                      >
+                        Último acesso
+                      </p>
+                      <p class="ac-session-status__value ac-mono" data-panel-last-login>
+                        —
+                      </p>
+                      <p
+                        class="ac-session-status__meta"
+                        data-panel-last-login-hint
+                        data-i18n="app.panel.kpis.last_login.hint.empty"
+                      >
+                        Nenhum registro disponível.
+                      </p>
+                    </article>
+                    <article class="ac-session-status__item" data-panel-kpi="events">
+                      <p
+                        class="ac-session-status__label"
+                        data-i18n="app.panel.kpis.events.label"
+                      >
+                        Eventos registrados
+                      </p>
+                      <p class="ac-session-status__value" data-panel-login-count>0</p>
+                      <p
+                        class="ac-session-status__meta"
+                        data-panel-login-hint
+                        data-i18n="app.panel.kpis.events.hint.empty"
+                      >
+                        Aguardando primeiro registro.
+                      </p>
+                    </article>
+                  </div>
+                </article>
 
               <article
-                class="ac-panel-card ac-panel-card--form"
-                aria-labelledby="painel-cadastro-title"
+                class="ac-panel-card ac-panel-card--sync"
+                aria-labelledby="painel-sync-title"
+                data-system-panel
               >
                 <header class="ac-panel-card__head">
                   <div class="ac-panel-card__titles">
                     <h3
-                      id="painel-cadastro-title"
+                      id="painel-sync-title"
                       class="ac-panel-card__title"
-                      data-i18n="app.panel.form.title"
+                      data-i18n="app.sync.panel.title"
                     >
-                      Cadastro
+                      Sincronização de arquivos
                     </h3>
                     <p
                       class="ac-panel-card__subtitle"
-                      data-i18n="app.panel.form.subtitle"
+                      data-i18n="app.sync.panel.subtitle"
                     >
-                      Atualize os dados salvos neste dispositivo.
+                      Gerencie integrações com Google Drive e OneDrive.
                     </p>
                   </div>
                 </header>
-                <dl class="ac-panel-summary ac-tile__meta" role="list">
-                  <div>
-                    <dt data-i18n="app.panel.summary.user">Usuário</dt>
-                    <dd data-login-user data-i18n="app.panel.summary.empty">
-                      Não configurado
-                    </dd>
-                  </div>
-                  <div>
-                    <dt data-i18n="app.panel.summary.account">Conta</dt>
-                    <dd data-login-account>—</dd>
-                  </div>
-                  <div>
-                    <dt data-i18n="app.panel.summary.last_login">Último acesso</dt>
-                    <dd data-login-last>—</dd>
-                  </div>
-                </dl>
+                <div class="ac-sync-providers">
+                  <section
+                    class="ac-sync-card"
+                    data-sync-provider="googleDrive"
+                  >
+                    <header class="ac-sync-card__head">
+                      <div class="ac-sync-card__info">
+                        <h4
+                          class="ac-sync-card__title"
+                          data-i18n="app.sync.provider.googleDrive"
+                        >
+                          Google Drive
+                        </h4>
+                        <p
+                          class="ac-sync-card__status"
+                          data-sync-status="googleDrive"
+                          data-i18n="app.sync.status.idle"
+                        >
+                          Inativo
+                        </p>
+                      </div>
+                      <button
+                        class="ac-btn ac-btn--ghost ac-sync-card__toggle"
+                        type="button"
+                        data-sync-toggle="googleDrive"
+                        aria-pressed="false"
+                      >
+                        Ativar Google Drive
+                      </button>
+                    </header>
+                    <div class="ac-sync-card__indicator">
+                      <span
+                        class="ac-dot ac-dot--idle"
+                        aria-hidden="true"
+                        data-sync-status-indicator="googleDrive"
+                      ></span>
+                      <p
+                        class="ac-sync-card__message"
+                        data-sync-message="googleDrive"
+                        data-i18n="app.sync.status.message.idle"
+                      >
+                        Sincronização aguardando acionamento.
+                      </p>
+                    </div>
+                    <p
+                      class="ac-sync-card__last"
+                      data-sync-last-update="googleDrive"
+                      data-i18n="app.sync.last_sync.never"
+                    >
+                      Nunca sincronizado
+                    </p>
+                    <h5
+                      class="ac-sync-card__devices-title"
+                      data-i18n="app.sync.devices.title"
+                    >
+                      Dispositivos autorizados
+                    </h5>
+                    <ul
+                      class="ac-sync-card__devices"
+                      data-sync-devices="googleDrive"
+                    ></ul>
+                    <p
+                      class="ac-sync-card__devices-empty"
+                      data-sync-devices-empty="googleDrive"
+                      data-i18n="app.sync.devices.empty"
+                    >
+                      Nenhum dispositivo conectado.
+                    </p>
+                    <button
+                      class="ac-btn ac-btn--danger ac-sync-card__logout"
+                      type="button"
+                      data-sync-logout-all="googleDrive"
+                    >
+                      Deslogar de todos
+                    </button>
+                  </section>
+                  <section class="ac-sync-card" data-sync-provider="oneDrive">
+                    <header class="ac-sync-card__head">
+                      <div class="ac-sync-card__info">
+                        <h4
+                          class="ac-sync-card__title"
+                          data-i18n="app.sync.provider.oneDrive"
+                        >
+                          OneDrive
+                        </h4>
+                        <p
+                          class="ac-sync-card__status"
+                          data-sync-status="oneDrive"
+                          data-i18n="app.sync.status.idle"
+                        >
+                          Inativo
+                        </p>
+                      </div>
+                      <button
+                        class="ac-btn ac-btn--ghost ac-sync-card__toggle"
+                        type="button"
+                        data-sync-toggle="oneDrive"
+                        aria-pressed="false"
+                      >
+                        Ativar OneDrive
+                      </button>
+                    </header>
+                    <div class="ac-sync-card__indicator">
+                      <span
+                        class="ac-dot ac-dot--idle"
+                        aria-hidden="true"
+                        data-sync-status-indicator="oneDrive"
+                      ></span>
+                      <p
+                        class="ac-sync-card__message"
+                        data-sync-message="oneDrive"
+                        data-i18n="app.sync.status.message.idle"
+                      >
+                        Sincronização aguardando acionamento.
+                      </p>
+                    </div>
+                    <p
+                      class="ac-sync-card__last"
+                      data-sync-last-update="oneDrive"
+                      data-i18n="app.sync.last_sync.never"
+                    >
+                      Nunca sincronizado
+                    </p>
+                    <h5
+                      class="ac-sync-card__devices-title"
+                      data-i18n="app.sync.devices.title"
+                    >
+                      Dispositivos autorizados
+                    </h5>
+                    <ul
+                      class="ac-sync-card__devices"
+                      data-sync-devices="oneDrive"
+                    ></ul>
+                    <p
+                      class="ac-sync-card__devices-empty"
+                      data-sync-devices-empty="oneDrive"
+                      data-i18n="app.sync.devices.empty"
+                    >
+                      Nenhum dispositivo conectado.
+                    </p>
+                    <button
+                      class="ac-btn ac-btn--danger ac-sync-card__logout"
+                      type="button"
+                      data-sync-logout-all="oneDrive"
+                    >
+                      Deslogar de todos
+                    </button>
+                  </section>
+                </div>
+              </article>
+
+                <article class="ac-panel-card ac-panel-card--backup">
+                  <header class="ac-panel-card__head">
+                    <div class="ac-panel-card__titles">
+                      <h3
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.backup.title"
+                      >
+                        Backup
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.panel.backup.subtitle"
+                      >
+                        Proteja registros críticos e restaure configurações em segundos.
+                      </p>
+                    </div>
+                    <span class="ac-status-chip" role="status">
+                      <span class="ac-status-chip__icon" aria-hidden="true">💾</span>
+                      <span
+                        class="ac-status-chip__label"
+                        data-i18n="app.panel.backup.status.disabled"
+                      >
+                        Backup desativado
+                      </span>
+                    </span>
+                  </header>
+                  <dl class="ac-info-list" role="list">
+                    <div>
+                      <dt>Último backup</dt>
+                      <dd class="ac-mono" data-backup-last>—</dd>
+                    </div>
+                    <div>
+                      <dt>Armazenamento</dt>
+                      <dd class="ac-mono" data-backup-target>Sem destino</dd>
+                    </div>
+                    <div>
+                      <dt>Tamanho estimado</dt>
+                      <dd class="ac-mono" data-backup-size>0 KB</dd>
+                    </div>
+                  </dl>
+                  <p
+                    class="ac-panel-card__note"
+                    data-i18n="app.panel.backup.note"
+                  >
+                    Configure uma conta de nuvem ou exporte manualmente os dados para
+                    garantir redundância.
+                  </p>
+                </article>
+
+                <article class="ac-panel-card ac-panel-card--connectivity">
+                  <header class="ac-panel-card__head">
+                    <div class="ac-panel-card__titles">
+                      <h3
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.connectivity.title"
+                      >
+                        Conectividade
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.panel.connectivity.subtitle"
+                      >
+                        Parâmetros ativos e latência dos serviços em tempo real.
+                      </p>
+                    </div>
+                  </header>
+                  <dl class="ac-info-list" role="list">
+                    <div>
+                      <dt>Endpoint</dt>
+                      <dd class="ac-mono" data-connect-endpoint>api.marco.local</dd>
+                    </div>
+                    <div>
+                      <dt>Região</dt>
+                      <dd class="ac-mono" data-connect-region>br-south</dd>
+                    </div>
+                    <div>
+                      <dt>Latência média</dt>
+                      <dd class="ac-mono" data-connect-latency>—</dd>
+                    </div>
+                  </dl>
+                  <p
+                    class="ac-panel-card__note"
+                    data-i18n="app.panel.connectivity.note"
+                  >
+                    Monitore tempo de resposta e priorize links redundantes durante janelas
+                    críticas de operação.
+                  </p>
+                </article>
+
+                <article class="ac-panel-card ac-panel-card--security">
+                  <header class="ac-panel-card__head">
+                    <div class="ac-panel-card__titles">
+                      <h3
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.security.title"
+                      >
+                        Segurança
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.panel.security.subtitle"
+                      >
+                        Sessões autenticadas, políticas aplicadas e eventos recentes.
+                      </p>
+                    </div>
+                  </header>
+                  <dl class="ac-info-list" role="list">
+                    <div>
+                      <dt>Última revisão</dt>
+                      <dd class="ac-mono" data-security-last>—</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd class="ac-mono" data-security-status>Em análise</dd>
+                    </div>
+                    <div>
+                      <dt>Alertas ativos</dt>
+                      <dd class="ac-mono" data-security-alerts>0</dd>
+                    </div>
+                  </dl>
+                  <p
+                    class="ac-panel-card__note"
+                    data-i18n="app.panel.security.note"
+                  >
+                    Garanta autenticação multifator nos dispositivos conectados e revise
+                    logs semanalmente.
+                  </p>
+                </article>
+
+                <article
+                  class="ac-panel-card ac-panel-card--form"
+                  aria-labelledby="painel-cadastro-title"
+                >
+                  <header class="ac-panel-card__head">
+                    <div class="ac-panel-card__titles">
+                      <h3
+                        id="painel-cadastro-title"
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.form.title"
+                      >
+                        Cadastro
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.panel.form.subtitle"
+                      >
+                        Atualize os dados salvos neste dispositivo.
+                      </p>
+                    </div>
+                    <span
+                      class="ac-panel-card__badge"
+                      data-i18n="app.panel.form.badge"
+                    >
+                      Editar
+                    </span>
+                  </header>
                 <form
                   id="login-form"
                   class="ac-form-grid"
@@ -449,16 +805,48 @@
                       class="ac-panel-card__title"
                       data-i18n="app.panel.history.title"
                     >
-                      Histórico de atividades
+                      Eventos
                     </h3>
                     <p
                       class="ac-panel-card__subtitle ac-history__subtitle"
                       data-i18n="app.panel.history.subtitle"
                     >
-                      Acompanhe logins, logoffs e trocas de idioma registradas
-                      neste navegador.
+                      Acompanhe logins, backups e alertas registrados neste dispositivo.
                     </p>
                   </div>
+                  <form class="ac-history__filters" role="search">
+                    <label class="ac-history__search">
+                      <span class="ac-visually-hidden">Filtrar eventos</span>
+                      <input
+                        type="search"
+                        name="history-search"
+                        placeholder="Eventos (ex.: backup, login, 09)"
+                        data-i18n="app.panel.history.search.placeholder"
+                        autocomplete="off"
+                        data-history-search
+                      />
+                    </label>
+                    <label class="ac-history__select">
+                      <span class="ac-visually-hidden">Tipo de evento</span>
+                      <select name="history-type" data-history-filter>
+                        <option value="all" data-i18n="app.panel.history.filter.all">
+                          Todos os tipos
+                        </option>
+                        <option value="login" data-i18n="app.panel.history.filter.login">
+                          Logins
+                        </option>
+                        <option value="logout" data-i18n="app.panel.history.filter.logout">
+                          Logoffs
+                        </option>
+                        <option value="backup" data-i18n="app.panel.history.filter.backup">
+                          Backups
+                        </option>
+                        <option value="alert" data-i18n="app.panel.history.filter.alert">
+                          Alertas
+                        </option>
+                      </select>
+                    </label>
+                  </form>
                 </header>
                 <div class="ac-history__body">
                   <div
@@ -488,6 +876,7 @@
                   </p>
                 </div>
               </article>
+              </div>
             </div>
           </section>
         </main>
