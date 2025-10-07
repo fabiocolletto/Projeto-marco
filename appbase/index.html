@@ -362,7 +362,20 @@
                       autocomplete="new-password"
                     />
                   </label>
-                  <div class="ac-panel-form__actions">
+                  <div
+                    class="ac-panel-form__actions"
+                    role="group"
+                    aria-labelledby="panel-session-label"
+                    aria-describedby="panel-session-hint"
+                    data-session-actions
+                  >
+                    <span
+                      class="ac-visually-hidden"
+                      id="panel-session-label"
+                      data-i18n="app.panel.session.current"
+                    >
+                      Sessão atual
+                    </span>
                     <button
                       class="ac-btn ac-btn--primary"
                       type="submit"
@@ -371,33 +384,6 @@
                     >
                       Salvar alterações
                     </button>
-                  </div>
-                </form>
-                <p
-                  class="ac-feedback"
-                  data-login-feedback
-                  role="status"
-                  aria-live="polite"
-                ></p>
-                <section class="ac-session ac-panel-session">
-                  <div class="ac-session__intro">
-                    <p class="ac-sheet__status" data-i18n="app.panel.session.current">
-                      Sessão atual
-                    </p>
-                    <p
-                      class="ac-session__description"
-                      data-i18n="app.panel.session.description"
-                    >
-                      Encerre a sessão mantendo os dados armazenados neste navegador
-                      ou remova todas as informações do cadastro.
-                    </p>
-                  </div>
-                  <div
-                    class="ac-session__actions"
-                    role="group"
-                    aria-label="Ações da sessão"
-                    data-session-actions
-                  >
                     <button
                       class="ac-btn ac-btn--ghost"
                       type="button"
@@ -414,8 +400,22 @@
                     >
                       Encerrar e remover dados
                     </button>
+                    <p
+                      class="ac-panel-form__hint"
+                      id="panel-session-hint"
+                      data-i18n="app.panel.session.description"
+                    >
+                      Encerre a sessão mantendo os dados armazenados neste navegador
+                      ou remova todas as informações do cadastro.
+                    </p>
                   </div>
-                </section>
+                </form>
+                <p
+                  class="ac-feedback"
+                  data-login-feedback
+                  role="status"
+                  aria-live="polite"
+                ></p>
               </article>
 
               <article
