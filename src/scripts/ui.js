@@ -30,6 +30,34 @@ let currentLocale = 'pt-BR';
 const localeCache = new Map();
 let translations = {};
 const relativeTimeFormatters = new Map();
+let localeRequestToken = 0;
+let localeRequestController = null;
+let localeSelectorElement = null;
+let localeSwitcherElement = null;
+
+function setLocaleLoadingState(isLoading) {
+  if (isLoading) {
+    appRoot.dataset.localeLoading = 'true';
+    if (localeSelectorElement) {
+      localeSelectorElement.dataset.loading = 'true';
+      localeSelectorElement.setAttribute('aria-busy', 'true');
+    }
+    if (localeSwitcherElement) {
+      localeSwitcherElement.dataset.loading = 'true';
+      localeSwitcherElement.setAttribute('aria-busy', 'true');
+    }
+    return;
+  }
+  delete appRoot.dataset.localeLoading;
+  if (localeSelectorElement) {
+    delete localeSelectorElement.dataset.loading;
+    localeSelectorElement.removeAttribute('aria-busy');
+  }
+  if (localeSwitcherElement) {
+    delete localeSwitcherElement.dataset.loading;
+    localeSwitcherElement.removeAttribute('aria-busy');
+  }
+}
 
 let storedConfig = null;
 let storedSession = null;
@@ -39,12 +67,43 @@ let storedObservability = null;
 let storedCatalog = null;
 
 export async function setLocale(locale) {
-  const data = await loadLocale(locale);
-  currentLocale = locale;
-  translations = data;
-  document.documentElement.lang = locale;
-  applyTranslations();
-  rerenderDynamicContent();
+  const token = ++localeRequestToken;
+  if (localeRequestController && typeof localeRequestController.abort === 'function') {
+    try {
+      localeRequestController.abort();
+    } catch (error) {
+      // noop: abort failures are non-blocking
+    }
+  }
+
+  const controller = typeof AbortController === 'function' ? new AbortController() : null;
+  localeRequestController = controller;
+
+  setLocaleLoadingState(true);
+
+  try {
+    const data = await loadLocale(locale, controller?.signal);
+    if (token !== localeRequestToken) {
+      return;
+    }
+    currentLocale = locale;
+    translations = data;
+    appRoot.lang = locale;
+    applyTranslations();
+    rerenderDynamicContent();
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw error;
+    }
+    throw error;
+  } finally {
+    if (token === localeRequestToken) {
+      setLocaleLoadingState(false);
+      if (localeRequestController === controller) {
+        localeRequestController = null;
+      }
+    }
+  }
 }
 
 export function getCurrentLocale() {
@@ -94,11 +153,11 @@ function formatRelativeTime(relative) {
   return formatter.format(-value, relative.unit);
 }
 
-async function loadLocale(locale) {
+async function loadLocale(locale, signal) {
   if (localeCache.has(locale)) {
     return localeCache.get(locale);
   }
-  const response = await fetch(`./locales/${locale}.json`);
+  const response = await fetch(`./locales/${locale}.json`, signal ? { signal } : undefined);
   if (!response.ok) {
     throw new Error(`Não foi possível carregar o arquivo de idioma ${locale}`);
   }
@@ -109,23 +168,37 @@ async function loadLocale(locale) {
 
 export async function initLocalization(defaultLocale = 'pt-BR') {
   const selector = document.querySelector('[data-action="change-locale"]');
+  localeSelectorElement = selector ?? null;
+  localeSwitcherElement = selector?.closest('.locale-switcher') ?? null;
+
   if (selector) {
     selector.addEventListener('change', async (event) => {
-      const locale = event.target.value;
+      const target = event.target;
+      if (!(target instanceof HTMLSelectElement)) {
+        return;
+      }
+      const locale = target.value;
       try {
         await setLocale(locale);
       } catch (error) {
+        if (error?.name === 'AbortError') {
+          return;
+        }
         console.error('Erro ao alterar idioma', error);
+        target.value = getCurrentLocale();
       }
     });
   }
+
   try {
     await setLocale(defaultLocale);
     if (selector) {
       selector.value = defaultLocale;
     }
   } catch (error) {
-    console.error('Erro ao carregar idioma padrão', error);
+    if (error?.name !== 'AbortError') {
+      console.error('Erro ao carregar idioma padrão', error);
+    }
   }
 }
 
@@ -661,6 +734,7 @@ function createModuleContext(meta) {
   const config = storedConfig ?? AppBase.getConfig() ?? null;
   return {
     app: AppBase,
+    bus: AppBase.bus,
     meta,
     state: {
       config,
@@ -770,6 +844,17 @@ function showMiniAppPanel(key, trigger) {
   }
 
   activePanelKey = key;
+
+  try {
+    AppBase.bus.emit('ui:panel:show', {
+      key,
+      meta,
+      trigger: trigger ?? null,
+      container: moduleContainer,
+    });
+  } catch (error) {
+    console.error('Falha ao emitir evento ui:panel:show', error);
+  }
 }
 
 export function hideMiniAppPanel() {
@@ -777,6 +862,7 @@ export function hideMiniAppPanel() {
     cleanupActivePanel();
     return;
   }
+  const previousKey = activePanelKey;
   cleanupActivePanel();
   panelCard.classList.remove('is-active');
   panelCard.classList.add('is-collapsed');
@@ -806,6 +892,17 @@ export function hideMiniAppPanel() {
   }
   activePanelTrigger = null;
   activePanelKey = null;
+
+  if (previousKey) {
+    try {
+      AppBase.bus.emit('ui:panel:hide', {
+        key: previousKey,
+        trigger: null,
+      });
+    } catch (error) {
+      console.error('Falha ao emitir evento ui:panel:hide', error);
+    }
+  }
 }
 
 if (panelClose) {

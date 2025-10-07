@@ -111,6 +111,15 @@ header.app-header {
   min-width: 140px;
 }
 
+.locale-switcher[data-loading='true'] {
+  opacity: 0.8;
+  transition: opacity 120ms ease;
+}
+
+.locale-switcher select[data-loading='true'] {
+  cursor: progress;
+}
+
 .theme-toggle {
   display: inline-flex;
   align-items: center;

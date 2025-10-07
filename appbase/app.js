@@ -1,5 +1,9 @@
+import {
+  loadState as loadPersistedState,
+  saveState as persistState,
+} from './storage/indexeddb.js';
+
 (function () {
-  const STORAGE_KEY = 'marco-appbase:user';
   const THEME_STORAGE_KEY = 'marco-appbase:theme';
   const FEEDBACK_TIMEOUT = 2200;
   const BUTTON_FEEDBACK_DURATION = 900;
@@ -67,6 +71,11 @@
     disconnected: 'app.footer.status.disconnected',
   };
   const FOOTER_STATUS_LABEL_KEY = 'app.footer.status.label';
+  const FOOTER_DIRTY_KEYS = {
+    clean: 'app.footer.dirty.clean',
+    dirty: 'app.footer.dirty.dirty',
+  };
+  const FOOTER_DIRTY_LABEL_KEY = 'app.footer.dirty.label';
   const SESSION_ACTIONS_LABEL_KEY = 'app.panel.session.actions.label';
   const RAIL_LABEL_KEY = 'app.rail.label';
   const PANEL_KPIS_GROUP_LABEL_KEY = 'app.panel.kpis.group_label';
@@ -112,6 +121,9 @@
     [FOOTER_STATUS_KEYS.connected]: 'Conectado',
     [FOOTER_STATUS_KEYS.disconnected]: 'Desconectado',
     [FOOTER_STATUS_LABEL_KEY]: 'Status:',
+    [FOOTER_DIRTY_LABEL_KEY]: 'Alterações:',
+    [FOOTER_DIRTY_KEYS.clean]: 'Sincronizado',
+    [FOOTER_DIRTY_KEYS.dirty]: 'Alterações pendentes',
     [SESSION_ACTIONS_LABEL_KEY]: 'Ações da sessão',
     [RAIL_LABEL_KEY]: 'Miniapps',
     [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
@@ -153,8 +165,12 @@
     fullscreenToggleIcon: document.querySelector('[data-fullscreen-toggle-icon]'),
     panelAccess: document.querySelector('[data-panel-access]'),
     brandIcon: document.querySelector('[data-brand-icon]'),
+    footerStatusText: document.querySelector('[data-footer-status-text]'),
     footerStatusDot: document.querySelector('[data-footer-status-dot]'),
     footerStatusLabel: document.querySelector('[data-footer-status-label]'),
+    footerDirtyText: document.querySelector('[data-footer-dirty-text]'),
+    footerDirtyDot: document.querySelector('[data-footer-dirty-dot]'),
+    footerDirtyLabel: document.querySelector('[data-footer-dirty-label]'),
   };
 
   function fallbackFor(key, defaultValue = '') {
@@ -222,8 +238,9 @@
   }
 
   let currentTheme = normaliseTheme(resolveInitialTheme());
-  let state = normaliseState(loadState());
-  let panelOpen = hasUser(state) && state.sessionActive;
+  let state = getEmptyState();
+  let panelOpen = false;
+  let stateDirty = false;
   let feedbackTimer = null;
   let fullscreenSupported = isFullscreenSupported();
   let fullscreenActive = isFullscreenActive();
@@ -571,34 +588,6 @@
     };
   }
 
-  function loadState() {
-    if (!canUseStorage()) {
-      return getEmptyState();
-    }
-    try {
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        return getEmptyState();
-      }
-      const parsed = JSON.parse(stored);
-      return normaliseState(parsed);
-    } catch (error) {
-      console.warn('AppBase: falha ao carregar dados persistidos', error);
-      return getEmptyState();
-    }
-  }
-
-  function saveState(nextState) {
-    if (!canUseStorage()) {
-      return;
-    }
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
-    } catch (error) {
-      console.warn('AppBase: falha ao salvar dados persistidos', error);
-    }
-  }
-
   function normaliseState(raw) {
     const base = getEmptyState();
     if (!raw || typeof raw !== 'object') {
@@ -758,13 +747,16 @@
   }
 
   function setState(updater) {
-    const nextRaw =
-      typeof updater === 'function' ? updater(state) : { ...state, ...updater };
+    const nextRaw = typeof updater === 'function' ? updater(state) : updater;
     const next = normaliseState({ ...state, ...nextRaw });
     state = next;
-    saveState(state);
+    stateDirty = false;
     updateUI();
-    return state;
+    return persistState(state)
+      .catch((error) => {
+        console.warn('AppBase: falha ao persistir dados', error);
+      })
+      .then(() => state);
   }
 
   function updateUI() {
@@ -839,6 +831,9 @@
 
   function updateStatusSummary() {
     const loggedIn = isLoggedIn();
+    if (elements.footerStatusText) {
+      setElementTextFromKey(elements.footerStatusText, FOOTER_STATUS_LABEL_KEY);
+    }
     if (elements.footerStatusDot) {
       elements.footerStatusDot.classList.toggle('ac-dot--ok', loggedIn);
       elements.footerStatusDot.classList.toggle('ac-dot--crit', !loggedIn);
@@ -848,6 +843,17 @@
         ? FOOTER_STATUS_KEYS.connected
         : FOOTER_STATUS_KEYS.disconnected;
       setElementTextFromKey(elements.footerStatusLabel, statusKey);
+    }
+    if (elements.footerDirtyText) {
+      setElementTextFromKey(elements.footerDirtyText, FOOTER_DIRTY_LABEL_KEY);
+    }
+    if (elements.footerDirtyDot) {
+      elements.footerDirtyDot.classList.toggle('ac-dot--ok', !stateDirty);
+      elements.footerDirtyDot.classList.toggle('ac-dot--warn', stateDirty);
+    }
+    if (elements.footerDirtyLabel) {
+      const dirtyKey = stateDirty ? FOOTER_DIRTY_KEYS.dirty : FOOTER_DIRTY_KEYS.clean;
+      setElementTextFromKey(elements.footerDirtyLabel, dirtyKey);
     }
   }
 
@@ -958,6 +964,38 @@
     }
   }
 
+  function getLoginFormSnapshot() {
+    if (!elements.loginForm) {
+      return { nomeCompleto: '', email: '', telefone: '' };
+    }
+    const nomeInput = elements.loginForm.querySelector('[name="nome"]');
+    const emailInput = elements.loginForm.querySelector('[name="email"]');
+    const telefoneInput = elements.loginForm.querySelector('[name="telefone"]');
+    return {
+      nomeCompleto: nomeInput ? String(nomeInput.value || '') : '',
+      email: emailInput ? String(emailInput.value || '') : '',
+      telefone: telefoneInput ? String(telefoneInput.value || '') : '',
+    };
+  }
+
+  function computeFormDirtyState() {
+    const snapshot = getLoginFormSnapshot();
+    const reference = state.user || { nomeCompleto: '', email: '', telefone: '' };
+    return (
+      snapshot.nomeCompleto !== (reference.nomeCompleto || '') ||
+      snapshot.email !== (reference.email || '') ||
+      snapshot.telefone !== (reference.telefone || '')
+    );
+  }
+
+  function syncDirtyFlagFromForm() {
+    const dirty = computeFormDirtyState();
+    if (dirty !== stateDirty) {
+      stateDirty = dirty;
+      updateStatusSummary();
+    }
+  }
+
   function updateLoginFormFields() {
     if (!elements.loginForm) {
       return;
@@ -982,6 +1020,8 @@
         telefoneInput.value = user.telefone;
       }
     }
+
+    syncDirtyFlagFromForm();
   }
 
   function getHistoryLabel(entry) {
@@ -1096,7 +1136,7 @@
     }, FEEDBACK_TIMEOUT);
   }
 
-  function handleLoginSubmit(event) {
+  async function handleLoginSubmit(event) {
     event.preventDefault();
     if (!elements.loginForm) {
       return;
@@ -1118,7 +1158,7 @@
     const timestamp = nowIso();
     const historyEntry = createHistoryEntry('login', { timestamp });
     panelOpen = true;
-    setState((previous) => {
+    await setState((previous) => {
       const nextHistory = historyEntry
         ? [historyEntry, ...(previous.history || [])]
         : previous.history || [];
@@ -1186,7 +1226,7 @@
     closePanel();
   }
 
-  function handleLogoutPreserve() {
+  async function handleLogoutPreserve() {
     if (!isLoggedIn()) {
       return;
     }
@@ -1197,7 +1237,7 @@
     });
     clearLoginFeedback();
     panelOpen = false;
-    setState((previous) => {
+    await setState((previous) => {
       const nextHistory = historyEntry
         ? [historyEntry, ...(previous.history || [])]
         : previous.history || [];
@@ -1210,13 +1250,13 @@
     focusPanelAccess();
   }
 
-  function handleLogoutClear() {
+  async function handleLogoutClear() {
     if (!hasUser()) {
       return;
     }
     clearLoginFeedback();
     panelOpen = false;
-    setState({
+    await setState({
       user: null,
       lastLogin: '',
       sessionActive: false,
@@ -1232,10 +1272,6 @@
     updateUI();
   });
 
-  setTheme(currentTheme, { persist: false });
-  updateUI();
-  initialiseFullscreenToggle();
-
   const fullscreenChangeEvents = [
     'fullscreenchange',
     'webkitfullscreenchange',
@@ -1249,58 +1285,88 @@
     'MSFullscreenError',
   ];
 
-  fullscreenChangeEvents.forEach((eventName) => {
-    document.addEventListener(eventName, syncFullscreenStateFromDocument);
+  function registerEventListeners() {
+    fullscreenChangeEvents.forEach((eventName) => {
+      document.addEventListener(eventName, syncFullscreenStateFromDocument);
+    });
+
+    fullscreenErrorEvents.forEach((eventName) => {
+      document.addEventListener(eventName, handleFullscreenError);
+    });
+
+    if (elements.panelAccess) {
+      elements.panelAccess.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        togglePanelAccess();
+      });
+    }
+
+    if (elements.themeToggle) {
+      elements.themeToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        const nextTheme =
+          currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
+        setTheme(nextTheme);
+      });
+    }
+
+    if (elements.fullscreenToggle) {
+      elements.fullscreenToggle.addEventListener('click', handleFullscreenToggle);
+    }
+
+    if (elements.stageClose) {
+      elements.stageClose.addEventListener('click', (event) => {
+        event.preventDefault();
+        handleStageClose();
+      });
+    }
+
+    if (elements.logoutButton) {
+      elements.logoutButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        void handleLogoutPreserve();
+      });
+    }
+
+    if (elements.logoutClearButton) {
+      elements.logoutClearButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        void handleLogoutClear();
+      });
+    }
+
+    if (elements.loginForm) {
+      const handleFormMutation = () => {
+        syncDirtyFlagFromForm();
+      };
+      elements.loginForm.addEventListener('input', handleFormMutation);
+      elements.loginForm.addEventListener('change', handleFormMutation);
+      elements.loginForm.addEventListener('submit', (event) => {
+        void handleLoginSubmit(event);
+      });
+    }
+  }
+
+  async function boot() {
+    try {
+      const persistedState = await loadPersistedState();
+      state = normaliseState(persistedState);
+    } catch (error) {
+      console.warn('AppBase: falha ao carregar estado persistido', error);
+      state = getEmptyState();
+    }
+
+    panelOpen = hasUser(state) && state.sessionActive;
+
+    setTheme(currentTheme, { persist: false });
+    updateUI();
+    initialiseFullscreenToggle();
+    registerEventListeners();
+  }
+
+  boot().catch((error) => {
+    console.error('AppBase: falha ao inicializar aplicativo', error);
   });
-
-  fullscreenErrorEvents.forEach((eventName) => {
-    document.addEventListener(eventName, handleFullscreenError);
-  });
-
-  if (elements.panelAccess) {
-    elements.panelAccess.addEventListener('click', (event) => {
-      event.preventDefault();
-      applyButtonFeedback(event.currentTarget);
-      togglePanelAccess();
-    });
-  }
-
-  if (elements.themeToggle) {
-    elements.themeToggle.addEventListener('click', (event) => {
-      event.preventDefault();
-      applyButtonFeedback(event.currentTarget);
-      const nextTheme =
-        currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
-      setTheme(nextTheme);
-    });
-  }
-
-  if (elements.fullscreenToggle) {
-    elements.fullscreenToggle.addEventListener('click', handleFullscreenToggle);
-  }
-
-  if (elements.stageClose) {
-    elements.stageClose.addEventListener('click', (event) => {
-      event.preventDefault();
-      handleStageClose();
-    });
-  }
-
-  if (elements.logoutButton) {
-    elements.logoutButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      handleLogoutPreserve();
-    });
-  }
-
-  if (elements.logoutClearButton) {
-    elements.logoutClearButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      handleLogoutClear();
-    });
-  }
-
-  if (elements.loginForm) {
-    elements.loginForm.addEventListener('submit', handleLoginSubmit);
-  }
 })();

@@ -23,6 +23,48 @@ import {
 
 let catalogEntries = [];
 
+/**
+ * Canalização de eventos do AppBase:
+ * - appbase:boot → { enabled, defaults, config }
+ * - appbase:toggle → { key, enabled, changed, defaults, config }
+ * - ui:panel:show → { key, meta, trigger, container }
+ * - ui:panel:hide → { key, trigger }
+ */
+const busSubscriptions = [];
+
+function setupBusListeners() {
+  const handleAppState = () => {
+    renderMiniAppGrid();
+    buildMarketplace(catalogEntries);
+  };
+
+  busSubscriptions.push(
+    AppBase.bus.subscribe('appbase:boot', handleAppState),
+    AppBase.bus.subscribe('appbase:toggle', (event) => {
+      handleAppState(event);
+      if (!event.detail?.enabled && event.detail?.key) {
+        const trigger = document.querySelector(`[data-panel-trigger="${event.detail.key}"]`);
+        if (trigger) {
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+      }
+    }),
+  );
+
+  return () => {
+    while (busSubscriptions.length) {
+      const unsubscribe = busSubscriptions.pop();
+      if (typeof unsubscribe === 'function') {
+        try {
+          unsubscribe();
+        } catch (error) {
+          console.error('Erro ao remover assinatura do bus', error);
+        }
+      }
+    }
+  };
+}
+
 async function loadMiniAppManifest(entry) {
   if (entry?.manifest) {
     return entry.manifest;
@@ -167,10 +209,15 @@ async function bootstrap() {
   await initLocalization('pt-BR');
   initThemeControls();
 
+  const teardownBus = setupBusListeners();
+  window.addEventListener(
+    'unload',
+    () => {
+      teardownBus();
+    },
+    { once: true },
+  );
   AppBase.boot(bootConfig);
-
-  renderMiniAppGrid();
-  buildMarketplace(catalogEntries);
   updateHeaderSession(bootConfig, sessionState);
   updateHomeSnapshot(dashboardSnapshot);
   updateAccountDetails(bootConfig, sessionState, backupSnapshot);
@@ -178,11 +225,6 @@ async function bootstrap() {
   connectMiniAppTriggers();
   initExportActions();
   bindBackToHome();
-
-  AppBase.onChange(() => {
-    renderMiniAppGrid();
-    buildMarketplace(catalogEntries);
-  });
 }
 
 bootstrap().catch((error) => {
