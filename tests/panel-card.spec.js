@@ -6,52 +6,57 @@ async function resetApp(page) {
   await page.reload();
 }
 
-async function openLoginOverlay(page) {
-  const overlay = page.locator('[data-overlay="login"]');
-  const trigger = page.locator('[data-overlay-open="login"]:visible').first();
-  await trigger.click();
-  await expect(overlay).toHaveAttribute('aria-hidden', 'false');
-  return overlay;
+async function ensureLoginForm(page) {
+  const stage = page.locator('#painel-stage');
+  const stageEmptyAction = page.locator('[data-stage-empty-action]');
+
+  if (await stage.isHidden()) {
+    await stageEmptyAction.click();
+  }
+
+  await expect(stage).toBeVisible();
+  const form = stage.locator('[data-login-form]');
+  await expect(form).toBeVisible();
+  return form;
 }
 
-async function clickLogoutPreserve(scope) {
-  const logoutPreserve = scope.locator('[data-action="logout-preserve"]').first();
-  await expect(logoutPreserve).toBeVisible({ timeout: 10000 });
-  await expect(logoutPreserve).toBeEnabled({ timeout: 10000 });
-  await logoutPreserve.click({ timeout: 60000 });
+async function registerUser(page, { nome, email, telefone = '' }) {
+  const form = await ensureLoginForm(page);
+
+  await form.locator('input[name="nome"]').fill(nome);
+  await form.locator('input[name="email"]').fill(email);
+  await form.locator('input[name="telefone"]').fill(telefone);
+
+  await form.locator('[data-action="login-save"]').click();
+  await expect(page.locator('[data-login-feedback]')).toHaveText(
+    'Cadastro atualizado com sucesso.'
+  );
+}
+
+async function logoutPreserve(page) {
+  const button = page.locator('[data-action="logout-preserve"]');
+  await expect(button).toBeEnabled({ timeout: 10000 });
+  await button.click({ timeout: 60000 });
+}
+
+async function logoutClear(page) {
+  const button = page.locator('[data-action="logout-clear"]');
+  await expect(button).toBeEnabled({ timeout: 10000 });
+  await button.click({ timeout: 60000 });
 }
 
 test.beforeEach(async ({ page }) => {
   page.on('dialog', (dialog) => dialog.dismiss().catch(() => {}));
 });
 
-async function registerUser(page, { nome, email, telefone = '' }) {
-  const overlay = await openLoginOverlay(page);
-
-  await overlay.locator('input[name="nome"]').fill(nome);
-  await overlay.locator('input[name="email"]').fill(email);
-  await overlay.locator('input[name="telefone"]').fill(telefone);
-
-  await overlay.locator('[data-action="login-save"]').click();
-  await expect(overlay.locator('[data-login-feedback]')).toHaveText(
-    'Cadastro atualizado com sucesso.'
-  );
-
-  const closeButton = overlay.locator('[data-overlay-close]').first();
-  await closeButton.click();
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
-}
-
 test('cadastro atualiza etiqueta e painel', async ({ page }) => {
   await resetApp(page);
 
   const stage = page.locator('#painel-stage');
   const stageEmpty = page.locator('[data-stage-empty]');
-  const overlay = page.locator('[data-overlay="login"]');
 
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 
   await registerUser(page, {
     nome: 'Maria Fernanda',
@@ -71,6 +76,9 @@ test('cadastro atualiza etiqueta e painel', async ({ page }) => {
   await expect(page.locator('[data-login-account]')).toHaveText('maria');
   await expect(page.locator('[data-login-last]')).not.toHaveText('—');
   await expect(page.locator('[data-meta-value="login"]')).not.toHaveText('—');
+  await expect(page.locator('[data-panel-status-label]')).toHaveText('Conectado');
+  await expect(page.locator('[data-panel-login-count]')).toHaveText('1');
+  await expect(page.locator('[data-panel-last-login]')).not.toHaveText('—');
   await expect(page).toHaveTitle('Projeto Marco — Maria');
 
   await page.reload();
@@ -78,9 +86,7 @@ test('cadastro atualiza etiqueta e painel', async ({ page }) => {
   await expect(stage).toBeVisible();
 });
 
-test('etiqueta controla o painel sem acionar o overlay automaticamente', async ({
-  page,
-}) => {
+test('etiqueta controla o painel sem acionar camadas extras', async ({ page }) => {
   await resetApp(page);
   await registerUser(page, {
     nome: 'Carlos Souza',
@@ -91,11 +97,10 @@ test('etiqueta controla o painel sem acionar o overlay automaticamente', async (
   const stageEmpty = page.locator('[data-stage-empty]');
   const cardTitle = page.locator('[data-miniapp="painel"] .ac-miniapp-card__title');
   const toggleButton = page.locator('[data-miniapp="painel"] [data-toggle-panel]');
-  const overlay = page.locator('[data-overlay="login"]');
 
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+  await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
 
   await toggleButton.click();
   await expect(stage).toBeHidden();
@@ -106,12 +111,11 @@ test('etiqueta controla o painel sem acionar o overlay automaticamente', async (
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+  await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
 
   await cardTitle.click();
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 
   await toggleButton.click();
   await expect(stage).toBeHidden();
@@ -122,7 +126,6 @@ test('etiqueta controla o painel sem acionar o overlay automaticamente', async (
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 });
 
 test('sessão encerrada mantém painel sob controle da etiqueta', async ({ page }) => {
@@ -132,40 +135,23 @@ test('sessão encerrada mantém painel sob controle da etiqueta', async ({ page 
     email: 'joana@example.com',
   });
 
-  const overlay = await openLoginOverlay(page);
-  await clickLogoutPreserve(overlay);
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+  await logoutPreserve(page);
 
   const card = page.locator('[data-miniapp="painel"]');
   const stage = page.locator('#painel-stage');
   const stageEmpty = page.locator('[data-stage-empty]');
   const toggleButton = page.locator('[data-miniapp="painel"] [data-toggle-panel]');
-  const internalTrigger = stage.locator('[data-overlay-open="login"]').first();
 
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
   await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(page.locator('[data-panel-status-label]')).toHaveText('Desconectado');
 
   await card.click();
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
-  await expect(page.locator('[data-overlay="login"]')).toHaveAttribute(
-    'aria-hidden',
-    'true'
-  );
-
-  await internalTrigger.click();
-  await expect(page.locator('[data-overlay="login"]')).toHaveAttribute(
-    'aria-hidden',
-    'false'
-  );
-
-  await page.locator('[data-overlay-close]').first().click();
-  await expect(page.locator('[data-overlay="login"]')).toHaveAttribute(
-    'aria-hidden',
-    'true'
-  );
+  await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
 });
 
 test('histórico registra login e logoff com preservação e limpeza de dados', async ({
@@ -177,9 +163,10 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
     email: 'ana@example.com',
   });
 
-  const overlay = page.locator('[data-overlay="login"]');
+  const stage = page.locator('#painel-stage');
   const logRows = page.locator('[data-login-log-body] tr');
   const tableWrap = page.locator('[data-login-log-table]');
+  const feedback = page.locator('[data-login-feedback]');
 
   await expect(logRows).toHaveCount(1);
   await expect(logRows.first().locator('td').first()).toHaveText('Login realizado');
@@ -187,11 +174,9 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
   await expect(page.locator('[data-action="logout-clear"]')).toBeEnabled();
 
   for (let cycle = 0; cycle < 3; cycle += 1) {
-    const overlayLogout = await openLoginOverlay(page);
-    await clickLogoutPreserve(overlayLogout);
-    await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+    await logoutPreserve(page);
 
-    await expect(page.locator('#painel-stage')).toBeHidden();
+    await expect(stage).toBeHidden();
     await expect(page.locator('[data-stage-empty]')).toBeVisible();
     await expect(page.locator('[data-stage-empty-message]')).toHaveText(
       'Sessão encerrada. Acesse novamente para visualizar o painel.'
@@ -205,15 +190,11 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
     await expect(page.locator('[data-action="logout-preserve"]')).toBeDisabled();
     await expect(page.locator('[data-action="logout-clear"]')).toBeEnabled();
 
-    const overlayLogin = await openLoginOverlay(page);
-    await overlayLogin.locator('[data-action="login-save"]').click();
-    await expect(
-      overlayLogin.locator('[data-login-feedback]')
-    ).toHaveText('Cadastro atualizado com sucesso.');
-    await overlayLogin.locator('[data-overlay-close]').first().click();
-    await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+    const form = await ensureLoginForm(page);
+    await form.locator('[data-action="login-save"]').click();
+    await expect(feedback).toHaveText('Cadastro atualizado com sucesso.');
 
-    await expect(page.locator('#painel-stage')).toBeVisible();
+    await expect(stage).toBeVisible();
     await expect(logRows.first().locator('td').first()).toHaveText('Login realizado');
     await expect(logRows).toHaveCount(2 * cycle + 3);
     await expect(page.locator('[data-action="logout-preserve"]')).toBeEnabled();
@@ -226,9 +207,7 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
   );
   expect(hasScroll).toBeTruthy();
 
-  const overlayClear = await openLoginOverlay(page);
-  await overlayClear.locator('[data-action="logout-clear"]').click();
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
+  await logoutClear(page);
 
   await expect(page.locator('[data-user-name]')).toHaveText('Não configurado');
   await expect(logRows).toHaveCount(0);

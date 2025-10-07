@@ -47,10 +47,15 @@
     loginUser: document.querySelector('[data-login-user]'),
     loginAccount: document.querySelector('[data-login-account]'),
     loginLast: document.querySelector('[data-login-last]'),
-    overlay: document.querySelector('[data-overlay="login"]'),
-    overlayTitle: document.getElementById('login-dialog-title'),
-    overlayForm: document.querySelector('[data-login-form]'),
+    loginForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
+    panelStatusDot: document.querySelector('[data-panel-status-dot]'),
+    panelStatusLabel: document.querySelector('[data-panel-status-label]'),
+    panelStatusHint: document.querySelector('[data-panel-status-hint]'),
+    panelLastLogin: document.querySelector('[data-panel-last-login]'),
+    panelLastLoginHint: document.querySelector('[data-panel-last-login-hint]'),
+    panelLoginCount: document.querySelector('[data-panel-login-count]'),
+    panelLoginHint: document.querySelector('[data-panel-login-hint]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
@@ -66,18 +71,9 @@
     footerStatusLabel: document.querySelector('[data-footer-status-label]'),
   };
 
-  const overlayOpenButtons = Array.from(
-    document.querySelectorAll('[data-overlay-open="login"]')
-  );
-  const overlayCloseButtons = Array.from(
-    document.querySelectorAll('[data-overlay-close]')
-  );
-
   let currentTheme = normaliseTheme(resolveInitialTheme());
   let state = normaliseState(loadState());
   let panelOpen = hasUser(state) && state.sessionActive;
-  let activeOverlayTrigger = null;
-  let overlayVisible = false;
   let feedbackTimer = null;
   let fullscreenSupported = isFullscreenSupported();
   let fullscreenActive = isFullscreenActive();
@@ -598,7 +594,6 @@
     updateDocumentTitle();
     updateCard();
     updateStage();
-    updateOverlayTitle();
     updateLoginFormFields();
     updateLogHistory();
     updateLogControls();
@@ -644,6 +639,7 @@
 
   function updateStage() {
     const hasData = hasUser();
+    const loggedIn = isLoggedIn();
 
     if (elements.stageEmpty) {
       elements.stageEmpty.hidden = panelOpen;
@@ -690,26 +686,78 @@
         ? formatDateTime(state.lastLogin)
         : '—';
     }
+
+    updatePanelIndicators({ hasData, loggedIn });
   }
 
-  function updateOverlayTitle() {
-    if (!elements.overlayTitle) {
-      return;
+  function getHistoryCount() {
+    const history = Array.isArray(state.history) ? state.history : [];
+    return history.length;
+  }
+
+  function updatePanelIndicators({ hasData = hasUser(), loggedIn = isLoggedIn() } = {}) {
+    const historyCount = getHistoryCount();
+    const lastLoginValue = hasData ? formatDateTime(state.lastLogin) : '—';
+
+    if (elements.panelStatusDot) {
+      elements.panelStatusDot.classList.toggle('ac-dot--ok', loggedIn);
+      elements.panelStatusDot.classList.toggle('ac-dot--crit', !loggedIn && !hasData);
+      elements.panelStatusDot.classList.toggle('ac-dot--warn', hasData && !loggedIn);
     }
-    const label = getDisplayName(state.user);
-    elements.overlayTitle.textContent = label
-      ? `Login • ${label}`
-      : 'Login';
+
+    if (elements.panelStatusLabel) {
+      elements.panelStatusLabel.textContent = loggedIn ? 'Conectado' : 'Desconectado';
+    }
+
+    if (elements.panelStatusHint) {
+      let message = 'Cadastre um usuário para iniciar a sessão.';
+      if (hasData && !loggedIn) {
+        message = 'Sessão encerrada. Abra o painel e salve para retomar.';
+      }
+      if (loggedIn) {
+        message = 'Sessão ativa neste navegador.';
+      }
+      elements.panelStatusHint.textContent = message;
+    }
+
+    if (elements.panelLastLogin) {
+      elements.panelLastLogin.textContent = hasData ? lastLoginValue : '—';
+    }
+
+    if (elements.panelLastLoginHint) {
+      let hint = 'Nenhum registro disponível.';
+      if (hasData && !loggedIn) {
+        hint = 'Último acesso registrado localmente.';
+      }
+      if (loggedIn) {
+        hint = 'Atualizado automaticamente após o login.';
+      }
+      elements.panelLastLoginHint.textContent = hint;
+    }
+
+    if (elements.panelLoginCount) {
+      elements.panelLoginCount.textContent = String(historyCount);
+    }
+
+    if (elements.panelLoginHint) {
+      let hint = 'Aguardando primeiro registro.';
+      if (historyCount === 1) {
+        hint = '1 evento armazenado neste dispositivo.';
+      } else if (historyCount > 1) {
+        hint = `${historyCount} eventos armazenados neste dispositivo.`;
+      }
+      elements.panelLoginHint.textContent = hint;
+    }
   }
 
   function updateLoginFormFields() {
-    if (!elements.overlayForm) {
+    if (!elements.loginForm) {
       return;
     }
     const user = state.user || { nomeCompleto: '', email: '', telefone: '' };
-    const nomeInput = elements.overlayForm.querySelector('[name="nome"]');
-    const emailInput = elements.overlayForm.querySelector('[name="email"]');
-    const telefoneInput = elements.overlayForm.querySelector('[name="telefone"]');
+    const nomeInput = elements.loginForm.querySelector('[name="nome"]');
+    const emailInput = elements.loginForm.querySelector('[name="email"]');
+    const telefoneInput = elements.loginForm.querySelector('[name="telefone"]');
 
     if (nomeInput && nomeInput.value !== user.nomeCompleto) {
       nomeInput.value = user.nomeCompleto;
@@ -816,48 +864,16 @@
     }, FEEDBACK_TIMEOUT);
   }
 
-  function openLoginOverlay(trigger) {
-    if (!elements.overlay) {
-      return;
-    }
-    activeOverlayTrigger = trigger || null;
-    overlayVisible = true;
-    elements.overlay.setAttribute('aria-hidden', 'false');
-    clearLoginFeedback();
-    updateLoginFormFields();
-    window.requestAnimationFrame(() => {
-      elements.overlayTitle?.focus();
-    });
-    document.addEventListener('keydown', handleOverlayKeydown);
-  }
-
-  function closeLoginOverlay({ focusTrigger = true } = {}) {
-    if (!elements.overlay || !overlayVisible) {
-      return;
-    }
-    overlayVisible = false;
-    elements.overlay.setAttribute('aria-hidden', 'true');
-    document.removeEventListener('keydown', handleOverlayKeydown);
-    clearLoginFeedback();
-    if (focusTrigger && activeOverlayTrigger && typeof activeOverlayTrigger.focus === 'function') {
-      activeOverlayTrigger.focus();
-    }
-    activeOverlayTrigger = null;
-  }
-
-  function handleOverlayKeydown(event) {
-    if (event.key === 'Escape' && !event.defaultPrevented) {
-      event.preventDefault();
-      closeLoginOverlay();
-    }
-  }
-
   function handleLoginSubmit(event) {
     event.preventDefault();
-    if (!elements.overlayForm) {
+    if (!elements.loginForm) {
       return;
     }
-    const formData = new FormData(elements.overlayForm);
+    const submitter = event.submitter;
+    if (submitter) {
+      applyButtonFeedback(submitter);
+    }
+    const formData = new FormData(elements.loginForm);
     const nome = String(formData.get('nome') || '').trim();
     const email = String(formData.get('email') || '').trim();
     const telefone = String(formData.get('telefone') || '').trim();
@@ -943,8 +959,8 @@
       timestamp,
       mode: 'preserve',
     });
+    clearLoginFeedback();
     panelOpen = false;
-    closeLoginOverlay({ focusTrigger: false });
     setState((previous) => {
       const nextHistory = historyEntry
         ? [historyEntry, ...(previous.history || [])]
@@ -961,21 +977,14 @@
     if (!hasUser()) {
       return;
     }
+    clearLoginFeedback();
     panelOpen = false;
-    closeLoginOverlay({ focusTrigger: false });
     setState({
       user: null,
       lastLogin: '',
       sessionActive: false,
       history: [],
     });
-  }
-
-  function handleOverlayPointer(event) {
-    if (!elements.overlay || event.target !== elements.overlay) {
-      return;
-    }
-    closeLoginOverlay();
   }
 
   setTheme(currentTheme, { persist: false });
@@ -1044,6 +1053,14 @@
     });
   }
 
+  if (elements.stageEmptyAction) {
+    elements.stageEmptyAction.addEventListener('click', (event) => {
+      event.preventDefault();
+      applyButtonFeedback(event.currentTarget);
+      openPanel();
+    });
+  }
+
   if (elements.logoutButton) {
     elements.logoutButton.addEventListener('click', (event) => {
       event.preventDefault();
@@ -1058,25 +1075,7 @@
     });
   }
 
-  overlayOpenButtons.forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      openLoginOverlay(button);
-    });
-  });
-
-  overlayCloseButtons.forEach((button) => {
-    button.addEventListener('click', (event) => {
-      event.preventDefault();
-      closeLoginOverlay();
-    });
-  });
-
-  if (elements.overlayForm) {
-    elements.overlayForm.addEventListener('submit', handleLoginSubmit);
-  }
-
-  if (elements.overlay) {
-    elements.overlay.addEventListener('mousedown', handleOverlayPointer);
+  if (elements.loginForm) {
+    elements.loginForm.addEventListener('submit', handleLoginSubmit);
   }
 })();
