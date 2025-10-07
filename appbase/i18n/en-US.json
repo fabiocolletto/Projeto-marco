@@ -134,6 +134,11 @@
         "connected": "Connected",
         "disconnected": "Disconnected"
       },
+      "dirty": {
+        "label": "Changes:",
+        "clean": "Saved",
+        "dirty": "Unsaved changes"
+      },
       "meta": "Developed by 5Horas • Marco Project — AppBase R1.1",
       "login": { "ok": "Connected" }
     },

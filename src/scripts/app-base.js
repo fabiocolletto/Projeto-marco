@@ -1,3 +1,5 @@
+import { bus } from './bus.js';
+
 const modules = new Map();
 const defaults = new Set();
 let enabled = new Set();
@@ -30,9 +32,16 @@ function normalizeMeta(key, definition) {
 }
 
 function notify(event) {
+  const payload = Object.freeze({ ...event });
+  try {
+    bus.emit(`appbase:${event.type}`, payload);
+    bus.emit('appbase:change', payload);
+  } catch (error) {
+    console.error('AppBase bus emit error', error);
+  }
   listeners.forEach((listener) => {
     try {
-      listener(event);
+      listener(payload);
     } catch (error) {
       console.error('AppBase listener error', error);
     }
@@ -55,7 +64,12 @@ function boot(config) {
     ...(config.defaults?.enabledMiniApps ?? []),
     ...(config.user?.enabledMiniApps ?? []),
   ]);
-  notify({ type: 'boot', enabled: getEnabledMiniApps() });
+  notify({
+    type: 'boot',
+    enabled: getEnabledMiniApps(),
+    defaults: Array.from(defaults),
+    config: getResolvedConfig(),
+  });
 }
 
 function toggleMiniApp(key) {
@@ -72,7 +86,14 @@ function toggleMiniApp(key) {
     enabled.add(key);
   }
   const isNowEnabled = enabled.has(key);
-  notify({ type: 'toggle', key, enabled: isNowEnabled, defaults: Array.from(defaults) });
+  notify({
+    type: 'toggle',
+    key,
+    enabled: isNowEnabled,
+    changed: wasEnabled !== isNowEnabled,
+    defaults: Array.from(defaults),
+    config: getResolvedConfig(),
+  });
   return { changed: wasEnabled !== isNowEnabled, enabled: isNowEnabled };
 }
 
@@ -143,4 +164,5 @@ export const AppBase = {
   getModuleMeta,
   getModuleMetaEntries,
   onChange,
+  bus,
 };

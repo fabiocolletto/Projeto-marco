@@ -134,6 +134,11 @@
         "connected": "Conectado",
         "disconnected": "Desconectado"
       },
+      "dirty": {
+        "label": "Alterações:",
+        "clean": "Sincronizado",
+        "dirty": "Alterações pendentes"
+      },
       "meta": "Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1",
       "login": { "ok": "Conectado" }
     },

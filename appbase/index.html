@@ -10,7 +10,7 @@
       name="appbase-i18n"
       content="defaultLocale=pt-BR; supportedLocales=pt-BR,en-US,es-ES"
     />
-    <script defer src="./app.js"></script>
+    <script type="module" src="./app.js"></script>
     <script defer src="./i18n/i18n.js"></script>
     <script defer src="./uiext/uiext.js"></script>
     <script defer src="./settings/settings.js"></script>
@@ -481,7 +481,7 @@
       </div>
 
       <footer class="ac-footer" role="contentinfo">
-        <span class="ac-footer__status" data-footer-status>
+        <span class="ac-footer__status" data-footer-status data-footer-session-status>
           <span
             class="ac-dot ac-dot--crit"
             aria-hidden="true"
@@ -489,6 +489,7 @@
           ></span>
           <span
             class="ac-footer__status-text"
+            data-footer-status-text
             data-i18n="app.footer.status.label"
           >
             Status:
@@ -499,6 +500,27 @@
             data-i18n="app.footer.status.disconnected"
           >
             Desconectado
+          </span>
+        </span>
+        <span class="ac-footer__status" data-footer-dirty-status>
+          <span
+            class="ac-dot ac-dot--ok"
+            aria-hidden="true"
+            data-footer-dirty-dot
+          ></span>
+          <span
+            class="ac-footer__status-text"
+            data-footer-dirty-text
+            data-i18n="app.footer.dirty.label"
+          >
+            Alterações:
+          </span>
+          <span
+            class="ac-footer__status-label"
+            data-footer-dirty-label
+            data-i18n="app.footer.dirty.clean"
+          >
+            Sincronizado
           </span>
         </span>
         <span class="ac-footer__meta" data-i18n="app.footer.meta">
