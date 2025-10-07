@@ -1,18 +1,21 @@
-.ac-lang-stage {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+.ac-panel-card--settings {
+  display: grid;
+  gap: 24px;
+  align-content: start;
+}
+
+.ac-panel-card--settings [data-lang-close] {
+  margin-left: auto;
 }
 
 .ac-lang-panel {
   display: grid;
   gap: 24px;
-  padding: 32px;
-  background: transparent;
 }
 
-.ac-lang-panel__card {
-  position: relative;
+.ac-lang-panel__section {
+  display: grid;
+  gap: 16px;
 }
 
 .ac-lang-panel__body {
@@ -27,17 +30,6 @@
 
 .ac-lang-panel__select {
   width: 100%;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: var(--ac-border-width) solid var(--ac-border);
-  background: var(--ac-bg);
-  font-size: 1rem;
-  color: var(--ac-primary);
-}
-
-.ac-lang-panel__select:focus-visible {
-  outline: 2px solid var(--ac-primary);
-  outline-offset: 2px;
 }
 
 .ac-lang-panel__actions {
@@ -47,6 +39,10 @@
 
 .ac-lang-panel__actions .ac-btn {
   min-width: 120px;
+}
+
+.ac-lang-panel__section--log {
+  min-height: 0;
 }
 
 .ac-lang-log {
@@ -96,4 +92,11 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+@media (min-width: 960px) {
+  .ac-lang-panel {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 1fr);
+    align-items: start;
+  }
 }

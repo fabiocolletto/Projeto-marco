@@ -419,6 +419,90 @@
               </article>
 
               <article
+                class="ac-panel-card ac-panel-card--settings"
+                aria-labelledby="language-stage-title"
+                data-lang-card
+                aria-hidden="true"
+                hidden
+              >
+                <header class="ac-panel-card__head">
+                  <div class="ac-panel-card__titles">
+                    <h3
+                      id="language-stage-title"
+                      class="ac-panel-card__title"
+                      tabindex="-1"
+                      data-i18n="app.settings.title"
+                    >
+                      Configurações
+                    </h3>
+                    <p class="ac-panel-card__subtitle" data-i18n="app.settings.subtitle">
+                      Gerencie idioma e região do AppBase.
+                    </p>
+                  </div>
+                  <button class="ac-iconbtn ac-iconbtn--small" type="button" data-lang-close>
+                    <span aria-hidden="true">×</span>
+                    <span class="ac-visually-hidden" data-i18n="app.settings.close">
+                      Fechar painel de configurações
+                    </span>
+                  </button>
+                </header>
+                <div class="ac-lang-panel">
+                  <section class="ac-lang-panel__section">
+                    <div class="ac-panel-card__titles">
+                      <h4
+                        class="ac-panel-card__title"
+                        data-i18n="app.settings.lang_card.title"
+                      >
+                        Idioma &amp; Região
+                      </h4>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.settings.lang_card.description"
+                      >
+                        Escolha o idioma preferido para o AppBase.
+                      </p>
+                    </div>
+                    <div class="ac-lang-panel__body">
+                      <label
+                        class="ac-lang-panel__label"
+                        for="lang-select"
+                        data-i18n="app.settings.lang_card.select_label"
+                      >
+                        Idioma
+                      </label>
+                      <select id="lang-select" class="ac-lang-panel__select" data-lang-select>
+                        <option value="pt-BR" data-i18n="app.settings.lang_card.options.pt-BR">
+                          Português (Brasil)
+                        </option>
+                        <option value="en-US" data-i18n="app.settings.lang_card.options.en-US">
+                          English (United States)
+                        </option>
+                        <option value="es-ES" data-i18n="app.settings.lang_card.options.es-ES">
+                          Español (España)
+                        </option>
+                      </select>
+                      <div class="ac-lang-panel__actions">
+                        <button class="ac-btn" type="button" data-lang-apply>
+                          <span data-i18n="app.settings.lang_card.apply">Aplicar</span>
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                  <section class="ac-lang-panel__section ac-lang-panel__section--log">
+                    <div class="ac-panel-card__titles">
+                      <h4 class="ac-panel-card__title" data-i18n="app.settings.log.title">
+                        Log de comandos
+                      </h4>
+                      <p class="ac-panel-card__subtitle" data-i18n="app.settings.log.subtitle">
+                        Registros das ações de idioma.
+                      </p>
+                    </div>
+                    <pre class="ac-lang-log" data-lang-log aria-live="polite"></pre>
+                  </section>
+                </div>
+              </article>
+
+              <article
                 class="ac-panel-card ac-panel-card--history ac-history"
                 aria-labelledby="login-log-title"
               >
@@ -470,13 +554,6 @@
             </div>
           </section>
 
-          <section
-            id="language-stage"
-            class="ac-stage__panel ac-stage__panel--lang"
-            aria-labelledby="language-stage-title"
-            hidden
-            data-lang-stage
-          ></section>
         </main>
       </div>
 
