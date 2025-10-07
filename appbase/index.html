@@ -164,7 +164,6 @@
               <button
                 class="ac-btn"
                 type="button"
-                data-overlay-open="login"
                 data-stage-empty-action
               >
                 Começar cadastro
@@ -197,20 +196,68 @@
               </div>
             </header>
 
-            <div class="ac-grid">
-              <article class="ac-tile ac-tile--span-12" data-tile="login">
-                <header class="ac-tile__head">
-                  <h3 class="ac-tile__title">Login</h3>
-                  <button
-                    type="button"
-                    class="ac-iconbtn ac-iconbtn--small"
-                    data-overlay-open="login"
-                    aria-label="Abrir detalhes de login"
-                  >
-                    <span aria-hidden="true">⋯</span>
-                  </button>
+            <div class="ac-panel" data-panel>
+              <article
+                class="ac-panel-card ac-panel-card--kpis"
+                aria-labelledby="painel-insights-title"
+              >
+                <header class="ac-panel-card__head">
+                  <div class="ac-panel-card__titles">
+                    <h3 id="painel-insights-title" class="ac-panel-card__title">
+                      Indicadores
+                    </h3>
+                    <p class="ac-panel-card__subtitle">
+                      Resumo do painel em tempo real.
+                    </p>
+                  </div>
                 </header>
-                <dl class="ac-tile__meta">
+                <div class="ac-panel-kpis" role="group" aria-label="Indicadores do painel">
+                  <article class="ac-kpi-card" data-panel-kpi="status">
+                    <p class="ac-kpi-card__label">Status do painel</p>
+                    <div class="ac-kpi-card__value">
+                      <span
+                        class="ac-dot ac-dot--crit"
+                        aria-hidden="true"
+                        data-panel-status-dot
+                      ></span>
+                      <span data-panel-status-label>Desconectado</span>
+                    </div>
+                    <p class="ac-kpi-card__meta" data-panel-status-hint>
+                      Cadastre um usuário para iniciar a sessão.
+                    </p>
+                  </article>
+                  <article class="ac-kpi-card" data-panel-kpi="last-login">
+                    <p class="ac-kpi-card__label">Último acesso</p>
+                    <p class="ac-kpi-card__value" data-panel-last-login>—</p>
+                    <p class="ac-kpi-card__meta" data-panel-last-login-hint>
+                      Nenhum registro disponível.
+                    </p>
+                  </article>
+                  <article class="ac-kpi-card" data-panel-kpi="events">
+                    <p class="ac-kpi-card__label">Eventos registrados</p>
+                    <p class="ac-kpi-card__value" data-panel-login-count>0</p>
+                    <p class="ac-kpi-card__meta" data-panel-login-hint>
+                      Aguardando primeiro registro.
+                    </p>
+                  </article>
+                </div>
+              </article>
+
+              <article
+                class="ac-panel-card ac-panel-card--form"
+                aria-labelledby="painel-cadastro-title"
+              >
+                <header class="ac-panel-card__head">
+                  <div class="ac-panel-card__titles">
+                    <h3 id="painel-cadastro-title" class="ac-panel-card__title">
+                      Cadastro
+                    </h3>
+                    <p class="ac-panel-card__subtitle">
+                      Atualize os dados salvos neste dispositivo.
+                    </p>
+                  </div>
+                </header>
+                <dl class="ac-panel-summary ac-tile__meta" role="list">
                   <div>
                     <dt>Usuário</dt>
                     <dd data-login-user>Não configurado</dd>
@@ -224,18 +271,95 @@
                     <dd data-login-last>—</dd>
                   </div>
                 </dl>
+                <form
+                  id="login-form"
+                  class="ac-form-grid"
+                  data-login-form
+                  autocomplete="off"
+                >
+                  <label class="ac-field">
+                    <span class="ac-field__label">Nome completo</span>
+                    <input name="nome" type="text" required />
+                  </label>
+                  <label class="ac-field">
+                    <span class="ac-field__label">E-mail</span>
+                    <input name="email" type="email" required />
+                  </label>
+                  <label class="ac-field">
+                    <span class="ac-field__label">Telefone (opcional)</span>
+                    <input
+                      name="telefone"
+                      type="tel"
+                      inputmode="tel"
+                      placeholder="(99) 99999-9999"
+                    />
+                  </label>
+                  <label class="ac-field">
+                    <span class="ac-field__label">Senha</span>
+                    <input
+                      name="senha"
+                      type="password"
+                      value="********"
+                      autocomplete="new-password"
+                    />
+                  </label>
+                  <div class="ac-panel-form__actions">
+                    <button
+                      class="ac-btn ac-btn--primary"
+                      type="submit"
+                      data-action="login-save"
+                    >
+                      Salvar alterações
+                    </button>
+                  </div>
+                </form>
+                <p
+                  class="ac-feedback"
+                  data-login-feedback
+                  role="status"
+                  aria-live="polite"
+                ></p>
+                <section class="ac-session ac-panel-session">
+                  <div class="ac-session__intro">
+                    <p class="ac-sheet__status">Sessão atual</p>
+                    <p class="ac-session__description">
+                      Encerre a sessão mantendo os dados armazenados neste navegador
+                      ou remova todas as informações do cadastro.
+                    </p>
+                  </div>
+                  <div
+                    class="ac-session__actions"
+                    role="group"
+                    aria-label="Ações da sessão"
+                  >
+                    <button
+                      class="ac-btn ac-btn--ghost"
+                      type="button"
+                      data-action="logout-preserve"
+                    >
+                      Encerrar sessão
+                    </button>
+                    <button
+                      class="ac-btn ac-btn--danger"
+                      type="button"
+                      data-action="logout-clear"
+                    >
+                      Encerrar e remover dados
+                    </button>
+                  </div>
+                </section>
               </article>
+
               <article
-                class="ac-tile ac-tile--span-12 ac-history"
-                data-login-log
+                class="ac-panel-card ac-panel-card--history ac-history"
                 aria-labelledby="login-log-title"
               >
-                <header class="ac-tile__head ac-history__head">
-                  <div class="ac-history__titles">
-                    <h3 id="login-log-title" class="ac-tile__title">
+                <header class="ac-panel-card__head ac-history__head">
+                  <div class="ac-panel-card__titles ac-history__titles">
+                    <h3 id="login-log-title" class="ac-panel-card__title">
                       Histórico de acessos
                     </h3>
-                    <p class="ac-history__subtitle">
+                    <p class="ac-panel-card__subtitle ac-history__subtitle">
                       Acompanhe logins e logoffs registrados neste navegador.
                     </p>
                   </div>
@@ -283,103 +407,5 @@
       </footer>
     </div>
 
-    <div class="ac-overlay" data-overlay="login" aria-hidden="true">
-      <section
-        class="ac-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="login-dialog-title"
-      >
-        <header class="ac-sheet__head">
-          <h4 id="login-dialog-title" class="ac-sheet__title" tabindex="-1">
-            Login • Não configurado
-          </h4>
-          <button
-            class="ac-iconbtn ac-iconbtn--small"
-            type="button"
-            aria-label="Fechar"
-            data-overlay-close
-          >
-            ✖
-          </button>
-        </header>
-        <div class="ac-sheet__body">
-          <form
-            id="login-form"
-            class="ac-form-grid"
-            data-login-form
-            autocomplete="off"
-          >
-            <label class="ac-field">
-              <span class="ac-field__label">Nome completo</span>
-              <input name="nome" type="text" required />
-            </label>
-            <label class="ac-field">
-              <span class="ac-field__label">E-mail</span>
-              <input name="email" type="email" required />
-            </label>
-            <label class="ac-field">
-              <span class="ac-field__label">Telefone (opcional)</span>
-              <input name="telefone" type="tel" inputmode="tel" placeholder="(99) 99999-9999" />
-            </label>
-            <label class="ac-field">
-              <span class="ac-field__label">Senha</span>
-              <input name="senha" type="password" value="********" autocomplete="new-password" />
-            </label>
-          </form>
-
-          <p
-            class="ac-feedback"
-            data-login-feedback
-            role="status"
-            aria-live="polite"
-          ></p>
-
-          <section class="ac-sheet__section">
-            <h5 class="ac-sheet__subtitle">Resumo</h5>
-            <p>Os dados permanecem salvos apenas neste navegador.</p>
-          </section>
-
-          <section class="ac-sheet__section ac-session">
-            <div class="ac-session__intro">
-              <p class="ac-sheet__status">Sessão atual</p>
-              <p class="ac-session__description">
-                Encerre a sessão mantendo os dados armazenados neste navegador ou
-                remova todas as informações do cadastro.
-              </p>
-            </div>
-            <div
-              class="ac-session__actions"
-              role="group"
-              aria-label="Ações da sessão"
-            >
-              <button
-                class="ac-btn ac-btn--ghost"
-                type="button"
-                data-action="logout-preserve"
-              >
-                Encerrar sessão
-              </button>
-              <button
-                class="ac-btn ac-btn--danger"
-                type="button"
-                data-action="logout-clear"
-              >
-                Encerrar e remover dados
-              </button>
-            </div>
-          </section>
-
-        </div>
-        <footer class="ac-sheet__foot">
-          <button class="ac-btn ac-btn--primary" type="submit" form="login-form" data-action="login-save">
-            Salvar
-          </button>
-          <button class="ac-btn" type="button" data-overlay-close>
-            Cancelar
-          </button>
-        </footer>
-      </section>
-    </div>
   </body>
 </html>

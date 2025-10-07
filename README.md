@@ -33,22 +33,21 @@ MiniApp “Painel de controle”.
    - O `index.html` na raiz redireciona automaticamente para essa versão.
    - Para consultar a versão legada modular, abra `src/index.html` diretamente.
 3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
-   botão “Começar cadastro” para acessar o formulário de Login. A etiqueta
-   “Painel de controle” apenas abre o painel principal, que expõe o botão ⋯
-   interno para reabrir o overlay quando necessário.
+   botão “Começar cadastro” para abrir o painel detalhado e preencher o
+   formulário diretamente no palco. A etiqueta “Painel de controle” alterna
+   entre o estado vazio e o painel quando existir cadastro salvo.
 4. Os dados cadastrados são guardados apenas no `localStorage` do navegador. Ao
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
    último acesso, e essas informações permanecem disponíveis em visitas
    futuras.
 5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
-   cadastro ativo. Para editar o cadastro, abra o painel pela etiqueta e acione
-   novamente o botão ⋯ disponível dentro da tile de Login (ou o CTA do estado
-   vazio do palco) para reabrir o overlay.
+   cadastro ativo. A edição do cadastro acontece no mesmo painel, bastando
+   atualizar os campos e salvar.
 6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
-   logoff na mesma área detalhada, sinalizando a ausência de registros tanto na
-   tabela quanto no estado vazio do palco.
+   logoff logo abaixo do formulário, sinalizando a ausência de registros tanto
+   na tabela quanto no estado vazio do palco.
 7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
    (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
 
@@ -65,14 +64,12 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
 ## MiniApp “Painel de controle” — destaques
 
 - **Etiqueta simplificada** exibe o primeiro nome cadastrado, o último acesso e
-  o status (vermelho quando vazio, verde quando configurado), mantendo o rail
-  coerente com o palco.
-- **Palco dedicado ao Login**, com tile único que mostra nome completo, conta e
-  horário do último acesso. O botão ⋯ recolhe/exibe o painel sem perder o
-  cadastro.
-- **Overlay de Login acessível** (`role="dialog"`, `aria-modal`, foco gerenciado
-  e fechamento por Esc/backdrop) com feedback imediato de sucesso ou erro ao
-  salvar.
+  o status do painel, mantendo o rail coerente com o palco.
+- **Painel unificado** organiza indicadores, resumo do cadastro, formulário e
+  histórico em cards empilhados no mesmo plano, eliminando pop-ups e reforçando
+  a leitura sequencial.
+- **Cadastro direto no palco**, com campos pré-preenchidos, feedback inline e
+  controles de sessão (encerrar ou limpar dados) na mesma seção.
 - **Alternância de tema persistente**: a AppBar traz o mesmo botão circular sem
   texto, com ícones ☀️/🌙 alinhados ao tema ativo, tooltip contextual e rótulos
   acessíveis que descrevem a ação disponível. A marca também alterna entre os
@@ -84,8 +81,8 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
   momento sem dependências de sync/backup.
 - **Histórico de acessos e controles de sessão**: o painel detalhado lista os
   registros de login/logoff com rolagem a partir de cinco eventos. Os botões de
-  encerrar sessão agora ficam dentro do overlay de cadastro, permitindo manter os
-  dados salvos para um retorno futuro ou limpar tudo do navegador.
+  encerrar sessão permanecem ao lado do formulário, permitindo manter os dados
+  salvos para um retorno futuro ou limpar tudo do navegador.
 
 ## Tecnologias adotadas e compatibilidade
 
@@ -96,9 +93,10 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
 - **Persistência via `localStorage`**: garante que o cadastro funcione offline,
   sem dependências de sincronização ou backend. A normalização de dados cuida de
   nomes, contas e datas para manter a UI consistente.
-- **Acessibilidade nativa**: o overlay utiliza `role="dialog"`, `aria-modal` e
-  gerenciamento de foco em JavaScript puro para oferecer uma experiência
-  compatível com leitores de tela sem exigir bibliotecas externas.
+- **Acessibilidade nativa**: o formulário e os controles compartilham rótulos,
+  `aria-live` para feedback e foco gerenciado ao abrir o painel, garantindo uma
+  experiência compatível com leitores de tela sem depender de bibliotecas
+  externas.
 - **Testes Playwright**: a suíte end-to-end roda com Node.js apenas em
   desenvolvimento, validando o fluxo principal. Como as dependências ficam em
   `devDependencies`, o deploy estático permanece leve.
