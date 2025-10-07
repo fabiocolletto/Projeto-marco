@@ -444,8 +444,10 @@
     if (!elements.overlayTitle) {
       return;
     }
-    const label = hasUser() ? getDisplayName(state.user) : 'Não configurado';
-    elements.overlayTitle.textContent = `Login — ${label}`;
+    const label = getDisplayName(state.user);
+    elements.overlayTitle.textContent = label
+      ? `Login • ${label}`
+      : 'Login';
   }
 
   function updateLoginFormFields() {

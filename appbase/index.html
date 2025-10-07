@@ -122,20 +122,27 @@
 
         <main class="ac-stage" role="main">
           <div class="ac-stage__empty" data-stage-empty>
-            <p data-stage-empty-message>
-              Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.
-            </p>
-            <button
-              class="ac-btn"
-              type="button"
-              data-overlay-open="login"
-              data-stage-empty-action
-            >
-              Começar cadastro
-            </button>
-            <p class="ac-history__empty ac-history__empty--stage" data-login-log-empty>
-              Nenhum evento registrado até o momento.
-            </p>
+            <div class="ac-stage__empty-main">
+              <p data-stage-empty-message>
+                Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.
+              </p>
+              <p
+                class="ac-history__empty ac-history__empty--stage"
+                data-login-log-empty
+              >
+                Sem registros.
+              </p>
+            </div>
+            <div class="ac-stage__empty-actions">
+              <button
+                class="ac-btn"
+                type="button"
+                data-overlay-open="login"
+                data-stage-empty-action
+              >
+                Começar cadastro
+              </button>
+            </div>
           </div>
 
           <section
@@ -222,7 +229,7 @@
                     </table>
                   </div>
                   <p class="ac-history__empty" data-login-log-empty>
-                    Nenhum evento registrado até o momento.
+                    Sem registros.
                   </p>
                 </div>
               </article>
@@ -245,7 +252,7 @@
       >
         <header class="ac-sheet__head">
           <h4 id="login-dialog-title" class="ac-sheet__title" tabindex="-1">
-            Login — Não configurado
+            Login • Não configurado
           </h4>
           <button
             class="ac-iconbtn ac-iconbtn--small"
@@ -272,8 +279,8 @@
               <input name="email" type="email" required />
             </label>
             <label class="ac-field">
-              <span class="ac-field__label">Telefone</span>
-              <input name="telefone" type="tel" />
+              <span class="ac-field__label">Telefone (opcional)</span>
+              <input name="telefone" type="tel" inputmode="tel" placeholder="(99) 99999-9999" />
             </label>
             <label class="ac-field">
               <span class="ac-field__label">Senha</span>
@@ -293,34 +300,9 @@
             <p>Os dados permanecem salvos apenas neste navegador.</p>
           </section>
 
-          <section class="ac-sheet__section ac-session" data-session-controls>
-            <div class="ac-session__intro">
-              <h5 class="ac-sheet__subtitle">Gerenciar sessão</h5>
-              <p class="ac-session__description">
-                Encerre a sessão atual mantendo os dados cadastrados ou remova tudo
-                deste navegador.
-              </p>
-            </div>
-            <div class="ac-session__actions" role="group" aria-label="Controles de sessão">
-              <button
-                class="ac-btn ac-btn--ghost"
-                type="button"
-                data-action="logout-preserve"
-              >
-                Encerrar sessão
-              </button>
-              <button
-                class="ac-btn ac-btn--ghost ac-btn--danger"
-                type="button"
-                data-action="logout-clear"
-              >
-                Encerrar e remover dados
-              </button>
-            </div>
-          </section>
         </div>
         <footer class="ac-sheet__foot">
-          <button class="ac-btn" type="submit" form="login-form" data-action="login-save">
+          <button class="ac-btn ac-btn--primary" type="submit" form="login-form" data-action="login-save">
             Salvar
           </button>
           <button class="ac-btn" type="button" data-overlay-close>
