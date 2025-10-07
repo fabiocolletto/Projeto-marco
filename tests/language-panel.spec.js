@@ -14,9 +14,9 @@ async function openLanguagePanel(page) {
   await expect(localeButton).toBeVisible();
   await localeButton.click();
   await expect(localeButton).toHaveAttribute('aria-pressed', 'true');
-  const langCard = page.locator('[data-lang-card]');
-  await expect(langCard).toBeVisible();
-  return { localeButton, langCard };
+  const langStage = page.locator('[data-lang-stage]');
+  await expect(langStage).toBeVisible();
+  return { localeButton, langStage };
 }
 
 const locales = [
@@ -56,31 +56,31 @@ for (const locale of locales) {
 
     await page.goto('/appbase/index.html');
     await openHostPanel(page);
-    const { langCard } = await openLanguagePanel(page);
+    const { langStage } = await openLanguagePanel(page);
 
-    await expect(page.locator('#painel-stage')).toBeVisible();
+    await expect(page.locator('#painel-stage')).toBeHidden();
 
-    await expect(langCard.locator('#language-stage-title')).toHaveText(locale.stageTitle);
+    await expect(langStage.locator('#language-stage-title')).toHaveText(locale.stageTitle);
     await expect(
-      langCard.locator('[data-i18n="app.settings.lang_card.title"]')
+      langStage.locator('[data-i18n="app.settings.lang_card.title"]')
     ).toHaveText(locale.cardTitle);
     await expect(
-      langCard.locator('[data-i18n="app.settings.log.title"]')
+      langStage.locator('[data-i18n="app.settings.log.title"]')
     ).toHaveText(locale.logTitle);
 
-    const applyButton = langCard.locator('[data-lang-apply]');
+    const applyButton = langStage.locator('[data-lang-apply]');
     await expect(applyButton).toHaveText(locale.applyLabel);
 
-    const logArea = langCard.locator('[data-lang-log]');
+    const logArea = langStage.locator('[data-lang-log]');
     await expect(logArea).toContainText('settings:init');
     await expect(logArea).toContainText('settings:open');
 
-    await langCard.locator('[data-lang-select]').selectOption(locale.code);
+    await langStage.locator('[data-lang-select]').selectOption(locale.code);
     await applyButton.click();
     await expect(logArea).toContainText(`"locale":"${locale.code}"`);
 
-    await langCard.locator('[data-lang-close]').click();
-    await expect(langCard).toBeHidden();
+    await langStage.locator('[data-lang-close]').click();
+    await expect(langStage).toBeHidden();
     await expect(page.locator('#painel-stage')).toBeVisible();
   });
 }
@@ -88,11 +88,11 @@ for (const locale of locales) {
 test('painel de idiomas alterna traduções em sequência', async ({ page }) => {
   await page.goto('/appbase/index.html');
   await openHostPanel(page);
-  const { langCard } = await openLanguagePanel(page);
+  const { langStage } = await openLanguagePanel(page);
 
-  const select = langCard.locator('[data-lang-select]');
-  const apply = langCard.locator('[data-lang-apply]');
-  const logArea = langCard.locator('[data-lang-log]');
+  const select = langStage.locator('[data-lang-select]');
+  const apply = langStage.locator('[data-lang-apply]');
+  const logArea = langStage.locator('[data-lang-log]');
 
   const toggleLocales = [...locales.slice(1), locales[0]];
 
@@ -104,6 +104,6 @@ test('painel de idiomas alterna traduções em sequência', async ({ page }) => 
       .poll(() => page.evaluate(() => window.AppBaseI18n?.getLocale?.()))
       .toBe(locale.code);
     await expect(logArea).toContainText(`"locale":"${locale.code}"`);
-    await expect(langCard.locator('#language-stage-title')).toHaveText(locale.stageTitle);
+    await expect(langStage.locator('#language-stage-title')).toHaveText(locale.stageTitle);
   }
 });
