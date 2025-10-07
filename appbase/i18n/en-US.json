@@ -1,8 +1,142 @@
 {
   "app": {
     "title": "Marco Project",
-    "header": { "darkmode": "Toggle theme", "locale": "Language" },
-    "footer": { "login": { "ok": "Connected" } },
+    "document": {
+      "title": {
+        "default": "Marco Project — AppBase",
+        "user": "Marco Project — {{user}}"
+      }
+    },
+    "header": {
+      "subtitle": "Control dashboard",
+      "darkmode": "Toggle theme",
+      "locale": "Language",
+      "panel": {
+        "trigger": {
+          "open": "Open user panel",
+          "close": "Close user panel"
+        },
+        "title": "Control panel",
+        "subtitle": "Detailed view"
+      },
+      "theme": {
+        "light": "Enable dark mode",
+        "dark": "Enable light mode"
+      },
+      "fullscreen": {
+        "enter": "Enter fullscreen",
+        "exit": "Exit fullscreen",
+        "unsupported": "Fullscreen is not supported in this browser.",
+        "failure": "Could not toggle fullscreen mode. Check your browser permissions."
+      }
+    },
+    "rail": {
+      "label": "Miniapps",
+      "empty": "Empty slot — Add a miniapp"
+    },
+    "stage": {
+      "empty": {
+        "default": "No user registered. Open the header panel to start the registration.",
+        "return": "Session ended. Sign in again to view the panel."
+      }
+    },
+    "panel": {
+      "stage": {
+        "title": "Control panel",
+        "subtitle": "Detailed view",
+        "close": "Close control panel"
+      },
+      "kpis": {
+        "title": "Indicators",
+        "subtitle": "Real-time dashboard summary.",
+        "group_label": "Panel indicators",
+        "status": {
+          "label": "Panel status",
+          "states": {
+            "connected": "Connected",
+            "disconnected": "Disconnected"
+          },
+          "hint": {
+            "empty": "Register a user to start the session.",
+            "inactive": "Session ended. Open the panel and save to resume.",
+            "active": "Active session in this browser."
+          }
+        },
+        "last_login": {
+          "label": "Last access",
+          "hint": {
+            "empty": "No records available.",
+            "inactive": "Last access recorded locally.",
+            "active": "Automatically updated after login."
+          }
+        },
+        "events": {
+          "label": "Recorded events",
+          "hint": {
+            "empty": "Waiting for the first record.",
+            "single": "1 event stored on this device.",
+            "multiple": "{{count}} events stored on this device."
+          }
+        }
+      },
+      "summary": {
+        "user": "User",
+        "account": "Account",
+        "last_login": "Last access",
+        "empty": "Not configured"
+      },
+      "form": {
+        "title": "Registration",
+        "subtitle": "Update the data saved on this device.",
+        "fields": {
+          "name": "Full name",
+          "email": "Email",
+          "phone": "Phone (optional)",
+          "phone_placeholder": "(999) 999-9999",
+          "password": "Password"
+        },
+        "submit": "Save changes",
+        "feedback": {
+          "error": "Provide name and email to continue.",
+          "success": "Registration updated successfully."
+        }
+      },
+      "session": {
+        "current": "Current session",
+        "description": "End the session while keeping the stored data in this browser or remove all registration information.",
+        "actions": {
+          "label": "Session actions",
+          "logout": "End session",
+          "logout_clear": "End and remove data"
+        }
+      },
+      "history": {
+        "title": "Access history",
+        "subtitle": "Track logins and logoffs registered in this browser.",
+        "table": {
+          "event": "Event",
+          "time": "Time"
+        }
+      }
+    },
+    "history": {
+      "empty": "No records.",
+      "event": {
+        "login": "Login completed",
+        "logout": "Logoff",
+        "logout_preserve": "Logoff (data kept)",
+        "logout_clear": "Logoff (data removed)"
+      }
+    },
+    "footer": {
+      "status": {
+        "label": "Status:",
+        "connected": "Connected",
+        "disconnected": "Disconnected"
+      },
+      "meta": "Developed by 5Horas • Marco Project — AppBase R1.1",
+      "login": { "ok": "Connected" }
+    },
     "settings": {
       "title": "Settings",
       "subtitle": "Manage AppBase language and region.",
