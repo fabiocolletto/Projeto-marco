@@ -17,8 +17,10 @@ import {
     close: 'app.header.panel.trigger.close',
   };
   const BRAND_ICONS = {
-    [THEMES.LIGHT]: '../assets/app/brand/icon-light-500.png',
-    [THEMES.DARK]: '../assets/app/brand/icon-dark-500.png',
+    [THEMES.LIGHT]:
+      'https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp',
+    [THEMES.DARK]:
+      'https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png',
   };
   const THEME_ICONS = { [THEMES.LIGHT]: '☀️', [THEMES.DARK]: '🌙' };
   const THEME_LABEL_KEYS = {
@@ -68,9 +70,9 @@ import {
     locale: 'app.history.event.locale_change',
   };
   const LOCALE_NAME_FALLBACKS = {
-    'pt-BR': 'Brasil · Português',
-    'en-US': 'Estados Unidos · Inglês',
-    'es-ES': 'Espanha · Espanhol',
+    'pt-BR': 'Brasil',
+    'en-US': 'Estados Unidos',
+    'es-ES': 'Espanha',
   };
   const FOOTER_STATUS_KEYS = {
     connected: 'app.footer.status.connected',
@@ -136,9 +138,9 @@ import {
     [HISTORY_EVENT_KEYS.logoutClear]: 'Logoff (dados removidos)',
     [HISTORY_EVENT_KEYS.locale]: 'Idioma alterado para {{locale}}',
     'app.locale.menu.title': 'Idioma do AppBase',
-    'app.locale.menu.options.pt-BR': 'Brasil · Português',
-    'app.locale.menu.options.en-US': 'Estados Unidos · Inglês',
-    'app.locale.menu.options.es-ES': 'Espanha · Espanhol',
+    'app.locale.menu.options.pt-BR': 'Brasil',
+    'app.locale.menu.options.en-US': 'Estados Unidos',
+    'app.locale.menu.options.es-ES': 'Espanha',
     [FOOTER_STATUS_KEYS.connected]: 'Conectado',
     [FOOTER_STATUS_KEYS.disconnected]: 'Desconectado',
     [FOOTER_STATUS_LABEL_KEY]: 'Status:',

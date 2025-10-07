@@ -34,9 +34,9 @@
       "menu": {
         "title": "AppBase language",
         "options": {
-          "pt-BR": "Brazil · Portuguese",
-          "en-US": "United States · English",
-          "es-ES": "Spain · Spanish"
+          "pt-BR": "Brazil",
+          "en-US": "United States",
+          "es-ES": "Spain"
         }
       }
     },
