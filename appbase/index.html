@@ -42,45 +42,83 @@
       </header>
 
       <div class="ac-layout">
-        <nav class="ac-rail" aria-label="Miniapps">
-          <article
-            class="ac-miniapp-card"
-            data-miniapp="painel"
-            role="listitem"
-            aria-labelledby="miniapp-title"
-          >
-            <header class="ac-miniapp-card__head">
-              <div class="ac-miniapp-card__titles">
-                <p id="miniapp-title" class="ac-miniapp-card__title">Painel de controle</p>
-                <p class="ac-miniapp-card__subtitle" data-user-name>Não configurado</p>
+        <aside class="ac-rail-shell" aria-label="Miniapps">
+          <nav class="ac-rail" role="list">
+            <article
+              class="ac-miniapp-card"
+              data-miniapp="painel"
+              role="listitem"
+              aria-labelledby="miniapp-title"
+            >
+              <header class="ac-miniapp-card__head">
+                <div class="ac-miniapp-card__titles">
+                  <p id="miniapp-title" class="ac-miniapp-card__title">Painel de controle</p>
+                  <p class="ac-miniapp-card__subtitle" data-user-name>Não configurado</p>
+                </div>
+                <button
+                  class="ac-iconbtn ac-iconbtn--small"
+                  type="button"
+                  aria-label="Expandir painel de controle"
+                  aria-expanded="false"
+                  data-toggle-panel
+                >
+                  <span aria-hidden="true">⋯</span>
+                </button>
+              </header>
+
+              <dl class="ac-miniapp-card__meta">
+                <div data-meta="login">
+                  <dt>Último login</dt>
+                  <dd data-meta-value="login">—</dd>
+                </div>
+              </dl>
+
+              <div class="ac-miniapp-card__kpis" role="group" aria-label="Status do painel">
+                <span class="ac-kpi" data-kpi="conexao">
+                  <span class="ac-dot ac-dot--crit" aria-hidden="true"></span>
+                  <span>Status</span>
+                </span>
               </div>
-              <button
-                class="ac-iconbtn ac-iconbtn--small"
-                type="button"
-                aria-label="Expandir painel de controle"
-                aria-expanded="false"
-                data-toggle-panel
-              >
-                <span aria-hidden="true">⋯</span>
-              </button>
-            </header>
+            </article>
 
-            <dl class="ac-miniapp-card__meta">
-              <div data-meta="login">
-                <dt>Último login</dt>
-                <dd data-meta-value="login">—</dd>
+            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
+              <div class="ac-miniapp-card__empty">
+                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
+                <p class="ac-miniapp-card__empty-text">Slot vazio — Adicione um mini-app</p>
               </div>
-            </dl>
-
-            <div class="ac-miniapp-card__kpis" role="group" aria-label="Status do painel">
-              <span class="ac-kpi" data-kpi="conexao">
-                <span class="ac-dot ac-dot--crit" aria-hidden="true"></span>
-                <span>Status</span>
-              </span>
-            </div>
-          </article>
-
-        </nav>
+            </article>
+            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
+              <div class="ac-miniapp-card__empty">
+                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
+                <p class="ac-miniapp-card__empty-text">Slot vazio — Adicione um mini-app</p>
+              </div>
+            </article>
+            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
+              <div class="ac-miniapp-card__empty">
+                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
+                <p class="ac-miniapp-card__empty-text">Slot vazio — Adicione um mini-app</p>
+              </div>
+            </article>
+            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
+              <div class="ac-miniapp-card__empty">
+                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
+                <p class="ac-miniapp-card__empty-text">Slot vazio — Adicione um mini-app</p>
+              </div>
+            </article>
+            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
+              <div class="ac-miniapp-card__empty">
+                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
+                <p class="ac-miniapp-card__empty-text">Slot vazio — Adicione um mini-app</p>
+              </div>
+            </article>
+            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
+              <div class="ac-miniapp-card__empty">
+                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
+                <p class="ac-miniapp-card__empty-text">Slot vazio — Adicione um mini-app</p>
+              </div>
+            </article>
+          </nav>
+        </aside>
 
         <main class="ac-stage" role="main">
           <div class="ac-stage__empty" data-stage-empty>
