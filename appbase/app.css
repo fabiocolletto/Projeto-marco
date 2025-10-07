@@ -178,9 +178,13 @@ select {
 .ac-appbar__actions {
   position: relative;
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.ac-theme-toggle {
+.ac-theme-toggle,
+.ac-fullscreen-toggle {
   display: grid;
   place-items: center;
   width: 44px;
@@ -205,8 +209,17 @@ select {
   border-color: var(--ac-border);
 }
 
+.ac-fullscreen-toggle[aria-pressed='true'] {
+  background: var(--ac-primary);
+  color: var(--ac-on-primary);
+  border-color: var(--ac-primary);
+  box-shadow: 0 0 0 4px rgba(31, 58, 138, 0.24);
+}
+
 .ac-theme-toggle:hover,
-.ac-theme-toggle:focus-visible {
+.ac-theme-toggle:focus-visible,
+.ac-fullscreen-toggle:hover,
+.ac-fullscreen-toggle:focus-visible {
   background: var(--ac-primary);
   color: var(--ac-on-primary);
   border-color: var(--ac-primary);
