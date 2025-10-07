@@ -27,6 +27,15 @@
         </div>
         <div class="ac-appbar__actions">
           <button
+            class="ac-theme-toggle ac-panel-toggle"
+            type="button"
+            data-panel-access
+            aria-label="Abrir painel do usuário"
+            title="Abrir painel do usuário"
+          >
+            <span class="ac-theme-toggle__icon" aria-hidden="true">👤</span>
+          </button>
+          <button
             class="ac-theme-toggle"
             type="button"
             data-theme-toggle
@@ -255,7 +264,20 @@
       </div>
 
       <footer class="ac-footer" role="contentinfo">
-        Desenvolvido por 5Horas • Projeto Marco — AppBase R1.0
+        <span class="ac-footer__status" data-footer-status>
+          <span
+            class="ac-dot ac-dot--crit"
+            aria-hidden="true"
+            data-footer-status-dot
+          ></span>
+          <span class="ac-footer__status-text">Status:</span>
+          <span class="ac-footer__status-label" data-footer-status-label>
+            Desconectado
+          </span>
+        </span>
+        <span class="ac-footer__meta">
+          Desenvolvido por 5Horas • Projeto Marco — AppBase R1.0
+        </span>
       </footer>
     </div>
 
