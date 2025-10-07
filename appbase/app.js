@@ -20,7 +20,6 @@
     cardSubtitle: document.querySelector('[data-user-name]'),
     statusDot: document.querySelector('[data-kpi="conexao"] .ac-dot'),
     metaLogin: document.querySelector('[data-meta-value="login"]'),
-    toggleButton: document.querySelector('[data-toggle-panel]'),
     stage: document.getElementById('painel-stage'),
     stageTitle: document.getElementById('painel-stage-title'),
     stageClose: document.querySelector('[data-stage-close]'),
@@ -377,6 +376,12 @@
     const loggedIn = isLoggedIn();
     if (elements.card) {
       elements.card.classList.toggle('is-active', panelOpen);
+      elements.card.setAttribute('aria-expanded', panelOpen ? 'true' : 'false');
+      if (hasData) {
+        elements.card.removeAttribute('aria-disabled');
+      } else {
+        elements.card.setAttribute('aria-disabled', 'true');
+      }
     }
     if (elements.cardSubtitle) {
       elements.cardSubtitle.textContent = hasData
@@ -413,14 +418,8 @@
         : 'Começar cadastro';
     }
 
-    if (elements.toggleButton) {
-      const expanded = panelOpen;
-      elements.toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      elements.toggleButton.disabled = !hasData;
-    }
-
     if (elements.stage) {
-      elements.stage.hidden = !panelOpen;
+      elements.stage.hidden = !panelOpen || !hasData;
     }
 
     if (elements.loginUser) {
@@ -645,39 +644,47 @@
     });
   }
 
-  function openPanel() {
-    const wasClosed = !panelOpen;
-    panelOpen = true;
-    updateUI();
-    if (wasClosed) {
-      focusStageTitle();
+  function focusCard() {
+    if (!elements.card) {
+      return;
     }
+    window.requestAnimationFrame(() => {
+      elements.card.focus();
+    });
   }
 
   function togglePanel() {
+    if (!hasUser()) {
+      return;
+    }
     panelOpen = !panelOpen;
     updateUI();
     if (panelOpen) {
       focusStageTitle();
-    } else if (elements.toggleButton) {
-      elements.toggleButton.focus();
+    } else {
+      focusCard();
     }
   }
 
   function handleCardClick(event) {
-    const toggle = elements.toggleButton;
-    if (toggle && (event.target === toggle || toggle.contains(event.target))) {
+    event.preventDefault();
+    togglePanel();
+  }
+
+  function handleCardKeydown(event) {
+    if (event.defaultPrevented) {
       return;
     }
-    openPanel();
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      togglePanel();
+    }
   }
 
   function handleStageClose() {
     panelOpen = false;
     updateUI();
-    if (elements.toggleButton) {
-      elements.toggleButton.focus();
-    }
+    focusCard();
   }
 
   function handleLogoutPreserve() {
@@ -729,6 +736,7 @@
 
   if (elements.card) {
     elements.card.addEventListener('click', handleCardClick);
+    elements.card.addEventListener('keydown', handleCardKeydown);
   }
 
   if (elements.themeToggle) {
@@ -737,13 +745,6 @@
       const nextTheme =
         currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
       setTheme(nextTheme);
-    });
-  }
-
-  if (elements.toggleButton) {
-    elements.toggleButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      togglePanel();
     });
   }
 

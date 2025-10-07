@@ -48,12 +48,10 @@ test('cadastro atualiza etiqueta e painel', async ({ page }) => {
     telefone: '11999990000',
   });
 
+  const panelCard = page.locator('[data-miniapp="painel"]');
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(page.locator('[data-toggle-panel]')).toHaveAttribute(
-    'aria-expanded',
-    'true'
-  );
+  await expect(panelCard).toHaveAttribute('aria-expanded', 'true');
 
   await expect(page.locator('[data-user-name]')).toHaveText('Maria');
   await expect(page.locator('[data-login-user]')).toHaveText('Maria Fernanda');
@@ -65,6 +63,7 @@ test('cadastro atualiza etiqueta e painel', async ({ page }) => {
   await page.reload();
   await expect(page.locator('[data-user-name]')).toHaveText('Maria');
   await expect(stage).toBeVisible();
+  await expect(panelCard).toHaveAttribute('aria-expanded', 'true');
 });
 
 test('etiqueta controla o painel sem acionar o overlay automaticamente', async ({
@@ -78,39 +77,35 @@ test('etiqueta controla o painel sem acionar o overlay automaticamente', async (
 
   const stage = page.locator('#painel-stage');
   const stageEmpty = page.locator('[data-stage-empty]');
-  const cardTitle = page.locator('[data-miniapp="painel"] .ac-miniapp-card__title');
-  const toggleButton = page.locator('[data-miniapp="painel"] [data-toggle-panel]');
+  const card = page.locator('[data-miniapp="painel"]');
   const overlay = page.locator('[data-overlay="login"]');
 
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 
-  await toggleButton.click();
+  await expect(card).toHaveAttribute('aria-expanded', 'true');
+
+  await card.click();
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(card).toHaveAttribute('aria-expanded', 'false');
 
-  await cardTitle.click();
+  await card.click();
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(card).toHaveAttribute('aria-expanded', 'true');
   await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 
-  await cardTitle.click();
-  await expect(stage).toBeVisible();
-  await expect(stageEmpty).toBeHidden();
-  await expect(overlay).toHaveAttribute('aria-hidden', 'true');
-
-  await toggleButton.click();
+  await card.press('Space');
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(card).toHaveAttribute('aria-expanded', 'false');
 
-  await toggleButton.click();
+  await card.press('Enter');
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(card).toHaveAttribute('aria-expanded', 'true');
   await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 });
 
@@ -128,17 +123,16 @@ test('sessão encerrada mantém painel sob controle da etiqueta', async ({ page 
   const card = page.locator('[data-miniapp="painel"]');
   const stage = page.locator('#painel-stage');
   const stageEmpty = page.locator('[data-stage-empty]');
-  const toggleButton = page.locator('[data-miniapp="painel"] [data-toggle-panel]');
   const internalTrigger = stage.locator('[data-overlay-open="login"]').first();
 
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(card).toHaveAttribute('aria-expanded', 'false');
 
   await card.click();
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(card).toHaveAttribute('aria-expanded', 'true');
   await expect(page.locator('[data-overlay="login"]')).toHaveAttribute(
     'aria-hidden',
     'true'

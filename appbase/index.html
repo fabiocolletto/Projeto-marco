@@ -49,21 +49,17 @@
               data-miniapp="painel"
               role="listitem"
               aria-labelledby="miniapp-title"
+              aria-controls="painel-stage"
+              aria-expanded="false"
+              aria-disabled="true"
+              tabindex="0"
             >
               <header class="ac-miniapp-card__head">
                 <div class="ac-miniapp-card__titles">
                   <p id="miniapp-title" class="ac-miniapp-card__title">Painel de controle</p>
                   <p class="ac-miniapp-card__subtitle" data-user-name>Não configurado</p>
                 </div>
-                <button
-                  class="ac-iconbtn ac-iconbtn--small"
-                  type="button"
-                  aria-label="Expandir painel de controle"
-                  aria-expanded="false"
-                  data-toggle-panel
-                >
-                  <span aria-hidden="true">⋯</span>
-                </button>
+                <span class="ac-miniapp-card__affordance" aria-hidden="true">⋯</span>
               </header>
 
               <dl class="ac-miniapp-card__meta">
