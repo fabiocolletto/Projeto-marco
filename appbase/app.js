@@ -7,6 +7,10 @@
   const BUTTON_FEEDBACK_CLASS = 'ac-feedback-active';
   const VALID_HISTORY_TYPES = ['login', 'logout'];
   const THEMES = { LIGHT: 'light', DARK: 'dark' };
+  const PANEL_ACCESS_LABELS = {
+    open: 'Abrir painel do usuário',
+    close: 'Fechar painel do usuário',
+  };
   const BRAND_ICONS = {
     [THEMES.LIGHT]: '../assets/app/brand/icon-light-500.png',
     [THEMES.DARK]: '../assets/app/brand/icon-dark-500.png',
@@ -33,11 +37,6 @@
   };
 
   const elements = {
-    card: document.querySelector('[data-miniapp="painel"]'),
-    cardSubtitle: document.querySelector('[data-user-name]'),
-    statusDot: document.querySelector('[data-kpi="conexao"] .ac-dot'),
-    metaLogin: document.querySelector('[data-meta-value="login"]'),
-    toggleButton: document.querySelector('[data-toggle-panel]'),
     stage: document.getElementById('painel-stage'),
     stageTitle: document.getElementById('painel-stage-title'),
     stageClose: document.querySelector('[data-stage-close]'),
@@ -592,7 +591,8 @@
     updateThemeAssets(currentTheme);
     updateFullscreenToggle(fullscreenActive);
     updateDocumentTitle();
-    updateCard();
+    updatePanelAccessControl();
+    updateStatusSummary();
     updateStage();
     updateLoginFormFields();
     updateLogHistory();
@@ -606,29 +606,24 @@
     document.title = title;
   }
 
-  function updateCard() {
-    const hasData = hasUser();
+  function updatePanelAccessControl() {
+    if (!elements.panelAccess) {
+      return;
+    }
+    const expanded = Boolean(panelOpen);
+    const label = expanded
+      ? PANEL_ACCESS_LABELS.close
+      : PANEL_ACCESS_LABELS.open;
+    elements.panelAccess.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    elements.panelAccess.setAttribute('aria-label', label);
+    elements.panelAccess.setAttribute('title', label);
+  }
+
+  function updateStatusSummary() {
     const loggedIn = isLoggedIn();
-    if (elements.card) {
-      elements.card.classList.toggle('is-active', panelOpen);
-    }
-    if (elements.cardSubtitle) {
-      elements.cardSubtitle.textContent = hasData
-        ? getFirstName(state.user)
-        : 'Não configurado';
-    }
-    if (elements.statusDot) {
-      elements.statusDot.classList.toggle('ac-dot--ok', loggedIn);
-      elements.statusDot.classList.toggle('ac-dot--crit', !loggedIn);
-    }
     if (elements.footerStatusDot) {
       elements.footerStatusDot.classList.toggle('ac-dot--ok', loggedIn);
       elements.footerStatusDot.classList.toggle('ac-dot--crit', !loggedIn);
-    }
-    if (elements.metaLogin) {
-      elements.metaLogin.textContent = hasData
-        ? formatDateTime(state.lastLogin)
-        : '—';
     }
     if (elements.footerStatusLabel) {
       elements.footerStatusLabel.textContent = loggedIn
@@ -648,23 +643,13 @@
     if (elements.stageEmptyMessage) {
       elements.stageEmptyMessage.textContent = hasData
         ? 'Sessão encerrada. Acesse novamente para visualizar o painel.'
-        : 'Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.';
+        : 'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.';
     }
 
     if (elements.stageEmptyAction) {
       elements.stageEmptyAction.textContent = hasData
         ? 'Acessar novamente'
         : 'Começar cadastro';
-    }
-
-    if (elements.toggleButton) {
-      const expanded = panelOpen;
-      elements.toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-      elements.toggleButton.disabled = !hasData;
-    }
-
-    if (elements.panelAccess) {
-      elements.panelAccess.disabled = !hasData;
     }
 
     if (elements.stage) {
@@ -915,39 +900,43 @@
     });
   }
 
-  function openPanel() {
+  function focusPanelAccess() {
+    if (!elements.panelAccess) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      elements.panelAccess?.focus();
+    });
+  }
+
+  function openPanel({ focus = true } = {}) {
     const wasClosed = !panelOpen;
     panelOpen = true;
     updateUI();
-    if (wasClosed) {
+    if (focus && wasClosed) {
       focusStageTitle();
     }
   }
 
-  function togglePanel() {
-    panelOpen = !panelOpen;
+  function closePanel({ focusButton = true } = {}) {
+    const wasOpen = panelOpen;
+    panelOpen = false;
     updateUI();
-    if (panelOpen) {
-      focusStageTitle();
-    } else if (elements.toggleButton) {
-      elements.toggleButton.focus();
+    if (focusButton && wasOpen) {
+      focusPanelAccess();
     }
   }
 
-  function handleCardClick(event) {
-    const toggle = elements.toggleButton;
-    if (toggle && (event.target === toggle || toggle.contains(event.target))) {
-      return;
+  function togglePanelAccess() {
+    if (panelOpen) {
+      closePanel();
+    } else {
+      openPanel();
     }
-    openPanel();
   }
 
   function handleStageClose() {
-    panelOpen = false;
-    updateUI();
-    if (elements.toggleButton) {
-      elements.toggleButton.focus();
-    }
+    closePanel();
   }
 
   function handleLogoutPreserve() {
@@ -971,6 +960,7 @@
         history: nextHistory,
       };
     });
+    focusPanelAccess();
   }
 
   function handleLogoutClear() {
@@ -985,6 +975,7 @@
       sessionActive: false,
       history: [],
     });
+    focusPanelAccess();
   }
 
   setTheme(currentTheme, { persist: false });
@@ -1012,15 +1003,11 @@
     document.addEventListener(eventName, handleFullscreenError);
   });
 
-  if (elements.card) {
-    elements.card.addEventListener('click', handleCardClick);
-  }
-
   if (elements.panelAccess) {
     elements.panelAccess.addEventListener('click', (event) => {
       event.preventDefault();
       applyButtonFeedback(event.currentTarget);
-      openPanel();
+      togglePanelAccess();
     });
   }
 
@@ -1036,14 +1023,6 @@
 
   if (elements.fullscreenToggle) {
     elements.fullscreenToggle.addEventListener('click', handleFullscreenToggle);
-  }
-
-  if (elements.toggleButton) {
-    elements.toggleButton.addEventListener('click', (event) => {
-      event.preventDefault();
-      applyButtonFeedback(event.currentTarget);
-      togglePanel();
-    });
   }
 
   if (elements.stageClose) {

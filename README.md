@@ -2,9 +2,9 @@
 
 Protótipo navegável do **AppBase Marco** pronto para ser aberto diretamente em um
 navegador moderno sem build. A versão R1.1 consolida o shell completo com AppBar,
-rail de etiquetas, palco central e uma miniapp enxuta de cadastro executada com
-HTML, CSS e JavaScript vanilla na pasta `appbase/`, seguindo as diretrizes do
-blueprint visual.
+rail lateral, palco central e uma miniapp enxuta de cadastro executada com HTML,
+CSS e JavaScript vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint
+visual.
 
 ## Estrutura do repositório
 
@@ -33,23 +33,23 @@ MiniApp “Painel de controle”.
    - O `index.html` na raiz redireciona automaticamente para essa versão.
    - Para consultar a versão legada modular, abra `src/index.html` diretamente.
 3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
-   botão “Começar cadastro” para abrir o painel detalhado e preencher o
-   formulário diretamente no palco. A etiqueta “Painel de controle” alterna
-   entre o estado vazio e o painel quando existir cadastro salvo.
+   botão “Começar cadastro” ou o atalho de usuário na AppBar (ícone 👤) para
+   abrir o painel detalhado e preencher o formulário diretamente no palco.
 4. Os dados cadastrados são guardados apenas no `localStorage` do navegador. Ao
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
    último acesso, e essas informações permanecem disponíveis em visitas
    futuras.
-5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
-   cadastro ativo. A edição do cadastro acontece no mesmo painel, bastando
-   atualizar os campos e salvar.
+5. Utilize o atalho de usuário na AppBar para recolher/exibir o painel quando
+   houver um cadastro ativo. A edição do cadastro acontece no mesmo painel,
+   bastando atualizar os campos e salvar.
 6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
    logoff logo abaixo do formulário, sinalizando a ausência de registros tanto
    na tabela quanto no estado vazio do palco.
 7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
-   (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
+   (a suíte Playwright valida cadastro, persistência e o comportamento do atalho
+   na AppBar).
 
 ### Alternância de tema na AppBar
 
@@ -63,8 +63,9 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
 
 ## MiniApp “Painel de controle” — destaques
 
-- **Etiqueta simplificada** exibe o primeiro nome cadastrado, o último acesso e
-  o status do painel, mantendo o rail coerente com o palco.
+- **Atalho na AppBar** concentra o acesso ao painel principal, alternando o
+  estado expandido, gerenciando foco automaticamente e habilitando a abertura
+  mesmo quando não há cadastro salvo.
 - **Painel unificado** organiza indicadores, resumo do cadastro, formulário e
   histórico em cards empilhados no mesmo plano, eliminando pop-ups e reforçando
   a leitura sequencial.

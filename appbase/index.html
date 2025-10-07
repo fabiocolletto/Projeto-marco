@@ -32,6 +32,8 @@
             class="ac-theme-toggle ac-panel-toggle"
             type="button"
             data-panel-access
+            aria-controls="painel-stage"
+            aria-expanded="false"
             aria-label="Abrir painel do usuário"
             title="Abrir painel do usuário"
           >
@@ -71,43 +73,6 @@
       <div class="ac-layout">
         <aside class="ac-rail-shell" aria-label="Miniapps">
           <nav class="ac-rail" role="list">
-            <article
-              class="ac-miniapp-card"
-              data-miniapp="painel"
-              role="listitem"
-              aria-labelledby="miniapp-title"
-            >
-              <header class="ac-miniapp-card__head">
-                <div class="ac-miniapp-card__titles">
-                  <p id="miniapp-title" class="ac-miniapp-card__title">Painel de controle</p>
-                  <p class="ac-miniapp-card__subtitle" data-user-name>Não configurado</p>
-                </div>
-                <button
-                  class="ac-iconbtn ac-iconbtn--small"
-                  type="button"
-                  aria-label="Expandir painel de controle"
-                  aria-expanded="false"
-                  data-toggle-panel
-                >
-                  <span aria-hidden="true">⋯</span>
-                </button>
-              </header>
-
-              <dl class="ac-miniapp-card__meta">
-                <div data-meta="login">
-                  <dt>Último login</dt>
-                  <dd data-meta-value="login">—</dd>
-                </div>
-              </dl>
-
-              <div class="ac-miniapp-card__kpis" role="group" aria-label="Status do painel">
-                <span class="ac-kpi" data-kpi="conexao">
-                  <span class="ac-dot ac-dot--crit" aria-hidden="true"></span>
-                  <span>Status</span>
-                </span>
-              </div>
-            </article>
-
             <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
               <div class="ac-miniapp-card__empty">
                 <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
@@ -151,7 +116,7 @@
           <div class="ac-stage__empty" data-stage-empty>
             <div class="ac-stage__empty-main">
               <p data-stage-empty-message>
-                Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.
+                Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.
               </p>
               <p
                 class="ac-history__empty ac-history__empty--stage"
