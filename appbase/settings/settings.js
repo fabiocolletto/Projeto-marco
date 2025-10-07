@@ -1,7 +1,7 @@
 "use strict";
 (function () {
   const ACTION_BUTTON_SELECTOR = ".ac-header-action[data-action-id='app.locale']";
-  const MENU_URL = "./settings/settings.html";
+  const MENU_SELECTOR = "[data-locale-menu]";
   const OPTIONS_ATTR = "data-locale-options";
   const OPTION_ATTR = "data-locale-option";
   const OPEN_CLASS = "is-active";
@@ -15,7 +15,6 @@
   let headerButton = null;
   let menuElement = null;
   let optionsContainer = null;
-  let menuLoadingPromise = null;
   let isOpen = false;
 
   function qs(selector) {
@@ -270,9 +269,28 @@
     selectLocale(target.getAttribute(OPTION_ATTR));
   }
 
+  function ensureMenuElement() {
+    if (menuElement && optionsContainer) {
+      return true;
+    }
+    const element = qs(MENU_SELECTOR);
+    if (!element) {
+      return false;
+    }
+    menuElement = element;
+    if (!menuElement.hasAttribute("aria-hidden")) {
+      menuElement.setAttribute("aria-hidden", menuElement.hidden ? "true" : "false");
+    }
+    optionsContainer = menuElement.querySelector(`[${OPTIONS_ATTR}]`);
+    ensureMenuPosition();
+    bindMenuEvents();
+    populateOptions();
+    return Boolean(optionsContainer);
+  }
+
   function openMenu() {
     const button = getButton();
-    if (!button || !menuElement || !optionsContainer) {
+    if (!button || !ensureMenuElement()) {
       return;
     }
     populateOptions();
@@ -302,58 +320,15 @@
     }
   }
 
-  function loadMenu() {
-    if (menuElement) {
-      return Promise.resolve(true);
-    }
-    if (menuLoadingPromise) {
-      return menuLoadingPromise;
-    }
-    menuLoadingPromise = fetch(`${MENU_URL}?ts=${Date.now()}`, {
-      cache: "no-store",
-    })
-      .then((response) => response.text())
-      .then((html) => {
-        const wrapper = document.createElement("div");
-        wrapper.innerHTML = html.trim();
-        const fragment = wrapper.firstElementChild;
-        if (!fragment) {
-          return false;
-        }
-        menuElement = fragment;
-        menuElement.hidden = true;
-        menuElement.setAttribute("aria-hidden", "true");
-        optionsContainer = menuElement.querySelector(`[${OPTIONS_ATTR}]`);
-        ensureMenuPosition();
-        bindMenuEvents();
-        populateOptions();
-        return Boolean(optionsContainer);
-      })
-      .catch((error) => {
-        console.warn("[locale-menu] load failed", error);
-        return false;
-      })
-      .finally(() => {
-        menuLoadingPromise = null;
-      });
-    return menuLoadingPromise;
-  }
-
   function toggleMenu() {
     if (isOpen) {
       closeMenu();
       return;
     }
-    if (menuElement) {
-      openMenu();
+    if (!ensureMenuElement()) {
       return;
     }
-    loadMenu().then((loaded) => {
-      if (!loaded) {
-        return;
-      }
-      openMenu();
-    });
+    openMenu();
   }
 
   window.addEventListener("app:header:action:click", (event) => {
@@ -368,6 +343,9 @@
   });
 
   window.addEventListener("app:i18n:locale_changed", () => {
+    if (!ensureMenuElement()) {
+      return;
+    }
     populateOptions();
     syncSelectedLocale();
     syncButtonState();
@@ -376,10 +354,12 @@
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       getButton();
+      ensureMenuElement();
       syncButtonState();
     });
   } else {
     getButton();
+    ensureMenuElement();
     syncButtonState();
   }
 })();
