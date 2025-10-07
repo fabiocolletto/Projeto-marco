@@ -174,8 +174,12 @@ import {
     loginLast: document.querySelector('[data-login-last]'),
     loginForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
-    panelStatusDot: document.querySelector('[data-panel-status-dot]'),
-    panelStatusLabel: document.querySelector('[data-panel-status-label]'),
+    panelStatusDot: Array.from(
+      document.querySelectorAll('[data-panel-status-dot]') || []
+    ),
+    panelStatusLabel: Array.from(
+      document.querySelectorAll('[data-panel-status-label]') || []
+    ),
     panelStatusHint: document.querySelector('[data-panel-status-hint]'),
     panelLastLogin: document.querySelector('[data-panel-last-login]'),
     panelLastLoginHint: document.querySelector('[data-panel-last-login-hint]'),
@@ -333,6 +337,10 @@ import {
 
   function setElementTextFromKey(element, key, options = {}) {
     if (!element) {
+      return;
+    }
+    if (Array.isArray(element)) {
+      element.forEach((item) => setElementTextFromKey(item, key, options));
       return;
     }
     if (!key) {
@@ -1079,13 +1087,15 @@ import {
     const historyCount = getHistoryCount();
     const lastLoginValue = hasData ? formatDateTime(state.lastLogin) : '—';
 
-    if (elements.panelStatusDot) {
-      elements.panelStatusDot.classList.toggle('ac-dot--ok', loggedIn);
-      elements.panelStatusDot.classList.toggle('ac-dot--crit', !loggedIn && !hasData);
-      elements.panelStatusDot.classList.toggle('ac-dot--warn', hasData && !loggedIn);
+    if (Array.isArray(elements.panelStatusDot) && elements.panelStatusDot.length) {
+      elements.panelStatusDot.forEach((dot) => {
+        dot.classList.toggle('ac-dot--ok', loggedIn);
+        dot.classList.toggle('ac-dot--crit', !loggedIn && !hasData);
+        dot.classList.toggle('ac-dot--warn', hasData && !loggedIn);
+      });
     }
 
-    if (elements.panelStatusLabel) {
+    if (Array.isArray(elements.panelStatusLabel) && elements.panelStatusLabel.length) {
       const statusKey = loggedIn
         ? PANEL_STATUS_LABEL_KEYS.connected
         : PANEL_STATUS_LABEL_KEYS.disconnected;
