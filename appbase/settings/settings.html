@@ -1,24 +1,79 @@
-<div class="ac-settings-overlay" id="app-settings-overlay" aria-hidden="true">
-  <div class="ac-settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-    <div class="ac-settings-header">
-      <span id="settings-title" data-i18n="app.settings.title">Configurações</span>
-      <button class="ac-close" id="app-settings-close" aria-label="Fechar">✕</button>
+<section class="ac-lang-stage" data-lang-stage-content>
+  <header class="ac-stage__head">
+    <div class="ac-stage__titles">
+      <h2
+        id="language-stage-title"
+        class="ac-title-lg"
+        tabindex="-1"
+        data-i18n="app.settings.title"
+      >
+        Configurações
+      </h2>
+      <p class="ac-subtitle" data-i18n="app.settings.subtitle">
+        Gerencie idioma e região do AppBase.
+      </p>
     </div>
-    <div class="ac-settings-body">
-      <section class="ac-card" id="card-lang">
-        <div class="ac-card-header" data-i18n="app.settings.lang_card.title">Idioma & Região</div>
-        <div class="ac-card-body">
-          <div class="ac-row">
-            <label for="sel-locale" data-i18n="app.settings.lang_card.select_label">Idioma</label>
-            <select id="sel-locale"></select>
-          </div>
-          <div style="margin-top:10px"><button class="btn" id="btn-apply" data-i18n="app.settings.lang_card.apply">Aplicar</button></div>
+    <div class="ac-stage__actions">
+      <button
+        class="ac-iconbtn ac-iconbtn--small ac-stage__close"
+        type="button"
+        data-lang-close
+      >
+        <span aria-hidden="true">×</span>
+        <span class="ac-visually-hidden" data-i18n="app.settings.close">
+          Fechar painel de configurações
+        </span>
+      </button>
+    </div>
+  </header>
+  <div class="ac-panel ac-lang-panel">
+    <article class="ac-panel-card ac-lang-panel__card">
+      <header class="ac-panel-card__head">
+        <div class="ac-panel-card__titles">
+          <h3 class="ac-panel-card__title" data-i18n="app.settings.lang_card.title">
+            Idioma &amp; Região
+          </h3>
+          <p class="ac-panel-card__subtitle" data-i18n="app.settings.lang_card.description">
+            Escolha o idioma preferido para o AppBase.
+          </p>
         </div>
-      </section>
-      <section class="ac-card" id="card-log">
-        <div class="ac-card-header" data-i18n="app.settings.log.title">Log de comandos</div>
-        <div class="ac-card-body"><pre class="ac-log" id="cmd-log" aria-live="polite"></pre></div>
-      </section>
-    </div>
+      </header>
+      <div class="ac-lang-panel__body">
+        <label class="ac-lang-panel__label" for="lang-select" data-i18n="app.settings.lang_card.select_label">
+          Idioma
+        </label>
+        <select id="lang-select" class="ac-lang-panel__select" data-lang-select>
+          <option value="pt-BR" data-i18n="app.settings.lang_card.options.pt-BR">
+            Português (Brasil)
+          </option>
+          <option value="en-US" data-i18n="app.settings.lang_card.options.en-US">
+            English (United States)
+          </option>
+          <option value="es-ES" data-i18n="app.settings.lang_card.options.es-ES">
+            Español (España)
+          </option>
+        </select>
+        <div class="ac-lang-panel__actions">
+          <button class="ac-btn" type="button" data-lang-apply>
+            <span data-i18n="app.settings.lang_card.apply">Aplicar</span>
+          </button>
+        </div>
+      </div>
+    </article>
+    <article class="ac-panel-card ac-lang-panel__card ac-lang-panel__card--log">
+      <header class="ac-panel-card__head">
+        <div class="ac-panel-card__titles">
+          <h3 class="ac-panel-card__title" data-i18n="app.settings.log.title">
+            Log de comandos
+          </h3>
+          <p class="ac-panel-card__subtitle" data-i18n="app.settings.log.subtitle">
+            Registros das ações de idioma.
+          </p>
+        </div>
+      </header>
+      <div class="ac-lang-panel__body">
+        <pre class="ac-lang-log" data-lang-log aria-live="polite"></pre>
+      </div>
+    </article>
   </div>
-</div>
+</section>
