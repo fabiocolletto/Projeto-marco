@@ -837,12 +837,19 @@ select {
   grid-column: 1 / -1;
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-top: 4px;
 }
 
-.ac-panel-session {
-  border-top: var(--ac-border-width) solid var(--ac-border);
-  padding-top: 16px;
+.ac-panel-form__hint {
+  flex-basis: 100%;
+  margin: 0;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--ac-muted);
+  text-align: right;
 }
 
 .ac-panel-card--history {
@@ -908,6 +915,14 @@ select {
 
   .ac-panel-kpis {
     grid-template-columns: 1fr;
+  }
+
+  .ac-panel-form__actions {
+    justify-content: flex-start;
+  }
+
+  .ac-panel-form__hint {
+    text-align: left;
   }
 }
 
