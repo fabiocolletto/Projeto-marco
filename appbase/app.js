@@ -186,6 +186,7 @@ import {
     panelLoginCount: document.querySelector('[data-panel-login-count]'),
     panelLoginHint: document.querySelector('[data-panel-login-hint]'),
     panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
+    panelMeta: document.querySelector('[data-panel-meta]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
@@ -1053,6 +1054,11 @@ import {
 
     if (elements.stage) {
       elements.stage.hidden = !panelOpen;
+    }
+
+    if (elements.panelMeta) {
+      elements.panelMeta.hidden = !panelOpen;
+      elements.panelMeta.setAttribute('aria-hidden', panelOpen ? 'false' : 'true');
     }
 
     if (elements.stageShell) {
