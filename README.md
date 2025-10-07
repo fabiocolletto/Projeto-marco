@@ -39,22 +39,25 @@ MiniApp “Painel de controle”.
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
    último acesso, e essas informações permanecem disponíveis em visitas
    futuras.
-5. A AppBar exibe um botão circular sem texto que alterna entre os temas claro
-   e escuro. O ícone ☀️/🌙 e o tooltip refletem o modo ativo, enquanto o rótulo
-   acessível muda para “Ativar modo claro” ou “Ativar modo escuro”. A preferência
-   é salva no `localStorage` (chave `marco-appbase:theme`) e restaurada
-   automaticamente em visitas futuras.
-6. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
+5. Utilize o botão ⋯ da etiqueta para recolher/exibir o painel quando houver um
    cadastro ativo. O overlay de Login pode ser reaberto para editar o usuário a
    qualquer momento.
-7. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
+6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
    logoff na mesma área detalhada, sinalizando a ausência de registros tanto na
    tabela quanto no estado vazio do palco.
-8. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
-   (a suíte Playwright valida cadastro, persistência, comportamento da etiqueta e
-   alternância de tema).
+7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
+   (a suíte Playwright valida cadastro, persistência e comportamento da etiqueta).
+
+### Alternância de tema na AppBar
+
+A AppBar inclui um botão circular sem texto responsável por alternar entre os
+temas claro e escuro. O controle expõe um tooltip que indica a ação disponível,
+enquanto o rótulo acessível oscila entre “Ativar modo claro” e “Ativar modo
+escuro”. O ícone ☀️/🌙 muda junto com o tema ativo e o estado escolhido fica
+registrado no `localStorage` na chave `marco-appbase:theme`, permitindo que a
+preferência seja restaurada automaticamente na próxima visita.
 
 ## MiniApp “Painel de controle” — destaques
 
@@ -67,10 +70,10 @@ MiniApp “Painel de controle”.
 - **Overlay de Login acessível** (`role="dialog"`, `aria-modal`, foco gerenciado
   e fechamento por Esc/backdrop) com feedback imediato de sucesso ou erro ao
   salvar.
-- **Alternância de tema persistente**: a AppBar inclui um botão circular sem
-  texto cujo ícone ☀️/🌙 revela o tema em uso. O rótulo acessível acompanha a
-  ação disponível e a escolha fica guardada no `localStorage` para manter a
-  experiência consistente entre visitas.
+- **Alternância de tema persistente**: a AppBar traz o mesmo botão circular sem
+  texto, com ícones ☀️/🌙 alinhados ao tema ativo, tooltip contextual e rótulos
+  acessíveis que descrevem a ação disponível. A chave `marco-appbase:theme` no
+  `localStorage` garante que a preferência retorne em novas sessões.
 - **Persistência local leve**: os dados são gravados no `localStorage`,
   reaplicados automaticamente na próxima visita e podem ser editados a qualquer
   momento sem dependências de sync/backup.
