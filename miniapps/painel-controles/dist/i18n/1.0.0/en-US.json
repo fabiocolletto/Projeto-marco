@@ -1,0 +1,11 @@
+{
+  "miniapp": {
+    "title": "Control Panel",
+    "widgets": {
+      "consent": "Consent",
+      "status": "Status",
+      "kpis": "KPIs",
+      "opps": "Opportunities"
+    }
+  }
+}

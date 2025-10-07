@@ -1,0 +1,24 @@
+<div class="ac-settings-overlay" id="app-settings-overlay" aria-hidden="true">
+  <div class="ac-settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="ac-settings-header">
+      <span id="settings-title" data-i18n="app.settings.title">Configurações</span>
+      <button class="ac-close" id="app-settings-close" aria-label="Fechar">✕</button>
+    </div>
+    <div class="ac-settings-body">
+      <section class="ac-card" id="card-lang">
+        <div class="ac-card-header" data-i18n="app.settings.lang_card.title">Idioma & Região</div>
+        <div class="ac-card-body">
+          <div class="ac-row">
+            <label for="sel-locale" data-i18n="app.settings.lang_card.select_label">Idioma</label>
+            <select id="sel-locale"></select>
+          </div>
+          <div style="margin-top:10px"><button class="btn" id="btn-apply" data-i18n="app.settings.lang_card.apply">Aplicar</button></div>
+        </div>
+      </section>
+      <section class="ac-card" id="card-log">
+        <div class="ac-card-header" data-i18n="app.settings.log.title">Log de comandos</div>
+        <div class="ac-card-body"><pre class="ac-log" id="cmd-log" aria-live="polite"></pre></div>
+      </section>
+    </div>
+  </div>
+</div>

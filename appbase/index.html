@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Projeto Marco — AppBase</title>
     <link rel="stylesheet" href="./app.css" />
+    <link rel="stylesheet" href="./settings/settings.css" />
+    <meta
+      name="appbase-i18n"
+      content="defaultLocale=pt-BR; supportedLocales=pt-BR,en-US,es-ES"
+    />
     <script defer src="./app.js"></script>
-      <meta name="appbase-i18n" content="defaultLocale=pt-BR; supportedLocales=pt-BR,en-US">
-      <script defer src="appbase/i18n/i18n.js"></script>
+    <script defer src="./i18n/i18n.js"></script>
+    <script defer src="./uiext/uiext.js"></script>
+    <script defer src="./settings/settings.js"></script>
   </head>
   <body>
     <div class="ac-app">
@@ -23,7 +29,7 @@
             />
           </div>
           <div class="ac-headings">
-            <span class="ac-h1">Projeto Marco</span>
+            <span class="ac-h1" data-i18n="app.title">Projeto Marco</span>
             <span class="ac-h2">Painel de controles</span>
           </div>
         </div>
@@ -50,6 +56,7 @@
             <span class="ac-theme-toggle__icon" data-theme-toggle-icon aria-hidden="true"
               >☀️</span
             >
+            <span class="ac-visually-hidden" data-i18n="app.header.darkmode">Alternar tema</span>
           </button>
           <button
             class="ac-theme-toggle ac-fullscreen-toggle"
