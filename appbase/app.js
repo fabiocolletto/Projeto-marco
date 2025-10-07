@@ -155,7 +155,7 @@ import {
     [LOGIN_SUCCESS_FEEDBACK_KEY]: 'Cadastro atualizado com sucesso.',
     [LOGIN_PHONE_INVALID_FEEDBACK_KEY]:
       'Informe um telefone brasileiro com 10 ou 11 dígitos.',
-    [LOGIN_PASSWORD_MISSING_FEEDBACK_KEY]: 'Informe uma senha para continuar.',
+    [LOGIN_PASSWORD_MISSING_FEEDBACK_KEY]: 'Informe um PIN para continuar.',
     [LOGIN_PASSWORD_MISMATCH_FEEDBACK_KEY]:
       'O PIN informado não corresponde ao PIN atual.',
     [LOGIN_PIN_LENGTH_FEEDBACK_KEY]:
@@ -168,8 +168,8 @@ import {
     [LOGIN_OVERLAY_CLOSE_LABEL_KEY]: 'Fechar',
     [CONFIRM_OVERLAY_CLOSE_LABEL_KEY]: 'Fechar',
     [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
-    [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
-    [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
+    [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar PIN',
+    [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar PIN',
     'app.header.login': 'Fazer login',
     'app.stage.empty.login': 'Fazer login',
     'app.login.sheet.title': 'Escolha um usuário',

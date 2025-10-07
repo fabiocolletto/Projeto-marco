@@ -106,7 +106,7 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
   sessão (`sessionActive`). Cada perfil reúne nome completo, e-mail, telefone,
   hash do PIN, carimbos de criação/atualização e seu próprio histórico.
 - O PIN é digitado exclusivamente pelo teclado numérico exibido no formulário e
-  na sobreposição. O campo de senha permanece somente leitura, garantindo que a
+  na sobreposição. O campo de PIN permanece somente leitura, garantindo que a
   digitação ocorra via interface customizada. Sempre que possível, o valor é
   convertido em SHA-256; navegadores sem suporte recebem um fallback prefixado
   com `plain:` para manter compatibilidade.

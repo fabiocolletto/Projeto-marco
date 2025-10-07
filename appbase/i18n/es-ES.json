@@ -95,10 +95,10 @@
           "email": "Correo electrónico",
           "phone": "Teléfono",
           "phone_placeholder": "(99) 99999-9999",
-          "password": "Contraseña",
+          "password": "PIN de acceso",
           "password_toggle": {
-            "show": "Mostrar contraseña",
-            "hide": "Ocultar contraseña"
+            "show": "Mostrar PIN",
+            "hide": "Ocultar PIN"
           }
         },
         "submit": "Guardar cambios",
@@ -106,7 +106,7 @@
           "error": "Indica nombre y correo electrónico para continuar.",
           "success": "Registro actualizado correctamente.",
           "phone_invalid": "Ingresa un número de teléfono brasileño con 10 u 11 dígitos.",
-          "password_missing": "Ingresa una contraseña para continuar.",
+          "password_missing": "Ingresa un PIN para continuar.",
           "password_mismatch": "El PIN no coincide con el PIN actual.",
           "pin_length": "Introduce un PIN de 4 dígitos.",
           "email_duplicate": "Este correo electrónico ya está en uso."
