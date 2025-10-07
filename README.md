@@ -1,7 +1,7 @@
 # Sistema Operacional Marco
 
 Protótipo navegável do **AppBase Marco** pronto para ser aberto diretamente em um
-navegador moderno sem build. A versão R1.0 consolida o shell completo com AppBar,
+navegador moderno sem build. A versão R1.1 consolida o shell completo com AppBar,
 rail de etiquetas, palco central e uma miniapp enxuta de cadastro executada com
 HTML, CSS e JavaScript vanilla na pasta `appbase/`, seguindo as diretrizes do
 blueprint visual.
@@ -23,7 +23,7 @@ blueprint visual.
 ```
 
 A pasta `src/` preserva o protótipo modular utilizado nas primeiras iterações.
-A pasta `appbase/` concentra a implementação atual do shell R1.0 com o novo
+A pasta `appbase/` concentra a implementação atual do shell R1.1 com o novo
 MiniApp “Painel de controle”.
 
 ## Como executar
