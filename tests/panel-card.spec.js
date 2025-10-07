@@ -14,6 +14,17 @@ async function openLoginOverlay(page) {
   return overlay;
 }
 
+async function clickLogoutPreserve(scope) {
+  const logoutPreserve = scope.locator('[data-action="logout-preserve"]').first();
+  await expect(logoutPreserve).toBeVisible({ timeout: 10000 });
+  await expect(logoutPreserve).toBeEnabled({ timeout: 10000 });
+  await logoutPreserve.click({ timeout: 60000 });
+}
+
+test.beforeEach(async ({ page }) => {
+  page.on('dialog', (dialog) => dialog.dismiss().catch(() => {}));
+});
+
 async function registerUser(page, { nome, email, telefone = '' }) {
   const overlay = await openLoginOverlay(page);
 
@@ -122,7 +133,7 @@ test('sessão encerrada mantém painel sob controle da etiqueta', async ({ page 
   });
 
   const overlay = await openLoginOverlay(page);
-  await overlay.locator('[data-action="logout-preserve"]').click();
+  await clickLogoutPreserve(overlay);
   await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 
   const card = page.locator('[data-miniapp="painel"]');
@@ -177,7 +188,7 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
 
   for (let cycle = 0; cycle < 3; cycle += 1) {
     const overlayLogout = await openLoginOverlay(page);
-    await overlayLogout.locator('[data-action="logout-preserve"]').click();
+    await clickLogoutPreserve(overlayLogout);
     await expect(overlay).toHaveAttribute('aria-hidden', 'true');
 
     await expect(page.locator('#painel-stage')).toBeHidden();

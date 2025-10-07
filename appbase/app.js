@@ -333,7 +333,7 @@
     fullscreenSupported = isFullscreenSupported();
     if (!fullscreenSupported) {
       hideFullscreenToggle(FULLSCREEN_MESSAGES.unsupported);
-      notifyFullscreenIssue(FULLSCREEN_MESSAGES.unsupported, { announce: true });
+      notifyFullscreenIssue(FULLSCREEN_MESSAGES.unsupported);
       return;
     }
     showFullscreenToggle();
@@ -366,7 +366,7 @@
 
   function handleFullscreenError(event) {
     console.warn('AppBase: erro de tela cheia', event);
-    notifyFullscreenIssue(FULLSCREEN_MESSAGES.failure, { announce: true });
+    notifyFullscreenIssue(FULLSCREEN_MESSAGES.failure);
     fullscreenSupported = false;
     hideFullscreenToggle(FULLSCREEN_MESSAGES.failure);
     syncFullscreenStateFromDocument();
