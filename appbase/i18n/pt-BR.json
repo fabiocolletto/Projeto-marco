@@ -93,12 +93,18 @@
           "email": "E-mail",
           "phone": "Telefone (opcional)",
           "phone_placeholder": "(99) 99999-9999",
-          "password": "Senha"
+          "password": "Senha",
+          "password_toggle": {
+            "show": "Mostrar senha",
+            "hide": "Ocultar senha"
+          }
         },
         "submit": "Salvar alterações",
         "feedback": {
           "error": "Informe nome e e-mail para continuar.",
-          "success": "Cadastro atualizado com sucesso."
+          "success": "Cadastro atualizado com sucesso.",
+          "phone_invalid": "Informe um telefone brasileiro com 10 ou 11 dígitos.",
+          "password_missing": "Informe uma senha para continuar."
         }
       },
       "session": {
@@ -137,7 +143,8 @@
       "dirty": {
         "label": "Alterações:",
         "clean": "Sincronizado",
-        "dirty": "Alterações pendentes"
+        "dirty": "Alterações pendentes",
+        "disabled": "Indisponível offline"
       },
       "meta": "Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1",
       "login": { "ok": "Conectado" }

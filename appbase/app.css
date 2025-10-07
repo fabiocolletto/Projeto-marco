@@ -543,6 +543,10 @@ select {
   border: var(--ac-border-width) solid transparent;
 }
 
+.ac-dot--idle {
+  background: var(--ac-border);
+}
+
 .ac-dot--ok {
   background: var(--ac-ok);
 }
@@ -553,6 +557,11 @@ select {
 
 .ac-dot--crit {
   background: var(--ac-crit);
+}
+
+.ac-footer__status[aria-disabled='true'] {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .ac-stage {
@@ -1072,6 +1081,39 @@ select {
   display: grid;
   gap: 6px;
   font-size: 0.95rem;
+}
+
+.ac-field__control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.ac-field__control input {
+  width: 100%;
+}
+
+.ac-password-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-card-bg);
+  color: var(--ac-primary);
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.ac-password-toggle:hover,
+.ac-password-toggle:focus-visible {
+  background: var(--ac-hover);
+}
+
+.ac-password-toggle[aria-pressed='true'] {
+  color: var(--ac-text);
 }
 
 .ac-field__label {

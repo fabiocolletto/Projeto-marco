@@ -71,6 +71,9 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
   a leitura sequencial.
 - **Cadastro direto no palco**, com campos pré-preenchidos, feedback inline e
   controles de sessão (encerrar ou limpar dados) na mesma seção.
+- **Validações reforçadas** exigem senha para concluir o cadastro, formatam
+  automaticamente números brasileiros de telefone (10 ou 11 dígitos) e
+  oferecem alternância de visibilidade no campo de senha.
 - **Alternância de tema persistente**: a AppBar traz o mesmo botão circular sem
   texto, com ícones ☀️/🌙 alinhados ao tema ativo, tooltip contextual e rótulos
   acessíveis que descrevem a ação disponível. A marca também alterna entre os
@@ -84,6 +87,8 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
   registros de login/logoff com rolagem a partir de cinco eventos. Os botões de
   encerrar sessão permanecem ao lado do formulário, permitindo manter os dados
   salvos para um retorno futuro ou limpar tudo do navegador.
+- **Indicadores contextuais** desativam a sinalização de sincronização enquanto
+  a sessão está desconectada, evitando falsa impressão de estado atualizado.
 
 ## Tecnologias adotadas e compatibilidade
 

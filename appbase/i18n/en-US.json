@@ -92,13 +92,19 @@
           "name": "Full name",
           "email": "Email",
           "phone": "Phone (optional)",
-          "phone_placeholder": "(999) 999-9999",
-          "password": "Password"
+          "phone_placeholder": "(99) 99999-9999",
+          "password": "Password",
+          "password_toggle": {
+            "show": "Show password",
+            "hide": "Hide password"
+          }
         },
         "submit": "Save changes",
         "feedback": {
           "error": "Provide name and email to continue.",
-          "success": "Registration updated successfully."
+          "success": "Registration updated successfully.",
+          "phone_invalid": "Enter a Brazilian phone number with 10 or 11 digits.",
+          "password_missing": "Enter a password to continue."
         }
       },
       "session": {
@@ -137,7 +143,8 @@
       "dirty": {
         "label": "Changes:",
         "clean": "Saved",
-        "dirty": "Unsaved changes"
+        "dirty": "Unsaved changes",
+        "disabled": "Unavailable offline"
       },
       "meta": "Developed by 5Horas • Marco Project — AppBase R1.1",
       "login": { "ok": "Connected" }

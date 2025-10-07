@@ -35,10 +35,6 @@ test.describe('Localização da interface (src/)', () => {
       await route.continue();
     });
 
-    const abortEvent = page.waitForEvent('requestfailed', (request) =>
-      request.url().includes('/src/locales/en-US.json')
-    );
-
     await page.goto('/src/index.html');
 
     const select = page.locator('[data-action="change-locale"]');
@@ -56,7 +52,9 @@ test.describe('Localização da interface (src/)', () => {
 
     await select.selectOption('pt-BR');
 
-    await abortEvent;
+    await expect
+      .poll(() => page.evaluate(() => window.__localeAbortCount ?? 0))
+      .toBeGreaterThan(0);
 
     await expect
       .poll(

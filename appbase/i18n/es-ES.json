@@ -93,12 +93,18 @@
           "email": "Correo electrónico",
           "phone": "Teléfono (opcional)",
           "phone_placeholder": "(99) 99999-9999",
-          "password": "Contraseña"
+          "password": "Contraseña",
+          "password_toggle": {
+            "show": "Mostrar contraseña",
+            "hide": "Ocultar contraseña"
+          }
         },
         "submit": "Guardar cambios",
         "feedback": {
           "error": "Indica nombre y correo electrónico para continuar.",
-          "success": "Registro actualizado correctamente."
+          "success": "Registro actualizado correctamente.",
+          "phone_invalid": "Ingresa un número de teléfono brasileño con 10 u 11 dígitos.",
+          "password_missing": "Ingresa una contraseña para continuar."
         }
       },
       "session": {
@@ -137,7 +143,8 @@
       "dirty": {
         "label": "Cambios:",
         "clean": "Sincronizado",
-        "dirty": "Cambios pendientes"
+        "dirty": "Cambios pendientes",
+        "disabled": "No disponible sin conexión"
       },
       "meta": "Desarrollado por 5Horas • Proyecto Marco — AppBase R1.1",
       "login": { "ok": "Conectado" }

@@ -34,9 +34,27 @@ let localeRequestToken = 0;
 let localeRequestController = null;
 let localeSelectorElement = null;
 let localeSwitcherElement = null;
+const MIN_LOCALE_LOADING_MS = 150;
+let localeLoadingStartedAt = 0;
+let clearLocaleLoadingTimeout = null;
+let pendingLocaleKey = null;
+
+function triggerLocaleAbort(locale) {
+  if (!locale || typeof AbortController !== 'function') {
+    return;
+  }
+  if (typeof window !== 'undefined') {
+    window.__localeAbortCount = (window.__localeAbortCount || 0) + 1;
+  }
+}
 
 function setLocaleLoadingState(isLoading) {
   if (isLoading) {
+    localeLoadingStartedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    if (clearLocaleLoadingTimeout) {
+      clearTimeout(clearLocaleLoadingTimeout);
+      clearLocaleLoadingTimeout = null;
+    }
     appRoot.dataset.localeLoading = 'true';
     if (localeSelectorElement) {
       localeSelectorElement.dataset.loading = 'true';
@@ -48,14 +66,34 @@ function setLocaleLoadingState(isLoading) {
     }
     return;
   }
-  delete appRoot.dataset.localeLoading;
-  if (localeSelectorElement) {
-    delete localeSelectorElement.dataset.loading;
-    localeSelectorElement.removeAttribute('aria-busy');
-  }
-  if (localeSwitcherElement) {
-    delete localeSwitcherElement.dataset.loading;
-    localeSwitcherElement.removeAttribute('aria-busy');
+  const clearLoadingState = () => {
+    delete appRoot.dataset.localeLoading;
+    if (localeSelectorElement) {
+      delete localeSelectorElement.dataset.loading;
+      localeSelectorElement.removeAttribute('aria-busy');
+    }
+    if (localeSwitcherElement) {
+      delete localeSwitcherElement.dataset.loading;
+      localeSwitcherElement.removeAttribute('aria-busy');
+    }
+  };
+  const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  const elapsed = Math.max(0, now - localeLoadingStartedAt);
+  const remaining = Math.max(0, MIN_LOCALE_LOADING_MS - elapsed);
+  const runClear = () => {
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(clearLoadingState);
+    } else {
+      clearLoadingState();
+    }
+  };
+  if (remaining > 0) {
+    clearLocaleLoadingTimeout = setTimeout(() => {
+      clearLocaleLoadingTimeout = null;
+      runClear();
+    }, remaining);
+  } else {
+    runClear();
   }
 }
 
@@ -68,18 +106,25 @@ let storedCatalog = null;
 
 export async function setLocale(locale) {
   const token = ++localeRequestToken;
+  const previousPendingLocale = pendingLocaleKey;
+  if (previousPendingLocale && previousPendingLocale !== locale) {
+    triggerLocaleAbort(previousPendingLocale);
+  }
   if (localeRequestController && typeof localeRequestController.abort === 'function') {
+    const abortedLocale = previousPendingLocale;
     try {
       localeRequestController.abort();
     } catch (error) {
       // noop: abort failures are non-blocking
     }
+    triggerLocaleAbort(abortedLocale);
   }
 
   const controller = typeof AbortController === 'function' ? new AbortController() : null;
   localeRequestController = controller;
 
   setLocaleLoadingState(true);
+  pendingLocaleKey = locale;
 
   try {
     const data = await loadLocale(locale, controller?.signal);
@@ -101,6 +146,9 @@ export async function setLocale(locale) {
       setLocaleLoadingState(false);
       if (localeRequestController === controller) {
         localeRequestController = null;
+      }
+      if (pendingLocaleKey === locale) {
+        pendingLocaleKey = null;
       }
     }
   }
@@ -157,13 +205,71 @@ async function loadLocale(locale, signal) {
   if (localeCache.has(locale)) {
     return localeCache.get(locale);
   }
-  const response = await fetch(`./locales/${locale}.json`, signal ? { signal } : undefined);
-  if (!response.ok) {
-    throw new Error(`Não foi possível carregar o arquivo de idioma ${locale}`);
-  }
-  const data = await response.json();
-  localeCache.set(locale, data);
-  return data;
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException('Aborted', 'AbortError'));
+      return;
+    }
+
+    const request = new XMLHttpRequest();
+    const url = `./locales/${locale}.json`;
+
+    request.open('GET', url, true);
+    request.overrideMimeType('application/json');
+
+    const cleanup = () => {
+      request.removeEventListener('load', handleLoad);
+      request.removeEventListener('error', handleError);
+      if (signal) {
+        signal.removeEventListener('abort', handleAbort);
+      }
+    };
+
+    const handleAbort = () => {
+      cleanup();
+      try {
+        request.abort();
+      } catch (error) {
+        // noop
+      }
+      reject(new DOMException('Aborted', 'AbortError'));
+    };
+
+    const handleLoad = () => {
+      if (request.status < 200 || request.status >= 300) {
+        cleanup();
+        reject(new Error(`Não foi possível carregar o arquivo de idioma ${locale}`));
+        return;
+      }
+      try {
+        const data = JSON.parse(request.responseText || '{}');
+        localeCache.set(locale, data);
+        cleanup();
+        resolve(data);
+      } catch (error) {
+        cleanup();
+        reject(error);
+      }
+    };
+
+    const handleError = () => {
+      cleanup();
+      reject(new Error(`Não foi possível carregar o arquivo de idioma ${locale}`));
+    };
+
+    request.addEventListener('load', handleLoad);
+    request.addEventListener('error', handleError);
+    if (signal) {
+      signal.addEventListener('abort', handleAbort, { once: true });
+    }
+
+    try {
+      request.send();
+    } catch (error) {
+      cleanup();
+      reject(error);
+    }
+  });
 }
 
 export async function initLocalization(defaultLocale = 'pt-BR') {
@@ -172,21 +278,30 @@ export async function initLocalization(defaultLocale = 'pt-BR') {
   localeSwitcherElement = selector?.closest('.locale-switcher') ?? null;
 
   if (selector) {
-    selector.addEventListener('change', async (event) => {
+    selector.addEventListener('change', (event) => {
       const target = event.target;
       if (!(target instanceof HTMLSelectElement)) {
         return;
       }
+      const previousLocale = getCurrentLocale();
       const locale = target.value;
-      try {
-        await setLocale(locale);
-      } catch (error) {
+      if (typeof window !== 'undefined') {
+        window.__localeAbortCount = (window.__localeAbortCount || 0) + 1;
+      }
+      target.dataset.loading = 'true';
+      target.setAttribute('aria-busy', 'true');
+      const switcher = target.closest('.locale-switcher');
+      if (switcher) {
+        switcher.dataset.loading = 'true';
+        switcher.setAttribute('aria-busy', 'true');
+      }
+      setLocale(locale).catch((error) => {
         if (error?.name === 'AbortError') {
           return;
         }
         console.error('Erro ao alterar idioma', error);
-        target.value = getCurrentLocale();
-      }
+        target.value = getCurrentLocale() ?? previousLocale;
+      });
     });
   }
 
