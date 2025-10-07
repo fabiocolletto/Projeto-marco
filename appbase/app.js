@@ -3,6 +3,8 @@
   const THEME_STORAGE_KEY = 'marco-appbase:theme';
   const DEFAULT_TITLE = 'Projeto Marco — AppBase';
   const FEEDBACK_TIMEOUT = 2200;
+  const BUTTON_FEEDBACK_DURATION = 900;
+  const BUTTON_FEEDBACK_CLASS = 'ac-feedback-active';
   const VALID_HISTORY_TYPES = ['login', 'logout'];
   const THEMES = { LIGHT: 'light', DARK: 'dark' };
   const BRAND_ICONS = {
@@ -58,7 +60,10 @@
     themeToggleIcon: document.querySelector('[data-theme-toggle-icon]'),
     fullscreenToggle: document.querySelector('[data-fullscreen-toggle]'),
     fullscreenToggleIcon: document.querySelector('[data-fullscreen-toggle-icon]'),
+    panelAccess: document.querySelector('[data-panel-access]'),
     brandIcon: document.querySelector('[data-brand-icon]'),
+    footerStatusDot: document.querySelector('[data-footer-status-dot]'),
+    footerStatusLabel: document.querySelector('[data-footer-status-label]'),
   };
 
   const overlayOpenButtons = Array.from(
@@ -77,6 +82,7 @@
   let fullscreenSupported = isFullscreenSupported();
   let fullscreenActive = isFullscreenActive();
   let fullscreenNotice = '';
+  const buttonFeedbackTimers = new WeakMap();
 
   function canUseStorage() {
     try {
@@ -151,6 +157,23 @@
   function updateThemeAssets(theme) {
     updateBrandIcon(theme);
     updateThemeToggle(theme);
+  }
+
+  function applyButtonFeedback(button, duration = BUTTON_FEEDBACK_DURATION) {
+    if (!button || typeof window === 'undefined') {
+      return;
+    }
+    const existingTimer = buttonFeedbackTimers.get(button);
+    if (existingTimer) {
+      window.clearTimeout(existingTimer);
+      buttonFeedbackTimers.delete(button);
+    }
+    button.classList.add(BUTTON_FEEDBACK_CLASS);
+    const timer = window.setTimeout(() => {
+      button.classList.remove(BUTTON_FEEDBACK_CLASS);
+      buttonFeedbackTimers.delete(button);
+    }, duration);
+    buttonFeedbackTimers.set(button, timer);
   }
 
   function updateBrandIcon(theme) {
@@ -342,6 +365,7 @@
 
   function handleFullscreenToggle(event) {
     event.preventDefault();
+    applyButtonFeedback(event.currentTarget);
     if (!fullscreenSupported) {
       notifyFullscreenIssue(FULLSCREEN_MESSAGES.unsupported, { announce: true });
       hideFullscreenToggle(FULLSCREEN_MESSAGES.unsupported);
@@ -602,10 +626,19 @@
       elements.statusDot.classList.toggle('ac-dot--ok', loggedIn);
       elements.statusDot.classList.toggle('ac-dot--crit', !loggedIn);
     }
+    if (elements.footerStatusDot) {
+      elements.footerStatusDot.classList.toggle('ac-dot--ok', loggedIn);
+      elements.footerStatusDot.classList.toggle('ac-dot--crit', !loggedIn);
+    }
     if (elements.metaLogin) {
       elements.metaLogin.textContent = hasData
         ? formatDateTime(state.lastLogin)
         : '—';
+    }
+    if (elements.footerStatusLabel) {
+      elements.footerStatusLabel.textContent = loggedIn
+        ? 'Conectado'
+        : 'Desconectado';
     }
   }
 
@@ -632,6 +665,10 @@
       const expanded = panelOpen;
       elements.toggleButton.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       elements.toggleButton.disabled = !hasData;
+    }
+
+    if (elements.panelAccess) {
+      elements.panelAccess.disabled = !hasData;
     }
 
     if (elements.stage) {
@@ -970,9 +1007,18 @@
     elements.card.addEventListener('click', handleCardClick);
   }
 
+  if (elements.panelAccess) {
+    elements.panelAccess.addEventListener('click', (event) => {
+      event.preventDefault();
+      applyButtonFeedback(event.currentTarget);
+      openPanel();
+    });
+  }
+
   if (elements.themeToggle) {
     elements.themeToggle.addEventListener('click', (event) => {
       event.preventDefault();
+      applyButtonFeedback(event.currentTarget);
       const nextTheme =
         currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
       setTheme(nextTheme);
@@ -986,6 +1032,7 @@
   if (elements.toggleButton) {
     elements.toggleButton.addEventListener('click', (event) => {
       event.preventDefault();
+      applyButtonFeedback(event.currentTarget);
       togglePanel();
     });
   }

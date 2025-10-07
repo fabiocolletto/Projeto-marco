@@ -142,9 +142,33 @@ select {
 }
 
 .ac-footer {
-  justify-content: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
   font-size: 0.95rem;
   color: var(--ac-muted);
+}
+
+.ac-footer__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--ac-text);
+}
+
+.ac-footer__status-text {
+  font-weight: 500;
+  color: var(--ac-muted);
+}
+
+.ac-footer__status-label {
+  line-height: 1.2;
+}
+
+.ac-footer__meta {
+  flex: 1 1 auto;
+  text-align: center;
 }
 
 .ac-brand {
@@ -214,23 +238,19 @@ select {
   display: block;
 }
 
-.ac-theme-toggle[aria-pressed='true'] {
-  background: var(--ac-card-bg);
-  color: var(--ac-card-ink);
-  border-color: var(--ac-border);
-}
-
-.ac-fullscreen-toggle[aria-pressed='true'] {
-  background: var(--ac-primary);
-  color: var(--ac-on-primary);
-  border-color: var(--ac-primary);
-  box-shadow: 0 0 0 4px rgba(31, 58, 138, 0.24);
+.ac-theme-toggle:disabled,
+.ac-fullscreen-toggle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .ac-theme-toggle:hover,
 .ac-theme-toggle:focus-visible,
 .ac-fullscreen-toggle:hover,
-.ac-fullscreen-toggle:focus-visible {
+.ac-fullscreen-toggle:focus-visible,
+.ac-theme-toggle.ac-feedback-active,
+.ac-fullscreen-toggle.ac-feedback-active {
   background: var(--ac-primary);
   color: var(--ac-on-primary);
   border-color: var(--ac-primary);
@@ -255,10 +275,17 @@ select {
 }
 
 .ac-iconbtn:hover,
-.ac-iconbtn:focus-visible {
+.ac-iconbtn:focus-visible,
+.ac-iconbtn.ac-feedback-active {
   background: var(--ac-primary);
   color: var(--ac-on-primary);
   border-color: var(--ac-primary);
+}
+
+.ac-iconbtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 .ac-layout {
@@ -287,6 +314,22 @@ select {
   .ac-appbar,
   .ac-footer {
     flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 600px) {
+  .ac-footer {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ac-footer__status {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ac-footer__meta {
+    width: 100%;
   }
 }
 
