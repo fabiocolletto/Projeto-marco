@@ -9,7 +9,7 @@
     [THEMES.LIGHT]: '../assets/app/brand/icon-light-500.png',
     [THEMES.DARK]: '../assets/app/brand/icon-dark-500.png',
   };
-  const THEME_ICONS = { [THEMES.LIGHT]: '🌙', [THEMES.DARK]: '☀️' };
+  const THEME_ICONS = { [THEMES.LIGHT]: '☀️', [THEMES.DARK]: '🌙' };
   const THEME_LABELS = {
     [THEMES.LIGHT]: 'Ativar modo escuro',
     [THEMES.DARK]: 'Ativar modo claro',

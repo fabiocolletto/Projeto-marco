@@ -23,7 +23,7 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   await expect(toggle).toHaveAttribute('aria-pressed', 'false');
   await expect(toggle).toHaveAttribute('aria-label', 'Ativar modo escuro');
   await expect(toggle).toHaveAttribute('title', 'Ativar modo escuro');
-  await expect(toggleIcon).toHaveText('🌙');
+  await expect(toggleIcon).toHaveText('☀️');
 
   const lightSrc = await brandIcon.getAttribute('src');
   expect(lightSrc).toContain('icon-light-500');
@@ -34,7 +34,7 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await expect(toggle).toHaveAttribute('aria-label', 'Ativar modo claro');
   await expect(toggle).toHaveAttribute('title', 'Ativar modo claro');
-  await expect(toggleIcon).toHaveText('☀️');
+  await expect(toggleIcon).toHaveText('🌙');
   await expect(brandIcon).toHaveAttribute('src', /icon-dark-500/);
 
   await page.reload();
@@ -43,7 +43,7 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   await expect(toggle).toHaveAttribute('aria-pressed', 'true');
   await expect(toggle).toHaveAttribute('aria-label', 'Ativar modo claro');
   await expect(toggle).toHaveAttribute('title', 'Ativar modo claro');
-  await expect(toggleIcon).toHaveText('☀️');
+  await expect(toggleIcon).toHaveText('🌙');
 
   const storedTheme = await page.evaluate(() =>
     window.localStorage.getItem('marco-appbase:theme')
