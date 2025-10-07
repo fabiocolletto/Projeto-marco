@@ -8,10 +8,10 @@ async function resetApp(page) {
 
 async function ensureLoginForm(page) {
   const stage = page.locator('#painel-stage');
-  const stageEmptyAction = page.locator('[data-stage-empty-action]');
+  const accessButton = page.locator('[data-panel-access]');
 
   if (await stage.isHidden()) {
-    await stageEmptyAction.click();
+    await accessButton.click();
   }
 
   await expect(stage).toBeVisible();
@@ -49,14 +49,16 @@ test.beforeEach(async ({ page }) => {
   page.on('dialog', (dialog) => dialog.dismiss().catch(() => {}));
 });
 
-test('cadastro atualiza etiqueta e painel', async ({ page }) => {
+test('cadastro atualiza painel e botão do cabeçalho', async ({ page }) => {
   await resetApp(page);
 
   const stage = page.locator('#painel-stage');
   const stageEmpty = page.locator('[data-stage-empty]');
+  const panelAccess = page.locator('[data-panel-access]');
 
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'false');
 
   await registerUser(page, {
     nome: 'Maria Fernanda',
@@ -66,27 +68,24 @@ test('cadastro atualiza etiqueta e painel', async ({ page }) => {
 
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(page.locator('[data-toggle-panel]')).toHaveAttribute(
-    'aria-expanded',
-    'true'
-  );
-
-  await expect(page.locator('[data-user-name]')).toHaveText('Maria');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
+  await expect(panelAccess).toHaveAttribute('aria-label', 'Fechar painel do usuário');
   await expect(page.locator('[data-login-user]')).toHaveText('Maria Fernanda');
   await expect(page.locator('[data-login-account]')).toHaveText('maria');
   await expect(page.locator('[data-login-last]')).not.toHaveText('—');
-  await expect(page.locator('[data-meta-value="login"]')).not.toHaveText('—');
   await expect(page.locator('[data-panel-status-label]')).toHaveText('Conectado');
   await expect(page.locator('[data-panel-login-count]')).toHaveText('1');
   await expect(page.locator('[data-panel-last-login]')).not.toHaveText('—');
   await expect(page).toHaveTitle('Projeto Marco — Maria');
 
   await page.reload();
-  await expect(page.locator('[data-user-name]')).toHaveText('Maria');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
   await expect(stage).toBeVisible();
 });
 
-test('etiqueta controla o painel sem acionar camadas extras', async ({ page }) => {
+test('botão do cabeçalho controla o painel sem acionar camadas extras', async ({
+  page,
+}) => {
   await resetApp(page);
   await registerUser(page, {
     nome: 'Carlos Souza',
@@ -95,40 +94,38 @@ test('etiqueta controla o painel sem acionar camadas extras', async ({ page }) =
 
   const stage = page.locator('#painel-stage');
   const stageEmpty = page.locator('[data-stage-empty]');
-  const cardTitle = page.locator('[data-miniapp="painel"] .ac-miniapp-card__title');
-  const toggleButton = page.locator('[data-miniapp="painel"] [data-toggle-panel]');
+  const panelAccess = page.locator('[data-panel-access]');
+  const stageClose = page.locator('[data-stage-close]');
 
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
 
-  await toggleButton.click();
+  await panelAccess.click();
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'false');
 
-  await cardTitle.click();
+  await panelAccess.click();
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
   await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
 
-  await cardTitle.click();
-  await expect(stage).toBeVisible();
-  await expect(stageEmpty).toBeHidden();
-
-  await toggleButton.click();
+  await stageClose.click();
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'false');
 
-  await toggleButton.click();
+  await panelAccess.click();
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
 });
 
-test('sessão encerrada mantém painel sob controle da etiqueta', async ({ page }) => {
+test('sessão encerrada mantém painel sob controle do cabeçalho', async ({
+  page,
+}) => {
   await resetApp(page);
   await registerUser(page, {
     nome: 'Joana Prado',
@@ -137,20 +134,19 @@ test('sessão encerrada mantém painel sob controle da etiqueta', async ({ page 
 
   await logoutPreserve(page);
 
-  const card = page.locator('[data-miniapp="painel"]');
   const stage = page.locator('#painel-stage');
   const stageEmpty = page.locator('[data-stage-empty]');
-  const toggleButton = page.locator('[data-miniapp="painel"] [data-toggle-panel]');
+  const panelAccess = page.locator('[data-panel-access]');
 
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('[data-panel-status-label]')).toHaveText('Desconectado');
 
-  await card.click();
+  await panelAccess.click();
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
+  await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
   await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
 });
 
@@ -209,14 +205,18 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
 
   await logoutClear(page);
 
-  await expect(page.locator('[data-user-name]')).toHaveText('Não configurado');
+  await expect(page.locator('[data-login-user]')).toHaveText('Não configurado');
+  await expect(page.locator('[data-panel-access]')).toHaveAttribute(
+    'aria-expanded',
+    'false'
+  );
   await expect(logRows).toHaveCount(0);
   await expect(
     page.locator('[data-stage-empty] [data-login-log-empty]')
   ).toBeVisible();
   await expect(page.locator('[data-action="logout-clear"]')).toBeDisabled();
   await expect(page.locator('[data-stage-empty-message]')).toHaveText(
-    'Nenhum usuário cadastrado. Inicie o cadastro para ativar o painel.'
+    'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.'
   );
   await expect(page.locator('[data-stage-empty-action]')).toHaveText('Começar cadastro');
 });
