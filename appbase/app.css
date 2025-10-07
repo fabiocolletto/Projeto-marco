@@ -60,7 +60,7 @@ body {
   background: var(--ac-surface);
   color: var(--ac-text);
   line-height: 1.5;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 a {
@@ -109,13 +109,24 @@ select {
 }
 
 .ac-app {
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 0;
   padding: 0;
   overflow: hidden;
+}
+
+@supports (height: 100svh) {
+  .ac-app {
+    min-height: 100svh;
+  }
+}
+
+@supports (height: 100dvh) {
+  .ac-app {
+    min-height: 100dvh;
+  }
 }
 
 .ac-appbar,
