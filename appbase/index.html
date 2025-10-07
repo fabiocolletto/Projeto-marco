@@ -346,6 +346,7 @@
                       type="tel"
                       inputmode="tel"
                       placeholder="(99) 99999-9999"
+                      data-phone-input
                     />
                   </label>
                   <label class="ac-field">
@@ -355,12 +356,25 @@
                     >
                       Senha
                     </span>
-                    <input
-                      name="senha"
-                      type="password"
-                      value="********"
-                      autocomplete="new-password"
-                    />
+                    <div class="ac-field__control">
+                      <input
+                        name="senha"
+                        type="password"
+                        autocomplete="new-password"
+                        required
+                        data-password-input
+                      />
+                      <button
+                        class="ac-password-toggle"
+                        type="button"
+                        data-password-toggle
+                        aria-pressed="false"
+                        aria-label="Mostrar senha"
+                        title="Mostrar senha"
+                      >
+                        <span aria-hidden="true" data-password-toggle-icon>👁</span>
+                      </button>
+                    </div>
                   </label>
                   <div
                     class="ac-panel-form__actions"

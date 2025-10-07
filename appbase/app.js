@@ -74,6 +74,7 @@ import {
   const FOOTER_DIRTY_KEYS = {
     clean: 'app.footer.dirty.clean',
     dirty: 'app.footer.dirty.dirty',
+    disabled: 'app.footer.dirty.disabled',
   };
   const FOOTER_DIRTY_LABEL_KEY = 'app.footer.dirty.label';
   const SESSION_ACTIONS_LABEL_KEY = 'app.panel.session.actions.label';
@@ -81,8 +82,17 @@ import {
   const PANEL_KPIS_GROUP_LABEL_KEY = 'app.panel.kpis.group_label';
   const LOGIN_ERROR_FEEDBACK_KEY = 'app.panel.form.feedback.error';
   const LOGIN_SUCCESS_FEEDBACK_KEY = 'app.panel.form.feedback.success';
+  const LOGIN_PHONE_INVALID_FEEDBACK_KEY = 'app.panel.form.feedback.phone_invalid';
+  const LOGIN_PASSWORD_MISSING_FEEDBACK_KEY =
+    'app.panel.form.feedback.password_missing';
   const FORM_PHONE_PLACEHOLDER_KEY = 'app.panel.form.fields.phone_placeholder';
+  const PASSWORD_TOGGLE_LABEL_KEYS = {
+    show: 'app.panel.form.fields.password_toggle.show',
+    hide: 'app.panel.form.fields.password_toggle.hide',
+  };
   const STAGE_PANEL_OPEN_CLASS = 'ac-stage--panel-open';
+  const PHONE_MAX_LENGTH = 11;
+  const PASSWORD_TOGGLE_ICONS = { show: '👁', hide: '🙈' };
 
   const FALLBACKS = {
     [DEFAULT_TITLE_KEY]: 'Projeto Marco — AppBase',
@@ -124,12 +134,18 @@ import {
     [FOOTER_DIRTY_LABEL_KEY]: 'Alterações:',
     [FOOTER_DIRTY_KEYS.clean]: 'Sincronizado',
     [FOOTER_DIRTY_KEYS.dirty]: 'Alterações pendentes',
+    [FOOTER_DIRTY_KEYS.disabled]: 'Indisponível offline',
     [SESSION_ACTIONS_LABEL_KEY]: 'Ações da sessão',
     [RAIL_LABEL_KEY]: 'Miniapps',
     [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
     [LOGIN_ERROR_FEEDBACK_KEY]: 'Informe nome e e-mail para continuar.',
     [LOGIN_SUCCESS_FEEDBACK_KEY]: 'Cadastro atualizado com sucesso.',
+    [LOGIN_PHONE_INVALID_FEEDBACK_KEY]:
+      'Informe um telefone brasileiro com 10 ou 11 dígitos.',
+    [LOGIN_PASSWORD_MISSING_FEEDBACK_KEY]: 'Informe uma senha para continuar.',
     [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
+    [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
+    [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
   };
 
   const elements = {
@@ -171,6 +187,11 @@ import {
     footerDirtyText: document.querySelector('[data-footer-dirty-text]'),
     footerDirtyDot: document.querySelector('[data-footer-dirty-dot]'),
     footerDirtyLabel: document.querySelector('[data-footer-dirty-label]'),
+    footerDirtyStatus: document.querySelector('[data-footer-dirty-status]'),
+    phoneInput: document.querySelector('[data-phone-input]'),
+    passwordInput: document.querySelector('[data-password-input]'),
+    passwordToggle: document.querySelector('[data-password-toggle]'),
+    passwordToggleIcon: document.querySelector('[data-password-toggle-icon]'),
   };
 
   function fallbackFor(key, defaultValue = '') {
@@ -213,6 +234,90 @@ import {
     }, template);
   }
 
+  function sanitisePhoneDigits(value) {
+    return String(value || '')
+      .replace(/\D+/g, '')
+      .slice(0, PHONE_MAX_LENGTH);
+  }
+
+  function formatPhoneDigits(value) {
+    const digits = sanitisePhoneDigits(value);
+    if (!digits) {
+      return '';
+    }
+    if (digits.length <= 2) {
+      return `(${digits}`;
+    }
+    const area = digits.slice(0, 2);
+    if (digits.length <= 6) {
+      return `(${area}) ${digits.slice(2)}`;
+    }
+    if (digits.length <= 10) {
+      const middle = digits.slice(2, digits.length - 4);
+      const last = digits.slice(-4);
+      return `(${area}) ${middle}-${last}`;
+    }
+    const middle = digits.slice(2, 7);
+    const last = digits.slice(7, 11);
+    return `(${area}) ${middle}-${last}`;
+  }
+
+  function isValidPhoneDigits(digits) {
+    const numeric = sanitisePhoneDigits(digits);
+    return numeric.length === 0 || numeric.length === 10 || numeric.length === 11;
+  }
+
+  function applyPhoneMaskToInput(input, digits) {
+    if (!input) {
+      return;
+    }
+    const numeric =
+      typeof digits === 'string' ? sanitisePhoneDigits(digits) : sanitisePhoneDigits(input.value);
+    const formatted = formatPhoneDigits(numeric);
+    if (input.value !== formatted) {
+      const cursorPosition = formatted.length;
+      input.value = formatted;
+      if (typeof input.setSelectionRange === 'function') {
+        try {
+          input.setSelectionRange(cursorPosition, cursorPosition);
+        } catch (error) {
+          // Alguns navegadores podem lançar se o campo não estiver focado.
+        }
+      }
+    }
+  }
+
+  function updatePasswordToggle() {
+    if (!elements.passwordToggle) {
+      return;
+    }
+    const key = passwordVisible
+      ? PASSWORD_TOGGLE_LABEL_KEYS.hide
+      : PASSWORD_TOGGLE_LABEL_KEYS.show;
+    const label = translate(key, fallbackFor(key));
+    elements.passwordToggle.setAttribute('aria-label', label);
+    elements.passwordToggle.setAttribute('title', label);
+    elements.passwordToggle.setAttribute('aria-pressed', passwordVisible ? 'true' : 'false');
+    if (elements.passwordToggleIcon) {
+      const icon = passwordVisible
+        ? PASSWORD_TOGGLE_ICONS.hide
+        : PASSWORD_TOGGLE_ICONS.show;
+      elements.passwordToggleIcon.textContent = icon;
+    }
+  }
+
+  function setPasswordVisibility(visible) {
+    passwordVisible = Boolean(visible);
+    if (elements.passwordInput) {
+      elements.passwordInput.setAttribute('type', passwordVisible ? 'text' : 'password');
+    }
+    updatePasswordToggle();
+  }
+
+  function togglePasswordVisibility() {
+    setPasswordVisibility(!passwordVisible);
+  }
+
   function setElementTextFromKey(element, key, options = {}) {
     if (!element) {
       return;
@@ -246,6 +351,7 @@ import {
   let fullscreenActive = isFullscreenActive();
   let fullscreenNotice = '';
   const buttonFeedbackTimers = new WeakMap();
+  let passwordVisible = false;
 
   function canUseStorage() {
     try {
@@ -613,16 +719,17 @@ import {
         : '';
     const email =
       typeof rawUser.email === 'string' ? rawUser.email.trim() : '';
-    const telefone =
-      typeof rawUser.telefone === 'string'
-        ? rawUser.telefone.trim()
+    const telefone = sanitisePhoneDigits(rawUser.telefone);
+    const senha =
+      typeof rawUser.senha === 'string'
+        ? rawUser.senha
         : '';
 
-    if (!nomeCompleto && !email && !telefone) {
+    if (!nomeCompleto && !email && !telefone && !senha) {
       return null;
     }
 
-    return { nomeCompleto, email, telefone };
+    return { nomeCompleto, email, telefone, senha };
   }
 
   function normaliseHistory(rawHistory) {
@@ -751,6 +858,7 @@ import {
     const next = normaliseState({ ...state, ...nextRaw });
     state = next;
     stateDirty = false;
+    passwordVisible = false;
     updateUI();
     return persistState(state)
       .catch((error) => {
@@ -831,6 +939,7 @@ import {
 
   function updateStatusSummary() {
     const loggedIn = isLoggedIn();
+    const dirtyDisabled = !loggedIn;
     if (elements.footerStatusText) {
       setElementTextFromKey(elements.footerStatusText, FOOTER_STATUS_LABEL_KEY);
     }
@@ -847,12 +956,20 @@ import {
     if (elements.footerDirtyText) {
       setElementTextFromKey(elements.footerDirtyText, FOOTER_DIRTY_LABEL_KEY);
     }
+    if (elements.footerDirtyStatus) {
+      elements.footerDirtyStatus.setAttribute('aria-disabled', dirtyDisabled ? 'true' : 'false');
+    }
     if (elements.footerDirtyDot) {
-      elements.footerDirtyDot.classList.toggle('ac-dot--ok', !stateDirty);
-      elements.footerDirtyDot.classList.toggle('ac-dot--warn', stateDirty);
+      elements.footerDirtyDot.classList.toggle('ac-dot--ok', !dirtyDisabled && !stateDirty);
+      elements.footerDirtyDot.classList.toggle('ac-dot--warn', !dirtyDisabled && stateDirty);
+      elements.footerDirtyDot.classList.toggle('ac-dot--idle', dirtyDisabled);
     }
     if (elements.footerDirtyLabel) {
-      const dirtyKey = stateDirty ? FOOTER_DIRTY_KEYS.dirty : FOOTER_DIRTY_KEYS.clean;
+      const dirtyKey = dirtyDisabled
+        ? FOOTER_DIRTY_KEYS.disabled
+        : stateDirty
+        ? FOOTER_DIRTY_KEYS.dirty
+        : FOOTER_DIRTY_KEYS.clean;
       setElementTextFromKey(elements.footerDirtyLabel, dirtyKey);
     }
   }
@@ -966,25 +1083,29 @@ import {
 
   function getLoginFormSnapshot() {
     if (!elements.loginForm) {
-      return { nomeCompleto: '', email: '', telefone: '' };
+      return { nomeCompleto: '', email: '', telefone: '', senha: '' };
     }
     const nomeInput = elements.loginForm.querySelector('[name="nome"]');
     const emailInput = elements.loginForm.querySelector('[name="email"]');
     const telefoneInput = elements.loginForm.querySelector('[name="telefone"]');
+    const senhaInput = elements.loginForm.querySelector('[name="senha"]');
     return {
       nomeCompleto: nomeInput ? String(nomeInput.value || '') : '',
       email: emailInput ? String(emailInput.value || '') : '',
-      telefone: telefoneInput ? String(telefoneInput.value || '') : '',
+      telefone: telefoneInput ? sanitisePhoneDigits(telefoneInput.value) : '',
+      senha: senhaInput ? String(senhaInput.value || '') : '',
     };
   }
 
   function computeFormDirtyState() {
     const snapshot = getLoginFormSnapshot();
-    const reference = state.user || { nomeCompleto: '', email: '', telefone: '' };
+    const reference =
+      state.user || { nomeCompleto: '', email: '', telefone: '', senha: '' };
     return (
       snapshot.nomeCompleto !== (reference.nomeCompleto || '') ||
       snapshot.email !== (reference.email || '') ||
-      snapshot.telefone !== (reference.telefone || '')
+      snapshot.telefone !== (reference.telefone || '') ||
+      snapshot.senha !== (reference.senha || '')
     );
   }
 
@@ -1000,10 +1121,11 @@ import {
     if (!elements.loginForm) {
       return;
     }
-    const user = state.user || { nomeCompleto: '', email: '', telefone: '' };
+    const user = state.user || { nomeCompleto: '', email: '', telefone: '', senha: '' };
     const nomeInput = elements.loginForm.querySelector('[name="nome"]');
     const emailInput = elements.loginForm.querySelector('[name="email"]');
     const telefoneInput = elements.loginForm.querySelector('[name="telefone"]');
+    const senhaInput = elements.loginForm.querySelector('[name="senha"]');
 
     if (nomeInput && nomeInput.value !== user.nomeCompleto) {
       nomeInput.value = user.nomeCompleto;
@@ -1016,11 +1138,16 @@ import {
         'placeholder',
         translate(FORM_PHONE_PLACEHOLDER_KEY, fallbackFor(FORM_PHONE_PLACEHOLDER_KEY))
       );
-      if (telefoneInput.value !== user.telefone) {
-        telefoneInput.value = user.telefone;
-      }
+      applyPhoneMaskToInput(telefoneInput, user.telefone);
     }
-
+    if (senhaInput && senhaInput.value !== user.senha) {
+      senhaInput.value = user.senha;
+    }
+    if (elements.passwordInput) {
+      setPasswordVisibility(passwordVisible);
+    } else {
+      updatePasswordToggle();
+    }
     syncDirtyFlagFromForm();
   }
 
@@ -1148,10 +1275,24 @@ import {
     const formData = new FormData(elements.loginForm);
     const nome = String(formData.get('nome') || '').trim();
     const email = String(formData.get('email') || '').trim();
-    const telefone = String(formData.get('telefone') || '').trim();
+    const telefoneDigits = sanitisePhoneDigits(formData.get('telefone'));
+    const senha = String(formData.get('senha') || '').trim();
 
     if (!nome || !email) {
       setLoginFeedback('error', LOGIN_ERROR_FEEDBACK_KEY);
+      return;
+    }
+
+    if (!senha) {
+      setLoginFeedback('error', LOGIN_PASSWORD_MISSING_FEEDBACK_KEY);
+      return;
+    }
+
+    if (!isValidPhoneDigits(telefoneDigits)) {
+      setLoginFeedback('error', LOGIN_PHONE_INVALID_FEEDBACK_KEY);
+      if (elements.phoneInput) {
+        applyPhoneMaskToInput(elements.phoneInput, telefoneDigits);
+      }
       return;
     }
 
@@ -1167,7 +1308,8 @@ import {
         user: {
           nomeCompleto: nome,
           email,
-          telefone,
+          telefone: telefoneDigits,
+          senha,
         },
         lastLogin: timestamp,
         sessionActive: true,
@@ -1345,6 +1487,26 @@ import {
       elements.loginForm.addEventListener('change', handleFormMutation);
       elements.loginForm.addEventListener('submit', (event) => {
         void handleLoginSubmit(event);
+      });
+    }
+
+    if (elements.phoneInput) {
+      const handlePhoneUpdate = () => {
+        applyPhoneMaskToInput(elements.phoneInput);
+        syncDirtyFlagFromForm();
+      };
+      elements.phoneInput.addEventListener('input', handlePhoneUpdate);
+      elements.phoneInput.addEventListener('blur', handlePhoneUpdate);
+    }
+
+    if (elements.passwordToggle) {
+      elements.passwordToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        togglePasswordVisibility();
+        if (elements.passwordInput) {
+          elements.passwordInput.focus();
+        }
       });
     }
   }

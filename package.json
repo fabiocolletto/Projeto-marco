@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "pretest": "playwright install chromium",
     "test": "playwright test"
   },
   "devDependencies": {

@@ -1,5 +1,24 @@
 const { test, expect } = require('@playwright/test');
 
+function formatPhoneDigits(value) {
+  const digits = String(value || '').replace(/\D+/g, '');
+  if (!digits) {
+    return '';
+  }
+  const area = digits.slice(0, 2);
+  if (digits.length <= 6) {
+    return `(${area}) ${digits.slice(2)}`;
+  }
+  if (digits.length <= 10) {
+    const middle = digits.slice(2, digits.length - 4);
+    const last = digits.slice(-4);
+    return `(${area}) ${middle}-${last}`;
+  }
+  const middle = digits.slice(2, 7);
+  const last = digits.slice(7, 11);
+  return `(${area}) ${middle}-${last}`;
+}
+
 async function resetApp(page) {
   await page.goto('/appbase/index.html', { waitUntil: 'load' });
   await page.waitForLoadState('load');
@@ -24,12 +43,19 @@ async function ensureLoginForm(page) {
   return form;
 }
 
-async function registerUser(page, { nome, email, telefone = '' }) {
+async function registerUser(page, { nome, email, telefone = '', senha = 'SenhaForte123' }) {
   const form = await ensureLoginForm(page);
 
   await form.locator('input[name="nome"]').fill(nome);
   await form.locator('input[name="email"]').fill(email);
   await form.locator('input[name="telefone"]').fill(telefone);
+  if (telefone) {
+    await expect(form.locator('input[name="telefone"]').first()).toHaveValue(
+      formatPhoneDigits(telefone),
+      { timeout: 2000 }
+    );
+  }
+  await form.locator('input[name="senha"]').fill(senha);
 
   await form.locator('[data-action="login-save"]').click();
   await expect(page.locator('[data-login-feedback]')).toHaveText(
@@ -147,6 +173,12 @@ test('sessão encerrada mantém painel sob controle do cabeçalho', async ({
   await expect(stageEmpty).toBeVisible();
   await expect(panelAccess).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('[data-panel-status-label]')).toHaveText('Desconectado');
+  const dirtyStatus = page.locator('[data-footer-dirty-status]');
+  await expect(dirtyStatus).toHaveAttribute('aria-disabled', 'true');
+  await expect(dirtyStatus.locator('[data-footer-dirty-label]')).toHaveText(
+    'Indisponível offline'
+  );
+  await expect(dirtyStatus.locator('[data-footer-dirty-dot]')).toHaveClass(/ac-dot--idle/);
 
   await panelAccess.click();
   await expect(stage).toBeVisible();
