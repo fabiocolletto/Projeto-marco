@@ -2,13 +2,30 @@ import {
   loadState as loadPersistedState,
   saveState as persistState,
 } from './storage/indexeddb.js';
+import {
+  ensureProvider,
+  syncProvider,
+  disconnectAll,
+} from './sync/providers.js';
 
 (function () {
   const THEME_STORAGE_KEY = 'marco-appbase:theme';
   const FEEDBACK_TIMEOUT = 2200;
   const BUTTON_FEEDBACK_DURATION = 900;
   const BUTTON_FEEDBACK_CLASS = 'ac-feedback-active';
-  const VALID_HISTORY_TYPES = ['login', 'logout', 'locale'];
+  const VALID_HISTORY_TYPES = ['login', 'logout', 'locale', 'sync'];
+  const SUPPORTED_SYNC_PROVIDERS = ['googleDrive', 'oneDrive'];
+  const VALID_SYNC_ACTIONS = ['enabled', 'disabled', 'logoutAll', 'error'];
+  const SYNC_STATUS_KEYS = {
+    idle: 'app.sync.status.idle',
+    ready: 'app.sync.status.ready',
+    syncing: 'app.sync.status.syncing',
+    error: 'app.sync.status.error',
+  };
+  const SYNC_TOGGLE_LABEL_KEYS = {
+    enable: 'app.sync.toggle.enable',
+    disable: 'app.sync.toggle.disable',
+  };
   const THEMES = { LIGHT: 'light', DARK: 'dark' };
   const DEFAULT_TITLE_KEY = 'app.document.title.default';
   const TITLE_WITH_USER_KEY = 'app.document.title.user';
@@ -68,6 +85,33 @@ import {
     logoutPreserve: 'app.history.event.logout_preserve',
     logoutClear: 'app.history.event.logout_clear',
     locale: 'app.history.event.locale_change',
+    syncEnabled: 'app.history.event.sync.enabled',
+    syncDisabled: 'app.history.event.sync.disabled',
+    syncLogoutAll: 'app.history.event.sync.logout_all',
+    syncError: 'app.history.event.sync.error',
+  };
+  const SYNC_PROVIDER_LABEL_KEYS = {
+    googleDrive: 'app.sync.provider.googleDrive',
+    oneDrive: 'app.sync.provider.oneDrive',
+  };
+  const SYNC_DEVICES_TITLE_KEY = 'app.sync.devices.title';
+  const SYNC_DEVICES_EMPTY_KEY = 'app.sync.devices.empty';
+  const SYNC_LAST_NEVER_KEY = 'app.sync.last_sync.never';
+  const SYNC_LAST_LABEL_KEY = 'app.sync.last_sync.label';
+  const SYNC_DEVICES_LAST_SEEN_KEY = 'app.sync.devices.last_seen';
+  const SYNC_LOGOUT_KEY = 'app.sync.logout_all';
+  const SYNC_FEEDBACK_KEYS = {
+    providerMissing: 'app.sync.feedback.provider_missing',
+    networkError: 'app.sync.feedback.network_error',
+    enabled: 'app.sync.feedback.enabled',
+    disabled: 'app.sync.feedback.disabled',
+    logoutAll: 'app.sync.feedback.logout_all_success',
+  };
+  const SYNC_STATUS_CLASSNAMES = {
+    ready: 'ac-dot--ok',
+    syncing: 'ac-dot--warn',
+    idle: 'ac-dot--idle',
+    error: 'ac-dot--crit',
   };
   const LOCALE_NAME_FALLBACKS = {
     'pt-BR': 'Brasil',
@@ -76,6 +120,7 @@ import {
   };
   const FOOTER_STATUS_KEYS = {
     connected: 'app.footer.status.connected',
+    connectedSync: 'app.footer.status.connected_sync',
     disconnected: 'app.footer.status.disconnected',
   };
   const FOOTER_STATUS_LABEL_KEY = 'app.footer.status.label';
@@ -137,11 +182,43 @@ import {
     [HISTORY_EVENT_KEYS.logoutPreserve]: 'Logoff (dados mantidos)',
     [HISTORY_EVENT_KEYS.logoutClear]: 'Logoff (dados removidos)',
     [HISTORY_EVENT_KEYS.locale]: 'Idioma alterado para {{locale}}',
+    [HISTORY_EVENT_KEYS.syncEnabled]: '{{provider}} habilitado',
+    [HISTORY_EVENT_KEYS.syncDisabled]: '{{provider}} desabilitado',
+    [HISTORY_EVENT_KEYS.syncLogoutAll]: '{{provider}} desconectado em todos os dispositivos',
+    [HISTORY_EVENT_KEYS.syncError]: 'Falha de sincronização em {{provider}}',
+    'app.sync.panel.title': 'Sincronização de arquivos',
+    'app.sync.panel.subtitle': 'Gerencie integrações com Google Drive e OneDrive.',
+    [SYNC_PROVIDER_LABEL_KEYS.googleDrive]: 'Google Drive',
+    [SYNC_PROVIDER_LABEL_KEYS.oneDrive]: 'OneDrive',
+    [SYNC_TOGGLE_LABEL_KEYS.enable]: 'Ativar {{provider}}',
+    [SYNC_TOGGLE_LABEL_KEYS.disable]: 'Desativar {{provider}}',
+    [SYNC_STATUS_KEYS.idle]: 'Inativo',
+    [SYNC_STATUS_KEYS.ready]: 'Sincronizado',
+    [SYNC_STATUS_KEYS.syncing]: 'Sincronizando…',
+    [SYNC_STATUS_KEYS.error]: 'Falha na sincronização',
+    [SYNC_DEVICES_TITLE_KEY]: 'Dispositivos autorizados',
+    [SYNC_DEVICES_EMPTY_KEY]: 'Nenhum dispositivo conectado.',
+    [SYNC_DEVICES_LAST_SEEN_KEY]: 'Último acesso em {{time}}',
+    [SYNC_LAST_NEVER_KEY]: 'Nunca sincronizado',
+    [SYNC_LAST_LABEL_KEY]: 'Última sincronização: {{time}}',
+    [SYNC_LOGOUT_KEY]: 'Deslogar de todos',
+    [SYNC_FEEDBACK_KEYS.providerMissing]:
+      'Instale o cliente {{provider}} e faça login para continuar.',
+    [SYNC_FEEDBACK_KEYS.networkError]:
+      'Não foi possível sincronizar com {{provider}}. Verifique sua conexão e tente novamente.',
+    [SYNC_FEEDBACK_KEYS.enabled]: '{{provider}} ativado.',
+    [SYNC_FEEDBACK_KEYS.disabled]: '{{provider}} desativado.',
+    [SYNC_FEEDBACK_KEYS.logoutAll]: 'Sessões de {{provider}} foram desconectadas.',
+    'app.sync.status.message.idle': 'Sincronização aguardando acionamento.',
+    'app.sync.status.message.ready': 'Sincronização concluída com sucesso.',
+    'app.sync.status.message.syncing': 'Sincronização em andamento…',
+    'app.sync.status.message.error': 'Revise a instalação do conector e tente novamente.',
     'app.locale.menu.title': 'Idioma do AppBase',
     'app.locale.menu.options.pt-BR': 'Brasil',
     'app.locale.menu.options.en-US': 'Estados Unidos',
     'app.locale.menu.options.es-ES': 'Espanha',
     [FOOTER_STATUS_KEYS.connected]: 'Conectado',
+    [FOOTER_STATUS_KEYS.connectedSync]: 'Conectado • Sync ativo',
     [FOOTER_STATUS_KEYS.disconnected]: 'Desconectado',
     [FOOTER_STATUS_LABEL_KEY]: 'Status:',
     [FOOTER_DIRTY_LABEL_KEY]: 'Alterações:',
@@ -201,6 +278,23 @@ import {
     footerDirtyDot: document.querySelector('[data-footer-dirty-dot]'),
     footerDirtyLabel: document.querySelector('[data-footer-dirty-label]'),
     footerDirtyStatus: document.querySelector('[data-footer-dirty-status]'),
+    systemPanel: document.querySelector('[data-system-panel]'),
+    syncProviders: SUPPORTED_SYNC_PROVIDERS.reduce((accumulator, provider) => {
+      const selector = (name) =>
+        document.querySelector(`[data-sync-${name}="${provider}"]`);
+      accumulator[provider] = {
+        root: document.querySelector(`[data-sync-provider="${provider}"]`),
+        toggle: selector('toggle'),
+        status: selector('status'),
+        statusIndicator: selector('status-indicator'),
+        message: selector('message'),
+        lastUpdate: selector('last-update'),
+        devices: selector('devices'),
+        devicesEmpty: selector('devices-empty'),
+        logoutAll: selector('logout-all'),
+      };
+      return accumulator;
+    }, {}),
     phoneInput: document.querySelector('[data-phone-input]'),
     passwordInput: document.querySelector('[data-password-input]'),
     passwordToggle: document.querySelector('[data-password-toggle]'),
@@ -700,12 +794,28 @@ import {
     syncFullscreenStateFromDocument();
   }
 
+  function getEmptyProviderState() {
+    return {
+      enabled: false,
+      status: 'idle',
+      lastSync: '',
+      devices: [],
+      message: '',
+      errorCode: '',
+    };
+  }
+
   function getEmptyState() {
+    const system = SUPPORTED_SYNC_PROVIDERS.reduce((accumulator, provider) => {
+      accumulator[provider] = getEmptyProviderState();
+      return accumulator;
+    }, {});
     return {
       user: null,
       lastLogin: '',
       sessionActive: false,
       history: [],
+      system,
     };
   }
 
@@ -721,7 +831,76 @@ import {
         : '';
     const history = normaliseHistory(raw.history);
     const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
-    return { user, lastLogin, history, sessionActive };
+    const system = normaliseSystem(raw.system, base.system);
+    return { user, lastLogin, history, sessionActive, system };
+  }
+
+  function normaliseSystem(rawSystem, baseSystem = getEmptyState().system) {
+    const draft = { ...baseSystem };
+    if (!rawSystem || typeof rawSystem !== 'object') {
+      return draft;
+    }
+    SUPPORTED_SYNC_PROVIDERS.forEach((provider) => {
+      draft[provider] = normaliseProviderState(rawSystem[provider]);
+    });
+    return draft;
+  }
+
+  function normaliseProviderState(rawState) {
+    const base = getEmptyProviderState();
+    if (!rawState || typeof rawState !== 'object') {
+      return base;
+    }
+    const enabled = Boolean(rawState.enabled);
+    const statusKey =
+      typeof rawState.status === 'string' &&
+      Object.prototype.hasOwnProperty.call(SYNC_STATUS_KEYS, rawState.status)
+        ? rawState.status
+        : enabled
+        ? 'ready'
+        : base.status;
+    const lastSync =
+      typeof rawState.lastSync === 'string' && rawState.lastSync.trim()
+        ? rawState.lastSync
+        : '';
+    const devices = Array.isArray(rawState.devices)
+      ? rawState.devices.map((device) => normaliseProviderDevice(device)).filter(Boolean)
+      : [];
+    const message =
+      typeof rawState.message === 'string' ? rawState.message : base.message;
+    const errorCode =
+      typeof rawState.errorCode === 'string' ? rawState.errorCode : base.errorCode;
+    return {
+      ...base,
+      enabled,
+      status: statusKey,
+      lastSync,
+      devices,
+      message,
+      errorCode,
+    };
+  }
+
+  function normaliseProviderDevice(rawDevice) {
+    if (!rawDevice || typeof rawDevice !== 'object') {
+      return null;
+    }
+    const name =
+      typeof rawDevice.name === 'string' ? rawDevice.name.trim() : '';
+    const model =
+      typeof rawDevice.model === 'string' ? rawDevice.model.trim() : '';
+    const lastSeen =
+      typeof rawDevice.lastSeen === 'string' && rawDevice.lastSeen.trim()
+        ? rawDevice.lastSeen
+        : '';
+    if (!name && !model && !lastSeen) {
+      return null;
+    }
+    const device = { name, model };
+    if (lastSeen) {
+      device.lastSeen = lastSeen;
+    }
+    return device;
   }
 
   function normaliseUser(rawUser) {
@@ -776,6 +955,18 @@ import {
     if (!type || !timestamp) {
       return null;
     }
+    if (type === 'sync') {
+      const provider = SUPPORTED_SYNC_PROVIDERS.includes(rawEntry.provider)
+        ? rawEntry.provider
+        : null;
+      const action = VALID_SYNC_ACTIONS.includes(rawEntry.action)
+        ? rawEntry.action
+        : null;
+      if (!provider || !action) {
+        return null;
+      }
+      return { type, timestamp, provider, action };
+    }
     const mode = rawEntry.mode === 'preserve' || rawEntry.mode === 'clear'
       ? rawEntry.mode
       : undefined;
@@ -808,6 +999,49 @@ import {
     return hasUser(currentState) && Boolean(currentState.sessionActive);
   }
 
+  function getSystemState(currentState = state) {
+    if (!currentState || typeof currentState !== 'object') {
+      return getEmptyState().system;
+    }
+    return currentState.system && typeof currentState.system === 'object'
+      ? currentState.system
+      : getEmptyState().system;
+  }
+
+  function getProviderState(provider, currentState = state) {
+    if (!SUPPORTED_SYNC_PROVIDERS.includes(provider)) {
+      return getEmptyProviderState();
+    }
+    const system = getSystemState(currentState);
+    const stored = system[provider];
+    return stored && typeof stored === 'object' ? stored : getEmptyProviderState();
+  }
+
+  function isProviderSyncing(providerState) {
+    return Boolean(providerState) && providerState.status === 'syncing';
+  }
+
+  function isAnyProviderEnabled(currentState = state) {
+    const system = getSystemState(currentState);
+    return SUPPORTED_SYNC_PROVIDERS.some((provider) => Boolean(system[provider]?.enabled));
+  }
+
+  function getProviderLabel(provider) {
+    const key = SYNC_PROVIDER_LABEL_KEYS[provider];
+    if (!key) {
+      return provider;
+    }
+    const fallback = fallbackFor(key, provider || '');
+    return translate(key, fallback) || fallback;
+  }
+
+  function formatDeviceLastSeen(lastSeen) {
+    if (!lastSeen) {
+      return '';
+    }
+    return formatDateTime(lastSeen);
+  }
+
   function createHistoryEntry(type, options = {}) {
     if (!VALID_HISTORY_TYPES.includes(type)) {
       return null;
@@ -818,6 +1052,18 @@ import {
         ? options.timestamp
         : nowIso(),
     };
+    if (type === 'sync') {
+      const provider = options.provider;
+      const action = options.action;
+      if (
+        !SUPPORTED_SYNC_PROVIDERS.includes(provider) ||
+        !VALID_SYNC_ACTIONS.includes(action)
+      ) {
+        return null;
+      }
+      base.provider = provider;
+      base.action = action;
+    }
     if (options.mode === 'preserve' || options.mode === 'clear') {
       base.mode = options.mode;
     }
@@ -907,13 +1153,23 @@ import {
     return new Date().toISOString();
   }
 
-  function setState(updater) {
+  function setState(updater, options = {}) {
+    const { dirty, preserveDirty = false } = options;
     const nextRaw = typeof updater === 'function' ? updater(state) : updater;
     const next = normaliseState({ ...state, ...nextRaw });
     state = next;
-    stateDirty = false;
+    if (typeof dirty === 'boolean') {
+      stateDirty = dirty;
+    } else if (!preserveDirty) {
+      stateDirty = false;
+    }
     passwordVisible = false;
     updateUI();
+    if (typeof dirty !== 'boolean' && !preserveDirty) {
+      syncDirtyFlagFromForm();
+    } else if (typeof dirty === 'boolean') {
+      updateStatusSummary();
+    }
     return persistState(state)
       .catch((error) => {
         console.warn('AppBase: falha ao persistir dados', error);
@@ -931,6 +1187,7 @@ import {
     updateStage();
     updateLoginFormFields();
     updateLogHistory();
+    updateSystemPanel();
     updateLogControls();
   }
 
@@ -993,6 +1250,7 @@ import {
 
   function updateStatusSummary() {
     const loggedIn = isLoggedIn();
+    const syncActive = isAnyProviderEnabled();
     const dirtyDisabled = !loggedIn;
     if (elements.footerStatusText) {
       setElementTextFromKey(elements.footerStatusText, FOOTER_STATUS_LABEL_KEY);
@@ -1003,7 +1261,9 @@ import {
     }
     if (elements.footerStatusLabel) {
       const statusKey = loggedIn
-        ? FOOTER_STATUS_KEYS.connected
+        ? syncActive
+          ? FOOTER_STATUS_KEYS.connectedSync
+          : FOOTER_STATUS_KEYS.connected
         : FOOTER_STATUS_KEYS.disconnected;
       setElementTextFromKey(elements.footerStatusLabel, statusKey);
     }
@@ -1268,6 +1528,32 @@ import {
       });
       return message || fallback;
     }
+    if (entry.type === 'sync') {
+      const providerLabel = getProviderLabel(entry.provider);
+      const replacements = {
+        provider: providerLabel || entry.provider || '',
+      };
+      if (entry.action === 'enabled') {
+        const fallback = fallbackFor(HISTORY_EVENT_KEYS.syncEnabled, '');
+        const template = translate(HISTORY_EVENT_KEYS.syncEnabled, fallback);
+        return formatMessage(template || fallback, replacements) || fallback;
+      }
+      if (entry.action === 'disabled') {
+        const fallback = fallbackFor(HISTORY_EVENT_KEYS.syncDisabled, '');
+        const template = translate(HISTORY_EVENT_KEYS.syncDisabled, fallback);
+        return formatMessage(template || fallback, replacements) || fallback;
+      }
+      if (entry.action === 'logoutAll') {
+        const fallback = fallbackFor(HISTORY_EVENT_KEYS.syncLogoutAll, '');
+        const template = translate(HISTORY_EVENT_KEYS.syncLogoutAll, fallback);
+        return formatMessage(template || fallback, replacements) || fallback;
+      }
+      if (entry.action === 'error') {
+        const fallback = fallbackFor(HISTORY_EVENT_KEYS.syncError, '');
+        const template = translate(HISTORY_EVENT_KEYS.syncError, fallback);
+        return formatMessage(template || fallback, replacements) || fallback;
+      }
+    }
     return '';
   }
 
@@ -1305,6 +1591,122 @@ import {
     elements.logTableWrap.hidden = false;
     elements.logEmpty.forEach((emptyElement) => {
       emptyElement.hidden = true;
+    });
+  }
+
+  function updateSystemPanel() {
+    if (!elements.systemPanel || !elements.syncProviders) {
+      return;
+    }
+    const loggedIn = isLoggedIn();
+    SUPPORTED_SYNC_PROVIDERS.forEach((provider) => {
+      const refs = elements.syncProviders[provider];
+      if (!refs) {
+        return;
+      }
+      const providerState = getProviderState(provider);
+      const providerLabel = getProviderLabel(provider);
+      const busy = isProviderSyncing(providerState);
+      if (refs.toggle) {
+        const labelKey = providerState.enabled
+          ? SYNC_TOGGLE_LABEL_KEYS.disable
+          : SYNC_TOGGLE_LABEL_KEYS.enable;
+        const fallback = fallbackFor(labelKey, '');
+        const template = translate(labelKey, fallback);
+        const label = formatMessage(template || fallback, {
+          provider: providerLabel,
+        });
+        refs.toggle.setAttribute('aria-pressed', providerState.enabled ? 'true' : 'false');
+        refs.toggle.setAttribute('aria-label', label);
+        refs.toggle.setAttribute('title', label);
+        refs.toggle.textContent = label;
+        refs.toggle.disabled = busy || !loggedIn;
+      }
+      if (refs.status) {
+        const statusKey = SYNC_STATUS_KEYS[providerState.status] || SYNC_STATUS_KEYS.idle;
+        setElementTextFromKey(refs.status, statusKey);
+      }
+      if (refs.statusIndicator) {
+        refs.statusIndicator.classList.remove(
+          'ac-dot--ok',
+          'ac-dot--warn',
+          'ac-dot--crit',
+          'ac-dot--idle'
+        );
+        const className = SYNC_STATUS_CLASSNAMES[providerState.status] || SYNC_STATUS_CLASSNAMES.idle;
+        if (className) {
+          refs.statusIndicator.classList.add(className);
+        }
+      }
+      if (refs.message) {
+        if (providerState.message) {
+          clearElementTranslation(refs.message, providerState.message);
+        } else {
+          const key = `app.sync.status.message.${providerState.status}`;
+          setElementTextFromKey(refs.message, key, { fallbackKey: key });
+        }
+      }
+      if (refs.lastUpdate) {
+        if (providerState.lastSync) {
+          const formatted = formatDeviceLastSeen(providerState.lastSync);
+          setElementTextFromKey(refs.lastUpdate, SYNC_LAST_LABEL_KEY, {
+            replacements: { time: formatted },
+          });
+        } else {
+          setElementTextFromKey(refs.lastUpdate, SYNC_LAST_NEVER_KEY);
+        }
+      }
+      if (refs.devices) {
+        refs.devices.textContent = '';
+        const devices = Array.isArray(providerState.devices)
+          ? providerState.devices.filter(Boolean)
+          : [];
+        devices.forEach((device) => {
+          const item = document.createElement('li');
+          item.className = 'ac-sync-card__device';
+          const name = document.createElement('span');
+          name.className = 'ac-sync-card__device-name';
+          name.textContent = device.name || providerLabel;
+          item.appendChild(name);
+          if (device.model) {
+            const model = document.createElement('span');
+            model.className = 'ac-sync-card__device-model';
+            model.textContent = device.model;
+            item.appendChild(model);
+          }
+          if (device.lastSeen) {
+            const formatted = formatDeviceLastSeen(device.lastSeen);
+            if (formatted) {
+              const lastSeen = document.createElement('span');
+              lastSeen.className = 'ac-sync-card__device-last';
+              const fallback = fallbackFor(SYNC_DEVICES_LAST_SEEN_KEY, '');
+              const template = translate(SYNC_DEVICES_LAST_SEEN_KEY, fallback);
+              lastSeen.textContent = formatMessage(template || fallback, {
+                time: formatted,
+              });
+              item.appendChild(lastSeen);
+            }
+          }
+          refs.devices.appendChild(item);
+        });
+        if (refs.devicesEmpty) {
+          refs.devicesEmpty.hidden = devices.length > 0;
+          if (!devices.length) {
+            setElementTextFromKey(refs.devicesEmpty, SYNC_DEVICES_EMPTY_KEY);
+          }
+        }
+      }
+      if (refs.logoutAll) {
+        const label = translate(SYNC_LOGOUT_KEY, fallbackFor(SYNC_LOGOUT_KEY, ''));
+        refs.logoutAll.textContent = label;
+        refs.logoutAll.setAttribute('aria-label', label);
+        refs.logoutAll.setAttribute('title', label);
+        const hasDevices = Array.isArray(providerState.devices)
+          ? providerState.devices.length > 0
+          : false;
+        refs.logoutAll.disabled =
+          busy || !providerState.enabled || !hasDevices || !loggedIn;
+      }
     });
   }
 
@@ -1496,6 +1898,262 @@ import {
     focusPanelAccess();
   }
 
+  async function handleSyncToggle(provider) {
+    if (!SUPPORTED_SYNC_PROVIDERS.includes(provider)) {
+      return;
+    }
+    if (!isLoggedIn()) {
+      return;
+    }
+    const providerState = getProviderState(provider);
+    if (isProviderSyncing(providerState)) {
+      return;
+    }
+    if (providerState.enabled) {
+      await disableProvider(provider);
+    } else {
+      await performProviderSync(provider);
+    }
+  }
+
+  async function performProviderSync(provider) {
+    const providerLabel = getProviderLabel(provider);
+    const previousState = getProviderState(provider);
+    await setState((current) => {
+      const system = getSystemState(current);
+      return {
+        ...current,
+        system: {
+          ...system,
+          [provider]: {
+            ...system[provider],
+            enabled: true,
+            status: 'syncing',
+            message: '',
+            errorCode: '',
+          },
+        },
+      };
+    }, { preserveDirty: true });
+    try {
+      await ensureProvider(provider);
+      const result = await syncProvider(provider);
+      const syncTimestamp =
+        result && typeof result.lastSync === 'string' && result.lastSync
+          ? result.lastSync
+          : nowIso();
+      const devices = Array.isArray(result?.devices) ? result.devices.filter(Boolean) : [];
+      const message =
+        result && typeof result.message === 'string' ? result.message : '';
+      const historyEntry = createHistoryEntry('sync', {
+        provider,
+        action: 'enabled',
+        timestamp: syncTimestamp,
+      });
+      await setState((current) => {
+        const system = getSystemState(current);
+        const nextHistory = historyEntry
+          ? [historyEntry, ...(current.history || [])]
+          : current.history || [];
+        return {
+          ...current,
+          history: nextHistory,
+          system: {
+            ...system,
+            [provider]: {
+              ...system[provider],
+              enabled: true,
+              status: 'ready',
+              lastSync: syncTimestamp,
+              devices,
+              message,
+              errorCode: '',
+            },
+          },
+        };
+      }, { preserveDirty: true });
+      setLoginFeedback('success', SYNC_FEEDBACK_KEYS.enabled, {
+        replacements: { provider: providerLabel },
+      });
+    } catch (error) {
+      const errorCode = error?.code || 'unknown';
+      const normalizedCode =
+        typeof errorCode === 'string' ? errorCode.toLowerCase() : '';
+      const messageKey =
+        normalizedCode.includes('sdk') ||
+        normalizedCode.includes('provider') ||
+        normalizedCode.includes('login')
+          ? SYNC_FEEDBACK_KEYS.providerMissing
+          : SYNC_FEEDBACK_KEYS.networkError;
+      const fallbackMessage =
+        typeof error?.message === 'string' && error.message
+          ? error.message
+          : translate(messageKey, fallbackFor(messageKey, ''));
+      const historyEntry = createHistoryEntry('sync', {
+        provider,
+        action: 'error',
+      });
+      await setState((current) => {
+        const system = getSystemState(current);
+        const nextHistory = historyEntry
+          ? [historyEntry, ...(current.history || [])]
+          : current.history || [];
+        return {
+          ...current,
+          history: nextHistory,
+          system: {
+            ...system,
+            [provider]: {
+              ...system[provider],
+              enabled: Boolean(previousState.enabled),
+              status: 'error',
+              message: fallbackMessage,
+              errorCode,
+            },
+          },
+        };
+      }, { preserveDirty: true });
+      setLoginFeedback('error', messageKey, {
+        replacements: { provider: providerLabel },
+        fallback: fallbackMessage,
+      });
+    }
+  }
+
+  async function disableProvider(provider) {
+    const providerLabel = getProviderLabel(provider);
+    const historyEntry = createHistoryEntry('sync', {
+      provider,
+      action: 'disabled',
+    });
+    await setState((current) => {
+      const system = getSystemState(current);
+      const nextHistory = historyEntry
+        ? [historyEntry, ...(current.history || [])]
+        : current.history || [];
+      return {
+        ...current,
+        history: nextHistory,
+        system: {
+          ...system,
+          [provider]: {
+            ...system[provider],
+            enabled: false,
+            status: 'idle',
+            message: '',
+            errorCode: '',
+          },
+        },
+      };
+    }, { preserveDirty: true });
+    setLoginFeedback('success', SYNC_FEEDBACK_KEYS.disabled, {
+      replacements: { provider: providerLabel },
+    });
+  }
+
+  async function handleSyncLogoutAll(provider) {
+    if (!SUPPORTED_SYNC_PROVIDERS.includes(provider)) {
+      return;
+    }
+    if (!isLoggedIn()) {
+      return;
+    }
+    const providerState = getProviderState(provider);
+    if (isProviderSyncing(providerState) || !providerState.enabled) {
+      return;
+    }
+    if (!Array.isArray(providerState.devices) || providerState.devices.length === 0) {
+      return;
+    }
+    const providerLabel = getProviderLabel(provider);
+    await setState((current) => {
+      const system = getSystemState(current);
+      return {
+        ...current,
+        system: {
+          ...system,
+          [provider]: {
+            ...system[provider],
+            status: 'syncing',
+          },
+        },
+      };
+    }, { preserveDirty: true });
+    try {
+      await ensureProvider(provider);
+      await disconnectAll(provider);
+      const historyEntry = createHistoryEntry('sync', {
+        provider,
+        action: 'logoutAll',
+      });
+      await setState((current) => {
+        const system = getSystemState(current);
+        const nextHistory = historyEntry
+          ? [historyEntry, ...(current.history || [])]
+          : current.history || [];
+        return {
+          ...current,
+          history: nextHistory,
+          system: {
+            ...system,
+            [provider]: {
+              ...system[provider],
+              enabled: false,
+              status: 'idle',
+              devices: [],
+              message: '',
+              errorCode: '',
+            },
+          },
+        };
+      }, { preserveDirty: true });
+      setLoginFeedback('success', SYNC_FEEDBACK_KEYS.logoutAll, {
+        replacements: { provider: providerLabel },
+      });
+    } catch (error) {
+      const errorCode = error?.code || 'unknown';
+      const normalizedCode =
+        typeof errorCode === 'string' ? errorCode.toLowerCase() : '';
+      const messageKey =
+        normalizedCode.includes('sdk') ||
+        normalizedCode.includes('provider') ||
+        normalizedCode.includes('login')
+          ? SYNC_FEEDBACK_KEYS.providerMissing
+          : SYNC_FEEDBACK_KEYS.networkError;
+      const fallbackMessage =
+        typeof error?.message === 'string' && error.message
+          ? error.message
+          : translate(messageKey, fallbackFor(messageKey, ''));
+      const historyEntry = createHistoryEntry('sync', {
+        provider,
+        action: 'error',
+      });
+      await setState((current) => {
+        const system = getSystemState(current);
+        const nextHistory = historyEntry
+          ? [historyEntry, ...(current.history || [])]
+          : current.history || [];
+        return {
+          ...current,
+          history: nextHistory,
+          system: {
+            ...system,
+            [provider]: {
+              ...system[provider],
+              status: 'error',
+              message: fallbackMessage,
+              errorCode,
+            },
+          },
+        };
+      }, { preserveDirty: true });
+      setLoginFeedback('error', messageKey, {
+        replacements: { provider: providerLabel },
+        fallback: fallbackMessage,
+      });
+    }
+  }
+
   window.addEventListener('app:i18n:locale_changed', (event) => {
     const detailLocale = event?.detail?.locale;
     const currentLocale = detailLocale || getActiveLocale();
@@ -1612,6 +2270,27 @@ import {
         }
       });
     }
+
+    SUPPORTED_SYNC_PROVIDERS.forEach((provider) => {
+      const refs = elements.syncProviders?.[provider];
+      if (!refs) {
+        return;
+      }
+      if (refs.toggle) {
+        refs.toggle.addEventListener('click', (event) => {
+          event.preventDefault();
+          applyButtonFeedback(event.currentTarget);
+          void handleSyncToggle(provider);
+        });
+      }
+      if (refs.logoutAll) {
+        refs.logoutAll.addEventListener('click', (event) => {
+          event.preventDefault();
+          applyButtonFeedback(event.currentTarget);
+          void handleSyncLogoutAll(provider);
+        });
+      }
+    });
   }
 
   async function boot() {

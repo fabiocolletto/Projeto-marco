@@ -280,6 +280,179 @@
               </article>
 
               <article
+                class="ac-panel-card ac-panel-card--sync"
+                aria-labelledby="painel-sync-title"
+                data-system-panel
+              >
+                <header class="ac-panel-card__head">
+                  <div class="ac-panel-card__titles">
+                    <h3
+                      id="painel-sync-title"
+                      class="ac-panel-card__title"
+                      data-i18n="app.sync.panel.title"
+                    >
+                      Sincronização de arquivos
+                    </h3>
+                    <p
+                      class="ac-panel-card__subtitle"
+                      data-i18n="app.sync.panel.subtitle"
+                    >
+                      Gerencie integrações com Google Drive e OneDrive.
+                    </p>
+                  </div>
+                </header>
+                <div class="ac-sync-providers">
+                  <section
+                    class="ac-sync-card"
+                    data-sync-provider="googleDrive"
+                  >
+                    <header class="ac-sync-card__head">
+                      <div class="ac-sync-card__info">
+                        <h4
+                          class="ac-sync-card__title"
+                          data-i18n="app.sync.provider.googleDrive"
+                        >
+                          Google Drive
+                        </h4>
+                        <p
+                          class="ac-sync-card__status"
+                          data-sync-status="googleDrive"
+                          data-i18n="app.sync.status.idle"
+                        >
+                          Inativo
+                        </p>
+                      </div>
+                      <button
+                        class="ac-btn ac-btn--ghost ac-sync-card__toggle"
+                        type="button"
+                        data-sync-toggle="googleDrive"
+                        aria-pressed="false"
+                      >
+                        Ativar Google Drive
+                      </button>
+                    </header>
+                    <div class="ac-sync-card__indicator">
+                      <span
+                        class="ac-dot ac-dot--idle"
+                        aria-hidden="true"
+                        data-sync-status-indicator="googleDrive"
+                      ></span>
+                      <p
+                        class="ac-sync-card__message"
+                        data-sync-message="googleDrive"
+                        data-i18n="app.sync.status.message.idle"
+                      >
+                        Sincronização aguardando acionamento.
+                      </p>
+                    </div>
+                    <p
+                      class="ac-sync-card__last"
+                      data-sync-last-update="googleDrive"
+                      data-i18n="app.sync.last_sync.never"
+                    >
+                      Nunca sincronizado
+                    </p>
+                    <h5
+                      class="ac-sync-card__devices-title"
+                      data-i18n="app.sync.devices.title"
+                    >
+                      Dispositivos autorizados
+                    </h5>
+                    <ul
+                      class="ac-sync-card__devices"
+                      data-sync-devices="googleDrive"
+                    ></ul>
+                    <p
+                      class="ac-sync-card__devices-empty"
+                      data-sync-devices-empty="googleDrive"
+                      data-i18n="app.sync.devices.empty"
+                    >
+                      Nenhum dispositivo conectado.
+                    </p>
+                    <button
+                      class="ac-btn ac-btn--danger ac-sync-card__logout"
+                      type="button"
+                      data-sync-logout-all="googleDrive"
+                    >
+                      Deslogar de todos
+                    </button>
+                  </section>
+                  <section class="ac-sync-card" data-sync-provider="oneDrive">
+                    <header class="ac-sync-card__head">
+                      <div class="ac-sync-card__info">
+                        <h4
+                          class="ac-sync-card__title"
+                          data-i18n="app.sync.provider.oneDrive"
+                        >
+                          OneDrive
+                        </h4>
+                        <p
+                          class="ac-sync-card__status"
+                          data-sync-status="oneDrive"
+                          data-i18n="app.sync.status.idle"
+                        >
+                          Inativo
+                        </p>
+                      </div>
+                      <button
+                        class="ac-btn ac-btn--ghost ac-sync-card__toggle"
+                        type="button"
+                        data-sync-toggle="oneDrive"
+                        aria-pressed="false"
+                      >
+                        Ativar OneDrive
+                      </button>
+                    </header>
+                    <div class="ac-sync-card__indicator">
+                      <span
+                        class="ac-dot ac-dot--idle"
+                        aria-hidden="true"
+                        data-sync-status-indicator="oneDrive"
+                      ></span>
+                      <p
+                        class="ac-sync-card__message"
+                        data-sync-message="oneDrive"
+                        data-i18n="app.sync.status.message.idle"
+                      >
+                        Sincronização aguardando acionamento.
+                      </p>
+                    </div>
+                    <p
+                      class="ac-sync-card__last"
+                      data-sync-last-update="oneDrive"
+                      data-i18n="app.sync.last_sync.never"
+                    >
+                      Nunca sincronizado
+                    </p>
+                    <h5
+                      class="ac-sync-card__devices-title"
+                      data-i18n="app.sync.devices.title"
+                    >
+                      Dispositivos autorizados
+                    </h5>
+                    <ul
+                      class="ac-sync-card__devices"
+                      data-sync-devices="oneDrive"
+                    ></ul>
+                    <p
+                      class="ac-sync-card__devices-empty"
+                      data-sync-devices-empty="oneDrive"
+                      data-i18n="app.sync.devices.empty"
+                    >
+                      Nenhum dispositivo conectado.
+                    </p>
+                    <button
+                      class="ac-btn ac-btn--danger ac-sync-card__logout"
+                      type="button"
+                      data-sync-logout-all="oneDrive"
+                    >
+                      Deslogar de todos
+                    </button>
+                  </section>
+                </div>
+              </article>
+
+              <article
                 class="ac-panel-card ac-panel-card--form"
                 aria-labelledby="painel-cadastro-title"
               >
