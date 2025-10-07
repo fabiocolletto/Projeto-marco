@@ -83,7 +83,7 @@ async function createStaticServer({
   port = Number(process.env.PORT) || 4173,
   host = '127.0.0.1',
 } = {}) {
-  const rootDir = path.resolve(__dirname, '..', 'appbase');
+  const rootDir = path.resolve(__dirname, '..');
   const server = http.createServer((req, res) => {
     handleRequest(rootDir, req, res);
   });
