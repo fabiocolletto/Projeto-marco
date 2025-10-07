@@ -148,6 +148,7 @@
         "pin": "Enter the PIN",
         "submit": "Sign in",
         "cancel": "Cancel",
+        "close": "Close",
         "feedback": {
           "select_user": "Select an account to continue.",
           "invalid_pin": "Incorrect PIN. Try again.",
@@ -159,6 +160,7 @@
       "title": "Remove data?",
       "message": "This action will remove all data for the selected user on this device.",
       "cancel": "Keep data",
+      "close": "Close",
       "accept": "Remove now"
     },
     "footer": {

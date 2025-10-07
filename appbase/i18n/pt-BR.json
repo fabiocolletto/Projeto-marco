@@ -148,6 +148,7 @@
         "pin": "Digite o PIN",
         "submit": "Entrar",
         "cancel": "Cancelar",
+        "close": "Fechar",
         "feedback": {
           "select_user": "Selecione um usuário para entrar.",
           "invalid_pin": "PIN incorreto. Tente novamente.",
@@ -159,6 +160,7 @@
       "title": "Remover dados?",
       "message": "Esta ação removerá todos os dados do usuário selecionado neste dispositivo.",
       "cancel": "Manter dados",
+      "close": "Fechar",
       "accept": "Remover agora"
     },
     "footer": {

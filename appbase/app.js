@@ -96,6 +96,8 @@ import {
     'app.login.sheet.feedback.invalid_pin';
   const LOGIN_OVERLAY_PIN_REQUIRED_FEEDBACK_KEY =
     'app.login.sheet.feedback.pin_required';
+  const LOGIN_OVERLAY_CLOSE_LABEL_KEY = 'app.login.sheet.close';
+  const CONFIRM_OVERLAY_CLOSE_LABEL_KEY = 'app.confirm.close';
   const FORM_PHONE_PLACEHOLDER_KEY = 'app.panel.form.fields.phone_placeholder';
   const PASSWORD_TOGGLE_LABEL_KEYS = {
     show: 'app.panel.form.fields.password_toggle.show',
@@ -163,6 +165,8 @@ import {
     [LOGIN_OVERLAY_PIN_FEEDBACK_KEY]: 'PIN incorreto. Tente novamente.',
     [LOGIN_OVERLAY_PIN_REQUIRED_FEEDBACK_KEY]:
       'Informe o PIN de 4 dígitos para continuar.',
+    [LOGIN_OVERLAY_CLOSE_LABEL_KEY]: 'Fechar',
+    [CONFIRM_OVERLAY_CLOSE_LABEL_KEY]: 'Fechar',
     [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
     [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
     [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
@@ -182,6 +186,10 @@ import {
     'app.confirm.accept': 'Remover agora',
   };
 
+  const loginFormElement = document.querySelector('[data-login-form]');
+  const loginOverlayElement = document.querySelector('[data-login-overlay]');
+  const confirmOverlayElement = document.querySelector('[data-confirm-overlay]');
+
   const elements = {
     stageShell: document.querySelector('[data-stage-shell]'),
     railShell: document.querySelector('.ac-rail-shell'),
@@ -194,8 +202,8 @@ import {
     loginUser: document.querySelector('[data-login-user]'),
     loginAccount: document.querySelector('[data-login-account]'),
     loginLast: document.querySelector('[data-login-last]'),
-    loginForm: document.querySelector('[data-login-form]'),
-    feedback: document.querySelector('[data-login-feedback]'),
+    loginForm: loginFormElement,
+    feedback: loginFormElement?.querySelector('[data-login-feedback]') || null,
     panelStatusDot: document.querySelector('[data-panel-status-dot]'),
     panelStatusLabel: document.querySelector('[data-panel-status-label]'),
     panelStatusHint: document.querySelector('[data-panel-status-hint]'),
@@ -223,24 +231,35 @@ import {
     footerDirtyDot: document.querySelector('[data-footer-dirty-dot]'),
     footerDirtyLabel: document.querySelector('[data-footer-dirty-label]'),
     footerDirtyStatus: document.querySelector('[data-footer-dirty-status]'),
-    phoneInput: document.querySelector('[data-phone-input]'),
-    passwordInput: document.querySelector('[data-password-input]'),
-    passwordToggle: document.querySelector('[data-password-toggle]'),
-    passwordToggleIcon: document.querySelector('[data-password-toggle-icon]'),
+    phoneInput: loginFormElement?.querySelector('[data-phone-input]') || null,
+    passwordInput: loginFormElement?.querySelector('[data-password-input]') || null,
+    passwordToggle: loginFormElement?.querySelector('[data-password-toggle]') || null,
+    passwordToggleIcon:
+      loginFormElement?.querySelector('[data-password-toggle-icon]') || null,
     loginTriggers: Array.from(document.querySelectorAll('[data-login-trigger]')),
-    pinPadForm: document.querySelector('[data-pin-pad="form"]'),
-    pinPadOverlay: document.querySelector('[data-pin-pad="overlay"]'),
-    loginOverlay: document.querySelector('[data-login-overlay]'),
-    loginOverlayClose: document.querySelector('[data-login-close]'),
-    loginOverlayCancel: document.querySelector('[data-login-cancel]'),
-    loginOverlayCreate: document.querySelector('[data-login-create]'),
-    loginOverlayUserList: document.querySelector('[data-login-user-list]'),
-    loginOverlayEmpty: document.querySelector('[data-login-empty]'),
-    loginOverlayFeedback: document.querySelector('[data-login-feedback]'),
-    confirmOverlay: document.querySelector('[data-confirm-overlay]'),
-    confirmCancel: document.querySelector('[data-confirm-cancel]'),
-    confirmAccept: document.querySelector('[data-confirm-accept]'),
-    confirmClose: document.querySelector('[data-confirm-close]'),
+    pinPadForm: loginFormElement?.querySelector('[data-pin-pad="form"]') || null,
+    pinPadOverlay:
+      loginOverlayElement?.querySelector('[data-pin-pad="overlay"]') || null,
+    loginOverlay: loginOverlayElement,
+    loginOverlayClose:
+      loginOverlayElement?.querySelector('[data-login-close]') || null,
+    loginOverlayCancel:
+      loginOverlayElement?.querySelector('[data-login-cancel]') || null,
+    loginOverlayCreate:
+      loginOverlayElement?.querySelector('[data-login-create]') || null,
+    loginOverlayUserList:
+      loginOverlayElement?.querySelector('[data-login-user-list]') || null,
+    loginOverlayEmpty:
+      loginOverlayElement?.querySelector('[data-login-empty]') || null,
+    loginOverlayFeedback:
+      loginOverlayElement?.querySelector('[data-login-feedback]') || null,
+    confirmOverlay: confirmOverlayElement,
+    confirmCancel:
+      confirmOverlayElement?.querySelector('[data-confirm-cancel]') || null,
+    confirmAccept:
+      confirmOverlayElement?.querySelector('[data-confirm-accept]') || null,
+    confirmClose:
+      confirmOverlayElement?.querySelector('[data-confirm-close]') || null,
   };
 
   function fallbackFor(key, defaultValue = '') {
@@ -1297,6 +1316,22 @@ import {
       elements.stageClose.setAttribute('aria-label', label);
       elements.stageClose.setAttribute('title', label);
     }
+    if (elements.loginOverlayClose) {
+      const label = translate(
+        LOGIN_OVERLAY_CLOSE_LABEL_KEY,
+        fallbackFor(LOGIN_OVERLAY_CLOSE_LABEL_KEY)
+      );
+      elements.loginOverlayClose.setAttribute('aria-label', label);
+      elements.loginOverlayClose.setAttribute('title', label);
+    }
+    if (elements.confirmClose) {
+      const label = translate(
+        CONFIRM_OVERLAY_CLOSE_LABEL_KEY,
+        fallbackFor(CONFIRM_OVERLAY_CLOSE_LABEL_KEY)
+      );
+      elements.confirmClose.setAttribute('aria-label', label);
+      elements.confirmClose.setAttribute('title', label);
+    }
   }
 
   function updateStatusSummary() {
@@ -1497,7 +1532,6 @@ import {
     if (!elements.loginForm) {
       return;
     }
-    const user = state.user || { nomeCompleto: '', email: '', telefone: '', senha: '' };
     const activeUser = getActiveUser();
     const nomeInput = elements.loginForm.querySelector('[name="nome"]');
     const emailInput = elements.loginForm.querySelector('[name="email"]');

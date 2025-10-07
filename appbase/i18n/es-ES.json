@@ -148,6 +148,7 @@
         "pin": "Introduce el PIN",
         "submit": "Iniciar sesión",
         "cancel": "Cancelar",
+        "close": "Cerrar",
         "feedback": {
           "select_user": "Selecciona una cuenta para continuar.",
           "invalid_pin": "PIN incorrecto. Inténtalo de nuevo.",
@@ -159,6 +160,7 @@
       "title": "¿Eliminar datos?",
       "message": "Esta acción eliminará todos los datos del usuario seleccionado en este dispositivo.",
       "cancel": "Mantener datos",
+      "close": "Cerrar",
       "accept": "Eliminar ahora"
     },
     "footer": {
