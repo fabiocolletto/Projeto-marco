@@ -1,17 +1,17 @@
 {
   "app": {
-    "title": "Projeto Marco",
-    "header": { "darkmode": "Alternar tema", "locale": "Idioma" },
+    "title": "Proyecto Marco",
+    "header": { "darkmode": "Cambiar tema", "locale": "Idioma" },
     "footer": { "login": { "ok": "Conectado" } },
     "settings": {
-      "title": "Configurações",
+      "title": "Configuración",
       "lang_card": {
-        "title": "Idioma & Região",
+        "title": "Idioma y Región",
         "select_label": "Idioma",
         "apply": "Aplicar"
       },
       "log": {
-        "title": "Log de comandos"
+        "title": "Registro de comandos"
       }
     }
   }
