@@ -30,6 +30,16 @@
         "failure": "Could not toggle fullscreen mode. Check your browser permissions."
       }
     },
+    "locale": {
+      "menu": {
+        "title": "AppBase language",
+        "options": {
+          "pt-BR": "Brazil · Portuguese",
+          "en-US": "United States · English",
+          "es-ES": "Spain · Spanish"
+        }
+      }
+    },
     "rail": {
       "label": "Miniapps",
       "empty": "Empty slot — Add a miniapp"
@@ -117,8 +127,8 @@
         }
       },
       "history": {
-        "title": "Access history",
-        "subtitle": "Track logins and logoffs registered in this browser.",
+        "title": "Activity history",
+        "subtitle": "Track logins, logoffs, and language changes recorded in this browser.",
         "table": {
           "event": "Event",
           "time": "Time"
@@ -131,7 +141,8 @@
         "login": "Login completed",
         "logout": "Logoff",
         "logout_preserve": "Logoff (data kept)",
-        "logout_clear": "Logoff (data removed)"
+        "logout_clear": "Logoff (data removed)",
+        "locale_change": "Language changed to {{locale}}"
       }
     },
     "footer": {

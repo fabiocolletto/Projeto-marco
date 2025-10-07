@@ -1,5 +1,11 @@
 const { test, expect } = require('@playwright/test');
 
+const SUPPORTED_LOCALES = [
+  { code: 'pt-BR', flag: '🇧🇷', label: 'Brasil · Português' },
+  { code: 'en-US', flag: '🇺🇸', label: 'Estados Unidos · Inglês' },
+  { code: 'es-ES', flag: '🇪🇸', label: 'Espanha · Espanhol' },
+];
+
 async function openHostPanel(page) {
   const panelAccess = page.locator('[data-panel-access]');
   await expect(panelAccess).toBeVisible();
@@ -9,101 +15,74 @@ async function openHostPanel(page) {
   await expect(page.locator('#painel-stage')).toBeVisible();
 }
 
-async function openLanguagePanel(page) {
+async function openLocaleMenu(page) {
   const localeButton = page.locator('.ac-header-action[data-action-id="app.locale"]');
   await expect(localeButton).toBeVisible();
   await localeButton.click();
-  await expect(localeButton).toHaveAttribute('aria-pressed', 'true');
-  const langStage = page.locator('[data-lang-stage]');
-  await expect(langStage).toBeVisible();
-  return { localeButton, langStage };
+  const menu = page.locator('[data-locale-menu]');
+  await expect(menu).toBeVisible();
+  await expect(localeButton).toHaveAttribute('aria-expanded', 'true');
+  return { localeButton, menu };
 }
 
-const locales = [
-  {
-    code: 'pt-BR',
-    stageTitle: 'Configurações',
-    cardTitle: 'Idioma & Região',
-    logTitle: 'Log de comandos',
-    applyLabel: 'Aplicar',
-  },
-  {
-    code: 'en-US',
-    stageTitle: 'Settings',
-    cardTitle: 'Language & Region',
-    logTitle: 'Command log',
-    applyLabel: 'Apply',
-  },
-  {
-    code: 'es-ES',
-    stageTitle: 'Configuración',
-    cardTitle: 'Idioma y Región',
-    logTitle: 'Registro de comandos',
-    applyLabel: 'Aplicar',
-  },
-];
-
-for (const locale of locales) {
-  test(`painel de idiomas ${locale.code}`, async ({ page }) => {
-    await page.addInitScript(({ locale }) => {
-      try {
-        window.localStorage.clear();
-        window.localStorage.setItem('app.locale', locale);
-      } catch (error) {
-        /* noop */
-      }
-    }, { locale: locale.code });
-
-    await page.goto('/appbase/index.html');
-    await openHostPanel(page);
-    const { langStage } = await openLanguagePanel(page);
-
-    await expect(page.locator('#painel-stage')).toBeHidden();
-
-    await expect(langStage.locator('#language-stage-title')).toHaveText(locale.stageTitle);
-    await expect(
-      langStage.locator('[data-i18n="app.settings.lang_card.title"]')
-    ).toHaveText(locale.cardTitle);
-    await expect(
-      langStage.locator('[data-i18n="app.settings.log.title"]')
-    ).toHaveText(locale.logTitle);
-
-    const applyButton = langStage.locator('[data-lang-apply]');
-    await expect(applyButton).toHaveText(locale.applyLabel);
-
-    const logArea = langStage.locator('[data-lang-log]');
-    await expect(logArea).toContainText('settings:init');
-    await expect(logArea).toContainText('settings:open');
-
-    await langStage.locator('[data-lang-select]').selectOption(locale.code);
-    await applyButton.click();
-    await expect(logArea).toContainText(`"locale":"${locale.code}"`);
-
-    await langStage.locator('[data-lang-close]').click();
-    await expect(langStage).toBeHidden();
-    await expect(page.locator('#painel-stage')).toBeVisible();
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      window.localStorage.clear();
+    } catch (error) {
+      /* noop */
+    }
   });
-}
+});
 
-test('painel de idiomas alterna traduções em sequência', async ({ page }) => {
+test('menu de idiomas apresenta opções com bandeiras e registra histórico', async ({ page }) => {
   await page.goto('/appbase/index.html');
-  await openHostPanel(page);
-  const { langStage } = await openLanguagePanel(page);
+  const { menu, localeButton } = await openLocaleMenu(page);
 
-  const select = langStage.locator('[data-lang-select]');
-  const apply = langStage.locator('[data-lang-apply]');
-  const logArea = langStage.locator('[data-lang-log]');
-
-  const toggleLocales = [...locales.slice(1), locales[0]];
-
-  for (const locale of toggleLocales) {
-    await select.selectOption(locale.code);
-    await expect(select).toHaveValue(locale.code);
-    await apply.click();
-    await expect
-      .poll(() => page.evaluate(() => window.AppBaseI18n?.getLocale?.()))
-      .toBe(locale.code);
-    await expect(logArea).toContainText(`"locale":"${locale.code}"`);
-    await expect(langStage.locator('#language-stage-title')).toHaveText(locale.stageTitle);
+  for (const locale of SUPPORTED_LOCALES) {
+    const option = menu.locator(`[data-locale-option="${locale.code}"]`);
+    await expect(option).toBeVisible();
+    await expect(option.locator('.ac-locale-menu__flag')).toHaveText(locale.flag);
+    await expect(option.locator('.ac-locale-menu__name')).toHaveText(locale.label);
   }
+
+  const spanishOption = menu.locator('[data-locale-option="es-ES"]');
+  await spanishOption.click();
+  await expect(localeButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(menu).toBeHidden();
+
+  await expect
+    .poll(() => page.evaluate(() => window.AppBaseI18n?.getLocale?.()))
+    .toBe('es-ES');
+
+  await openHostPanel(page);
+  const historyTitle = page.locator('[data-i18n="app.panel.history.title"]');
+  await expect(historyTitle).toHaveText('Historial de actividades');
+  const firstEvent = page.locator('[data-login-log-body] tr').first().locator('td').first();
+  await expect(firstEvent).toContainText('España');
+});
+
+test('menu de idiomas reflete seleção atual e atualiza traduções', async ({ page }) => {
+  await page.goto('/appbase/index.html');
+  let context = await openLocaleMenu(page);
+  await expect(context.menu.locator('[data-locale-option="pt-BR"]'))
+    .toHaveClass(/is-selected/);
+  await page.keyboard.press('Escape');
+  await expect(context.localeButton).toHaveAttribute('aria-expanded', 'false');
+
+  context = await openLocaleMenu(page);
+  await context.menu.locator('[data-locale-option="en-US"]').click();
+  await expect
+    .poll(() => page.evaluate(() => window.AppBaseI18n?.getLocale?.()))
+    .toBe('en-US');
+
+  context = await openLocaleMenu(page);
+  await expect(context.menu.locator('[data-locale-option="en-US"]'))
+    .toHaveClass(/is-selected/);
+  await expect(
+    context.menu.locator('[data-locale-option="pt-BR"] .ac-locale-menu__name')
+  ).toHaveText('Brazil · Portuguese');
+  await page.keyboard.press('Escape');
+  await expect(context.localeButton).toHaveAttribute('aria-expanded', 'false');
+  await expect(context.localeButton).toBeFocused();
 });

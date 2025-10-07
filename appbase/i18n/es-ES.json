@@ -30,6 +30,16 @@
         "failure": "No se pudo alternar el modo de pantalla completa. Revisa los permisos del navegador."
       }
     },
+    "locale": {
+      "menu": {
+        "title": "Idioma de AppBase",
+        "options": {
+          "pt-BR": "Brasil · Portugués",
+          "en-US": "Estados Unidos · Inglés",
+          "es-ES": "España · Español"
+        }
+      }
+    },
     "rail": {
       "label": "Miniapps",
       "empty": "Espacio vacío — Añade una miniapp"
@@ -117,8 +127,8 @@
         }
       },
       "history": {
-        "title": "Historial de accesos",
-        "subtitle": "Sigue los inicios y cierres de sesión registrados en este navegador.",
+        "title": "Historial de actividades",
+        "subtitle": "Sigue inicios, cierres y cambios de idioma registrados en este navegador.",
         "table": {
           "event": "Evento",
           "time": "Hora"
@@ -131,7 +141,8 @@
         "login": "Inicio de sesión realizado",
         "logout": "Cierre de sesión",
         "logout_preserve": "Cierre de sesión (datos mantenidos)",
-        "logout_clear": "Cierre de sesión (datos eliminados)"
+        "logout_clear": "Cierre de sesión (datos eliminados)",
+        "locale_change": "Idioma cambiado a {{locale}}"
       }
     },
     "footer": {

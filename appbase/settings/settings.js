@@ -1,344 +1,385 @@
 "use strict";
 (function () {
-  const STAGE_SELECTOR = "[data-lang-stage]";
   const ACTION_BUTTON_SELECTOR = ".ac-header-action[data-action-id='app.locale']";
-  const PANEL_URL = "./settings/settings.html";
-  const CLOSE_ATTR = "data-lang-close";
-  const SELECT_ATTR = "data-lang-select";
-  const APPLY_ATTR = "data-lang-apply";
-  const LOG_ATTR = "data-lang-log";
-  const LOADED_FLAG = "langLoaded";
-  const INIT_FLAG = "langInit";
+  const MENU_URL = "./settings/settings.html";
+  const OPTIONS_ATTR = "data-locale-options";
+  const OPTION_ATTR = "data-locale-option";
+  const OPEN_CLASS = "is-active";
 
-  let stageElement = null;
+  const LOCALE_META = {
+    "pt-BR": { flag: "🇧🇷", label: "Brasil · Português" },
+    "en-US": { flag: "🇺🇸", label: "Estados Unidos · Inglês" },
+    "es-ES": { flag: "🇪🇸", label: "Espanha · Espanhol" },
+  };
+
   let headerButton = null;
-  let selectElement = null;
-  let logElement = null;
-  let applyButton = null;
-  let closeButton = null;
+  let menuElement = null;
+  let optionsContainer = null;
+  let menuLoadingPromise = null;
   let isOpen = false;
-  let previousPanelState = "host-closed";
 
-  function by(selector) {
+  function qs(selector) {
     return document.querySelector(selector);
   }
 
-  function getStage() {
-    if (!stageElement) {
-      stageElement = by(STAGE_SELECTOR);
-    }
-    return stageElement;
-  }
-
-  function getHeaderButton() {
+  function getButton() {
     if (!headerButton) {
-      headerButton = by(ACTION_BUTTON_SELECTOR);
+      headerButton = qs(ACTION_BUTTON_SELECTOR);
     }
     return headerButton;
   }
 
-  function log(message, data) {
-    if (!logElement) {
-      return;
+  function getSupportedLocales() {
+    const supported = window.AppBaseI18n?.supported;
+    if (Array.isArray(supported) && supported.length > 0) {
+      return supported;
     }
-    const time = new Date().toISOString();
-    const payload = data ? ` ${JSON.stringify(data)}` : "";
-    logElement.textContent += `${logElement.textContent ? "\n" : ""}${time} — ${message}${payload}`;
-    logElement.scrollTop = logElement.scrollHeight;
+    return ["pt-BR"];
   }
 
-  async function loadPanelTemplate() {
-    const stage = getStage();
-    if (!stage || stage.dataset[LOADED_FLAG] === "true") {
-      return;
+  function getLocaleMeta(locale) {
+    if (Object.prototype.hasOwnProperty.call(LOCALE_META, locale)) {
+      return LOCALE_META[locale];
+    }
+    return { flag: "🌐", label: locale };
+  }
+
+  function getCurrentLocale() {
+    const getter = window.AppBaseI18n?.getLocale;
+    if (typeof getter !== "function") {
+      return null;
     }
     try {
-      const response = await fetch(`${PANEL_URL}?ts=${Date.now()}`, {
-        cache: "no-store",
-      });
-      const html = await response.text();
-      const wrapper = document.createElement("div");
-      wrapper.innerHTML = html.trim();
-      const fragment = wrapper.firstElementChild;
-      if (fragment) {
-        stage.appendChild(fragment);
-        stage.dataset[LOADED_FLAG] = "true";
-      }
+      return getter.call(window.AppBaseI18n);
     } catch (error) {
-      console.warn("[settings] panel load failed", error);
+      return null;
     }
   }
 
-  function ensureElements() {
-    const stage = getStage();
-    if (!stage || stage.dataset[LOADED_FLAG] !== "true") {
-      return false;
-    }
-    if (!selectElement) {
-      selectElement = stage.querySelector(`[${SELECT_ATTR}]`);
-    }
-    if (!logElement) {
-      logElement = stage.querySelector(`[${LOG_ATTR}]`);
-    }
-    if (!applyButton) {
-      applyButton = stage.querySelector(`[${APPLY_ATTR}]`);
-    }
-    if (!closeButton) {
-      closeButton = stage.querySelector(`[${CLOSE_ATTR}]`);
-    }
-    return Boolean(selectElement && logElement && applyButton && closeButton);
-  }
-
-  function syncButtonLabel(button) {
+  function syncButtonState() {
+    const button = getButton();
     if (!button) {
       return;
     }
-    const label = button.querySelector("[data-i18n]");
-    if (label) {
-      const text = label.textContent.trim();
-      if (text) {
-        button.setAttribute("aria-label", text);
-        button.setAttribute("title", text);
-      }
-    }
-  }
-
-  function syncHeaderButtonState() {
-    const button = getHeaderButton();
-    if (!button) {
-      return;
-    }
+    button.setAttribute("aria-expanded", isOpen ? "true" : "false");
     button.setAttribute("aria-pressed", isOpen ? "true" : "false");
-    button.classList.toggle("is-active", isOpen);
-    syncButtonLabel(button);
+    button.classList.toggle(OPEN_CLASS, isOpen);
   }
 
-  function focusTitle() {
-    const stage = getStage();
-    const title = stage?.querySelector("#language-stage-title");
-    if (title) {
-      window.requestAnimationFrame(() => {
-        title.focus();
-      });
-    }
-  }
-
-  function isHostPanelOpen() {
-    const hostPanel = document.getElementById("painel-stage");
-    return hostPanel ? !hostPanel.hidden : false;
-  }
-
-  function closeHostPanel() {
-    const hostPanel = document.getElementById("painel-stage");
-    if (!hostPanel || hostPanel.hidden) {
+  function syncSelectedLocale() {
+    if (!optionsContainer) {
       return;
     }
-    const closeAction = hostPanel.querySelector("[data-stage-close]");
-    if (closeAction) {
-      closeAction.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-      return;
-    }
-    const toggle = by("[data-panel-access]");
-    toggle?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-  }
-
-  function reopenHostPanel() {
-    if (previousPanelState !== "host-open") {
-      return;
-    }
-    const toggle = by("[data-panel-access]");
-    if (toggle && toggle.getAttribute("aria-expanded") !== "true") {
-      toggle.dispatchEvent(new MouseEvent("click", { bubbles: true }));
-    }
-  }
-
-  function hideEmptyState() {
-    const empty = by("[data-stage-empty]");
-    if (empty) {
-      empty.hidden = true;
-    }
-  }
-
-  function restoreEmptyState() {
-    const empty = by("[data-stage-empty]");
-    if (empty && !isHostPanelOpen()) {
-      empty.hidden = false;
-    }
-  }
-
-  function populateLocales() {
-    if (!selectElement) {
-      return;
-    }
-    const supported = (window.AppBaseI18n?.supported) || ["pt-BR"];
-    const current = window.AppBaseI18n?.getLocale?.() || supported[0];
-    const existing = Array.from(selectElement.querySelectorAll("option"));
-    existing.forEach((option) => {
-      if (!supported.includes(option.value)) {
-        option.remove();
+    const current = getCurrentLocale();
+    const optionButtons = Array.from(
+      optionsContainer.querySelectorAll(`[${OPTION_ATTR}]`)
+    );
+    optionButtons.forEach((option) => {
+      const locale = option.getAttribute(OPTION_ATTR);
+      const isCurrent = locale === current;
+      option.classList.toggle("is-selected", isCurrent);
+      option.setAttribute("aria-checked", isCurrent ? "true" : "false");
+      option.setAttribute("tabindex", isCurrent ? "0" : "-1");
+      if (isCurrent) {
+        option.setAttribute("aria-current", "true");
+      } else {
+        option.removeAttribute("aria-current");
       }
     });
-    const currentOptions = Array.from(selectElement.querySelectorAll("option"));
+  }
+
+  function focusSelectedLocale() {
+    if (!optionsContainer) {
+      return;
+    }
+    const selected = optionsContainer.querySelector(
+      `[${OPTION_ATTR}].is-selected`
+    );
+    const fallback = optionsContainer.querySelector(`[${OPTION_ATTR}]`);
+    const target = selected || fallback;
+    if (target) {
+      target.focus();
+    }
+  }
+
+  function createOption(locale) {
+    const meta = getLocaleMeta(locale);
+    const item = document.createElement("li");
+    item.className = "ac-locale-menu__item";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "ac-locale-menu__option";
+    button.setAttribute(OPTION_ATTR, locale);
+    button.setAttribute("role", "menuitemradio");
+    button.setAttribute("aria-checked", "false");
+    button.setAttribute("tabindex", "-1");
+
+    const flag = document.createElement("span");
+    flag.className = "ac-locale-menu__flag";
+    flag.setAttribute("aria-hidden", "true");
+    flag.textContent = meta.flag;
+
+    const name = document.createElement("span");
+    name.className = "ac-locale-menu__name";
+    name.setAttribute("data-i18n", `app.locale.menu.options.${locale}`);
+    name.textContent = meta.label;
+
+    const check = document.createElement("span");
+    check.className = "ac-locale-menu__check";
+    check.setAttribute("aria-hidden", "true");
+    check.textContent = "✓";
+
+    button.append(flag, name, check);
+    item.appendChild(button);
+    return item;
+  }
+
+  function populateOptions() {
+    if (!optionsContainer) {
+      return;
+    }
+    const supported = Array.from(new Set(getSupportedLocales()));
+    optionsContainer.textContent = "";
     supported.forEach((locale) => {
-      if (!currentOptions.find((option) => option.value === locale)) {
-        const option = document.createElement("option");
-        option.value = locale;
-        option.setAttribute(
-          "data-i18n",
-          `app.settings.lang_card.options.${locale}`
-        );
-        option.textContent = locale;
-        selectElement.appendChild(option);
-      }
+      optionsContainer.appendChild(createOption(locale));
     });
-    selectElement.value = current;
+    if (typeof window.AppBaseI18n?.refresh === "function") {
+      window.AppBaseI18n.refresh();
+    }
+    syncSelectedLocale();
   }
 
-  function applyLocale() {
-    if (!selectElement) {
+  function ensureMenuPosition() {
+    const button = getButton();
+    const container = button?.parentElement;
+    if (!container || !menuElement) {
       return;
     }
-    const locale = selectElement.value;
-    if (!locale) {
-      return;
+    if (!menuElement.parentElement) {
+      container.appendChild(menuElement);
     }
-    log("i18n:setLocale:req", { locale });
-    window.AppBaseI18n?.setLocale?.(locale);
   }
 
-  function openPanel() {
-    if (isOpen) {
+  function bindMenuEvents() {
+    if (!menuElement || !optionsContainer) {
       return;
     }
-    const stage = getStage();
-    if (!stage) {
-      return;
+    if (!menuElement.dataset.localeMenuBound) {
+      menuElement.addEventListener("click", handleOptionClick);
+      menuElement.dataset.localeMenuBound = "true";
     }
-    previousPanelState = isHostPanelOpen() ? "host-open" : "host-closed";
-    if (previousPanelState === "host-open") {
-      closeHostPanel();
-    }
-    hideEmptyState();
-    populateLocales();
-    window.AppBaseI18n?.refresh?.();
-    stage.hidden = false;
-    stage.setAttribute("aria-hidden", "false");
-    isOpen = true;
-    syncHeaderButtonState();
-    focusTitle();
-    log("settings:open", { section: "lang" });
-    window.dispatchEvent(new CustomEvent("app:locale-panel:open"));
   }
 
-  function closePanel({ restoreHost = true, focusButton = true } = {}) {
+  function handleOutsidePointer(event) {
+    if (!isOpen || !menuElement) {
+      return;
+    }
+    const button = getButton();
+    if (menuElement.contains(event.target) || button?.contains(event.target)) {
+      return;
+    }
+    closeMenu({ focusButton: false });
+  }
+
+  function moveFocus(offset) {
+    if (!optionsContainer) {
+      return;
+    }
+    const options = Array.from(
+      optionsContainer.querySelectorAll(`[${OPTION_ATTR}]`)
+    );
+    if (options.length === 0) {
+      return;
+    }
+    const active = document.activeElement;
+    const currentIndex = Math.max(
+      options.findIndex((option) => option === active),
+      0
+    );
+    const nextIndex = (currentIndex + offset + options.length) % options.length;
+    options[nextIndex].focus();
+  }
+
+  function focusEdge(which) {
+    if (!optionsContainer) {
+      return;
+    }
+    const options = optionsContainer.querySelectorAll(`[${OPTION_ATTR}]`);
+    if (!options.length) {
+      return;
+    }
+    const target = which === "start" ? options[0] : options[options.length - 1];
+    target.focus();
+  }
+
+  function handleMenuKeydown(event) {
     if (!isOpen) {
       return;
     }
-    const stage = getStage();
-    if (!stage) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeMenu();
       return;
     }
-    stage.hidden = true;
-    stage.setAttribute("aria-hidden", "true");
-    isOpen = false;
-    syncHeaderButtonState();
-    log("settings:close");
-    if (restoreHost) {
-      reopenHostPanel();
-      if (!isHostPanelOpen()) {
-        restoreEmptyState();
-      }
-    } else {
-      restoreEmptyState();
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      moveFocus(1);
+      return;
     }
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      moveFocus(-1);
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      focusEdge("start");
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      focusEdge("end");
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      const target = event.target.closest(`[${OPTION_ATTR}]`);
+      if (target) {
+        event.preventDefault();
+        selectLocale(target.getAttribute(OPTION_ATTR));
+      }
+    }
+  }
+
+  function selectLocale(locale) {
+    if (!locale) {
+      return;
+    }
+    const setter = window.AppBaseI18n?.setLocale;
+    if (typeof setter === "function") {
+      setter.call(window.AppBaseI18n, locale);
+    }
+    closeMenu({ focusButton: false });
+  }
+
+  function handleOptionClick(event) {
+    const target = event.target.closest(`[${OPTION_ATTR}]`);
+    if (!target) {
+      return;
+    }
+    event.preventDefault();
+    selectLocale(target.getAttribute(OPTION_ATTR));
+  }
+
+  function openMenu() {
+    const button = getButton();
+    if (!button || !menuElement || !optionsContainer) {
+      return;
+    }
+    populateOptions();
+    ensureMenuPosition();
+    menuElement.hidden = false;
+    menuElement.setAttribute("aria-hidden", "false");
+    isOpen = true;
+    syncButtonState();
+    focusSelectedLocale();
+    document.addEventListener("pointerdown", handleOutsidePointer, true);
+    document.addEventListener("keydown", handleMenuKeydown, true);
+  }
+
+  function closeMenu({ focusButton = true } = {}) {
+    if (!menuElement) {
+      return;
+    }
+    menuElement.hidden = true;
+    menuElement.setAttribute("aria-hidden", "true");
+    isOpen = false;
+    syncButtonState();
+    document.removeEventListener("pointerdown", handleOutsidePointer, true);
+    document.removeEventListener("keydown", handleMenuKeydown, true);
     if (focusButton) {
-      const button = getHeaderButton();
+      const button = getButton();
       button?.focus();
     }
-    previousPanelState = "host-closed";
-    window.dispatchEvent(new CustomEvent("app:locale-panel:close"));
   }
 
-  function togglePanel() {
+  function loadMenu() {
+    if (menuElement) {
+      return Promise.resolve(true);
+    }
+    if (menuLoadingPromise) {
+      return menuLoadingPromise;
+    }
+    menuLoadingPromise = fetch(`${MENU_URL}?ts=${Date.now()}`, {
+      cache: "no-store",
+    })
+      .then((response) => response.text())
+      .then((html) => {
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = html.trim();
+        const fragment = wrapper.firstElementChild;
+        if (!fragment) {
+          return false;
+        }
+        menuElement = fragment;
+        menuElement.hidden = true;
+        menuElement.setAttribute("aria-hidden", "true");
+        optionsContainer = menuElement.querySelector(`[${OPTIONS_ATTR}]`);
+        ensureMenuPosition();
+        bindMenuEvents();
+        populateOptions();
+        return Boolean(optionsContainer);
+      })
+      .catch((error) => {
+        console.warn("[locale-menu] load failed", error);
+        return false;
+      })
+      .finally(() => {
+        menuLoadingPromise = null;
+      });
+    return menuLoadingPromise;
+  }
+
+  function toggleMenu() {
     if (isOpen) {
-      closePanel();
-    } else {
-      openPanel();
-    }
-  }
-
-  function handleLocaleChanged(event) {
-    populateLocales();
-    syncHeaderButtonState();
-    syncButtonLabel(closeButton);
-    log("i18n:locale_changed", event?.detail || {});
-  }
-
-  function bindInteractions() {
-    if (!ensureElements()) {
+      closeMenu();
       return;
     }
-    if (!stageElement.dataset[INIT_FLAG]) {
-      applyButton?.addEventListener("click", applyLocale);
-      closeButton?.addEventListener("click", () => closePanel({ restoreHost: true }));
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && isOpen) {
-          closePanel();
-        }
-      });
-      const toggle = by("[data-panel-access]");
-      toggle?.addEventListener("click", () => {
-        if (isOpen) {
-          closePanel({ restoreHost: false, focusButton: false });
-        }
-      });
-      syncButtonLabel(closeButton);
-      populateLocales();
-      window.AppBaseI18n?.refresh?.();
-      log("settings:init");
-      stageElement.dataset[INIT_FLAG] = "true";
-    }
-  }
-
-  async function init() {
-    const stage = getStage();
-    if (!stage) {
+    if (menuElement) {
+      openMenu();
       return;
     }
-    await loadPanelTemplate();
-    if (!ensureElements()) {
-      return;
-    }
-    bindInteractions();
-    syncHeaderButtonState();
-    window.AppSettings = {
-      open: openPanel,
-      close: closePanel,
-      log,
-    };
+    loadMenu().then((loaded) => {
+      if (!loaded) {
+        return;
+      }
+      openMenu();
+    });
   }
 
   window.addEventListener("app:header:action:click", (event) => {
     if (event.detail?.id !== "app.locale") {
       return;
     }
-    if (!stageElement || stageElement.dataset[LOADED_FLAG] !== "true") {
-      loadPanelTemplate().then(() => {
-        bindInteractions();
-        populateLocales();
-        togglePanel();
-      });
+    const button = getButton();
+    if (!button) {
       return;
     }
-    bindInteractions();
-    togglePanel();
+    toggleMenu();
   });
 
-  window.addEventListener("app:i18n:locale_changed", handleLocaleChanged);
+  window.addEventListener("app:i18n:locale_changed", () => {
+    populateOptions();
+    syncSelectedLocale();
+    syncButtonState();
+  });
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
+    document.addEventListener("DOMContentLoaded", () => {
+      getButton();
+      syncButtonState();
+    });
   } else {
-    init();
+    getButton();
+    syncButtonState();
   }
 })();
