@@ -44,7 +44,6 @@
     stageClose: document.querySelector('[data-stage-close]'),
     stageEmpty: document.querySelector('[data-stage-empty]'),
     stageEmptyMessage: document.querySelector('[data-stage-empty-message]'),
-    stageEmptyAction: document.querySelector('[data-stage-empty-action]'),
     loginUser: document.querySelector('[data-login-user]'),
     loginAccount: document.querySelector('[data-login-account]'),
     loginLast: document.querySelector('[data-login-last]'),
@@ -648,12 +647,6 @@
         : 'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.';
     }
 
-    if (elements.stageEmptyAction) {
-      elements.stageEmptyAction.textContent = hasData
-        ? 'Acessar novamente'
-        : 'Começar cadastro';
-    }
-
     if (elements.stage) {
       elements.stage.hidden = !panelOpen;
     }
@@ -1035,14 +1028,6 @@
     elements.stageClose.addEventListener('click', (event) => {
       event.preventDefault();
       handleStageClose();
-    });
-  }
-
-  if (elements.stageEmptyAction) {
-    elements.stageEmptyAction.addEventListener('click', (event) => {
-      event.preventDefault();
-      applyButtonFeedback(event.currentTarget);
-      openPanel();
     });
   }
 

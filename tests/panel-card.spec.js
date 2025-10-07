@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 async function resetApp(page) {
-  await page.goto('/index.html', { waitUntil: 'load' });
+  await page.goto('/appbase/index.html', { waitUntil: 'load' });
   await page.waitForLoadState('load');
 
   await page.evaluate(() => window.localStorage.clear());
@@ -182,7 +182,7 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
     await expect(page.locator('[data-stage-empty-message]')).toHaveText(
       'Sessão encerrada. Acesse novamente para visualizar o painel.'
     );
-    await expect(page.locator('[data-stage-empty-action]')).toHaveText('Acessar novamente');
+    await expect(page.locator('[data-stage-empty] button')).toHaveCount(0);
 
     await expect(logRows.first().locator('td').first()).toHaveText(
       'Logoff (dados mantidos)'
@@ -223,5 +223,5 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
   await expect(page.locator('[data-stage-empty-message]')).toHaveText(
     'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.'
   );
-  await expect(page.locator('[data-stage-empty-action]')).toHaveText('Começar cadastro');
+  await expect(page.locator('[data-stage-empty] button')).toHaveCount(0);
 });

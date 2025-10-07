@@ -92,10 +92,18 @@ test('painel de idiomas alterna traduções em sequência', async ({ page }) => 
 
   const select = langStage.locator('[data-lang-select]');
   const apply = langStage.locator('[data-lang-apply]');
+  const logArea = langStage.locator('[data-lang-log]');
 
-  for (const locale of locales) {
+  const toggleLocales = [...locales.slice(1), locales[0]];
+
+  for (const locale of toggleLocales) {
     await select.selectOption(locale.code);
+    await expect(select).toHaveValue(locale.code);
     await apply.click();
+    await expect
+      .poll(() => page.evaluate(() => window.AppBaseI18n?.getLocale?.()))
+      .toBe(locale.code);
+    await expect(logArea).toContainText(`"locale":"${locale.code}"`);
     await expect(langStage.locator('#language-stage-title')).toHaveText(locale.stageTitle);
   }
 });
