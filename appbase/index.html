@@ -6,6 +6,8 @@
     <title>Projeto Marco — AppBase</title>
     <link rel="stylesheet" href="./app.css" />
     <script defer src="./app.js"></script>
+      <meta name="appbase-i18n" content="defaultLocale=pt-BR; supportedLocales=pt-BR,en-US">
+      <script defer src="appbase/i18n/i18n.js"></script>
   </head>
   <body>
     <div class="ac-app">
@@ -336,6 +338,36 @@
           <section class="ac-sheet__section">
             <h5 class="ac-sheet__subtitle">Resumo</h5>
             <p>Os dados permanecem salvos apenas neste navegador.</p>
+          </section>
+
+          <section class="ac-sheet__section ac-session">
+            <div class="ac-session__intro">
+              <p class="ac-sheet__status">Sessão atual</p>
+              <p class="ac-session__description">
+                Encerre a sessão mantendo os dados armazenados neste navegador ou
+                remova todas as informações do cadastro.
+              </p>
+            </div>
+            <div
+              class="ac-session__actions"
+              role="group"
+              aria-label="Ações da sessão"
+            >
+              <button
+                class="ac-btn ac-btn--ghost"
+                type="button"
+                data-action="logout-preserve"
+              >
+                Encerrar sessão
+              </button>
+              <button
+                class="ac-btn ac-btn--danger"
+                type="button"
+                data-action="logout-clear"
+              >
+                Encerrar e remover dados
+              </button>
+            </div>
           </section>
 
         </div>

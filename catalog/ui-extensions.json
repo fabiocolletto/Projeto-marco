@@ -1,0 +1,9 @@
+{
+  "version": "1.0.0",
+  "footer": [
+    { "id": "app.login", "iconRef": "ac-i-status-online", "tooltipKey": "app.footer.login.ok", "state": "ok", "priority": 100 }
+  ],
+  "header": [
+    { "id": "app.darkmode", "iconRef": "ac-i-moon", "tooltipKey": "app.header.darkmode", "align": "end", "size": "sm" }
+  ]
+}

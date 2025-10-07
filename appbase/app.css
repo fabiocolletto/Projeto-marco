@@ -1093,3 +1093,10 @@ select {
 [hidden] {
   display: none !important;
 }
+/* UIEXT_MIN_CSS */
+.ac-header-action{display:inline-grid;place-items:center;width:32px;height:32px;border-radius:8px;border:0;background:transparent;cursor:pointer}
+.ac-footer-rail{display:flex;gap:8px;align-items:center;min-height:32px}
+.ac-footer-indicator{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:0;background:transparent;cursor:pointer}
+.ac-footer-indicator.is-ok i{filter:none}
+.ac-footer-indicator.is-warn i{opacity:.9}
+.ac-footer-indicator.is-error i{opacity:.9}

@@ -1,0 +1,7 @@
+{
+  "app": {
+    "title": "Marco Project",
+    "header": { "darkmode": "Toggle theme", "locale": "Language" },
+    "footer": { "login": { "ok": "Connected" } }
+  }
+}
