@@ -108,6 +108,12 @@ function disconnectAll(provider) {
   });
 }
 
+function resetSessions() {
+  Object.keys(sessions).forEach((provider) => {
+    sessions[provider] = null;
+  });
+}
+
 function buildLocalDevice() {
   const agent =
     (typeof navigator !== 'undefined' && navigator.userAgent) || 'Navegador';
@@ -136,4 +142,4 @@ function mergeDevices(devices, current) {
   return registry;
 }
 
-export { ensureProvider, syncProvider, disconnectAll };
+export { ensureProvider, syncProvider, disconnectAll, resetSessions };

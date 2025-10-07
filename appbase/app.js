@@ -6,6 +6,7 @@ import {
   ensureProvider,
   syncProvider,
   disconnectAll,
+  resetSessions,
 } from './sync/providers.js';
 
 (function () {
@@ -1889,12 +1890,9 @@ import {
     }
     clearLoginFeedback();
     panelOpen = false;
-    await setState({
-      user: null,
-      lastLogin: '',
-      sessionActive: false,
-      history: [],
-    });
+    resetSessions();
+    const emptyState = getEmptyState();
+    await setState(emptyState);
     focusPanelAccess();
   }
 
