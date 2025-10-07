@@ -1,7 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
 async function resetApp(page) {
-  await page.goto('/index.html', { waitUntil: 'load' });
+  await page.goto('/appbase/index.html', { waitUntil: 'load' });
   await page.waitForLoadState('load');
 
   await page.evaluate(() => window.localStorage.clear());
