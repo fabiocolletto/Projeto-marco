@@ -31,7 +31,8 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   await expect(toggleIcon).toHaveText('☀️');
 
   const lightSrc = await brandIcon.getAttribute('src');
-  expect(lightSrc).toContain('icon-light-500');
+  expect(lightSrc).toContain('Logo-Light');
+  expect(lightSrc).toContain('5horas.com.br');
 
   await toggle.click();
 
@@ -40,7 +41,7 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   await expect(toggle).toHaveAttribute('aria-label', 'Ativar modo claro');
   await expect(toggle).toHaveAttribute('title', 'Ativar modo claro');
   await expect(toggleIcon).toHaveText('🌙');
-  await expect(brandIcon).toHaveAttribute('src', /icon-dark-500/);
+  await expect(brandIcon).toHaveAttribute('src', /Logo-Dark/i);
 
   await page.reload({ waitUntil: 'load' });
   await page.waitForLoadState('load');
@@ -57,5 +58,7 @@ test('alternância de tema atualiza UI e persiste preferência', async ({ page }
   expect(storedTheme).toBe('dark');
 
   const darkSrc = await brandIcon.getAttribute('src');
+  expect(darkSrc).toContain('Logo-Dark');
+  expect(darkSrc).toContain('5horas.com.br');
   expect(darkSrc).not.toBe(lightSrc);
 });

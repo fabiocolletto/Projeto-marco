@@ -1,0 +1,21 @@
+name: tree-dump
+
+on:
+  push:
+    branches: ["main", "Projeto-Marco"]
+  pull_request:
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate tree
+        run: |
+          find . -maxdepth 3 -type f | sort > TREE.txt
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tree-dump
+          path: TREE.txt
+          retention-days: 7
