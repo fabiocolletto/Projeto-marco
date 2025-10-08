@@ -39,17 +39,22 @@ MiniApp “Painel de controle”.
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
    último acesso, e essas informações permanecem disponíveis em visitas
    futuras.
-5. Utilize o atalho de usuário na AppBar para recolher/exibir o painel quando
+5. O botão circular com setas na AppBar recolhe ou expande a coluna de
+   miniapps. Quando recolhida, o palco ganha largura total para destacar o
+   conteúdo do painel principal.
+6. Utilize o atalho de usuário na AppBar para recolher/exibir o painel quando
    houver um cadastro ativo. A edição do cadastro acontece no mesmo painel,
    bastando atualizar os campos e salvar.
-6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
+7. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
    logoff logo abaixo do formulário, sinalizando a ausência de registros tanto
    na tabela quanto no estado vazio do palco.
-7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
+8. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
    (a suíte Playwright valida cadastro, persistência e o comportamento do atalho
-   na AppBar).
+   na AppBar). Em ambientes Linux sem bibliotecas gráficas pré-instaladas é
+   necessário executar `npx playwright install-deps` (ou instalar manualmente os
+   pacotes listados pelo Playwright) antes dos testes.
 
 ### Alternância de tema na AppBar
 
