@@ -148,6 +148,9 @@ import {
     [HISTORY_TABLE_KEYS.revision]: 'Revisão',
     [HISTORY_TABLE_KEYS.event]: 'Evento',
     [HISTORY_TABLE_KEYS.time]: 'Horário',
+    [FOOTER_META_BASE_KEY]: 'Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1',
+    [FOOTER_REVISION_KEY]: 'Revisão {{revision}} • Atualizado em {{datetime}}',
+    [FOOTER_REVISION_EMPTY_KEY]: 'Revisão inicial • Aguardando atualizações',
     'app.locale.menu.title': 'Idioma do AppBase',
     'app.locale.menu.options.pt-BR': 'Brasil',
     'app.locale.menu.options.en-US': 'Estados Unidos',
@@ -159,9 +162,6 @@ import {
     [FOOTER_DIRTY_KEYS.clean]: 'Sincronizado',
     [FOOTER_DIRTY_KEYS.dirty]: 'Alterações pendentes',
     [FOOTER_DIRTY_KEYS.disabled]: 'Indisponível offline',
-    [FOOTER_META_BASE_KEY]: 'Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1',
-    [FOOTER_REVISION_KEY]: 'Revisão {{revision}} • Atualizado em {{datetime}}',
-    [FOOTER_REVISION_EMPTY_KEY]: 'Revisão inicial • Aguardando atualizações',
     [SESSION_ACTIONS_LABEL_KEY]: 'Ações da sessão',
     [RAIL_LABEL_KEY]: 'Miniapps',
     [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
@@ -737,6 +737,36 @@ import {
     return typeof value === 'string' && value.trim() ? value.trim() : '';
   }
 
+  function applyRevisionToHistory(entries) {
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return [];
+    }
+    const total = entries.length;
+    return entries.map((entry, index) => {
+      const revision = normaliseRevisionNumber(entry?.revision);
+      if (revision > 0) {
+        return { ...entry, revision };
+      }
+      const fallbackRevision = Math.max(total - index, 1);
+      return { ...entry, revision: fallbackRevision };
+    });
+  }
+
+  function getRevisionMetaFromHistory(history, fallbackRevision = 0, fallbackTimestamp = '') {
+    const entries = Array.isArray(history) ? history : [];
+    const latest = entries.length ? entries[0] : null;
+    const revision = latest
+      ? normaliseRevisionNumber(latest.revision)
+      : normaliseRevisionNumber(fallbackRevision);
+    const timestamp = latest
+      ? normaliseRevisionTimestamp(latest.timestamp)
+      : normaliseRevisionTimestamp(fallbackTimestamp);
+    return {
+      revision,
+      revisionUpdatedAt: timestamp,
+    };
+  }
+
   function getEmptyState() {
     return {
       user: null,
@@ -753,26 +783,28 @@ import {
     if (!raw || typeof raw !== 'object') {
       return base;
     }
-    const user = normaliseUser(raw.user);
+    const merged = { ...base, ...raw };
+    const user = normaliseUser(merged.user);
     const lastLogin =
-      typeof raw.lastLogin === 'string' && raw.lastLogin.trim()
-        ? raw.lastLogin
+      typeof merged.lastLogin === 'string' && merged.lastLogin.trim()
+        ? merged.lastLogin
         : '';
-    const history = normaliseHistory(raw.history);
-    const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
-    const revisionFromState = normaliseRevisionNumber(raw.revision);
-    let revisionUpdatedAt = normaliseRevisionTimestamp(raw.revisionUpdatedAt);
-    const newestRevision = history.length
-      ? normaliseRevisionNumber(history[0].revision)
-      : 0;
-    const newestTimestamp = history.length
-      ? normaliseRevisionTimestamp(history[0].timestamp)
-      : '';
-    const revision = newestRevision || revisionFromState;
-    if (!revisionUpdatedAt) {
-      revisionUpdatedAt = newestTimestamp || '';
-    }
-    return { user, lastLogin, history, sessionActive, revision, revisionUpdatedAt };
+    const history = normaliseHistory(merged.history);
+    const sessionActive = Boolean(merged.sessionActive) && Boolean(user);
+    const { revision, revisionUpdatedAt } = getRevisionMetaFromHistory(
+      history,
+      merged.revision,
+      merged.revisionUpdatedAt
+    );
+    return {
+      ...merged,
+      user,
+      lastLogin,
+      history,
+      sessionActive,
+      revision,
+      revisionUpdatedAt,
+    };
   }
 
   function normaliseUser(rawUser) {
@@ -811,15 +843,7 @@ import {
         }
         return a.timestamp > b.timestamp ? -1 : 1;
       });
-    const total = sorted.length;
-    return sorted.map((entry, index) => {
-      const revision = normaliseRevisionNumber(entry.revision);
-      if (revision > 0) {
-        return { ...entry, revision };
-      }
-      const fallbackRevision = total - index;
-      return { ...entry, revision: fallbackRevision };
-    });
+    return applyRevisionToHistory(sorted);
   }
 
   function normaliseHistoryEntry(rawEntry) {
@@ -858,20 +882,6 @@ import {
     return entry;
   }
 
-  function getRevisionNumber(currentState = state) {
-    if (!currentState || typeof currentState !== 'object') {
-      return 0;
-    }
-    return normaliseRevisionNumber(currentState.revision);
-  }
-
-  function getRevisionTimestamp(currentState = state) {
-    if (!currentState || typeof currentState !== 'object') {
-      return '';
-    }
-    return normaliseRevisionTimestamp(currentState.revisionUpdatedAt);
-  }
-
   function hasUser(currentState = state) {
     return Boolean(
       currentState.user &&
@@ -887,10 +897,11 @@ import {
     if (!VALID_HISTORY_TYPES.includes(type)) {
       return null;
     }
-    const providedTimestamp = normaliseRevisionTimestamp(options.timestamp);
     const base = {
       type,
-      timestamp: providedTimestamp || nowIso(),
+      timestamp: options.timestamp && typeof options.timestamp === 'string'
+        ? options.timestamp
+        : nowIso(),
     };
     if (options.mode === 'preserve' || options.mode === 'clear') {
       base.mode = options.mode;
@@ -901,61 +912,38 @@ import {
     if (options.localeLabel && typeof options.localeLabel === 'string') {
       base.localeLabel = options.localeLabel;
     }
-    const revision = normaliseRevisionNumber(options.revision);
-    if (revision > 0) {
-      base.revision = revision;
-    }
     return normaliseHistoryEntry(base);
   }
 
   function appendHistoryEntry(previousState, entry) {
-    const history = Array.isArray(previousState?.history)
+    const previousHistory = Array.isArray(previousState?.history)
       ? previousState.history
       : [];
     if (!entry) {
-      return {
-        history,
-        revision: getRevisionNumber(previousState),
-        revisionUpdatedAt: getRevisionTimestamp(previousState),
-      };
+      const { revision, revisionUpdatedAt } = getRevisionMetaFromHistory(
+        previousHistory,
+        previousState?.revision,
+        previousState?.revisionUpdatedAt
+      );
+      return { history: previousHistory, revision, revisionUpdatedAt };
     }
-    const timestamp = normaliseRevisionTimestamp(entry.timestamp) || nowIso();
-    const currentHistoryRevision = history.length
-      ? normaliseRevisionNumber(history[0]?.revision)
-      : 0;
-    const currentRevision = Math.max(
-      getRevisionNumber(previousState),
-      currentHistoryRevision
+    const timestamp =
+      normaliseRevisionTimestamp(entry.timestamp) || nowIso();
+    const entryWithTimestamp = { ...entry, timestamp };
+    const normalisedEntry = normaliseHistoryEntry(entryWithTimestamp);
+    const combinedHistory = normalisedEntry
+      ? [normalisedEntry, ...previousHistory]
+      : previousHistory;
+    const history = normaliseHistory(combinedHistory);
+    const { revision, revisionUpdatedAt } = getRevisionMetaFromHistory(
+      history,
+      previousState?.revision,
+      previousState?.revisionUpdatedAt
     );
-    const requestedRevision = normaliseRevisionNumber(entry.revision);
-    const nextRevision = requestedRevision > 0 ? requestedRevision : currentRevision + 1;
-    const entryWithMetadata = normaliseHistoryEntry({
-      ...entry,
-      timestamp,
-      revision: nextRevision,
-    });
-    if (!entryWithMetadata) {
-      return {
-        history,
-        revision: currentRevision,
-        revisionUpdatedAt: getRevisionTimestamp(previousState),
-      };
-    }
-    const existingRevision = normaliseRevisionNumber(entryWithMetadata.revision);
-    const filteredHistory = history.filter((item) => {
-      if (!item) {
-        return false;
-      }
-      const itemRevision = normaliseRevisionNumber(item.revision);
-      if (existingRevision > 0 && itemRevision > 0) {
-        return itemRevision !== existingRevision;
-      }
-      return true;
-    });
     return {
-      history: [entryWithMetadata, ...filteredHistory],
-      revision: existingRevision,
-      revisionUpdatedAt: entryWithMetadata.timestamp,
+      history,
+      revision,
+      revisionUpdatedAt,
     };
   }
 
@@ -975,6 +963,20 @@ import {
       ...appendHistoryEntry(previous, historyEntry),
     }));
     return true;
+  }
+
+  function getRevisionNumber(currentState = state) {
+    if (!currentState || typeof currentState !== 'object') {
+      return 0;
+    }
+    return normaliseRevisionNumber(currentState.revision);
+  }
+
+  function getRevisionTimestamp(currentState = state) {
+    if (!currentState || typeof currentState !== 'object') {
+      return '';
+    }
+    return normaliseRevisionTimestamp(currentState.revisionUpdatedAt);
   }
 
   function getDisplayName(user) {
@@ -1448,7 +1450,6 @@ import {
     if (!headRow) {
       return;
     }
-
     const { revision, event, time } = HISTORY_TABLE_KEYS;
 
     const ensureHeader = (target, key, className) => {
@@ -1618,9 +1619,7 @@ import {
     const historyEntry = createHistoryEntry('login', { timestamp });
     panelOpen = true;
     await setState((previous) => {
-      const historyPatch = historyEntry
-        ? appendHistoryEntry(previous, historyEntry)
-        : {};
+      const historyPatch = appendHistoryEntry(previous, historyEntry);
       return {
         ...previous,
         ...historyPatch,
@@ -1698,9 +1697,7 @@ import {
     clearLoginFeedback();
     panelOpen = false;
     await setState((previous) => {
-      const historyPatch = historyEntry
-        ? appendHistoryEntry(previous, historyEntry)
-        : {};
+      const historyPatch = appendHistoryEntry(previous, historyEntry);
       return {
         ...previous,
         ...historyPatch,
@@ -1716,14 +1713,7 @@ import {
     }
     clearLoginFeedback();
     panelOpen = false;
-    await setState({
-      user: null,
-      lastLogin: '',
-      sessionActive: false,
-      history: [],
-      revision: 0,
-      revisionUpdatedAt: '',
-    });
+    await setState(getEmptyState());
     focusPanelAccess();
   }
 

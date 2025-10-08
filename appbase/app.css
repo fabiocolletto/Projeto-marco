@@ -494,13 +494,23 @@ select {
   }
 
   .ac-footer {
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
   }
 }
 
 @media (max-width: 600px) {
   .ac-footer {
-    justify-content: space-between;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .ac-footer__status {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .ac-footer__meta {
+    width: 100%;
   }
 }
 
@@ -1671,6 +1681,11 @@ select {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
   width: 9rem;
+}
+
+.ac-table__cell--event,
+.ac-table__head--event {
+  min-width: 0;
 }
 
 .ac-table tbody tr:hover {
