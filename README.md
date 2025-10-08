@@ -1,10 +1,9 @@
 # Sistema Operacional Marco
 
 Protótipo navegável do **AppBase Marco** pronto para ser aberto diretamente em um
-navegador moderno sem build. A versão R1.1 consolida o shell completo com AppBar,
-rail lateral, palco central e uma miniapp enxuta de cadastro executada com HTML,
-CSS e JavaScript vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint
-visual.
+navegador moderno sem build. A versão R1.4 mantém o shell completo com AppBar,
+rail lateral, palco central e miniapps ativos escritos em HTML, CSS e JavaScript
+vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 
 ## Estrutura do repositório
 
@@ -13,24 +12,53 @@ visual.
 ├── appbase/
 │   ├── index.html            # Shell do AppBase + MiniApp “Painel de controle”
 │   ├── app.css               # Tokens `--ac-*`, grid responsivo e overlays
-│   └── app.js                # Controle do painel, cadastro local e interações vanilla
+│   ├── app.js                # Controle do painel e integrações vanilla
+│   ├── runtime/              # Núcleo AppBase (AppBase + event bus)
+│   └── storage/              # Persistência local (IndexedDB + fallback)
+├── catalog/ui-extensions.json# Catálogo atual de miniapps carregado no runtime
 ├── miniapps/
 │   ├── boas-vindas/          # MiniApp estabilizado (versão ativa)
-│   └── painel-controles/     # MiniApp ativo carregado no AppBase
-├── assets/                   # Logos e imagens utilizadas pelo protótipo
-├── index.html                # Redirecionamento (GitHub Pages)
-├── archive/
-│   ├── miniapps/             # Histórico de versões anteriores de MiniApps (quando houver)
-│   └── src-r0/               # Versão modular arquivada do protótipo (somente consulta)
-├── MARCO_BLUEPRINT.md        # Blueprint consolidado do AppBase
+│   └── painel-controles/     # MiniApp ativo carregado pelo host
+├── scripts/                  # Manifestos de dependências + utilitário de montagem
+├── tests/                    # Suíte Playwright (inclui `trace-deps`)
 ├── manuals/                  # Manuais N1 (fluxos operacionais oficiais)
+├── api/                      # Placeholder para integrações futuras
+├── archive/
+│   ├── 2025-10-08/           # Arquivo da limpeza R1.4 (ativos e documentação legado)
+│   └── src-r0/               # Versão modular arquivada do protótipo (somente consulta)
+├── .github/workflows/        # Workflows de governança e auditoria
+├── index.html                # Redirecionamento (GitHub Pages)
+├── MARCO_BLUEPRINT.md        # Blueprint consolidado do AppBase
 ├── README.md                 # Este documento
 └── agent.md                  # Diretrizes operacionais para contribuições
 ```
 
+> **Entrada oficial:** `appbase/index.html`
+
 **Guia oficial de criação/execução de MiniApps: ver `manuals/` (N1).**
 
-A pasta `appbase/` concentra a implementação atual do shell R1.1 com o novo
+## Como o repositório permanece limpo
+
+- `scripts/scan-static-deps.mjs` gera `scripts/used-static-deps.json` com todas as
+  dependências estáticas referenciadas a partir de `appbase/index.html`.
+- `tests/tools/trace-deps.spec.ts` roda via Playwright e exporta
+  `scripts/used-runtime-deps.txt` com tudo que o AppBase baixa em runtime
+  (miniapps, catálogos e dicionários).
+- `scripts/build-used-deps.sh` consolida os manifests anteriores, diretórios de
+  governança e arquivos obrigatórios em `scripts/used-deps.txt`. Qualquer ativo
+  fora dessa lista deve ir para `archive/2025-10-08/` ou ser removido.
+- `archive/2025-10-08/` registra o conteúdo deslocado na limpeza R1.4
+  (miniapps legacy, assets antigos, documentação auxiliar). Pastas anteriores
+  permanecem disponíveis apenas para consulta histórica.
+- Workflows adicionados na R1.4:
+  - `md-link-check.yml`: valida links internos de Markdown com a configuração de
+    `.markdown-link-check.json`.
+  - `tree-dump.yml`: publica um `TREE.txt` com a árvore de arquivos até a 3ª
+    profundidade em cada push.
+  - `deps-audit.yml`: reconstrói os manifests de dependências e falha se houver
+    desvios não registrados em `scripts/used-*.txt`.
+
+A pasta `appbase/` concentra a implementação atual do shell R1.4 com o novo
 MiniApp “Painel de controle”. O protótipo modular legado foi movido para
 `archive/src-r0/` apenas para referência e não recebe atualizações. MiniApps
 ativos permanecem em `miniapps/`; versões anteriores devem ser transferidas
@@ -68,10 +96,10 @@ para `archive/miniapps/` junto com o registro em `docs/changelog.md`.
 A AppBar inclui um botão circular sem texto responsável por alternar entre os
 temas claro e escuro. O controle expõe um tooltip que indica a ação disponível,
 enquanto o rótulo acessível oscila entre “Ativar modo claro” e “Ativar modo
-escuro”. O ícone ☀️/🌙 muda junto com o tema ativo e o logotipo passa a carregar
-a versão correspondente (`icon-light-500.png` ou `icon-dark-500.png`). O estado
-escolhido fica registrado no `localStorage` na chave `marco-appbase:theme`,
-permitindo que a preferência seja restaurada automaticamente na próxima visita.
+escuro”. O ícone ☀️/🌙 muda junto com o tema ativo e a área de marca alterna os
+logotipos hospedados pelo domínio oficial do projeto. O estado escolhido fica
+registrado no `localStorage` na chave `marco-appbase:theme`, permitindo que a
+preferência seja restaurada automaticamente na próxima visita.
 
 ## MiniApp “Painel de controle” — destaques
 
@@ -88,8 +116,8 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
   oferecem alternância de visibilidade no campo de senha.
 - **Alternância de tema persistente**: a AppBar traz o mesmo botão circular sem
   texto, com ícones ☀️/🌙 alinhados ao tema ativo, tooltip contextual e rótulos
-  acessíveis que descrevem a ação disponível. A marca também alterna entre os
-  arquivos `icon-light-500.png` e `icon-dark-500.png`. A chave
+  acessíveis que descrevem a ação disponível. A marca alterna entre as versões
+  clara/escura hospedadas no domínio oficial do projeto. A chave
   `marco-appbase:theme` no `localStorage` garante que a preferência retorne em
   novas sessões.
 - **Persistência local leve**: os dados são gravados no IndexedDB com fallback

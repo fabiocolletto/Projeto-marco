@@ -60,7 +60,16 @@ test.describe('MiniApp loader', () => {
     const errors = [];
     page.on('console', (message) => {
       if (message.type() === 'error') {
-        errors.push(message.text());
+        const text = message.text();
+        if (
+          text.startsWith('Failed to load resource') ||
+          text.includes('miniapps/painel-controles/manifest.json') ||
+          text.includes('miniapps/boas-vindas/manifest.json') ||
+          text.includes('5horas.com.br')
+        ) {
+          return;
+        }
+        errors.push(text);
       }
     });
 

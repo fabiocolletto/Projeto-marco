@@ -27,18 +27,36 @@ async function resetApp(page) {
 
   await page.reload({ waitUntil: 'load' });
   await page.waitForLoadState('load');
+  await expect(
+    page.locator('[data-miniapp-rail] .ac-miniapp-card')
+  ).toHaveCount(2, { timeout: 20000 });
 }
 
-async function ensureLoginForm(page) {
+async function openSessionOverlay(page) {
   const stage = page.locator('#painel-stage');
   const accessButton = page.locator('[data-panel-access]');
+  const overlay = page.locator('[data-panel-overlay][data-overlay-id="session"]');
+  const overlayTrigger = page.locator('[data-overlay-trigger="session"]');
 
   if (await stage.isHidden()) {
     await accessButton.click();
+    await expect(accessButton).toHaveAttribute('aria-expanded', 'true');
+    await expect(stage).toBeVisible({ timeout: 15000 });
   }
 
-  await expect(stage).toBeVisible();
-  const form = stage.locator('[data-login-form]');
+  await expect(overlayTrigger).toBeVisible({ timeout: 15000 });
+
+  if (await overlay.getAttribute('aria-hidden') !== 'false') {
+    await overlayTrigger.click();
+  }
+
+  await expect(overlay).toHaveAttribute('aria-hidden', 'false');
+  return overlay;
+}
+
+async function ensureLoginForm(page) {
+  const overlay = await openSessionOverlay(page);
+  const form = overlay.locator('[data-login-form]');
   await expect(form).toBeVisible();
   return form;
 }
@@ -64,12 +82,14 @@ async function registerUser(page, { nome, email, telefone = '', senha = 'SenhaFo
 }
 
 async function logoutPreserve(page) {
+  await openSessionOverlay(page);
   const button = page.locator('[data-action="logout-preserve"]');
   await expect(button).toBeEnabled({ timeout: 10000 });
   await button.click({ timeout: 60000 });
 }
 
 async function logoutClear(page) {
+  await openSessionOverlay(page);
   const button = page.locator('[data-action="logout-clear"]');
   await expect(button).toBeEnabled({ timeout: 10000 });
   await button.click({ timeout: 60000 });
@@ -103,9 +123,7 @@ test('cadastro atualiza painel e botão do cabeçalho', async ({ page }) => {
   await expect(page.locator('[data-login-user]')).toHaveText('Maria Fernanda');
   await expect(page.locator('[data-login-account]')).toHaveText('maria');
   await expect(page.locator('[data-login-last]')).not.toHaveText('—');
-  const headerStatusLabel = page.locator(
-    '.ac-panel-card__head [data-panel-status-label]'
-  );
+  const headerStatusLabel = page.locator('[data-panel-status-label]').first();
   await expect(headerStatusLabel).toHaveText('Conectado');
   await expect(page.locator('[data-panel-login-count]')).toHaveText('1');
   await expect(page.locator('[data-panel-last-login]')).not.toHaveText('—');
@@ -175,9 +193,7 @@ test('sessão encerrada mantém painel sob controle do cabeçalho', async ({
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
   await expect(panelAccess).toHaveAttribute('aria-expanded', 'false');
-  const headerStatusLabel = page.locator(
-    '.ac-panel-card__head [data-panel-status-label]'
-  );
+  const headerStatusLabel = page.locator('[data-panel-status-label]').first();
   await expect(headerStatusLabel).toHaveText('Desconectado');
   const dirtyStatus = page.locator('[data-footer-dirty-status]');
   await expect(dirtyStatus).toHaveAttribute('aria-disabled', 'true');
