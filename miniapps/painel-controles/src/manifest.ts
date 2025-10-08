@@ -1,32 +1,51 @@
 export default {
-  key: 'operations',
-  id: 'painel-controles',
+  miniappId: 'painel-controles',
+  key: 'painel-controles',
   name: 'Painel de Controles',
   version: '1.0.0',
   kind: 'system',
+  supportedLocales: ['pt-BR', 'en-US', 'es-ES'],
+  dictionaries: {
+    'pt-BR': './i18n/pt-BR.json',
+    'en-US': './i18n/en-US.json',
+    'es-ES': './i18n/es-ES.json',
+  },
+  localeOwner: {
+    name: 'Laura Ribeiro',
+    email: 'localization@marco.app',
+    team: 'Experiência Multilíngue',
+  },
+  releaseNotesPath: '../docs/changelog.md',
   meta: {
     card: {
       label: 'Painel de Controles',
-      meta: 'Painel unificado de login, sync e backup do sistema',
+      labelKey: 'miniapp.painel.card.title',
+      meta: 'Sessão, sincronização e backups monitorados em tempo real.',
+      metaKey: 'miniapp.painel.card.subtitle',
       cta: 'Abrir painel de controles',
+      ctaKey: 'miniapp.painel.card.cta',
     },
     badges: ['Sistema', 'Sync'],
+    badgeKeys: ['miniapp.painel.badges.system', 'miniapp.painel.badges.sync'],
     panel: {
       meta: 'Visão consolidada do painel de controles com integrações essenciais.',
+      metaKey: 'miniapp.painel.panel.meta',
     },
     marketplace: {
       title: 'Painel de Controles',
+      titleKey: 'miniapp.painel.marketplace.title',
       description: 'Sessão, sincronização e backups monitorados em tempo real.',
+      descriptionKey: 'miniapp.painel.marketplace.description',
       capabilities: ['Sync', 'Backup', 'Sessão'],
+      capabilityKeys: [
+        'miniapp.painel.marketplace.capabilities.sync',
+        'miniapp.painel.marketplace.capabilities.backup',
+        'miniapp.painel.marketplace.capabilities.session',
+      ],
     },
   },
-  capabilities: {
-    /* I18N_CAPABILITIES */
-    i18n: {
-      enabled: false,
-      defaultLocale: 'pt-BR',
-      supportedLocales: ['pt-BR', 'en-US', 'es-ES']
-    }
-    /* END I18N_CAPABILITIES */
-  }
+  module: {
+    type: 'template',
+    url: '../module.js',
+  },
 };

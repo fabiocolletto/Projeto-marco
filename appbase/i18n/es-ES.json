@@ -42,7 +42,10 @@
     },
     "rail": {
       "label": "Miniapps",
-      "empty": "Espacio vacío — Añade una miniapp"
+      "empty": "Espacio vacío — Añade una miniapp",
+      "loading": "Cargando miniapps…",
+      "error": "No se pudieron cargar los miniapps.",
+      "fallback": "Cargado mediante fallback local"
     },
     "stage": {
       "empty": {

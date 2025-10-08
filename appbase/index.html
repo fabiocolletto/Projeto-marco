@@ -122,57 +122,18 @@
       </header>
 
       <div class="ac-layout">
-        <aside class="ac-rail-shell" aria-label="Miniapps">
-          <nav class="ac-rail" role="list">
-            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
-              <div class="ac-miniapp-card__empty">
-                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
-                <p class="ac-miniapp-card__empty-text" data-i18n="app.rail.empty">
-                  Slot vazio — Adicione um mini-app
-                </p>
-              </div>
-            </article>
-            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
-              <div class="ac-miniapp-card__empty">
-                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
-                <p class="ac-miniapp-card__empty-text" data-i18n="app.rail.empty">
-                  Slot vazio — Adicione um mini-app
-                </p>
-              </div>
-            </article>
-            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
-              <div class="ac-miniapp-card__empty">
-                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
-                <p class="ac-miniapp-card__empty-text" data-i18n="app.rail.empty">
-                  Slot vazio — Adicione um mini-app
-                </p>
-              </div>
-            </article>
-            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
-              <div class="ac-miniapp-card__empty">
-                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
-                <p class="ac-miniapp-card__empty-text" data-i18n="app.rail.empty">
-                  Slot vazio — Adicione um mini-app
-                </p>
-              </div>
-            </article>
-            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
-              <div class="ac-miniapp-card__empty">
-                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
-                <p class="ac-miniapp-card__empty-text" data-i18n="app.rail.empty">
-                  Slot vazio — Adicione um mini-app
-                </p>
-              </div>
-            </article>
-            <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
-              <div class="ac-miniapp-card__empty">
-                <span class="ac-miniapp-card__empty-icon" aria-hidden="true">+</span>
-                <p class="ac-miniapp-card__empty-text" data-i18n="app.rail.empty">
-                  Slot vazio — Adicione um mini-app
-                </p>
-              </div>
-            </article>
-          </nav>
+        <aside class="ac-rail-shell" aria-labelledby="miniapp-rail-title">
+          <header class="ac-rail__header">
+            <h2
+              id="miniapp-rail-title"
+              class="ac-rail__title"
+              data-miniapp-rail-title
+              data-i18n="app.rail.label"
+            >
+              Miniapps
+            </h2>
+          </header>
+          <nav class="ac-rail" role="list" data-miniapp-rail></nav>
         </aside>
 
         <main class="ac-stage" role="main" data-stage-shell>
