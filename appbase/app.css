@@ -2,63 +2,54 @@
   --ac-border-width: 1px;
   --ac-border-width-strong: 2px;
   --ac-bg: #ffffff;
-  --ac-surface: #f8fafc;
-  --ac-text: #1f2937;
-  --ac-muted: #64748b;
-  --ac-primary: #1f3a8a;
-  --ac-border: #0b2a6b;
+  --ac-surface: #f5f8ff;
+  --ac-text: #1f2a52;
+  --ac-muted: #6b7aa8;
+  --ac-primary: #1e3a8a;
+  --ac-border: #3657c3;
   --ac-accent: #f97316;
-  --ac-card-bg: #eef2ff;
-  --ac-card-ink: #0f172a;
-  --ac-card-border: rgba(30, 64, 175, 0.22);
+  --ac-card-bg: #f7f9ff;
+  --ac-card-ink: #14265c;
+  --ac-card-border: rgba(54, 87, 195, 0.22);
   --ac-ok: #16a34a;
   --ac-ok-bg: #ecfdf5;
   --ac-crit: #ef4444;
   --ac-crit-bg: #fee2e2;
-  --ac-hover: #e0e7ff;
-  --ac-shadow: rgba(15, 23, 42, 0.1);
+  --ac-hover: #e1e9ff;
+  --ac-shadow: rgba(30, 64, 175, 0.08);
   --ac-on-primary: #ffffff;
   --ac-on-danger: #ffffff;
-  --ac-border-soft: rgba(15, 23, 42, 0.25);
-  --ac-chip-bg: rgba(59, 130, 246, 0.12);
-  --ac-chip-border: rgba(30, 64, 175, 0.2);
-  --ac-chip-ink: #1f3a8a;
-  --ac-chip-active-bg: #1f3a8a;
+  --ac-border-soft: rgba(20, 38, 92, 0.16);
+  --ac-chip-bg: rgba(54, 87, 195, 0.08);
+  --ac-chip-border: rgba(54, 87, 195, 0.28);
+  --ac-chip-ink: #1e3a8a;
+  --ac-chip-active-bg: #1e3a8a;
   --ac-chip-active-ink: #ffffff;
-  --ac-info-muted: rgba(30, 41, 59, 0.7);
-  --ac-panel-soft-bg: #eff6ff;
-  --ac-table-border: rgba(30, 64, 175, 0.16);
-  --ac-shell-gradient: linear-gradient(
-    160deg,
-    rgba(59, 130, 246, 0.18) 0%,
-    rgba(191, 219, 254, 0.18) 30%,
-    var(--ac-surface) 100%
-  );
-  --ac-shell-surface: rgba(255, 255, 255, 0.85);
-  --ac-shell-border: rgba(30, 64, 175, 0.18);
+  --ac-info-muted: rgba(55, 65, 81, 0.68);
+  --ac-panel-soft-bg: #f7f9ff;
+  --ac-table-border: rgba(54, 87, 195, 0.16);
+  --ac-shell-gradient: linear-gradient(180deg, #ecf2ff 0%, #f8fbff 100%);
+  --ac-shell-surface: #ffffff;
+  --ac-shell-border: rgba(148, 163, 208, 0.45);
   --ac-panel-gradient: linear-gradient(
-    160deg,
-    rgba(30, 64, 175, 0.65) 0%,
-    rgba(37, 99, 235, 0.42) 48%,
-    rgba(59, 130, 246, 0.28) 100%
+    140deg,
+    rgba(30, 64, 175, 0.75) 0%,
+    rgba(54, 87, 195, 0.55) 55%,
+    rgba(59, 130, 246, 0.32) 100%
   );
   --ac-panel-head-gradient: linear-gradient(
-    160deg,
-    rgba(30, 64, 175, 0.75) 0%,
-    rgba(37, 99, 235, 0.55) 50%,
-    rgba(59, 130, 246, 0.4) 100%
+    140deg,
+    rgba(30, 64, 175, 0.85) 0%,
+    rgba(37, 99, 235, 0.65) 45%,
+    rgba(59, 130, 246, 0.42) 100%
   );
-  --ac-panel-surface: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.78) 0%,
-    rgba(255, 255, 255, 0.94) 100%
-  );
+  --ac-panel-surface: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   --ac-panel-head-ink: #ffffff;
-  --ac-panel-head-sub: rgba(255, 255, 255, 0.76);
+  --ac-panel-head-sub: rgba(255, 255, 255, 0.78);
   --ac-panel-head-border: rgba(255, 255, 255, 0.24);
-  --ac-panel-border: rgba(59, 130, 246, 0.35);
+  --ac-panel-border: rgba(148, 163, 208, 0.7);
   --ac-sync-toggle-bg: var(--ac-bg);
-  --ac-sync-toggle-border: var(--ac-card-border);
+  --ac-sync-toggle-border: rgba(54, 87, 195, 0.2);
   --ac-sync-toggle-ink: var(--ac-text);
   --ac-sync-toggle-muted: var(--ac-muted);
   --ac-sync-toggle-active-bg: var(--ac-primary);
@@ -71,68 +62,59 @@
   --ac-sync-indicator-error: var(--ac-crit);
   --ac-sync-badge-bg: var(--ac-primary);
   --ac-sync-badge-ink: var(--ac-on-primary);
-  --ac-sync-badge-muted-bg: rgba(148, 163, 184, 0.16);
+  --ac-sync-badge-muted-bg: rgba(148, 163, 208, 0.2);
   --ac-sync-badge-muted-ink: var(--ac-muted);
-  --ac-sync-device-border: var(--ac-border-soft);
+  --ac-sync-device-border: rgba(20, 38, 92, 0.12);
 }
 
 :root[data-theme='dark'] {
   --ac-bg: #0f172a;
-  --ac-surface: #020617;
+  --ac-surface: #0b1120;
   --ac-text: #e2e8f0;
   --ac-muted: #94a3b8;
   --ac-primary: #60a5fa;
-  --ac-border: #1e3a8a;
+  --ac-border: #94a3b8;
   --ac-accent: #fbbf24;
-  --ac-card-bg: #1e293b;
-  --ac-card-ink: #f8fafc;
-  --ac-card-border: rgba(148, 163, 184, 0.32);
+  --ac-card-bg: #111b2f;
+  --ac-card-ink: #e2e8f0;
+  --ac-card-border: rgba(148, 163, 184, 0.24);
   --ac-ok: #34d399;
   --ac-ok-bg: #0f3d2e;
   --ac-crit: #f87171;
   --ac-crit-bg: #3f1d20;
-  --ac-hover: #1d4ed8;
-  --ac-shadow: rgba(2, 6, 23, 0.4);
+  --ac-hover: rgba(96, 165, 250, 0.22);
+  --ac-shadow: rgba(8, 47, 73, 0.45);
   --ac-on-primary: #0b1120;
   --ac-on-danger: #fff7ed;
-  --ac-border-soft: rgba(148, 163, 184, 0.4);
-  --ac-chip-bg: rgba(59, 130, 246, 0.24);
-  --ac-chip-border: rgba(148, 163, 184, 0.4);
+  --ac-border-soft: rgba(148, 163, 184, 0.35);
+  --ac-chip-bg: rgba(96, 165, 250, 0.18);
+  --ac-chip-border: rgba(148, 163, 184, 0.32);
   --ac-chip-ink: #e2e8f0;
   --ac-chip-active-bg: #e2e8f0;
   --ac-chip-active-ink: #0b1120;
   --ac-info-muted: rgba(226, 232, 240, 0.7);
-  --ac-panel-soft-bg: #0f172a;
+  --ac-panel-soft-bg: #0b1120;
   --ac-table-border: rgba(148, 163, 184, 0.2);
-  --ac-shell-gradient: linear-gradient(
-    160deg,
-    rgba(2, 6, 23, 0.95) 0%,
-    rgba(30, 64, 175, 0.38) 45%,
-    rgba(2, 6, 23, 0.92) 100%
-  );
+  --ac-shell-gradient: linear-gradient(180deg, #020617 0%, #0b1120 100%);
   --ac-shell-surface: rgba(15, 23, 42, 0.82);
-  --ac-shell-border: rgba(96, 165, 250, 0.32);
+  --ac-shell-border: rgba(51, 65, 85, 0.6);
   --ac-panel-gradient: linear-gradient(
-    160deg,
-    rgba(30, 64, 175, 0.78) 0%,
-    rgba(37, 99, 235, 0.6) 50%,
-    rgba(15, 23, 42, 0.85) 100%
+    140deg,
+    rgba(30, 64, 175, 0.75) 0%,
+    rgba(37, 99, 235, 0.58) 50%,
+    rgba(15, 23, 42, 0.9) 100%
   );
   --ac-panel-head-gradient: linear-gradient(
-    160deg,
-    rgba(37, 99, 235, 0.7) 0%,
-    rgba(59, 130, 246, 0.55) 55%,
-    rgba(15, 23, 42, 0.8) 100%
+    140deg,
+    rgba(59, 130, 246, 0.65) 0%,
+    rgba(59, 130, 246, 0.45) 55%,
+    rgba(15, 23, 42, 0.85) 100%
   );
-  --ac-panel-surface: linear-gradient(
-    180deg,
-    rgba(15, 23, 42, 0.9) 0%,
-    rgba(15, 23, 42, 0.82) 100%
-  );
+  --ac-panel-surface: linear-gradient(180deg, rgba(15, 23, 42, 0.92) 0%, rgba(15, 23, 42, 0.85) 100%);
   --ac-panel-head-ink: #e2e8f0;
   --ac-panel-head-sub: rgba(226, 232, 240, 0.75);
   --ac-panel-head-border: rgba(148, 163, 184, 0.35);
-  --ac-panel-border: rgba(59, 130, 246, 0.4);
+  --ac-panel-border: rgba(96, 165, 250, 0.38);
   --ac-sync-badge-muted-bg: rgba(148, 163, 184, 0.25);
 }
 
@@ -225,15 +207,14 @@ select {
 
 .ac-appbar,
 .ac-footer {
-  background: var(--ac-shell-surface);
-  border: var(--ac-border-width) solid var(--ac-shell-border);
+  background: var(--ac-bg);
+  border: none;
   border-radius: 0;
   padding: 16px 24px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 14px 32px var(--ac-shadow);
-  backdrop-filter: blur(12px);
+  box-shadow: none;
 }
 
 .ac-appbar {
@@ -338,13 +319,16 @@ select {
 .ac-appbar__actions {
   position: relative;
   margin-left: auto;
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  justify-items: end;
+  align-items: flex-end;
 }
 
 .ac-appbar__actions-buttons {
-  display: inline-flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(44px, auto));
+  justify-content: end;
   align-items: center;
   gap: 12px;
 }
@@ -448,6 +432,7 @@ select {
 @media (max-width: 900px) {
   .ac-layout {
     grid-template-columns: 1fr;
+    gap: 0;
   }
 
   .ac-appbar {
@@ -462,12 +447,12 @@ select {
   }
 
   .ac-appbar__actions {
-    justify-items: center;
+    align-items: center;
   }
 
   .ac-appbar__actions-buttons {
+    grid-template-columns: repeat(2, minmax(44px, auto));
     justify-content: center;
-    flex-wrap: wrap;
   }
 
   .ac-appbar__chips {
@@ -498,14 +483,13 @@ select {
 .ac-rail-shell {
   display: flex;
   flex-direction: column;
-  background: var(--ac-shell-surface);
-  border: var(--ac-border-width) solid var(--ac-shell-border);
+  background: var(--ac-bg);
+  border: none;
   border-radius: 0;
-  padding: 16px;
+  padding: 20px 18px;
   height: 100%;
   min-height: 0;
-  box-shadow: 0 14px 32px var(--ac-shadow);
-  backdrop-filter: blur(12px);
+  box-shadow: none;
 }
 
 .ac-rail {
@@ -535,11 +519,11 @@ select {
 }
 
 .ac-miniapp-card--empty {
-  background: var(--ac-surface);
+  background: var(--ac-card-bg);
   color: var(--ac-muted);
-  border: var(--ac-border-width) dashed var(--ac-border-soft);
+  border: var(--ac-border-width) dashed rgba(148, 163, 208, 0.7);
   cursor: default;
-  opacity: 0.85;
+  opacity: 1;
   box-shadow: none;
   pointer-events: none;
 }
@@ -556,13 +540,13 @@ select {
 }
 
 .ac-miniapp-card__empty-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  border: var(--ac-border-width) dashed var(--ac-border);
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  border: var(--ac-border-width) dashed rgba(54, 87, 195, 0.55);
   display: grid;
   place-items: center;
-  font-size: 2rem;
+  font-size: 2.1rem;
   font-weight: 600;
   color: var(--ac-primary);
   background: var(--ac-bg);
@@ -670,22 +654,22 @@ select {
 .ac-stage {
   display: flex;
   flex-direction: column;
-  background: var(--ac-shell-surface);
-  border: var(--ac-border-width) solid var(--ac-shell-border);
+  background: var(--ac-bg);
+  border: none;
   border-radius: 0;
   padding: 32px;
   position: relative;
   min-height: 0;
   height: 100%;
   overflow: hidden;
-  backdrop-filter: blur(12px);
+  box-shadow: none;
 }
 
 .ac-stage--panel-open {
   padding: 0;
   background: none;
   border: none;
-  backdrop-filter: none;
+  box-shadow: none;
 }
 
 .ac-stage--panel-open .ac-stage__panel {
@@ -696,23 +680,37 @@ select {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 48px;
+  padding: 64px 48px;
   color: var(--ac-muted);
   flex: 1;
   overflow: auto;
   gap: 24px;
-  background: var(--ac-panel-surface);
-  border: var(--ac-border-width) solid var(--ac-panel-border);
+  background: #f9fbff;
+  border: 2px dashed rgba(148, 163, 208, 0.7);
   border-radius: 28px;
-  box-shadow: 0 24px 48px var(--ac-shadow);
+  box-shadow: none;
 }
 
 .ac-stage__empty-main {
   flex: 1;
   display: grid;
   place-items: center;
-  gap: 16px;
+  gap: 12px;
   text-align: center;
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.ac-stage__empty-main [data-stage-empty-message] {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--ac-primary);
+}
+
+.ac-history__empty--stage {
+  color: var(--ac-muted);
+  margin: 0;
 }
 
 .ac-stage__empty-actions {
