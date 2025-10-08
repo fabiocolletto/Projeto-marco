@@ -1,5 +1,7 @@
 # Agent.md
 
+> **Manuais N1 residem em `manuals/`. Qualquer divergência entre código e manuais deve ser resolvida a favor dos manuais (`PCM` para alinhamento).**
+
 ## Propósito
 Este documento orienta futuras automações a evoluir o AppBase Marco mantendo-o
 navegável em navegadores modernos, com HTML, CSS e JavaScript vanilla
@@ -25,7 +27,8 @@ de cadastro local, etiqueta do rail e painel principal.
   ou overlay de login.
 - Antes de iniciar qualquer fluxo operacional consulte o
   [catálogo de manuais](manuals/README.md) e siga integralmente o procedimento
-  indicado. Em particular:
+  indicado. Esse diretório concentra o conteúdo N1 aplicável a todas as
+  operações. Em particular:
   - `manuals/novo-idioma.md` para inclusão ou manutenção de idiomas.
   - `manuals/novo-miniapp.md` para criação de MiniApps, garantindo a estrutura
     multilíngue obrigatória desde o primeiro commit e o fluxo operacional de
