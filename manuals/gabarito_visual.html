@@ -1,0 +1,590 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gabarito Visual • MiniApps (Grid 1–2–3–4 col • Seções, Modelos e Style Guide + Identidade) • R1.3</title>
+  <style>
+    /* Gabarito Visual • estático (somente layout/estilo) • R1.3 */
+    :root{
+      --ac-bg:#fff; --ac-text:#1f2937; --ac-primary:#1f3a8a; --ac-border:#0b2a6b;
+      --ac-card-bg:#e6edff; --ac-shadow:rgba(17,24,39,.08); --ac-accent:#f97316;
+      --ac-ok:#16a34a; --ac-crit:#ef4444; --ac-row-hover:#eef2ff; --ac-neutral:#e2e8f0;
+    }
+    html,body{height:100%}
+    body{margin:0;background:var(--ac-bg);color:var(--ac-text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial,sans-serif}
+    .wrap{width:min(1140px,calc(100vw - 32px));margin:18px auto 40px;display:grid;gap:16px}
+
+    /* Cabeçalho */
+    .gh{background:#fff;border:1px solid var(--ac-border);border-radius:18px;box-shadow:0 2px 0 var(--ac-shadow);padding:16px 18px}
+    .gh h1{margin:0 0 4px;font-size:22px;font-weight:900;color:var(--ac-primary)}
+    .gh p{margin:0;color:#334155;font-size:13px}
+
+    /* Seções */
+    .sec{background:#fff;border:1px solid var(--ac-border);border-radius:18px;box-shadow:0 2px 0 var(--ac-shadow);padding:16px 18px}
+    .sec h2{margin:0 0 2px;color:var(--ac-primary);font-weight:900;font-size:18px}
+    .sec .sub{color:#334155;font-size:12px;margin:0 0 12px}
+
+    /* Grid (1,2,3,4 col) • 12 colunas base */
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .span-12{grid-column:span 12}
+    .span-6{grid-column:span 6}
+    .span-4{grid-column:span 4}
+    .span-3{grid-column:span 3}
+
+    /* Tile padrão */
+    .tile{background:var(--ac-neutral);border:1px solid var(--ac-border);border-radius:14px;padding:12px}
+    .tile h3{margin:0 0 6px;font-weight:800;color:var(--ac-primary);font-size:14px}
+    .kv{margin:0;color:#0f172a;font-size:13px}
+    .kv + .kv{margin-top:4px}
+
+    /* Variantes visuais de KPI */
+    .kpi{display:flex;align-items:baseline;gap:8px}
+    .kpi .big{font-size:28px;font-weight:900;color:#0f172a}
+    .kpi .unit{font-size:12px;color:#334155}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid #cbd5e1;background:#fff;font-size:11px;color:#0f172a}
+    .bar{height:8px;background:#fff;border:1px solid #cbd5e1;border-radius:6px;overflow:hidden}
+    .bar > i{display:block;height:100%;width:60%;background:linear-gradient(90deg,#93c5fd,#1d4ed8)}
+    .divider{height:1px;background:#cbd5e1;margin:6px 0}
+
+    /* Grid interno 2 colunas (variação do card Sistema) */
+    .kv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+
+    /* Placeholders de gráfico (sem JS) */
+    .chart{height:220px;background:#fff;border:1px dashed #cbd5e1;border-radius:12px;display:grid;place-items:center;position:relative}
+    .chart .legend{position:absolute;right:8px;top:8px;background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:6px 8px;font-size:11px;color:#0f172a}
+    .chart .axesX{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);font-size:11px;color:#0f172a}
+    .chart .axesY{position:absolute;left:6px;top:50%;transform:translateY(-50%) rotate(-90deg);transform-origin:left top;font-size:11px;color:#0f172a}
+    .chart .caption{position:absolute;left:8px;bottom:8px;font-size:11px;color:#475569}
+
+    /* Tabela estática (modelo) */
+    .table-wrap{--table-bg:#fff;position:relative;max-height:220px;overflow:auto;border-radius:12px;background:var(--table-bg);scrollbar-width:none;-ms-overflow-style:none;background:
+    linear-gradient(var(--table-bg),var(--table-bg)) padding-box,
+    linear-gradient(to bottom, rgba(2,6,23,.18), rgba(2,6,23,0)) top,
+    linear-gradient(to top,    rgba(2,6,23,.18), rgba(2,6,23,0)) bottom;
+  background-repeat:no-repeat;
+  /* 1) fundo do conteúdo   2) sombra no topo   3) sombra no rodapé */
+  background-size:100% 100%, 100% 12px, 100% 12px;
+  background-attachment:local, scroll, scroll}
+/* Oculta scrollbars no WebKit */
+.table-wrap::-webkit-scrollbar{width:0;height:0}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 12px;font-size:13px;text-align:left}
+    thead th{background:#e2e8f0;position:sticky;top:0;border-bottom:1px solid #cbd5e1}
+    tbody td{border-bottom:1px solid #e5e7eb}
+    tbody tr:hover{background:var(--ac-row-hover)}
+
+    /* Style Guide */
+    .style-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .swatch{background:#fff;border:1px solid #cbd5e1;border-radius:12px;padding:10px;display:grid;gap:8px}
+    .chip{height:38px;border-radius:10px;border:1px solid var(--ac-border)}
+    .chip.primary{background:var(--ac-primary)}
+    .chip.border{background:#fff}
+    .chip.accent{background:var(--ac-accent)}
+    .chip.ok{background:var(--ac-ok)}
+    .chip.crit{background:var(--ac-crit)}
+    .chip.card{background:var(--ac-card-bg)}
+    .chip.neutral{background:var(--ac-neutral)}
+    .sw-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px}
+    .btn{border:1px solid var(--ac-border);background:var(--ac-neutral);color:var(--ac-border);padding:8px 12px;border-radius:12px;font-size:12px;font-weight:700;display:inline-block}
+    .switch{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--ac-border);border-radius:999px;padding:6px 10px;background:#fff;font-size:12px}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--ac-crit)}
+    .dot.ok{background:var(--ac-ok)}
+
+    /* Identidade Visual • Logos/Ícones */
+    .brand-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .brand-tile{border:1px solid var(--ac-border);border-radius:14px;overflow:hidden}
+    .brand-head{padding:10px 12px;background:#e2e8f0;color:var(--ac-primary);font-weight:800;font-size:14px}
+    .brand-body{display:grid;place-items:center;padding:16px}
+    .bg-light{background:#ffffff}
+    .bg-dark{background:#0f172a}
+    .brand-body img{max-width:100%;height:auto;display:block}
+    .brand-caption{padding:10px 12px;font-size:12px;color:#334155;border-top:1px solid #cbd5e1;background:#fff}
+
+    /* MiniCards (etiquetas da lista de MiniApps) */
+    .mini-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+    .minicard{border:1px solid var(--ac-border);border-radius:14px;background:#fff;padding:10px 12px;display:grid;grid-template-rows:auto 1fr auto;box-shadow:0 1px 0 var(--ac-shadow)}
+    .minicard .title{font-weight:800;color:var(--ac-primary);font-size:14px;display:flex;align-items:center;justify-content:space-between}
+    .minicard .meta{font-size:12px;color:#475569;margin-top:4px}
+    .minicard .body{font-size:13px;color:#0f172a;margin-top:6px}
+    .minicard .signals{display:flex;align-items:center;gap:8px;margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px}
+    .dot-s{width:8px;height:8px;border-radius:999px;background:#94a3b8}
+    .dot-s.ok{background:var(--ac-ok)}
+    .dot-s.warn{background:var(--ac-accent)}
+    .dot-s.err{background:var(--ac-crit)}
+    .minicard.sm{min-height:64px;grid-template-rows:auto auto}
+    .minicard.sm .body{display:none}
+    .minicard.sm .signals{margin-top:6px}
+    .minicard.md{min-height:104px}
+    .minicard.lg{min-height:160px}
+    .minicard.is-active{border-color:var(--ac-accent);box-shadow:0 0 0 2px rgba(249,115,22,.25)}
+
+    /* Ícones do sistema (padrão de ações) */
+    .ac-icfont{font-family:system-ui,-apple-system,"Segoe UI Symbol","Apple Color Emoji","Noto Color Emoji",sans-serif}
+    .ac-icbtn{--sz:28px;display:inline-grid;place-items:center;width:var(--sz);height:var(--sz);border:1px solid var(--ac-border);border-radius:8px;background:#fff;color:#1f2937;line-height:1}
+    .ac-icbtn::before{content:attr(data-ic);font-size:16px}
+    .ac-icsym{display:inline-block;line-height:1;vertical-align:middle}
+    .ac-icsym::before{content:attr(data-ic);font:12px/1 system-ui,-apple-system,"Segoe UI Symbol","Apple Color Emoji","Noto Color Emoji",sans-serif;color:#475569}
+    /* Tokens conhecidos */
+    .ac-icbtn[data-ic="menu"]::before{content:"⋯"}
+    .ac-icbtn[data-ic="close"]::before{content:"✖"}
+    .ac-icbtn[data-ic="chev-down"]::before{content:"▾"}
+    .ac-icbtn[data-ic="chev-right"]::before{content:"▸"}
+    .ac-icbtn[data-ic="sort"]::before{content:"↕"}
+    .ac-icbtn[data-ic="add"]::before{content:"+"}
+    .ac-icbtn[data-ic="remove"]::before{content:"−"}
+    .ac-icbtn[data-ic="check"]::before{content:"✓"}
+    .ac-icbtn[data-ic="info"]::before{content:"i"}
+    .ac-icbtn[data-ic="warn"]::before{content:"!"}
+    .ac-icbtn[data-ic="refresh"]::before{content:"↻"}
+    .ac-icbtn[data-ic="download"]::before{content:"⬇"}
+    .ac-icbtn[data-ic="upload"]::before{content:"⬆"}
+    .ac-icbtn[data-ic="search"]::before{content:"🔍"}
+    .ac-icbtn[data-ic="settings"]::before{content:"⚙"}
+    .ac-icbtn[data-ic="share"]::before{content:"⇢"}
+    .ac-icbtn[data-ic="back"]::before{content:"←"}
+    .ac-icbtn[data-ic="next"]::before{content:"→"}
+
+    /* Rodapé */
+    .foot{background:#fff;border:1px solid var(--ac-border);border-radius:14px;box-shadow:0 2px 0 var(--ac-shadow);padding:10px 12px;text-align:center;font-size:12px;color:#334155}
+
+    @media (max-width:900px){.span-12,.span-6,.span-4,.span-3{grid-column:span 12}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="gh">
+      <h1>Gabarito Visual • MiniApps</h1>
+      <p><strong>Catálogo estático:</strong> este documento reúne todos os <em>building blocks</em> visuais do AppBase • grades de 1, 2, 3 e 4 colunas, modelos de cards, tabelas, gráficos, botões e identidade (paleta, tipografia e marcas). O objetivo é orientar o Codex a <strong>combinar elementos</strong> sem reinventar componentes. Ex.: escolha um gráfico e, ao lado, coloque uma etiqueta de status usando a paleta; crie um container com a “Métrica A” e acrescente um botão (seção Componentes) para ação; componha painéis mesclando cards simples (texto) com cards métricos (número/pílula/barra). Este gabarito mostra o <strong>visual de referência</strong> • não define a lógica final. Para ícones de ação, use <strong>ícones do sistema</strong> via tokens (<code>data-ic</code>) definidos no Style Guide.</p>
+    </header>
+
+    <!-- SEÇÃO A: Modelos para gráficos (3/2/1 col) -->
+    <section class="sec" id="sec-graficos">
+      <h2>Modelos para gráfico</h2>
+      <p class="sub">Exemplos de composição para cartões de gráficos. Eixos, legendas e fonte em posição padrão. (Somente visual)</p>
+
+      <div class="grid" aria-label="grade de 3 colunas">
+        <div class="tile span-4">
+          <h3>Gráfico • Rosca</h3>
+          <div class="chart">
+            <span>ROSCA (placeholder)</span>
+            <div class="legend">Login • 30%<br/>Sync • 40%<br/>Backup • 20%<br/>Ping • 10%</div>
+            <div class="axesX">Categoria</div>
+            <div class="axesY">% participação</div>
+            <div class="caption">Fonte: Eventos (amostra)</div>
+          </div>
+        </div>
+        <div class="tile span-4">
+          <h3>Gráfico • Linha</h3>
+          <div class="chart">
+            <span>LINHA (placeholder)</span>
+            <div class="legend">Série: Eventos/h</div>
+            <div class="axesX">Hora (0–23)</div>
+            <div class="axesY">Nº de eventos</div>
+            <div class="caption">Fonte: Eventos (amostra)</div>
+          </div>
+        </div>
+        <div class="tile span-4">
+          <h3>Gráfico • Barras (Top 5)</h3>
+          <div class="chart">
+            <span>BARRAS H (placeholder)</span>
+            <div class="legend">Top origens • valores e %</div>
+            <div class="axesX">Nº de eventos</div>
+            <div class="axesY">Origem</div>
+            <div class="caption">Fonte: Eventos (amostra)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px" aria-label="grade de 2 colunas">
+        <div class="tile span-6">
+          <h3>Gráfico • Área</h3>
+          <div class="chart">
+            <span>ÁREA (placeholder)</span>
+            <div class="legend">Série: Acúmulo</div>
+            <div class="axesX">Tempo</div>
+            <div class="axesY">Índice</div>
+            <div class="caption">Fonte: Dataset</div>
+          </div>
+        </div>
+        <div class="tile span-6">
+          <h3>Gráfico • Colunas</h3>
+          <div class="chart">
+            <span>COLUNAS (placeholder)</span>
+            <div class="legend">Categorias A/B/C/D</div>
+            <div class="axesX">Categoria</div>
+            <div class="axesY">Valor</div>
+            <div class="caption">Fonte: Dataset</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px" aria-label="grade de 1 coluna">
+        <div class="tile span-12">
+          <h3>Gráfico • Linha (largura total)</h3>
+          <div class="chart">
+            <span>LINHA (placeholder)</span>
+            <div class="legend">Série: Métrica X</div>
+            <div class="axesX">Tempo</div>
+            <div class="axesY">Valor</div>
+            <div class="caption">Fonte: Dataset</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO B: Modelos para cards de conteúdo (2/1/3/4 col) -->
+    <section class="sec" id="sec-cards">
+      <h2>Modelos para cards de conteúdo</h2>
+      <p class="sub">Blocos de informações de usuário, sistema, configurações, etc. Mostramos variações visuais na mesma linha para sugerir flexibilidade (ainda que estático).</p>
+
+      <div class="grid" aria-label="grade de 2 colunas">
+        <div class="tile span-6">
+          <h3>Card • Usuário</h3>
+          <p class="kv">Nome completo: <strong>Fabio</strong></p>
+          <p class="kv">E‑mail: fabio@5horas.app</p>
+          <p class="kv">Último acesso: 05/10/2025 09:12:00</p>
+          <div class="divider"></div>
+          <div class="kpi"><span class="big">9,7</span><span class="unit">índice de confiança</span></div>
+        </div>
+        <div class="tile span-6">
+          <h3>Card • Sistema (variação 2 col)</h3>
+          <div class="kv-grid">
+            <p class="kv">Sync: <strong>Off</strong></p>
+            <p class="kv">Provedor: <strong>Google Drive</strong></p>
+            <p class="kv">Backup: <strong>Off</strong></p>
+            <p class="kv">Destino: <strong>Servidor 5Horas</strong></p>
+            <p class="kv">Latência: <strong>42ms</strong></p>
+            <p class="kv">Perdas: <strong>0%</strong></p>
+          </div>
+          <div class="divider"></div>
+          <span class="pill">perfil • produção</span>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px" aria-label="grade de 1 coluna">
+        <div class="tile span-12">
+          <h3>Card • Observações</h3>
+          <p class="kv">Texto livre, parágrafos, links, listas. Use este modelo para detalhes, disclaimers ou descrições longas.</p>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px" aria-label="grade de 3 colunas">
+        <div class="tile span-4">
+          <h3>Card • Métrica A (número)</h3>
+          <div class="kpi"><span class="big">123</span><span class="unit">itens</span></div>
+          <p class="kv">Últimas 24h</p>
+        </div>
+        <div class="tile span-4">
+          <h3>Card • Métrica B (barra)</h3>
+          <div class="bar"><i style="width:72%"></i></div>
+          <p class="kv">72% da meta mensal</p>
+        </div>
+        <div class="tile span-4">
+          <h3>Card • Métrica C (pílulas)</h3>
+          <p><span class="pill">ok</span> <span class="pill">sync</span> <span class="pill">backup</span></p>
+          <p class="kv">Status combinados</p>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px" aria-label="grade de 4 colunas">
+        <div class="tile span-3"><h3>Card • QPS</h3><div class="kpi"><span class="big">1,2k</span><span class="unit">req/s</span></div><p class="kv">pico diário</p></div>
+        <div class="tile span-3"><h3>Card • Erros</h3><div class="kpi"><span class="big" style="color:var(--ac-crit)">12</span><span class="unit">falhas</span></div><p class="kv">últimas 24h</p></div>
+        <div class="tile span-3"><h3>Card • Uptime</h3><div class="kpi"><span class="big" style="color:var(--ac-ok)">99,98%</span><span class="unit">SLA</span></div><p class="kv">mês atual</p></div>
+        <div class="tile span-3"><h3>Card • Build</h3><p class="kv">Canal: <strong>stable</strong></p><p class="kv">Versão: <strong>1.12.0</strong></p></div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO C: Tabelas (1/2/3 col) -->
+    <section class="sec" id="sec-tabelas">
+      <h2>Modelos para tabela</h2>
+      <p class="sub">Cabeçalho com fundo, linhas com separadores, hover por linha. Altura limitada com rolagem (scrollbar oculta com sombras indicativas).</p>
+
+      <div class="grid" aria-label="grade de 1 coluna">
+        <div class="tile span-12">
+          <h3>Tabela • Eventos</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Hora</th><th>Tipo</th><th>Mensagem</th><th>Origem</th></tr></thead>
+              <tbody>
+                <tr><td>09:41</td><td>Backup</td><td>Backup concluído em 12s</td><td>agente#1</td></tr>
+                <tr><td>09:40</td><td>Sync</td><td>Sync aplicado: 3 registros</td><td>cliente-web</td></tr>
+                <tr><td>09:12</td><td>Login</td><td>Login bem-sucedido</td><td>Fabio • 187.22.10.4</td></tr>
+                <tr><td>08:55</td><td>Ping</td><td>Ping servidor: 41ms</td><td>probe</td></tr>
+                <tr><td>08:41</td><td>Backup</td><td>Incremental (112 MB)</td><td>agente#1</td></tr>
+                <tr><td>08:12</td><td>Login</td><td>Reautenticação</td><td>Fabio</td></tr>
+                <tr><td>08:05</td><td>Sync</td><td>Fila processada</td><td>cliente-web</td></tr>
+                <tr><td>08:01</td><td>Ping</td><td>Latency ok</td><td>probe</td></tr>
+                <tr><td>07:59</td><td>Backup</td><td>Pré-verificação</td><td>agente#1</td></tr>
+                <tr><td>07:54</td><td>Sync</td><td>Conferência de difs</td><td>cliente-web</td></tr>
+                <tr><td>07:41</td><td>Login</td><td>Renovação de token</td><td>Fabio</td></tr>
+                <tr><td>07:36</td><td>Ping</td><td>Timeout intermitente</td><td>probe</td></tr>
+                <tr><td>07:21</td><td>Backup</td><td>Completo (184 MB)</td><td>agente#1</td></tr>
+                <tr><td>07:10</td><td>Sync</td><td>Itens re-enfileirados</td><td>cliente-web</td></tr>
+                <tr><td>06:59</td><td>Login</td><td>Falha de senha</td><td>Web</td></tr>
+                <tr><td>06:51</td><td>Ping</td><td>Jitter dentro da meta</td><td>probe</td></tr>
+                <tr><td>06:42</td><td>Backup</td><td>Incremental (98 MB)</td><td>agente#1</td></tr>
+                <tr><td>06:33</td><td>Sync</td><td>Merge remoto</td><td>cliente-web</td></tr>
+                <tr><td>06:22</td><td>Login</td><td>2FA validado</td><td>Web</td></tr>
+                <tr><td>06:15</td><td>Ping</td><td>Latency ok</td><td>probe</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px" aria-label="grade de 2 colunas">
+        <div class="tile span-6">
+          <h3>Tabela • Dispositivos</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Dispositivo</th><th>Último acesso</th></tr></thead>
+              <tbody>
+                <tr><td>iPhone 13</td><td>05/10/2025 09:10:00</td></tr>
+                <tr><td>Notebook</td><td>04/10/2025 22:14:00</td></tr>
+                <tr><td>Web • Chrome</td><td>05/10/2025 08:45:00</td></tr>
+                <tr><td>iPad</td><td>04/10/2025 21:01:00</td></tr>
+                <tr><td>Galaxy S24</td><td>04/10/2025 20:55:10</td></tr>
+                <tr><td>Edge • Windows</td><td>04/10/2025 19:44:00</td></tr>
+                <tr><td>Firefox • Linux</td><td>04/10/2025 18:12:00</td></tr>
+                <tr><td>Safari • Mac</td><td>04/10/2025 17:48:00</td></tr>
+                <tr><td>Opera</td><td>04/10/2025 17:10:00</td></tr>
+                <tr><td>Chrome • Android</td><td>04/10/2025 16:59:00</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="tile span-6">
+          <h3>Tabela • Histórico de backups</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Data/hora</th><th>Tamanho</th><th>Resultado</th></tr></thead>
+              <tbody>
+                <tr><td>05/10/2025 09:41:00</td><td>184 MB</td><td>OK</td></tr>
+                <tr><td>05/10/2025 06:10:00</td><td>182 MB</td><td>OK</td></tr>
+                <tr><td>04/10/2025 02:00:02</td><td>180 MB</td><td>OK</td></tr>
+                <tr><td>03/10/2025 23:50:10</td><td>176 MB</td><td>OK</td></tr>
+                <tr><td>03/10/2025 19:12:00</td><td>175 MB</td><td>OK</td></tr>
+                <tr><td>03/10/2025 16:02:33</td><td>173 MB</td><td>OK</td></tr>
+                <tr><td>03/10/2025 12:11:02</td><td>170 MB</td><td>OK</td></tr>
+                <tr><td>03/10/2025 08:45:00</td><td>169 MB</td><td>OK</td></tr>
+                <tr><td>03/10/2025 04:20:44</td><td>168 MB</td><td>OK</td></tr>
+                <tr><td>03/10/2025 00:01:00</td><td>167 MB</td><td>OK</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top:12px" aria-label="grade de 3 colunas">
+        <div class="tile span-4"><h3>Lista • Alertas</h3><p class="kv">• Nenhum alerta crítico.</p><p class="kv">• Latência normal.</p><p class="kv">• Espaço de backup ok.</p></div>
+        <div class="tile span-4"><h3>Lista • Tarefas</h3><p class="kv">• Revisar provedor de sync.</p><p class="kv">• Atualizar escopos OAuth.</p><p class="kv">• Conferir logs de login.</p></div>
+        <div class="tile span-4"><h3>Lista • Notas</h3><p class="kv">• Layouts servem como gabaritos visuais. Não há lógica.</p><p class="kv">• Preferir títulos em azul e bordas em azul-escuro.</p></div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO D: Guia de Fontes, Estilos, Cores e Ícones do Sistema (Identidade 5Horas) -->
+    <section class="sec" id="sec-style">
+      <h2>Guia de Fontes, Estilos, Cores • 5Horas</h2>
+      <p class="sub">Identidade visual de referência para os MiniApps. Tipografia, paleta, componentes e logos/ícones. Para ações, padronize com <strong>ícones do sistema</strong> via tokens (<code>data-ic</code>).</p>
+
+      <div class="style-grid">
+        <!-- Tipografia -->
+        <div class="tile span-6">
+          <h3>Tipografia</h3>
+          <p style="margin:0 0 6px;font-size:22px;font-weight:900;color:var(--ac-primary)">H1 • Título principal</p>
+          <p style="margin:0 0 6px;font-size:18px;font-weight:900;color:var(--ac-primary)">H2 • Título de seção</p>
+          <p style="margin:0 0 6px;font-size:14px;font-weight:800;color:var(--ac-primary)">H3 • Título de card</p>
+          <p style="margin:0;color:#0f172a;font-size:13px">Texto padrão • Inter/ system-ui; contraste alto em fundo claro.</p>
+          <p style="margin:6px 0 0;color:#475569;font-size:12px">Legenda/ajuda • tom secundário.</p>
+        </div>
+
+        <!-- Paleta de cores -->
+        <div class="tile span-6">
+          <h3>Paleta</h3>
+          <div class="swatch">
+            <div class="sw-row"><div class="chip primary"></div><div>Primária (#1f3a8a)</div></div>
+            <div class="sw-row"><div class="chip border"></div><div>Borda (#0b2a6b)</div></div>
+            <div class="sw-row"><div class="chip accent"></div><div>Acento/Ativo (#f97316)</div></div>
+            <div class="sw-row"><div class="chip ok"></div><div>OK/Confirmação (#16a34a)</div></div>
+            <div class="sw-row"><div class="chip crit"></div><div>Crítico/Erro (#ef4444)</div></div>
+            <div class="sw-row"><div class="chip card"></div><div>Fundo de etiqueta (#e6edff)</div></div>
+            <div class="sw-row"><div class="chip neutral"></div><div>Fundo de card (#e2e8f0)</div></div>
+          </div>
+        </div>
+
+        <!-- Botões & Switches -->
+        <div class="tile span-6">
+          <h3>Componentes • Botões</h3>
+          <p class="kv"><span class="btn">Primário neutro</span> &nbsp; <span class="btn" style="background:#fff">Secundário</span></p>
+          <p class="kv"><span class="switch"><span class="dot ok"></span><span>Ativo</span></span> &nbsp; <span class="switch"><span class="dot"></span><span>Inativo</span></span></p>
+        </div>
+
+        <!-- Ícones do sistema (tokens) -->
+        <div class="tile span-6">
+          <h3>Ícones • Tokens do sistema</h3>
+          <p class="kv">Use <code>data-ic</code> nos elementos: <code>menu</code>, <code>close</code>, <code>chev-down</code>, <code>chev-right</code>, <code>sort</code>, <code>add</code>, <code>remove</code>, <code>check</code>, <code>info</code>, <code>warn</code>, <code>refresh</code>, <code>download</code>, <code>upload</code>, <code>search</code>, <code>settings</code>, <code>share</code>, <code>back</code>, <code>next</code>.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" class="ac-icfont">
+            <button class="ac-icbtn" data-ic="menu" title="menu"></button>
+            <button class="ac-icbtn" data-ic="close" title="fechar"></button>
+            <button class="ac-icbtn" data-ic="chev-down" title="abrir"></button>
+            <button class="ac-icbtn" data-ic="chev-right" title="avançar"></button>
+            <button class="ac-icbtn" data-ic="sort" title="ordenar"></button>
+            <button class="ac-icbtn" data-ic="add" title="adicionar"></button>
+            <button class="ac-icbtn" data-ic="remove" title="remover"></button>
+            <button class="ac-icbtn" data-ic="check" title="ok"></button>
+            <button class="ac-icbtn" data-ic="info" title="info"></button>
+            <button class="ac-icbtn" data-ic="warn" title="atenção"></button>
+            <button class="ac-icbtn" data-ic="refresh" title="atualizar"></button>
+            <button class="ac-icbtn" data-ic="download" title="baixar"></button>
+            <button class="ac-icbtn" data-ic="upload" title="enviar"></button>
+            <button class="ac-icbtn" data-ic="search" title="buscar"></button>
+            <button class="ac-icbtn" data-ic="settings" title="configurações"></button>
+            <button class="ac-icbtn" data-ic="share" title="compartilhar"></button>
+            <button class="ac-icbtn" data-ic="back" title="voltar"></button>
+            <button class="ac-icbtn" data-ic="next" title="próximo"></button>
+          </div>
+          <p class="kv" style="margin-top:6px">Inline: <span class="ac-icsym" data-ic="search"></span> Buscar • <span class="ac-icsym" data-ic="download"></span> Exportar • <span class="ac-icsym" data-ic="settings"></span> Ajustes</p>
+        </div>
+
+        <!-- Ritmo visual -->
+        <div class="tile span-12">
+          <h3>Ritmo visual</h3>
+          <p class="kv">Bordas principais: <strong>1px</strong> em containers e cards.</p>
+          <p class="kv">Raio: <strong>14–18px</strong>. Gutter do grid: <strong>14px</strong>. Altura padrão de cards de gráfico/tabela: <strong>≈220px</strong> (rolagem interna com sombras indicativas).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO E: Identidade Visual • Logos e Ícones oficiais 5Horas -->
+    <section class="sec" id="sec-identidade">
+      <h2>Identidade Visual • Logos e Ícones (oficiais)</h2>
+      <p class="sub">Arquivos fornecidos para uso em telas, cabeçalhos e materiais. Itens com fundo claro/escuro conforme destino de uso.</p>
+
+      <div class="brand-grid">
+        <!-- Logo Dark Transparente -->
+        <div class="brand-tile span-12">
+          <div class="brand-head">Logo • Dark • Transparente • 2000×500px (PNG)</div>
+          <div class="brand-body bg-dark">
+            <img src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png" alt="Logo Dark Transparente 2000x500px" title="Logo Dark Transparente 2000x500px"/>
+          </div>
+          <div class="brand-caption">Uso sugerido: tema dark / fundos escuros. Mantém transparência.</div>
+        </div>
+
+        <!-- Logo Light Transparente -->
+        <div class="brand-tile span-12" style="margin-top:12px">
+          <div class="brand-head">Logo • Light • Transparente • 2000×500px (WEBP)</div>
+          <div class="brand-body bg-light">
+            <img src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp" alt="Logo Light Transparente 2000x500px" title="Logo Light Transparente 2000x500px"/>
+          </div>
+          <div class="brand-caption">Uso sugerido: tema light / fundos claros. Mantém transparência.</div>
+        </div>
+
+        <!-- Ícone Light Transparente -->
+        <div class="brand-tile span-6" style="margin-top:12px">
+          <div class="brand-head">Ícone • Light • Transparente • 500×500px (WEBP)</div>
+          <div class="brand-body bg-light">
+            <img src="https://5horas.com.br/wp-content/uploads/2025/10/Icone-Light-Transparente-500x500px.webp" alt="Ícone Light Transparente 500x500px" title="Ícone Light Transparente 500x500px"/>
+          </div>
+          <div class="brand-caption">Uso sugerido: tema light / fundos claros.</div>
+        </div>
+
+        <!-- Ícone Dark Transparente -->
+        <div class="brand-tile span-6" style="margin-top:12px">
+          <div class="brand-head">Ícone • Dark • Transparente • 500×500px (PNG)</div>
+          <div class="brand-body bg-dark">
+            <img src="https://5horas.com.br/wp-content/uploads/2025/10/Icone-Dark-Transparente-500x500px.png" alt="Ícone Dark Transparente 500x500px" title="Ícone Dark Transparente 500x500px"/>
+          </div>
+          <div class="brand-caption">Uso sugerido: tema dark / fundos escuros.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO F: MiniCards • Etiquetas para lista de MiniApps (HomoState: fora; Lista: dentro) -->
+    <section class="sec" id="sec-minicards">
+      <h2>Modelos • MiniCards (etiquetas)</h2>
+      <p class="sub">Três tamanhos com <strong>mesma largura</strong> (coluna de 3 • <code>.span-4</code>) para a <strong>lista de MiniApps</strong>. Use <em>.sm</em>, <em>.md</em> ou <em>.lg</em> conforme a densidade desejada. <strong>Estado ativo é indicado pela borda laranja</strong> do MiniCard (sem ícone extra) para manter limpeza visual.</p>
+
+      <div class="mini-grid" aria-label="grade 3 colunas — minicards">
+        <!-- Pequeno -->
+        <div class="span-4">
+          <div class="minicard sm">
+            <div class="title">Login <span class="pill">ação</span></div>
+            <p class="meta">Acesso rápido • 1 toque</p>
+            <div class="signals"><span class="dot-s ok"></span><span class="dot-s"></span><span class="dot-s"></span></div>
+          </div>
+        </div>
+
+        <!-- Médio -->
+        <div class="span-4">
+          <div class="minicard md">
+            <div class="title">Sync <span class="pill">status</span></div>
+            <p class="meta">Último sync • 05/10/2025 09:41:00</p>
+            <p class="body">Provedor: Google Drive • Itens pendentes: 3</p>
+            <div class="signals"><span class="dot-s ok"></span><span class="dot-s warn"></span><span class="dot-s"></span></div>
+          </div>
+        </div>
+
+        <!-- Grande (com sinalizador) -->
+        <div class="span-4">
+          <div class="minicard lg is-active">
+            <div class="title">Backup <span class="pill">auto</span></div>
+            <p class="meta">Agendado • diário • 02:00</p>
+            <p class="body">Destino: Servidor 5Horas (criptografado)<br/>Último: 05/10/2025 09:41:00 • 184 MB</p>
+            <div class="signals"><span class="dot-s ok"></span><span class="dot-s ok"></span><span class="dot-s"></span><span class="dot-s err"></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="kv" style="margin-top:6px;color:#475569">Exemplo visual: o card “Backup” abaixo está <strong>ativo</strong> (borda laranja).</p>
+    </section>
+
+    <!-- SEÇÃO G: Ícones • Elementos • Botões (catálogo objetivo) -->
+    <section class="sec" id="sec-icones-elementos-botoes">
+      <h2>Ícones • Elementos • Botões</h2>
+      <p class="sub">Amostras visuais para compor etiquetas, cards e ações. Para ações, use <strong>ícones do sistema</strong> com tokens. Escolha aqui e combine com os modelos de layout.</p>
+
+      <div class="grid" aria-label="ícones e elementos">
+        <div class="tile span-4">
+          <h3>Ícones • Ações (sistema)</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap" class="ac-icfont">
+            <button class="ac-icbtn" data-ic="menu" title="menu"></button>
+            <button class="ac-icbtn" data-ic="close" title="fechar"></button>
+            <button class="ac-icbtn" data-ic="chev-down" title="abrir"></button>
+            <button class="ac-icbtn" data-ic="chev-right" title="avançar"></button>
+            <button class="ac-icbtn" data-ic="sort" title="ordenar"></button>
+            <button class="ac-icbtn" data-ic="add" title="adicionar"></button>
+            <button class="ac-icbtn" data-ic="remove" title="remover"></button>
+            <button class="ac-icbtn" data-ic="check" title="ok"></button>
+            <button class="ac-icbtn" data-ic="info" title="info"></button>
+            <button class="ac-icbtn" data-ic="warn" title="atenção"></button>
+            <button class="ac-icbtn" data-ic="refresh" title="atualizar"></button>
+            <button class="ac-icbtn" data-ic="download" title="baixar"></button>
+            <button class="ac-icbtn" data-ic="upload" title="enviar"></button>
+            <button class="ac-icbtn" data-ic="search" title="buscar"></button>
+            <button class="ac-icbtn" data-ic="settings" title="configurações"></button>
+            <button class="ac-icbtn" data-ic="share" title="compartilhar"></button>
+            <button class="ac-icbtn" data-ic="back" title="voltar"></button>
+            <button class="ac-icbtn" data-ic="next" title="próximo"></button>
+          </div>
+          <p class="kv" style="margin-top:6px">Inline: <span class="ac-icsym" data-ic="search"></span> Buscar • <span class="ac-icsym" data-ic="download"></span> Exportar • <span class="ac-icsym" data-ic="settings"></span> Ajustes</p>
+        </div>
+
+        <div class="tile span-4">
+          <h3>Elementos • Indicadores</h3>
+          <div class="elem">Cluster de status: <span class="dot-s ok" title="ok"></span> <span class="dot-s warn" title="atenção"></span> <span class="dot-s err" title="erro"></span> <span class="dot-s" title="neutro"></span></div>
+          <p class="kv" style="margin-top:8px">Pílulas: <span class="pill">sync</span> <span class="pill">backup</span> <span class="pill">segurança</span></p>
+          <p class="kv">Badges simples: <span class="pill" style="border-style:dashed">beta</span> <span class="pill" style="border-color:#94a3b8;color:#64748b">muted</span></p>
+        </div>
+
+        <div class="tile span-4">
+          <h3>Botões • Amostras</h3>
+          <p class="kv"><span class="btn">Primário</span> &nbsp; <span class="btn" style="background:#fff">Secundário</span> &nbsp; <span class="btn" style="border-color:var(--ac-crit);color:var(--ac-crit)">Perigo</span></p>
+          <p class="kv" style="margin-top:8px"><span class="switch"><span class="dot ok"></span><span>Ativo</span></span> &nbsp; <span class="switch"><span class="dot"></span><span>Inativo</span></span></p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot">Desenvolvido por 5Horas • Gabarito Visual • R1.3</footer>
+  </main>
+</body>
+</html>

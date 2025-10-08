@@ -23,6 +23,12 @@ de cadastro local, etiqueta do rail e painel principal.
 - Mantenha a suíte Playwright em `tests/` alinhada ao comportamento visível.
   Atualize ou adicione cenários quando alterar a interação da etiqueta, painel
   ou overlay de login.
+- Antes de iniciar qualquer fluxo operacional consulte o
+  [catálogo de manuais](manuals/README.md) e siga integralmente o procedimento
+  indicado. Em particular:
+  - `manuals/novo-idioma.md` para inclusão ou manutenção de idiomas.
+  - `manuals/novo-miniapp.md` para criação de MiniApps, garantindo a estrutura
+    multilíngue obrigatória desde o primeiro commit.
 
 ## Checklist rápido
 1. Abrir `appbase/index.html` após alterações para garantir que o layout 100vh,
