@@ -687,7 +687,6 @@ select {
   background: var(--ac-bg);
   border: none;
   border-radius: 0;
-  padding: 12px;
   position: relative;
   min-height: 0;
   height: 100%;
