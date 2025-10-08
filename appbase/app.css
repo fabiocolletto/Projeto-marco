@@ -687,7 +687,7 @@ select {
   background: var(--ac-bg);
   border: none;
   border-radius: 0;
-  padding: 16px;
+  padding: 12px;
   position: relative;
   min-height: 0;
   height: 100%;
@@ -710,14 +710,14 @@ select {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 48px 36px;
+  padding: 36px 28px;
   color: var(--ac-muted);
   flex: 1;
   overflow: auto;
   gap: 24px;
   background: var(--ac-stage-empty-bg);
   border: 2px dashed var(--ac-stage-empty-border);
-  border-radius: 28px;
+  border-radius: 24px;
   box-shadow: none;
 }
 
@@ -826,10 +826,6 @@ select {
 }
 
 @media (max-width: 960px) {
-  .ac-stage {
-    padding: 20px;
-  }
-
   .ac-stage__panel {
     border-radius: 28px;
   }
@@ -841,11 +837,11 @@ select {
 
 @media (max-width: 640px) {
   .ac-stage {
-    padding: 16px;
+    padding: 10px;
   }
 
   .ac-stage__empty {
-    padding: 28px;
+    padding: 24px;
   }
 
   .ac-panel {
