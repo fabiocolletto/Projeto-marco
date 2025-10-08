@@ -172,8 +172,17 @@ import {
     loginUser: document.querySelector('[data-login-user]'),
     loginAccount: document.querySelector('[data-login-account]'),
     loginLast: document.querySelector('[data-login-last]'),
+    summarySync: document.querySelector('[data-summary-sync]'),
+    summaryBackup: document.querySelector('[data-summary-backup]'),
     loginForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
+    sessionOverlay: document.querySelector(
+      '[data-panel-overlay][data-overlay-id="session"]'
+    ),
+    sessionOverlayTriggers: Array.from(
+      document.querySelectorAll('[data-overlay-trigger="session"]') || []
+    ),
+    sessionOverlayClose: document.querySelector('[data-overlay-close="session"]'),
     panelStatusDot: Array.from(
       document.querySelectorAll('[data-panel-status-dot]') || []
     ),
@@ -187,6 +196,10 @@ import {
     panelLoginHint: document.querySelector('[data-panel-login-hint]'),
     panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
     panelMeta: document.querySelector('[data-panel-meta]'),
+    syncMasterToggle: document.querySelector('[data-sync-master]'),
+    backupMasterToggle: document.querySelector('[data-backup-master]'),
+    syncMasterDot: document.querySelector('[data-sync-master-dot]'),
+    backupMasterDot: document.querySelector('[data-backup-master-dot]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
@@ -210,6 +223,7 @@ import {
     passwordInput: document.querySelector('[data-password-input]'),
     passwordToggle: document.querySelector('[data-password-toggle]'),
     passwordToggleIcon: document.querySelector('[data-password-toggle-icon]'),
+    stageExport: document.querySelector('[data-stage-export]'),
   };
 
   function fallbackFor(key, defaultValue = '') {
@@ -367,6 +381,8 @@ import {
   let currentTheme = normaliseTheme(resolveInitialTheme());
   let state = getEmptyState();
   let panelOpen = false;
+  let sessionOverlayOpen = false;
+  let sessionOverlayKeyHandler = null;
   let stateDirty = false;
   let feedbackTimer = null;
   let fullscreenSupported = isFullscreenSupported();
@@ -715,6 +731,10 @@ import {
       lastLogin: '',
       sessionActive: false,
       history: [],
+      syncEnabled: false,
+      backupEnabled: false,
+      lastSync: '',
+      lastBackup: '',
     };
   }
 
@@ -730,7 +750,22 @@ import {
         : '';
     const history = normaliseHistory(raw.history);
     const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
-    return { user, lastLogin, history, sessionActive };
+    const lastSync =
+      typeof raw.lastSync === 'string' && raw.lastSync.trim() ? raw.lastSync : '';
+    const lastBackup =
+      typeof raw.lastBackup === 'string' && raw.lastBackup.trim() ? raw.lastBackup : '';
+    const syncEnabled = Boolean(raw.syncEnabled);
+    const backupEnabled = Boolean(raw.backupEnabled);
+    return {
+      user,
+      lastLogin,
+      history,
+      sessionActive,
+      syncEnabled,
+      backupEnabled,
+      lastSync,
+      lastBackup,
+    };
   }
 
   function normaliseUser(rawUser) {
@@ -937,6 +972,7 @@ import {
     updatePanelAccessControl();
     updateAriaLabels();
     updateStatusSummary();
+    updateIntegrationToggles();
     updateStage();
     updateLoginFormFields();
     updateLogHistory();
@@ -1081,6 +1117,22 @@ import {
       clearElementTranslation(elements.loginLast, value);
     }
 
+    if (elements.summarySync) {
+      const value = state.lastSync ? formatDateTime(state.lastSync) : '—';
+      clearElementTranslation(
+        elements.summarySync,
+        state.syncEnabled && state.lastSync ? value : '—',
+      );
+    }
+
+    if (elements.summaryBackup) {
+      const value = state.lastBackup ? formatDateTime(state.lastBackup) : '—';
+      clearElementTranslation(
+        elements.summaryBackup,
+        state.backupEnabled && state.lastBackup ? value : '—',
+      );
+    }
+
     updatePanelIndicators({ hasData, loggedIn });
   }
 
@@ -1148,6 +1200,37 @@ import {
       setElementTextFromKey(elements.panelLoginHint, hintKey, {
         replacements,
       });
+    }
+  }
+
+  function updateIntegrationToggles() {
+    const syncEnabled = Boolean(state.syncEnabled);
+    if (elements.syncMasterToggle) {
+      elements.syncMasterToggle.setAttribute('aria-pressed', syncEnabled ? 'true' : 'false');
+      const labelNode = elements.syncMasterToggle.querySelector('.ac-ctrl-switch__label');
+      if (labelNode) {
+        labelNode.textContent = syncEnabled ? 'Sync ativada' : 'Sync desativada';
+      }
+      if (elements.syncMasterDot) {
+        elements.syncMasterDot.classList.toggle('ac-dot--ok', syncEnabled);
+        elements.syncMasterDot.classList.toggle('ac-dot--crit', !syncEnabled);
+      }
+    }
+
+    const backupEnabled = Boolean(state.backupEnabled);
+    if (elements.backupMasterToggle) {
+      elements.backupMasterToggle.setAttribute(
+        'aria-pressed',
+        backupEnabled ? 'true' : 'false',
+      );
+      const labelNode = elements.backupMasterToggle.querySelector('.ac-ctrl-switch__label');
+      if (labelNode) {
+        labelNode.textContent = backupEnabled ? 'Backup ativado' : 'Backup desativado';
+      }
+      if (elements.backupMasterDot) {
+        elements.backupMasterDot.classList.toggle('ac-dot--ok', backupEnabled);
+        elements.backupMasterDot.classList.toggle('ac-dot--crit', !backupEnabled);
+      }
     }
   }
 
@@ -1422,6 +1505,7 @@ import {
       };
     });
 
+    closeSessionOverlay({ focusTrigger: false });
     setLoginFeedback('success', LOGIN_SUCCESS_FEEDBACK_KEY);
   }
 
@@ -1443,6 +1527,69 @@ import {
     });
   }
 
+  function setSessionOverlayExpanded(expanded) {
+    if (!elements.sessionOverlayTriggers) {
+      return;
+    }
+    elements.sessionOverlayTriggers.forEach((trigger) => {
+      if (!trigger) {
+        return;
+      }
+      trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    });
+  }
+
+  function focusSessionOverlayFirstField() {
+    if (!sessionOverlayOpen) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      const target =
+        elements.loginForm?.querySelector('input, select, textarea, button');
+      if (target) {
+        target.focus();
+      }
+    });
+  }
+
+  function openSessionOverlay({ focus = true } = {}) {
+    if (!elements.sessionOverlay || sessionOverlayOpen) {
+      return;
+    }
+    sessionOverlayOpen = true;
+    elements.sessionOverlay.setAttribute('aria-hidden', 'false');
+    setSessionOverlayExpanded(true);
+    if (focus) {
+      focusSessionOverlayFirstField();
+    }
+    sessionOverlayKeyHandler = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeSessionOverlay({ focusTrigger: true });
+      }
+    };
+    document.addEventListener('keydown', sessionOverlayKeyHandler);
+  }
+
+  function closeSessionOverlay({ focusTrigger = false } = {}) {
+    if (!elements.sessionOverlay || !sessionOverlayOpen) {
+      return;
+    }
+    sessionOverlayOpen = false;
+    elements.sessionOverlay.setAttribute('aria-hidden', 'true');
+    setSessionOverlayExpanded(false);
+    if (sessionOverlayKeyHandler) {
+      document.removeEventListener('keydown', sessionOverlayKeyHandler);
+      sessionOverlayKeyHandler = null;
+    }
+    if (focusTrigger && elements.sessionOverlayTriggers.length > 0) {
+      const target = elements.sessionOverlayTriggers[0];
+      window.requestAnimationFrame(() => {
+        target?.focus();
+      });
+    }
+  }
+
   function openPanel({ focus = true } = {}) {
     const wasClosed = !panelOpen;
     panelOpen = true;
@@ -1455,6 +1602,7 @@ import {
   function closePanel({ focusButton = true } = {}) {
     const wasOpen = panelOpen;
     panelOpen = false;
+    closeSessionOverlay({ focusTrigger: false });
     updateUI();
     if (focusButton && wasOpen) {
       focusPanelAccess();
@@ -1473,6 +1621,20 @@ import {
     closePanel();
   }
 
+  function toggleSyncMaster() {
+    setState((previous) => ({
+      syncEnabled: !previous.syncEnabled,
+      lastSync: !previous.syncEnabled ? nowIso() : '',
+    }));
+  }
+
+  function toggleBackupMaster() {
+    setState((previous) => ({
+      backupEnabled: !previous.backupEnabled,
+      lastBackup: !previous.backupEnabled ? nowIso() : '',
+    }));
+  }
+
   async function handleLogoutPreserve() {
     if (!isLoggedIn()) {
       return;
@@ -1484,6 +1646,7 @@ import {
     });
     clearLoginFeedback();
     panelOpen = false;
+    closeSessionOverlay({ focusTrigger: false });
     await setState((previous) => {
       const nextHistory = historyEntry
         ? [historyEntry, ...(previous.history || [])]
@@ -1503,6 +1666,7 @@ import {
     }
     clearLoginFeedback();
     panelOpen = false;
+    closeSessionOverlay({ focusTrigger: false });
     await setState({
       user: null,
       lastLogin: '',
@@ -1573,6 +1737,35 @@ import {
       });
     }
 
+    if (elements.sessionOverlayTriggers.length > 0) {
+      elements.sessionOverlayTriggers.forEach((trigger) => {
+        trigger.addEventListener('click', (event) => {
+          event.preventDefault();
+          applyButtonFeedback(event.currentTarget);
+          if (sessionOverlayOpen) {
+            closeSessionOverlay({ focusTrigger: false });
+          } else {
+            openSessionOverlay();
+          }
+        });
+      });
+    }
+
+    if (elements.sessionOverlayClose) {
+      elements.sessionOverlayClose.addEventListener('click', (event) => {
+        event.preventDefault();
+        closeSessionOverlay({ focusTrigger: true });
+      });
+    }
+
+    if (elements.sessionOverlay) {
+      elements.sessionOverlay.addEventListener('click', (event) => {
+        if (event.target === elements.sessionOverlay) {
+          closeSessionOverlay();
+        }
+      });
+    }
+
     if (elements.fullscreenToggle) {
       elements.fullscreenToggle.addEventListener('click', handleFullscreenToggle);
     }
@@ -1626,6 +1819,22 @@ import {
         if (elements.passwordInput) {
           elements.passwordInput.focus();
         }
+      });
+    }
+
+    if (elements.syncMasterToggle) {
+      elements.syncMasterToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        toggleSyncMaster();
+      });
+    }
+
+    if (elements.backupMasterToggle) {
+      elements.backupMasterToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        toggleBackupMaster();
       });
     }
   }
