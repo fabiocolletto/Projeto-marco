@@ -6,26 +6,26 @@
   "meta": {
     "id": "mini-app-painel",
     "card": {
-      "label": "Painel de Operações",
+      "label": "Painel de Controles",
       "labelKey": "miniapps.operations.label",
-      "meta": "KPIs, dados mestres e status de recursos",
+      "meta": "Painel unificado de login, sync e backup do sistema",
       "metaKey": "miniapps.operations.meta",
-      "cta": "Abrir painel detalhado",
+      "cta": "Abrir painel de controles",
       "ctaKey": "miniapps.operations.cta"
     },
-    "badges": ["KPIs", "Alertas"],
+    "badges": ["Sistema", "Sync"],
     "badgeKeys": ["miniapps.operations.badge1", "miniapps.operations.badge2"],
     "panel": {
       "template": "panel-template-operations",
-      "meta": "Masters do painel operacional prontos para receber subcards.",
+      "meta": "Visão consolidada do painel de controles com integrações essenciais.",
       "metaKey": "miniapps.operations.panel"
     },
     "marketplace": {
-      "title": "Painel de Operações",
+      "title": "Painel de Controles",
       "titleKey": "market.catalog.operations.title",
-      "description": "KPIs, dados mestres e status unificado do tenant.",
+      "description": "Sessão, sincronização e backups prontos para monitoramento.",
       "descriptionKey": "market.catalog.operations.description",
-      "capabilities": ["KPIs", "Alertas", "Workflow"],
+      "capabilities": ["Sync", "Backup", "Sessão"],
       "capabilityKeys": [
         "market.catalog.operations.capability1",
         "market.catalog.operations.capability2",
