@@ -10,8 +10,11 @@ pelos agentes automáticos (Codex) antes de qualquer mudança em produção.
   para acionar a automação GitHub + Codex com instruções rígidas e revisão
   humana obrigatória.
 - [Manual de criação de novo MiniApp](./novo-miniapp.md) — estabelece a
-  estrutura inicial obrigatória de idiomas e os dados consumidos pelo serviço de
-  novos idiomas.
+  estrutura inicial obrigatória de idiomas, o fluxo operacional para gerar o
+  beta e os dados consumidos pelo serviço de novos idiomas.
+- [Checklist de entregáveis para MiniApp](./entregaveis-miniapp.md) — define a
+  documentação mínima, os responsáveis e os modelos a preencher antes da
+  submissão do MiniApp ao repositório e durante retrofits.
 
 Novos manuais devem ser acrescentados aqui em formato Markdown e citados no
 `agent.md` para manter o catálogo de procedimentos sempre atualizado.
