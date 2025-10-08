@@ -741,22 +741,36 @@
                           class="ac-table ac-table--compact"
                           aria-live="polite"
                         >
+                          <caption
+                            class="ac-visually-hidden"
+                            data-i18n="app.panel.history.title"
+                          >
+                            Eventos
+                          </caption>
+                          <colgroup>
+                            <col class="ac-history__col ac-history__col--revision" />
+                            <col class="ac-history__col ac-history__col--event" />
+                            <col class="ac-history__col ac-history__col--time" />
+                          </colgroup>
                           <thead>
                             <tr>
                               <th
                                 scope="col"
+                                class="ac-table__head--revision"
                                 data-i18n="app.panel.history.table.revision"
                               >
                                 Revisão
                               </th>
                               <th
                                 scope="col"
+                                class="ac-table__head--event"
                                 data-i18n="app.panel.history.table.event"
                               >
                                 Evento
                               </th>
                               <th
                                 scope="col"
+                                class="ac-table__head--time"
                                 data-i18n="app.panel.history.table.time"
                               >
                                 Horário

@@ -803,13 +803,15 @@ import {
         }
         return a.timestamp > b.timestamp ? -1 : 1;
       });
-    const filled = sorted.map((entry) => ({ ...entry }));
-    let revisionCounter = 0;
-    for (let index = filled.length - 1; index >= 0; index -= 1) {
-      revisionCounter += 1;
-      filled[index].revision = revisionCounter;
-    }
-    return filled;
+    const total = sorted.length;
+    return sorted.map((entry, index) => {
+      const revision = normaliseRevisionNumber(entry.revision);
+      if (revision > 0) {
+        return { ...entry, revision };
+      }
+      const fallbackRevision = total - index;
+      return { ...entry, revision: fallbackRevision };
+    });
   }
 
   function normaliseHistoryEntry(rawEntry) {
@@ -877,11 +879,10 @@ import {
     if (!VALID_HISTORY_TYPES.includes(type)) {
       return null;
     }
+    const providedTimestamp = normaliseRevisionTimestamp(options.timestamp);
     const base = {
       type,
-      timestamp: options.timestamp && typeof options.timestamp === 'string'
-        ? options.timestamp
-        : nowIso(),
+      timestamp: providedTimestamp || nowIso(),
     };
     if (options.mode === 'preserve' || options.mode === 'clear') {
       base.mode = options.mode;
@@ -891,6 +892,10 @@ import {
     }
     if (options.localeLabel && typeof options.localeLabel === 'string') {
       base.localeLabel = options.localeLabel;
+    }
+    const revision = normaliseRevisionNumber(options.revision);
+    if (revision > 0) {
+      base.revision = revision;
     }
     return normaliseHistoryEntry(base);
   }
@@ -907,7 +912,15 @@ import {
       };
     }
     const timestamp = normaliseRevisionTimestamp(entry.timestamp) || nowIso();
-    const nextRevision = history.length + 1;
+    const currentHistoryRevision = history.length
+      ? normaliseRevisionNumber(history[0]?.revision)
+      : 0;
+    const currentRevision = Math.max(
+      getRevisionNumber(previousState),
+      currentHistoryRevision
+    );
+    const requestedRevision = normaliseRevisionNumber(entry.revision);
+    const nextRevision = requestedRevision > 0 ? requestedRevision : currentRevision + 1;
     const entryWithMetadata = normaliseHistoryEntry({
       ...entry,
       timestamp,
@@ -916,14 +929,25 @@ import {
     if (!entryWithMetadata) {
       return {
         history,
-        revision: getRevisionNumber(previousState),
+        revision: currentRevision,
         revisionUpdatedAt: getRevisionTimestamp(previousState),
       };
     }
+    const existingRevision = normaliseRevisionNumber(entryWithMetadata.revision);
+    const filteredHistory = history.filter((item) => {
+      if (!item) {
+        return false;
+      }
+      const itemRevision = normaliseRevisionNumber(item.revision);
+      if (existingRevision > 0 && itemRevision > 0) {
+        return itemRevision !== existingRevision;
+      }
+      return true;
+    });
     return {
-      history: [entryWithMetadata, ...history],
-      revision: nextRevision,
-      revisionUpdatedAt: timestamp,
+      history: [entryWithMetadata, ...filteredHistory],
+      revision: existingRevision,
+      revisionUpdatedAt: entryWithMetadata.timestamp,
     };
   }
 
@@ -1427,10 +1451,13 @@ import {
     history.forEach((entry) => {
       const row = document.createElement('tr');
       const revisionCell = document.createElement('td');
+      revisionCell.className = 'ac-table__cell--revision';
       revisionCell.textContent = getHistoryRevisionLabel(entry);
       const eventCell = document.createElement('td');
+      eventCell.className = 'ac-table__cell--event';
       eventCell.textContent = getHistoryLabel(entry);
       const timeCell = document.createElement('td');
+      timeCell.className = 'ac-table__cell--time';
       timeCell.textContent = formatDateTime(entry.timestamp);
       row.appendChild(revisionCell);
       row.appendChild(eventCell);

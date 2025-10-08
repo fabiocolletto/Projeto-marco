@@ -1658,6 +1658,27 @@ select {
   border-bottom: var(--ac-border-width) solid rgba(15, 23, 42, 0.08);
 }
 
+.ac-table__cell--revision,
+.ac-table__head--revision {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ac-table__cell--time,
+.ac-table__head--time {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.ac-history__col--revision {
+  width: 5.5rem;
+}
+
+.ac-history__col--time {
+  width: 9rem;
+}
+
 .ac-table tbody tr:hover {
   background: var(--ac-hover);
 }
