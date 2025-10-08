@@ -1,0 +1,27 @@
+{
+  "miniapp": {
+    "painel": {
+      "card": {
+        "title": "Panel de Controles",
+        "subtitle": "Sesión, sincronización y copias de seguridad monitoradas en tiempo real.",
+        "cta": "Abrir panel de controles"
+      },
+      "badges": {
+        "system": "Sistema",
+        "sync": "Sync"
+      },
+      "panel": {
+        "meta": "Vista consolidada del panel de controles con integraciones esenciales."
+      },
+      "marketplace": {
+        "title": "Panel de Controles",
+        "description": "Sesión, sincronización y copias de seguridad monitoradas en tiempo real.",
+        "capabilities": {
+          "sync": "Sync en tiempo real",
+          "backup": "Copia de seguridad automática",
+          "session": "Sesión auditable"
+        }
+      }
+    }
+  }
+}

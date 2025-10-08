@@ -2,8 +2,13 @@ import {
   loadState as loadPersistedState,
   saveState as persistState,
 } from './storage/indexeddb.js';
+import { AppBase } from './runtime/app-base.js';
 
 (function () {
+  if (typeof window !== 'undefined' && !window.AppBase) {
+    window.AppBase = AppBase;
+  }
+
   const THEME_STORAGE_KEY = 'marco-appbase:theme';
   const FEEDBACK_TIMEOUT = 2200;
   const BUTTON_FEEDBACK_DURATION = 900;
@@ -150,6 +155,10 @@ import {
     [FOOTER_DIRTY_KEYS.disabled]: 'Indisponível offline',
     [SESSION_ACTIONS_LABEL_KEY]: 'Ações da sessão',
     [RAIL_LABEL_KEY]: 'Miniapps',
+    'app.rail.empty': 'Slot vazio — Adicione um mini-app',
+    'app.rail.loading': 'Carregando miniapps…',
+    'app.rail.error': 'Não foi possível carregar miniapps.',
+    'app.rail.fallback': 'Carregado via fallback local',
     [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
     [LOGIN_ERROR_FEEDBACK_KEY]: 'Informe nome e e-mail para continuar.',
     [LOGIN_SUCCESS_FEEDBACK_KEY]: 'Cadastro atualizado com sucesso.',
@@ -160,6 +169,83 @@ import {
     [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
     [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
   };
+
+  const MINIAPP_BOOT_CONFIG = {
+    tenantId: 'tenant-marco',
+    userId: 'appbase-admin',
+    catalogBaseUrl: 'https://cdn.marco.app/catalog',
+    defaults: { enabledMiniApps: ['painel-controles'] },
+    user: { enabledMiniApps: [], entitlements: {}, providers: {} },
+    miniApps: [
+      {
+        key: 'painel-controles',
+        manifestUrl: '../miniapps/painel-controles/manifest.json',
+        moduleUrl: '../miniapps/painel-controles/module.js',
+      },
+    ],
+    ui: { theme: 'light', layout: 'panel' },
+    meta: { version: '1.0.0', signature: 'appbase-r1', checksum: 'appbase-r1' },
+  };
+
+  const MINIAPP_FALLBACKS = [
+    {
+      key: 'painel-controles',
+      manifest: {
+        miniappId: 'painel-controles',
+        key: 'painel-controles',
+        name: 'Painel de Controles',
+        version: '1.0.0',
+        kind: 'system',
+        supportedLocales: ['pt-BR', 'en-US', 'es-ES'],
+        dictionaries: {
+          'pt-BR': './src/i18n/pt-BR.json',
+          'en-US': './src/i18n/en-US.json',
+          'es-ES': './src/i18n/es-ES.json',
+        },
+        meta: {
+          card: {
+            label: 'Painel de Controles',
+            labelKey: 'miniapp.painel.card.title',
+            meta: 'Sessão, sincronização e backups monitorados em tempo real.',
+            metaKey: 'miniapp.painel.card.subtitle',
+            cta: 'Abrir painel de controles',
+            ctaKey: 'miniapp.painel.card.cta',
+          },
+          badges: ['Sistema', 'Sync'],
+          badgeKeys: [
+            'miniapp.painel.badges.system',
+            'miniapp.painel.badges.sync',
+          ],
+          panel: {
+            meta: 'Visão consolidada do painel de controles com integrações essenciais.',
+            metaKey: 'miniapp.painel.panel.meta',
+          },
+          marketplace: {
+            title: 'Painel de Controles',
+            titleKey: 'miniapp.painel.marketplace.title',
+            description: 'Sessão, sincronização e backups monitorados em tempo real.',
+            descriptionKey: 'miniapp.painel.marketplace.description',
+            capabilities: ['Sync', 'Backup', 'Sessão'],
+            capabilityKeys: [
+              'miniapp.painel.marketplace.capabilities.sync',
+              'miniapp.painel.marketplace.capabilities.backup',
+              'miniapp.painel.marketplace.capabilities.session',
+            ],
+          },
+        },
+      },
+    },
+  ];
+
+  const miniAppState = {
+    loading: false,
+    entries: [],
+    error: null,
+    activeKey: null,
+  };
+
+  const miniAppInstances = new Map();
+  let miniAppChangeUnsubscribe = null;
 
   const elements = {
     stageShell: document.querySelector('[data-stage-shell]'),
@@ -194,6 +280,8 @@ import {
     panelLastLoginHint: document.querySelector('[data-panel-last-login-hint]'),
     panelLoginCount: document.querySelector('[data-panel-login-count]'),
     panelLoginHint: document.querySelector('[data-panel-login-hint]'),
+    miniAppRail: document.querySelector('[data-miniapp-rail]'),
+    miniAppRailTitle: document.querySelector('[data-miniapp-rail-title]'),
     panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
     panelMeta: document.querySelector('[data-panel-meta]'),
     syncMasterToggle: document.querySelector('[data-sync-master]'),
@@ -376,6 +464,432 @@ import {
     }
     element.removeAttribute('data-i18n');
     element.textContent = text;
+  }
+
+  function createFallbackDefinition(manifest) {
+    const meta = { ...(manifest.meta ?? {}) };
+    if (!meta.id) {
+      meta.id = manifest.miniappId ?? manifest.key ?? manifest.name ?? '';
+    }
+    return {
+      meta,
+      init() {
+        return {
+          destroy() {},
+        };
+      },
+    };
+  }
+
+  function createFallbackMap() {
+    const map = new Map();
+    MINIAPP_FALLBACKS.forEach((entry) => {
+      if (!entry?.key) {
+        return;
+      }
+      const manifest = { ...(entry.manifest ?? {}) };
+      manifest.meta = { ...(entry.manifest?.meta ?? {}) };
+      map.set(entry.key, {
+        definition: createFallbackDefinition(manifest),
+        manifest,
+      });
+    });
+    return map;
+  }
+
+  function getDictionaryValue(dictionary, path) {
+    if (!dictionary || !path) {
+      return null;
+    }
+    return path
+      .split('.')
+      .filter(Boolean)
+      .reduce((acc, segment) => (acc && typeof acc === 'object' ? acc[segment] : null), dictionary);
+  }
+
+  function getMiniAppDictionary(entry, locale) {
+    if (!entry?.dictionaries) {
+      return null;
+    }
+    if (locale && entry.dictionaries[locale]) {
+      return entry.dictionaries[locale];
+    }
+    const fallbackLocale = entry.manifest?.defaultLocale;
+    if (fallbackLocale && entry.dictionaries[fallbackLocale]) {
+      return entry.dictionaries[fallbackLocale];
+    }
+    const first = Object.values(entry.dictionaries)[0];
+    return (first && typeof first === 'object') ? first : null;
+  }
+
+  function translateMiniApp(entry, path, fallback) {
+    const locale = getActiveLocale();
+    const dictionary = getMiniAppDictionary(entry, locale);
+    const value = getDictionaryValue(dictionary, path);
+    if (typeof value === 'string' && value.trim()) {
+      return value;
+    }
+    return typeof fallback === 'string' && fallback ? fallback : '';
+  }
+
+  function updateMiniAppRailLabels() {
+    if (!elements.railShell) {
+      return;
+    }
+    const label = translate(RAIL_LABEL_KEY, fallbackFor(RAIL_LABEL_KEY));
+    elements.railShell.setAttribute('aria-label', label);
+    if (elements.miniAppRailTitle) {
+      setElementTextFromKey(elements.miniAppRailTitle, RAIL_LABEL_KEY);
+    }
+  }
+
+  function createRailStatusCard(messageKey, fallbackText) {
+    const article = document.createElement('article');
+    article.className = 'ac-miniapp-card ac-miniapp-card--empty minicard minicard--md is-empty';
+    article.setAttribute('role', 'listitem');
+    const wrapper = document.createElement('div');
+    wrapper.className = 'ac-miniapp-card__empty';
+    const icon = document.createElement('span');
+    icon.className = 'ac-miniapp-card__empty-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = '+';
+    const message = document.createElement('p');
+    message.className = 'ac-miniapp-card__empty-text';
+    message.textContent = translate(messageKey, fallbackText ?? fallbackFor(messageKey));
+    wrapper.appendChild(icon);
+    wrapper.appendChild(message);
+    article.appendChild(wrapper);
+    return article;
+  }
+
+  function getCardMeta(entry) {
+    const manifestMeta = entry?.manifest?.meta ?? {};
+    const moduleMeta = entry?.meta ?? {};
+    return {
+      card: manifestMeta.card ?? moduleMeta.card ?? {},
+      panel: manifestMeta.panel ?? moduleMeta.panel ?? {},
+      marketplace: manifestMeta.marketplace ?? moduleMeta.marketplace ?? {},
+      badges: manifestMeta.badges ?? moduleMeta.badges ?? [],
+      badgeKeys: manifestMeta.badgeKeys ?? moduleMeta.badgeKeys ?? [],
+    };
+  }
+
+  function createMiniAppCard(entry, { enabled, active }) {
+    const meta = getCardMeta(entry);
+    const article = document.createElement('article');
+    article.className = 'ac-miniapp-card minicard minicard--md';
+    article.dataset.miniapp = entry.key;
+    article.setAttribute('role', 'listitem');
+    article.tabIndex = enabled ? 0 : -1;
+    article.setAttribute('aria-pressed', active ? 'true' : 'false');
+    article.classList.toggle('is-active', Boolean(active));
+    article.classList.toggle('is-disabled', !enabled);
+    if (entry.fallback) {
+      article.dataset.fallback = 'true';
+    }
+
+    const head = document.createElement('div');
+    head.className = 'ac-miniapp-card__head';
+
+    const titles = document.createElement('div');
+    titles.className = 'ac-miniapp-card__titles';
+
+    const title = document.createElement('h3');
+    title.className = 'ac-miniapp-card__title';
+    title.textContent = translateMiniApp(
+      entry,
+      meta.card.labelKey ?? '',
+      meta.card.label ?? entry.key,
+    );
+    titles.appendChild(title);
+
+    const subtitleText = translateMiniApp(
+      entry,
+      meta.card.metaKey ?? '',
+      meta.card.meta ?? '',
+    );
+    if (subtitleText) {
+      const subtitle = document.createElement('p');
+      subtitle.className = 'ac-miniapp-card__subtitle';
+      subtitle.textContent = subtitleText;
+      titles.appendChild(subtitle);
+    }
+
+    head.appendChild(titles);
+    article.appendChild(head);
+
+    if (entry.fallback) {
+      const note = document.createElement('p');
+      note.className = 'ac-miniapp-card__note';
+      note.textContent = translate('app.rail.fallback', fallbackFor('app.rail.fallback'));
+      article.appendChild(note);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'ac-miniapp-card__actions';
+    const cta = document.createElement('button');
+    cta.className = 'ac-btn ac-btn--primary';
+    cta.type = 'button';
+    cta.disabled = !enabled;
+    cta.textContent = translateMiniApp(
+      entry,
+      meta.card.ctaKey ?? '',
+      meta.card.cta ?? translate('app.panel.stage.title', fallbackFor('app.panel.stage.title')),
+    );
+    cta.addEventListener('click', (event) => {
+      event.preventDefault();
+      openMiniApp(entry.key, { focus: true });
+    });
+    actions.appendChild(cta);
+    article.appendChild(actions);
+
+    article.addEventListener('click', (event) => {
+      if (event.target.closest('button')) {
+        return;
+      }
+      event.preventDefault();
+      openMiniApp(entry.key, { focus: false });
+    });
+
+    article.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openMiniApp(entry.key, { focus: true });
+      }
+    });
+
+    return article;
+  }
+
+  function ensureMiniAppInitialised(key, entry) {
+    if (miniAppInstances.has(key)) {
+      return miniAppInstances.get(key);
+    }
+    const module = AppBase.resolve(key);
+    if (!module || typeof module.init !== 'function') {
+      return null;
+    }
+    try {
+      const instance = module.init(elements.stage, {
+        manifest: entry?.manifest ?? null,
+        meta: entry?.meta ?? null,
+      });
+      miniAppInstances.set(key, instance ?? { destroy() {} });
+      return miniAppInstances.get(key);
+    } catch (error) {
+      console.error('AppBase: falha ao inicializar miniapp', key, error);
+      return null;
+    }
+  }
+
+  function openMiniApp(key, { focus = true } = {}) {
+    if (!key || !AppBase.isEnabled(key)) {
+      return;
+    }
+    const entry = miniAppState.entries.find((item) => item.key === key);
+    ensureMiniAppInitialised(key, entry);
+    miniAppState.activeKey = key;
+    renderMiniAppRail();
+    openPanel({ focus });
+  }
+
+  function renderMiniAppRail() {
+    if (!elements.miniAppRail) {
+      return;
+    }
+    updateMiniAppRailLabels();
+    const container = elements.miniAppRail;
+    container.innerHTML = '';
+
+    if (miniAppState.loading) {
+      container.appendChild(createRailStatusCard('app.rail.loading'));
+      return;
+    }
+
+    if (miniAppState.error) {
+      container.appendChild(createRailStatusCard('app.rail.error', miniAppState.error));
+      return;
+    }
+
+    const registered = miniAppState.entries.filter((entry) => entry.registered);
+    if (!registered.length) {
+      container.appendChild(createRailStatusCard('app.rail.empty'));
+      return;
+    }
+
+    const enabledSet = new Set(AppBase.getEnabledMiniApps());
+    if (!miniAppState.activeKey || !enabledSet.has(miniAppState.activeKey)) {
+      const fallbackActive = registered.find((entry) => enabledSet.has(entry.key)) ?? registered[0];
+      miniAppState.activeKey = fallbackActive ? fallbackActive.key : null;
+    }
+
+    registered.forEach((entry) => {
+      const node = createMiniAppCard(entry, {
+        enabled: enabledSet.has(entry.key),
+        active: entry.key === miniAppState.activeKey,
+      });
+      container.appendChild(node);
+    });
+  }
+
+  async function loadMiniAppManifest(entry, manifestUrl) {
+    if (entry?.manifest) {
+      return entry.manifest;
+    }
+    if (!manifestUrl) {
+      throw new Error(`Mini-app "${entry?.key ?? 'desconhecido'}" sem manifestUrl definido.`);
+    }
+    const response = await fetch(manifestUrl.href, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Falha ao carregar manifesto de ${entry?.key ?? 'mini-app'}. Código ${response.status}`);
+    }
+    return response.json();
+  }
+
+  async function instantiateMiniAppModule(entry, manifest, manifestUrl) {
+    const key = manifest.miniappId ?? manifest.key ?? entry.key;
+    if (!key) {
+      throw new Error('Manifesto de mini-app sem chave.');
+    }
+
+    const moduleType = manifest.module?.type ?? entry.moduleType ?? 'template';
+    if (moduleType === 'placeholder') {
+      return null;
+    }
+
+    const specifier = manifest.module?.url ?? entry.moduleUrl ?? null;
+    if (!specifier) {
+      const definition = createFallbackDefinition(manifest);
+      definition.meta = { ...(definition.meta ?? {}), ...(manifest.meta ?? {}) };
+      return definition;
+    }
+
+    const moduleUrl = manifestUrl ? new URL(specifier, manifestUrl).href : new URL(specifier, import.meta.url).href;
+    const factoryModule = await import(moduleUrl);
+    const factory =
+      typeof factoryModule.createModule === 'function'
+        ? factoryModule.createModule
+        : typeof factoryModule.createMiniAppModule === 'function'
+          ? factoryModule.createMiniAppModule
+          : typeof factoryModule.default === 'function'
+            ? factoryModule.default
+            : null;
+    if (!factory) {
+      throw new Error(`O módulo "${specifier}" não exporta uma fábrica compatível.`);
+    }
+    const definition = factory({ key, manifest, meta: manifest.meta ?? {} }) ?? null;
+    if (!definition || typeof definition.init !== 'function') {
+      throw new Error(`Mini-app ${key} não possui definição de módulo válida.`);
+    }
+    if (!definition.meta) {
+      definition.meta = manifest.meta ?? {};
+    }
+    return definition;
+  }
+
+  async function loadMiniAppDictionaries(manifest, manifestUrl) {
+    const dictionaries = {};
+    const supported = Array.isArray(manifest.supportedLocales)
+      ? manifest.supportedLocales
+      : [];
+    for (const locale of supported) {
+      const path = manifest.dictionaries?.[locale];
+      if (!path) {
+        continue;
+      }
+      try {
+        const url = manifestUrl ? new URL(path, manifestUrl).href : path;
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Falha ao carregar dicionário ${locale}`);
+        }
+        dictionaries[locale] = await response.json();
+      } catch (error) {
+        console.warn(`AppBase: falha ao carregar dicionário de ${manifest.miniappId ?? manifest.key ?? 'miniapp'} (${locale})`, error);
+      }
+    }
+    return dictionaries;
+  }
+
+  async function resolveMiniApp(entry, fallbackMap) {
+    const manifestUrl = entry?.manifestUrl ? new URL(entry.manifestUrl, import.meta.url) : null;
+    const result = {
+      key: entry?.key ?? null,
+      manifest: null,
+      dictionaries: {},
+      meta: null,
+      registered: false,
+      fallback: false,
+      error: null,
+    };
+
+    try {
+      const manifest = await loadMiniAppManifest(entry, manifestUrl);
+      const key = manifest.miniappId ?? manifest.key ?? entry.key;
+      if (!key) {
+        throw new Error('Manifesto de mini-app sem miniappId.');
+      }
+      result.key = key;
+      result.manifest = manifest;
+      const definition = await instantiateMiniAppModule(entry, manifest, manifestUrl);
+      if (!definition) {
+        return result;
+      }
+      AppBase.register(key, definition);
+      fallbackMap.delete(key);
+      result.registered = true;
+      result.meta = AppBase.getModuleMeta(key);
+      result.dictionaries = await loadMiniAppDictionaries(manifest, manifestUrl);
+      return result;
+    } catch (error) {
+      const fallbackKey = result.key ?? entry?.key ?? null;
+      result.error = error;
+      if (fallbackKey && fallbackMap.has(fallbackKey)) {
+        const fallbackEntry = fallbackMap.get(fallbackKey);
+        try {
+          AppBase.register(fallbackKey, fallbackEntry.definition);
+          fallbackMap.delete(fallbackKey);
+          result.key = fallbackKey;
+          result.manifest = fallbackEntry.manifest;
+          result.dictionaries = await loadMiniAppDictionaries(
+            fallbackEntry.manifest,
+            manifestUrl,
+          );
+          result.meta = AppBase.getModuleMeta(fallbackKey);
+          result.registered = true;
+          result.fallback = true;
+          console.warn(`Mini-app "${fallbackKey}" carregado via fallback local.`, error);
+        } catch (fallbackError) {
+          console.error(`Falha ao registrar fallback do mini-app "${fallbackKey}"`, fallbackError);
+        }
+      } else {
+        console.error(`Falha ao carregar mini-app "${fallbackKey ?? 'desconhecido'}"`, error);
+      }
+      return result;
+    }
+  }
+
+  async function initialiseMiniApps() {
+    miniAppState.loading = true;
+    miniAppState.error = null;
+    renderMiniAppRail();
+    const fallbackMap = createFallbackMap();
+    const resolved = [];
+
+    for (const entry of MINIAPP_BOOT_CONFIG.miniApps ?? []) {
+      const resolvedEntry = await resolveMiniApp(entry, fallbackMap);
+      resolved.push(resolvedEntry);
+    }
+
+    const registered = resolved.filter((entry) => entry.registered);
+    miniAppState.entries = registered;
+    miniAppState.loading = false;
+
+    if (!registered.length) {
+      miniAppState.error = translate('app.rail.error', fallbackFor('app.rail.error'));
+    }
+
+    renderMiniAppRail();
   }
 
   let currentTheme = normaliseTheme(resolveInitialTheme());
@@ -1692,6 +2206,7 @@ import {
     } else {
       updateUI();
     }
+    renderMiniAppRail();
     if (currentLocale) {
       lastLocaleSeen = currentLocale;
     }
@@ -1849,6 +2364,37 @@ import {
     }
 
     panelOpen = hasUser(state) && state.sessionActive;
+
+    await initialiseMiniApps();
+
+    if (typeof miniAppChangeUnsubscribe === 'function') {
+      try {
+        miniAppChangeUnsubscribe();
+      } catch (error) {
+        console.error('AppBase: falha ao encerrar observador de miniapps', error);
+      }
+    }
+
+    miniAppChangeUnsubscribe = AppBase.onChange((event) => {
+      if (!event || (event.type !== 'boot' && event.type !== 'toggle')) {
+        return;
+      }
+      const enabled = Array.isArray(event.enabled)
+        ? event.enabled
+        : AppBase.getEnabledMiniApps();
+      if (!miniAppState.activeKey || !enabled.includes(miniAppState.activeKey)) {
+        miniAppState.activeKey = enabled[0] ?? miniAppState.activeKey;
+      }
+      renderMiniAppRail();
+    });
+
+    AppBase.boot(MINIAPP_BOOT_CONFIG);
+
+    const enabledMiniApps = AppBase.getEnabledMiniApps();
+    if (enabledMiniApps.length && !miniAppState.activeKey) {
+      miniAppState.activeKey = enabledMiniApps[0];
+      renderMiniAppRail();
+    }
 
     setTheme(currentTheme, { persist: false });
     updateUI();

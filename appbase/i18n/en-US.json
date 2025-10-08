@@ -42,7 +42,10 @@
     },
     "rail": {
       "label": "Miniapps",
-      "empty": "Empty slot — Add a miniapp"
+      "empty": "Empty slot — Add a mini-app",
+      "loading": "Loading miniapps…",
+      "error": "Unable to load miniapps.",
+      "fallback": "Loaded via local fallback"
     },
     "stage": {
       "empty": {
