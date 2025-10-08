@@ -29,7 +29,8 @@
                 data-target="painel-controle"
                 aria-current="page"
               >
-                Painel de controle
+                <span class="ac-rail__card-indicator" aria-hidden="true"></span>
+                <span class="ac-rail__card-text">Painel de controle</span>
               </button>
             </li>
             <li>
@@ -38,7 +39,8 @@
                 class="ac-rail__card js-etiq"
                 data-target="visao-geral"
               >
-                Visão geral
+                <span class="ac-rail__card-indicator" aria-hidden="true"></span>
+                <span class="ac-rail__card-text">Visão geral</span>
               </button>
             </li>
             <li>
@@ -47,7 +49,8 @@
                 class="ac-rail__card js-etiq"
                 data-target="alertas"
               >
-                Alertas
+                <span class="ac-rail__card-indicator" aria-hidden="true"></span>
+                <span class="ac-rail__card-text">Alertas</span>
               </button>
             </li>
           </ul>
@@ -60,35 +63,42 @@
             tabindex="-1"
           >
             <header class="ac-panel__header">
-              <h1 id="heading-painel" class="ac-sr-only">Painel de controle</h1>
-              <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
-                <ol>
-                  <li><a href="#main-stage">Início</a></li>
-                  <li aria-current="page">Painel de controle</li>
-                </ol>
-              </nav>
-              <div class="ac-toolbar" role="toolbar" aria-label="Ações do painel">
-                <div class="ac-toolbar__group" aria-label="Sincronização">
-                  <span class="ac-toolbar__label">Serviços</span>
-                  <button
-                    type="button"
-                    class="ac-toggle js-toggle-sync"
-                    aria-pressed="false"
-                    aria-label="Alternar sincronização"
-                  >
-                    Sync
-                  </button>
-                  <button
-                    type="button"
-                    class="ac-toggle js-toggle-backup"
-                    aria-pressed="false"
-                    aria-label="Alternar backup"
-                  >
-                    Backup
-                  </button>
-                </div>
-                <div class="ac-toolbar__group">
-                  <button type="button" class="ac-btn js-export">Exportar CSV</button>
+              <div class="ac-panel__intro">
+                <h1 id="heading-painel" class="ac-panel__title">Painel de controle</h1>
+                <p class="ac-panel__subtitle">Visão detalhada</p>
+              </div>
+              <div class="ac-panel__meta">
+                <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
+                  <ol>
+                    <li><a href="#main-stage">Início</a></li>
+                    <li aria-current="page">Painel de controle</li>
+                  </ol>
+                </nav>
+                <div class="ac-toolbar" role="toolbar" aria-label="Ações do painel">
+                  <div class="ac-toolbar__group ac-toolbar__group--segment" aria-label="Sincronização">
+                    <span class="ac-toolbar__label">Serviços</span>
+                    <div class="ac-segmented">
+                      <button
+                        type="button"
+                        class="ac-toggle js-toggle-sync"
+                        aria-pressed="false"
+                        aria-label="Alternar sincronização"
+                      >
+                        Sync
+                      </button>
+                      <button
+                        type="button"
+                        class="ac-toggle js-toggle-backup"
+                        aria-pressed="false"
+                        aria-label="Alternar backup"
+                      >
+                        Backup
+                      </button>
+                    </div>
+                  </div>
+                  <div class="ac-toolbar__group">
+                    <button type="button" class="ac-btn js-export">Exportar CSV</button>
+                  </div>
                 </div>
               </div>
             </header>
@@ -196,16 +206,20 @@
             tabindex="-1"
           >
             <header class="ac-panel__header">
-              <h2 id="heading-visao" class="ac-sr-only">Visão geral</h2>
-              <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
-                <ol>
-                  <li><a href="#main-stage">Início</a></li>
-                  <li aria-current="page">Visão geral</li>
-                </ol>
-              </nav>
-              <div class="ac-toolbar" role="toolbar" aria-label="Ações da visão geral">
-                <div class="ac-toolbar__group">
-                  <button type="button" class="ac-btn ac-btn--ghost">Atualizar</button>
+              <div class="ac-panel__intro">
+                <h2 id="heading-visao" class="ac-panel__title">Visão geral</h2>
+              </div>
+              <div class="ac-panel__meta">
+                <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
+                  <ol>
+                    <li><a href="#main-stage">Início</a></li>
+                    <li aria-current="page">Visão geral</li>
+                  </ol>
+                </nav>
+                <div class="ac-toolbar" role="toolbar" aria-label="Ações da visão geral">
+                  <div class="ac-toolbar__group">
+                    <button type="button" class="ac-btn ac-btn--ghost">Atualizar</button>
+                  </div>
                 </div>
               </div>
             </header>
@@ -222,16 +236,20 @@
             tabindex="-1"
           >
             <header class="ac-panel__header">
-              <h2 id="heading-alertas" class="ac-sr-only">Alertas</h2>
-              <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
-                <ol>
-                  <li><a href="#main-stage">Início</a></li>
-                  <li aria-current="page">Alertas</li>
-                </ol>
-              </nav>
-              <div class="ac-toolbar" role="toolbar" aria-label="Ações de alertas">
-                <div class="ac-toolbar__group">
-                  <button type="button" class="ac-btn">Silenciar</button>
+              <div class="ac-panel__intro">
+                <h2 id="heading-alertas" class="ac-panel__title">Alertas</h2>
+              </div>
+              <div class="ac-panel__meta">
+                <nav class="ac-breadcrumb" aria-label="Navegação hierárquica">
+                  <ol>
+                    <li><a href="#main-stage">Início</a></li>
+                    <li aria-current="page">Alertas</li>
+                  </ol>
+                </nav>
+                <div class="ac-toolbar" role="toolbar" aria-label="Ações de alertas">
+                  <div class="ac-toolbar__group">
+                    <button type="button" class="ac-btn">Silenciar</button>
+                  </div>
                 </div>
               </div>
             </header>
