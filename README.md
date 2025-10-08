@@ -18,9 +18,12 @@ visual.
 ├── index.html                # Redirecionamento (GitHub Pages)
 ├── src/                      # Versão anterior do protótipo modular
 ├── MARCO_BLUEPRINT.md        # Blueprint consolidado do AppBase
+├── manuals/                  # Manuais N1 (fluxos operacionais oficiais)
 ├── README.md                 # Este documento
 └── agent.md                  # Diretrizes operacionais para contribuições
 ```
+
+**Guia oficial de criação/execução de MiniApps: ver `manuals/` (N1).**
 
 A pasta `src/` preserva o protótipo modular utilizado nas primeiras iterações.
 A pasta `appbase/` concentra a implementação atual do shell R1.1 com o novo
