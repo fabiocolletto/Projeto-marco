@@ -19,6 +19,12 @@
         "title": "Panel de control",
         "subtitle": "Vista detallada"
       },
+      "rail": {
+        "toggle": {
+          "collapse": "Ocultar miniapps",
+          "expand": "Mostrar miniapps"
+        }
+      },
       "theme": {
         "light": "Activar modo oscuro",
         "dark": "Activar modo claro"

@@ -48,7 +48,7 @@
           </p>
         </div>
         <div class="ac-appbar__actions">
-          <div class="ac-appbar__actions-buttons">
+          <div class="ac-appbar__actions-buttons" data-header-actions>
             <button
               class="ac-theme-toggle ac-panel-toggle"
               type="button"
@@ -59,6 +59,22 @@
               title="Abrir painel do usuário"
             >
               <span class="ac-theme-toggle__icon" aria-hidden="true">👤</span>
+            </button>
+            <button
+              class="ac-theme-toggle ac-rail-toggle"
+              type="button"
+              data-rail-toggle
+              aria-controls="miniapp-rail"
+              aria-expanded="true"
+              aria-label="Recolher miniapps"
+              title="Recolher miniapps"
+            >
+              <span class="ac-theme-toggle__icon" data-rail-toggle-icon aria-hidden="true"
+                >⮜</span
+              >
+              <span class="ac-visually-hidden" data-rail-toggle-label
+                >Recolher miniapps</span
+              >
             </button>
             <button
               class="ac-theme-toggle"
@@ -122,7 +138,12 @@
       </header>
 
       <div class="ac-layout">
-        <aside class="ac-rail-shell" aria-label="Miniapps">
+        <aside
+          class="ac-rail-shell"
+          id="miniapp-rail"
+          aria-label="Miniapps"
+          data-rail-shell
+        >
           <nav class="ac-rail" role="list">
             <article class="ac-miniapp-card ac-miniapp-card--empty" role="listitem">
               <div class="ac-miniapp-card__empty">

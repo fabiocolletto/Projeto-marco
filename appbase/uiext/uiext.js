@@ -1,6 +1,6 @@
 "use strict";
 (function () {
-  const HEADER_SELECTOR = ".ac-appbar__actions";
+  const HEADER_SELECTOR = "[data-header-actions]";
   const ACTION_ATTR = "data-action-id";
   const ACTION_CLASS = "ac-header-action";
 

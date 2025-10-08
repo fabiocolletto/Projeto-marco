@@ -16,12 +16,17 @@ import {
     open: 'app.header.panel.trigger.open',
     close: 'app.header.panel.trigger.close',
   };
+  const RAIL_TOGGLE_LABEL_KEYS = {
+    collapse: 'app.header.rail.toggle.collapse',
+    expand: 'app.header.rail.toggle.expand',
+  };
   const BRAND_ICONS = {
     [THEMES.LIGHT]:
       'https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp',
     [THEMES.DARK]:
       'https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png',
   };
+  const RAIL_TOGGLE_ICONS = { collapse: '⮜', expand: '⮞' };
   const THEME_ICONS = { [THEMES.LIGHT]: '☀️', [THEMES.DARK]: '🌙' };
   const THEME_LABEL_KEYS = {
     [THEMES.LIGHT]: 'app.header.theme.light',
@@ -99,6 +104,7 @@ import {
     hide: 'app.panel.form.fields.password_toggle.hide',
   };
   const STAGE_PANEL_OPEN_CLASS = 'ac-stage--panel-open';
+  const LAYOUT_RAIL_COLLAPSED_CLASS = 'ac-layout--rail-collapsed';
   const PHONE_MAX_LENGTH = 11;
   const PASSWORD_TOGGLE_ICONS = { show: '👁', hide: '🙈' };
 
@@ -150,6 +156,8 @@ import {
     [FOOTER_DIRTY_KEYS.disabled]: 'Indisponível offline',
     [SESSION_ACTIONS_LABEL_KEY]: 'Ações da sessão',
     [RAIL_LABEL_KEY]: 'Miniapps',
+    [RAIL_TOGGLE_LABEL_KEYS.collapse]: 'Recolher miniapps',
+    [RAIL_TOGGLE_LABEL_KEYS.expand]: 'Mostrar miniapps',
     [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
     [LOGIN_ERROR_FEEDBACK_KEY]: 'Informe nome e e-mail para continuar.',
     [LOGIN_SUCCESS_FEEDBACK_KEY]: 'Cadastro atualizado com sucesso.',
@@ -162,8 +170,12 @@ import {
   };
 
   const elements = {
+    layout: document.querySelector('.ac-layout'),
     stageShell: document.querySelector('[data-stage-shell]'),
-    railShell: document.querySelector('.ac-rail-shell'),
+    railShell: document.querySelector('[data-rail-shell]'),
+    railToggle: document.querySelector('[data-rail-toggle]'),
+    railToggleIcon: document.querySelector('[data-rail-toggle-icon]'),
+    railToggleLabel: document.querySelector('[data-rail-toggle-label]'),
     stage: document.getElementById('painel-stage'),
     stageTitle: document.getElementById('painel-stage-title'),
     stageClose: document.querySelector('[data-stage-close]'),
@@ -350,6 +362,64 @@ import {
     setPasswordVisibility(!passwordVisible);
   }
 
+  function applyRailVisibility() {
+    if (elements.layout) {
+      elements.layout.classList.toggle(LAYOUT_RAIL_COLLAPSED_CLASS, railCollapsed);
+    }
+    if (elements.railShell) {
+      elements.railShell.hidden = railCollapsed;
+      elements.railShell.setAttribute('aria-hidden', railCollapsed ? 'true' : 'false');
+    }
+  }
+
+  function updateRailToggleControl() {
+    if (!elements.railToggle) {
+      return;
+    }
+    const collapsed = Boolean(railCollapsed);
+    const labelKey = collapsed
+      ? RAIL_TOGGLE_LABEL_KEYS.expand
+      : RAIL_TOGGLE_LABEL_KEYS.collapse;
+    const label = translate(labelKey, fallbackFor(labelKey));
+    elements.railToggle.setAttribute('aria-label', label);
+    elements.railToggle.setAttribute('title', label);
+    elements.railToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    if (elements.railToggleIcon) {
+      const icon = collapsed ? RAIL_TOGGLE_ICONS.expand : RAIL_TOGGLE_ICONS.collapse;
+      elements.railToggleIcon.textContent = icon;
+    }
+    if (elements.railToggleLabel) {
+      elements.railToggleLabel.setAttribute('data-i18n', labelKey);
+      elements.railToggleLabel.textContent = label;
+    }
+  }
+
+  function setRailCollapsed(next) {
+    const collapsed = Boolean(next);
+    if (railCollapsed === collapsed) {
+      applyRailVisibility();
+      updateRailToggleControl();
+      return;
+    }
+    railCollapsed = collapsed;
+    applyRailVisibility();
+    updateRailToggleControl();
+    if (
+      railCollapsed &&
+      elements.railShell &&
+      typeof elements.railShell.contains === 'function'
+    ) {
+      const active = document.activeElement;
+      if (active && elements.railShell.contains(active) && elements.railToggle) {
+        elements.railToggle.focus();
+      }
+    }
+  }
+
+  function toggleRailCollapsed() {
+    setRailCollapsed(!railCollapsed);
+  }
+
   function setElementTextFromKey(element, key, options = {}) {
     if (!element) {
       return;
@@ -390,6 +460,7 @@ import {
   let fullscreenNotice = '';
   const buttonFeedbackTimers = new WeakMap();
   let passwordVisible = false;
+  let railCollapsed = false;
   let localeSyncInitialised = false;
   let lastLocaleSeen = null;
 
@@ -967,6 +1038,8 @@ import {
 
   function updateUI() {
     updateThemeAssets(currentTheme);
+    applyRailVisibility();
+    updateRailToggleControl();
     updateFullscreenToggle(fullscreenActive);
     updateDocumentTitle();
     updatePanelAccessControl();
@@ -1724,6 +1797,14 @@ import {
         event.preventDefault();
         applyButtonFeedback(event.currentTarget);
         togglePanelAccess();
+      });
+    }
+
+    if (elements.railToggle) {
+      elements.railToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        toggleRailCollapsed();
       });
     }
 

@@ -19,6 +19,12 @@
         "title": "Painel de controle",
         "subtitle": "Visão detalhada"
       },
+      "rail": {
+        "toggle": {
+          "collapse": "Recolher miniapps",
+          "expand": "Mostrar miniapps"
+        }
+      },
       "theme": {
         "light": "Ativar modo escuro",
         "dark": "Ativar modo claro"

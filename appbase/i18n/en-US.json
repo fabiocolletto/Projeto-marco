@@ -19,6 +19,12 @@
         "title": "Control panel",
         "subtitle": "Detailed view"
       },
+      "rail": {
+        "toggle": {
+          "collapse": "Hide miniapps",
+          "expand": "Show miniapps"
+        }
+      },
       "theme": {
         "light": "Enable dark mode",
         "dark": "Enable light mode"
