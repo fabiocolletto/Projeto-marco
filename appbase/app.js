@@ -69,6 +69,11 @@ import {
     logoutClear: 'app.history.event.logout_clear',
     locale: 'app.history.event.locale_change',
   };
+  const HISTORY_TABLE_KEYS = {
+    revision: 'app.panel.history.table.revision',
+    event: 'app.panel.history.table.event',
+    time: 'app.panel.history.table.time',
+  };
   const LOCALE_NAME_FALLBACKS = {
     'pt-BR': 'Brasil',
     'en-US': 'Estados Unidos',
@@ -140,7 +145,9 @@ import {
     [HISTORY_EVENT_KEYS.logoutPreserve]: 'Logoff (dados mantidos)',
     [HISTORY_EVENT_KEYS.logoutClear]: 'Logoff (dados removidos)',
     [HISTORY_EVENT_KEYS.locale]: 'Idioma alterado para {{locale}}',
-    'app.panel.history.table.revision': 'Revisão',
+    [HISTORY_TABLE_KEYS.revision]: 'Revisão',
+    [HISTORY_TABLE_KEYS.event]: 'Evento',
+    [HISTORY_TABLE_KEYS.time]: 'Horário',
     'app.locale.menu.title': 'Idioma do AppBase',
     'app.locale.menu.options.pt-BR': 'Brasil',
     'app.locale.menu.options.en-US': 'Estados Unidos',
@@ -195,6 +202,7 @@ import {
     panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
     panelMeta: document.querySelector('[data-panel-meta]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
+    logTableHead: document.querySelector('[data-login-log-table] thead tr'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
@@ -1429,6 +1437,62 @@ import {
     return '—';
   }
 
+  function ensureHistoryTableStructure() {
+    if (!elements.logTableWrap) {
+      return;
+    }
+    if (!elements.logTableHead || !elements.logTableHead.isConnected) {
+      elements.logTableHead = elements.logTableWrap.querySelector('thead tr');
+    }
+    const headRow = elements.logTableHead;
+    if (!headRow) {
+      return;
+    }
+
+    const { revision, event, time } = HISTORY_TABLE_KEYS;
+
+    const ensureHeader = (target, key, className) => {
+      if (!target) {
+        return null;
+      }
+      if (className) {
+        target.classList.add(className);
+      }
+      if (!target.getAttribute('data-i18n')) {
+        target.setAttribute('data-i18n', key);
+      }
+      setElementTextFromKey(target, key, { fallbackKey: key });
+      return target;
+    };
+
+    const headerCells = Array.from(headRow.querySelectorAll('th'));
+
+    let eventHeader =
+      headerCells.find((cell) => cell.getAttribute('data-i18n') === event) ||
+      headerCells[0] ||
+      null;
+    eventHeader = ensureHeader(eventHeader, event, 'ac-table__head--event');
+
+    let timeHeader =
+      headerCells.find((cell) => cell.getAttribute('data-i18n') === time) ||
+      (headerCells.length > 1 ? headerCells[headerCells.length - 1] : null);
+    timeHeader = ensureHeader(timeHeader, time, 'ac-table__head--time');
+
+    let revisionHeader = headRow.querySelector('.ac-table__head--revision');
+    if (!revisionHeader) {
+      revisionHeader = document.createElement('th');
+      revisionHeader.scope = 'col';
+      revisionHeader.className = 'ac-table__head--revision';
+      revisionHeader.setAttribute('data-i18n', revision);
+      if (eventHeader && eventHeader.parentNode === headRow) {
+        headRow.insertBefore(revisionHeader, eventHeader);
+      } else {
+        headRow.insertBefore(revisionHeader, headRow.firstChild);
+      }
+    }
+    ensureHeader(revisionHeader, revision, 'ac-table__head--revision');
+  }
+
   function updateLogHistory() {
     if (
       !elements.logTableBody ||
@@ -1437,6 +1501,7 @@ import {
     ) {
       return;
     }
+    ensureHistoryTableStructure();
     elements.logTableBody.textContent = '';
     const history = Array.isArray(state.history) ? state.history : [];
     if (history.length === 0) {

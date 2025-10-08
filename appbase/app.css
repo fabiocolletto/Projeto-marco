@@ -1663,19 +1663,13 @@ select {
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  width: 5.5rem;
 }
 
 .ac-table__cell--time,
 .ac-table__head--time {
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
-}
-
-.ac-history__col--revision {
-  width: 5.5rem;
-}
-
-.ac-history__col--time {
   width: 9rem;
 }
 
