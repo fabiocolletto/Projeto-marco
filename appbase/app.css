@@ -682,12 +682,12 @@ select {
 }
 
 .ac-stage {
-  display: flex;
-  flex-direction: column;
-  background: var(--ac-bg);
+  position: relative;
+  display: grid;
+  place-items: center;
+  background: none;
   border: none;
   border-radius: 0;
-  position: relative;
   min-height: 0;
   height: 100%;
   overflow: hidden;
@@ -696,40 +696,41 @@ select {
 }
 
 .ac-stage--panel-open {
-  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
   background: none;
   border: none;
   box-shadow: none;
+  padding: 0;
 }
 
 .ac-stage--panel-open .ac-stage__panel {
   border-radius: 0;
 }
 
+
 .ac-stage__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  display: grid;
+  place-items: center;
+  width: min(100%, 560px);
+  margin: 0 auto;
+  padding: 48px 24px;
   color: var(--ac-muted);
-  flex: 1;
-  overflow: auto;
-  gap: 24px;
-  background: var(--ac-stage-empty-bg);
-  border: 2px dashed var(--ac-stage-empty-border);
-  border-radius: 24px;
+  text-align: center;
+  background: transparent;
+  border: none;
+  border-radius: 0;
   box-shadow: none;
-  padding: 0;
+  gap: 12px;
 }
 
 .ac-stage__empty-main {
-  flex: 1;
   display: grid;
-  place-items: center;
   gap: 12px;
-  text-align: center;
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 36px 28px 0;
+  margin: 0;
+  padding: 0;
 }
 
 .ac-stage__empty-main [data-stage-empty-message] {
@@ -737,6 +738,13 @@ select {
   font-size: 1.2rem;
   font-weight: 600;
   color: var(--ac-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 28px;
+  border-radius: 20px;
+  background: var(--ac-stage-empty-bg);
+  box-shadow: 0 24px 48px var(--ac-shadow);
 }
 
 .ac-history__empty--stage {
@@ -746,10 +754,10 @@ select {
 
 .ac-stage__empty-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 12px;
-  margin-top: auto;
-  padding: 0 28px 36px;
+  margin: 0;
+  padding: 0;
 }
 
 .ac-stage__panel {
@@ -843,15 +851,16 @@ select {
   }
 
   .ac-stage__empty {
-    padding: 0;
+    width: 100%;
+    padding: 32px 20px;
   }
 
   .ac-stage__empty-main {
-    padding: 24px 20px 0;
+    padding: 0;
   }
 
   .ac-stage__empty-actions {
-    padding: 0 20px 24px;
+    padding: 0;
   }
 
   .ac-panel {
