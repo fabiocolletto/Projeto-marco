@@ -103,7 +103,10 @@ test('cadastro atualiza painel e botão do cabeçalho', async ({ page }) => {
   await expect(page.locator('[data-login-user]')).toHaveText('Maria Fernanda');
   await expect(page.locator('[data-login-account]')).toHaveText('maria');
   await expect(page.locator('[data-login-last]')).not.toHaveText('—');
-  await expect(page.locator('[data-panel-status-label]')).toHaveText('Conectado');
+  const headerStatusLabel = page.locator(
+    '.ac-panel-card__head [data-panel-status-label]'
+  );
+  await expect(headerStatusLabel).toHaveText('Conectado');
   await expect(page.locator('[data-panel-login-count]')).toHaveText('1');
   await expect(page.locator('[data-panel-last-login]')).not.toHaveText('—');
   await expect(page).toHaveTitle('Projeto Marco — Maria');
@@ -172,7 +175,10 @@ test('sessão encerrada mantém painel sob controle do cabeçalho', async ({
   await expect(stage).toBeHidden();
   await expect(stageEmpty).toBeVisible();
   await expect(panelAccess).toHaveAttribute('aria-expanded', 'false');
-  await expect(page.locator('[data-panel-status-label]')).toHaveText('Desconectado');
+  const headerStatusLabel = page.locator(
+    '.ac-panel-card__head [data-panel-status-label]'
+  );
+  await expect(headerStatusLabel).toHaveText('Desconectado');
   const dirtyStatus = page.locator('[data-footer-dirty-status]');
   await expect(dirtyStatus).toHaveAttribute('aria-disabled', 'true');
   await expect(dirtyStatus.locator('[data-footer-dirty-label]')).toHaveText(
