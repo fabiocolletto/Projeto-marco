@@ -35,7 +35,8 @@ MiniApp “Painel de controle”.
 3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
    botão “Começar cadastro” ou o atalho de usuário na AppBar (ícone 👤) para
    abrir o painel detalhado e preencher o formulário diretamente no palco.
-4. Os dados cadastrados são guardados apenas no `localStorage` do navegador. Ao
+4. Os dados cadastrados são persistidos primariamente no IndexedDB local
+   (`marco-appbase/state`) com fallback automático para `localStorage`. Ao
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
    último acesso, e essas informações permanecem disponíveis em visitas
    futuras.
@@ -80,9 +81,9 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
   arquivos `icon-light-500.png` e `icon-dark-500.png`. A chave
   `marco-appbase:theme` no `localStorage` garante que a preferência retorne em
   novas sessões.
-- **Persistência local leve**: os dados são gravados no `localStorage`,
-  reaplicados automaticamente na próxima visita e podem ser editados a qualquer
-  momento sem dependências de sync/backup.
+- **Persistência local leve**: os dados são gravados no IndexedDB com fallback
+  transparente para `localStorage`, reaplicados automaticamente na próxima
+  visita e podem ser editados a qualquer momento sem dependências de sync/backup.
 - **Histórico de acessos e controles de sessão**: o painel detalhado lista os
   registros de login/logoff com rolagem a partir de cinco eventos. Os botões de
   encerrar sessão permanecem ao lado do formulário, permitindo manter os dados
@@ -96,9 +97,10 @@ permitindo que a preferência seja restaurada automaticamente na próxima visita
   estáticos, mantendo compatibilidade total com GitHub Pages e dispensando
   bundlers ou frameworks. O shell segue os tokens `--ac-*` e classes `ac-*`
   definidos no blueprint visual.
-- **Persistência via `localStorage`**: garante que o cadastro funcione offline,
-  sem dependências de sincronização ou backend. A normalização de dados cuida de
-  nomes, contas e datas para manter a UI consistente.
+- **Persistência via IndexedDB + fallback**: garante que o cadastro funcione
+  offline com o object store `marco-appbase/state`, migrando dados legados do
+  `localStorage` quando necessário. A normalização de dados cuida de nomes,
+  contas e datas para manter a UI consistente.
 - **Acessibilidade nativa**: o formulário e os controles compartilham rótulos,
   `aria-live` para feedback e foco gerenciado ao abrir o painel, garantindo uma
   experiência compatível com leitores de tela sem depender de bibliotecas

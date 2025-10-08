@@ -6,6 +6,9 @@ pelos agentes automáticos (Codex) antes de qualquer mudança em produção.
 
 ## Manuais disponíveis
 
+- [Manual operacional do AppBase](./appbase-operacional.md) — descreve as
+  funcionalidades e restrições do host (tema, fullscreen, login persistente,
+  rail acessível) que devem ser preservadas ao evoluir MiniApps.
 - [Manual de instalação de novo idioma](./novo-idioma.md) — inclui protocolo
   para acionar a automação GitHub + Codex com instruções rígidas e revisão
   humana obrigatória.

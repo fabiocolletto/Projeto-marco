@@ -1,0 +1,27 @@
+{
+  "miniapp": {
+    "boas_vindas": {
+      "card": {
+        "title": "Boas-vindas Marco",
+        "subtitle": "Teste o fluxo completo com o painel oficial habilitado.",
+        "cta": "Abrir painel principal"
+      },
+      "badges": {
+        "demo": "Demo",
+        "ready": "Pronto"
+      },
+      "panel": {
+        "meta": "MiniApp de demonstração que reutiliza o painel oficial."
+      },
+      "marketplace": {
+        "title": "Boas-vindas Marco",
+        "description": "Cartão de validação para garantir que o host está pronto para novos MiniApps.",
+        "capabilities": {
+          "demo": "Fluxo demo",
+          "panel": "Painel compartilhado",
+          "docs": "Documentação completa"
+        }
+      }
+    }
+  }
+}
