@@ -1,6 +1,7 @@
 # Agent.md
 
-> **Toda instrução operacional consolidada em `manuals/` (N1). Em caso de divergência, prevalece o manual; abrir PCM.**
+> **Consultar o repositório (`branch Projeto-Marco`) e seguir os modelos em [`manuals/`](manuals/index_R3.0.md) antes de propor mudanças.**
+> **Em caso de divergência entre código e manuais N1, prevalece `manuals/`; abrir PCM.**
 
 ## Propósito
 Este documento orienta futuras automações a evoluir o AppBase Marco mantendo-o
@@ -32,17 +33,17 @@ de cadastro local, etiqueta do rail e painel principal.
   `scripts/used-deps.txt` ao introduzir novos assets. Utilize
   `scripts/build-used-deps.sh` para reconstruir o manifesto e arquive legados em
   `archive/<data>/`.
-- Antes de iniciar qualquer fluxo operacional consulte o
-  [catálogo de manuais](manuals/README.md) e siga integralmente o procedimento
-  indicado. Esse diretório concentra o conteúdo N1 aplicável a todas as
-  operações. Em particular:
-  - `manuals/novo-idioma.md` para inclusão ou manutenção de idiomas.
-  - `manuals/novo-miniapp.md` para criação de MiniApps, garantindo a estrutura
-    multilíngue obrigatória desde o primeiro commit e o fluxo operacional de
-    montagem do beta.
-  - `manuals/entregaveis-miniapp.md` para gerar o pacote de documentação
-    (briefing, conteúdo, visual e QA) antes de abrir PRs e para orientar
-    atualizações futuras dos MiniApps já publicados.
+- Antes de iniciar qualquer fluxo operacional consulte o índice N1
+  [`manuals/index_R3.0.md`](manuals/index_R3.0.md) e siga integralmente o
+  procedimento indicado pelos modelos obrigatórios:
+  - [`manuals/modelo_miniapp_R3.0.md`](manuals/modelo_miniapp_R3.0.md) para
+    criação e evolução de MiniApps.
+  - [`manuals/modelo_pcm_R1.0.md`](manuals/modelo_pcm_R1.0.md) para processos de
+    mudança (PCM) e governança.
+  - [`manuals/modelo_release_notes_R1.0.md`](manuals/modelo_release_notes_R1.0.md)
+    para publicar notas de versão.
+  - [`manuals/modelo_testes_R1.0.md`](manuals/modelo_testes_R1.0.md) para planejar
+    e registrar a estratégia de testes.
 - `miniapps/` mantém apenas a versão ativa de cada MiniApp. Variantes
   anteriores e experimentos devem ser movidos para `archive/` com um diretório
   nomeado (`miniapps/<nome>/vYYYYMMDD/`, por exemplo) e referenciados no

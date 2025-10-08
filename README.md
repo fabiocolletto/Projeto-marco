@@ -5,6 +5,16 @@ navegador moderno sem build. A versão R1.4 mantém o shell completo com AppBar,
 rail lateral, palco central e miniapps ativos escritos em HTML, CSS e JavaScript
 vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 
+## Arquitetura
+
+- **Entrada única:** [`appbase/index.html`](appbase/index.html).
+- **Pacote Base v3.0 (obrigatório):** `_base/theme`, `_base/i18n`, `_base/security`, `_base/sync` e `_base/logs`;
+  consumido pelo [Marketplace R1.0 (placeholder)](manuals/marketplace_R1.0.md).
+- **Governança:** [`manuals/`](manuals/index_R3.0.md) é **N1**; divergências exigem abertura de
+  [`modelo_pcm_R1.0.md`](manuals/modelo_pcm_R1.0.md).
+- **Como criar um MiniApp:** siga o modelo
+  [`modelo_miniapp_R3.0.md`](manuals/modelo_miniapp_R3.0.md).
+
 ## Estrutura do repositório
 
 ```
@@ -35,7 +45,7 @@ vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 
 > **Entrada oficial:** `appbase/index.html`
 
-**Guia oficial de criação/execução de MiniApps: ver `manuals/` (N1).**
+**Guia oficial de criação/execução de MiniApps: seguir [`manuals/index_R3.0.md`](manuals/index_R3.0.md).**
 
 ## Como o repositório permanece limpo
 

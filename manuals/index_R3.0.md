@@ -10,15 +10,15 @@ Este índice é a **fonte única** para localizar e versionar os documentos oper
 **Regra de prevalência:** em caso de divergência entre código e manuais, **prevalece o manual**; abrir **PCM** para alinhar.
 
 ## Conjunto principal (R3.0)
-1. **AppBase v3.0** — `appbase_R3.0.md`
-2. **Pacote Base de MiniApps v3.0 (obrigatório)** — `miniapp_base_package_R3.0.md`
-3. **Marketplace (R1.0, placeholder)** — `marketplace_R1.0.md`
+1. [**AppBase v3.0** — `appbase_R3.0.md`](appbase_R3.0.md)
+2. [**Pacote Base de MiniApps v3.0 (obrigatório)** — `miniapp_base_package_R3.0.md`](miniapp_base_package_R3.0.md)
+3. [**Marketplace (R1.0, placeholder)** — `marketplace_R1.0.md`](marketplace_R1.0.md)
 
 ## Modelos (uso obrigatório)
-- `modelo_miniapp_R3.0.md` — criação de MiniApp
-- `modelo_pcm_R1.0.md` — processo de mudança
-- `modelo_release_notes_R1.0.md` — notas de versão
-- `modelo_testes_R1.0.md` — guia de testes (unit/E2E/contrato)
+- [`modelo_miniapp_R3.0.md`](modelo_miniapp_R3.0.md) — criação de MiniApp
+- [`modelo_pcm_R1.0.md`](modelo_pcm_R1.0.md) — processo de mudança
+- [`modelo_release_notes_R1.0.md`](modelo_release_notes_R1.0.md) — notas de versão
+- [`modelo_testes_R1.0.md`](modelo_testes_R1.0.md) — guia de testes (unit/E2E/contrato)
 
 ## Política de documentação
 - Cabeçalho padrão em todos os arquivos (Versão, Data, Status, Escopo).
