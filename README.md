@@ -14,9 +14,14 @@ visual.
 │   ├── index.html            # Shell do AppBase + MiniApp “Painel de controle”
 │   ├── app.css               # Tokens `--ac-*`, grid responsivo e overlays
 │   └── app.js                # Controle do painel, cadastro local e interações vanilla
+├── miniapps/
+│   ├── boas-vindas/          # MiniApp estabilizado (versão ativa)
+│   └── painel-controles/     # MiniApp ativo carregado no AppBase
 ├── assets/                   # Logos e imagens utilizadas pelo protótipo
 ├── index.html                # Redirecionamento (GitHub Pages)
-├── src/                      # Versão anterior do protótipo modular
+├── archive/
+│   ├── miniapps/             # Histórico de versões anteriores de MiniApps (quando houver)
+│   └── src-r0/               # Versão modular arquivada do protótipo (somente consulta)
 ├── MARCO_BLUEPRINT.md        # Blueprint consolidado do AppBase
 ├── manuals/                  # Manuais N1 (fluxos operacionais oficiais)
 ├── README.md                 # Este documento
@@ -25,16 +30,19 @@ visual.
 
 **Guia oficial de criação/execução de MiniApps: ver `manuals/` (N1).**
 
-A pasta `src/` preserva o protótipo modular utilizado nas primeiras iterações.
 A pasta `appbase/` concentra a implementação atual do shell R1.1 com o novo
-MiniApp “Painel de controle”.
+MiniApp “Painel de controle”. O protótipo modular legado foi movido para
+`archive/src-r0/` apenas para referência e não recebe atualizações. MiniApps
+ativos permanecem em `miniapps/`; versões anteriores devem ser transferidas
+para `archive/miniapps/` junto com o registro em `docs/changelog.md`.
 
 ## Como executar
 
 1. Clone ou baixe este repositório.
 2. Abra `appbase/index.html` em um navegador (Chrome, Edge, Firefox ou Safari).
    - O `index.html` na raiz redireciona automaticamente para essa versão.
-   - Para consultar a versão legada modular, abra `src/index.html` diretamente.
+   - Para consultar o protótipo modular arquivado, abra
+     `archive/src-r0/index.html` diretamente.
 3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
    botão “Começar cadastro” ou o atalho de usuário na AppBar (ícone 👤) para
    abrir o painel detalhado e preencher o formulário diretamente no palco.
