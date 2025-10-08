@@ -19,19 +19,40 @@ test.describe('MiniApp loader', () => {
     await page.goto('/appbase/index.html');
 
     const rail = page.locator('[data-miniapp-rail]');
-    const card = rail.locator('.ac-miniapp-card').first();
-    const title = card.locator('.ac-miniapp-card__title');
+    const cards = rail.locator('.ac-miniapp-card');
+    await expect(cards).toHaveCount(2);
 
-    await expect(card).toBeVisible();
-    await expect(title).toHaveText('Painel de Controles');
+    const painelCard = cards.first();
+    const painelTitle = painelCard.locator('.ac-miniapp-card__title');
+    const demoCard = cards.nth(1);
+    const demoTitle = demoCard.locator('.ac-miniapp-card__title');
+    const demoSubtitle = demoCard.locator('.ac-miniapp-card__subtitle');
+
+    await expect(painelCard).toBeVisible();
+    await expect(painelTitle).toHaveText('Painel de Controles');
+    await expect(demoTitle).toHaveText('Boas-vindas Marco');
+    await expect(demoSubtitle).toHaveText(
+      'Teste o fluxo completo com o painel oficial habilitado.'
+    );
 
     await page.evaluate(async () => window.AppBaseI18n?.setLocale?.('en-US'));
-    await expect(title).toHaveText('Control Panel');
+    await expect(painelTitle).toHaveText('Control Panel');
+    await expect(demoTitle).toHaveText('Marco Welcome');
+    await expect(demoSubtitle).toHaveText(
+      'Exercise the full flow with the official panel enabled.'
+    );
 
     await page.evaluate(async () => window.AppBaseI18n?.setLocale?.('es-ES'));
-    await expect(title).toHaveText('Panel de Controles');
+    await expect(painelTitle).toHaveText('Panel de Controles');
+    await expect(demoTitle).toHaveText('Bienvenida Marco');
+    await expect(demoSubtitle).toHaveText(
+      'Pruebe el flujo completo con el panel oficial habilitado.'
+    );
 
-    await card.click();
+    await painelCard.click();
+    await expect(page.locator('#painel-stage')).toBeVisible();
+
+    await demoCard.locator('.ac-btn').click();
     await expect(page.locator('#painel-stage')).toBeVisible();
   });
 
@@ -46,15 +67,39 @@ test.describe('MiniApp loader', () => {
     await page.route('**/miniapps/painel-controles/manifest.json', (route) => {
       route.fulfill({ status: 500, body: 'erro' });
     });
+    await page.route('**/miniapps/boas-vindas/manifest.json', (route) => {
+      route.fulfill({ status: 500, body: 'erro' });
+    });
 
     await page.goto('/appbase/index.html');
 
     const rail = page.locator('[data-miniapp-rail]');
-    const card = rail.locator('.ac-miniapp-card').first();
-    const note = card.locator('.ac-miniapp-card__note');
+    const cards = rail.locator('.ac-miniapp-card');
+    const painelFallback = cards.first();
+    const painelNote = painelFallback.locator('.ac-miniapp-card__note');
+    const demoFallback = cards.nth(1);
+    const demoNote = demoFallback.locator('.ac-miniapp-card__note');
 
-    await expect(card).toHaveAttribute('data-fallback', 'true');
-    await expect(note).toHaveText('Carregado via fallback local');
+    await expect(painelFallback).toHaveAttribute('data-fallback', 'true');
+    await expect(painelNote).toHaveText('Carregado via fallback local');
+    await expect(demoFallback).toHaveAttribute('data-fallback', 'true');
+    await expect(demoNote).toHaveText('Carregado via fallback local');
     expect(errors).toEqual([]);
+  });
+
+  test('card Boas-vindas reflete traduções e badges ativos', async ({ page }) => {
+    await page.goto('/appbase/index.html');
+
+    const demoCard = page.locator('[data-miniapp-rail] .ac-miniapp-card').nth(1);
+    const demoTitle = demoCard.locator('.ac-miniapp-card__title');
+    await expect(demoCard).toHaveAttribute('role', 'listitem');
+    await expect(demoCard).toHaveAttribute('tabindex', '0');
+    await expect(demoCard).toHaveAttribute('data-miniapp', 'boas-vindas');
+
+    await page.evaluate(async () => window.AppBaseI18n?.setLocale?.('en-US'));
+    await expect(demoTitle).toHaveText('Marco Welcome');
+
+    await page.evaluate(async () => window.AppBaseI18n?.setLocale?.('es-ES'));
+    await expect(demoTitle).toHaveText('Bienvenida Marco');
   });
 });

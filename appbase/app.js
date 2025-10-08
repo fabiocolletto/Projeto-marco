@@ -174,13 +174,18 @@ import { AppBase } from './runtime/app-base.js';
     tenantId: 'tenant-marco',
     userId: 'appbase-admin',
     catalogBaseUrl: 'https://cdn.marco.app/catalog',
-    defaults: { enabledMiniApps: ['painel-controles'] },
+    defaults: { enabledMiniApps: ['painel-controles', 'boas-vindas'] },
     user: { enabledMiniApps: [], entitlements: {}, providers: {} },
     miniApps: [
       {
         key: 'painel-controles',
         manifestUrl: '../miniapps/painel-controles/manifest.json',
         moduleUrl: '../miniapps/painel-controles/module.js',
+      },
+      {
+        key: 'boas-vindas',
+        manifestUrl: '../miniapps/boas-vindas/manifest.json',
+        moduleUrl: '../miniapps/boas-vindas/module.js',
       },
     ],
     ui: { theme: 'light', layout: 'panel' },
@@ -230,6 +235,54 @@ import { AppBase } from './runtime/app-base.js';
               'miniapp.painel.marketplace.capabilities.sync',
               'miniapp.painel.marketplace.capabilities.backup',
               'miniapp.painel.marketplace.capabilities.session',
+            ],
+          },
+        },
+      },
+    },
+    {
+      key: 'boas-vindas',
+      manifest: {
+        miniappId: 'boas-vindas',
+        key: 'boas-vindas',
+        name: 'Boas-vindas Marco',
+        version: '1.0.0',
+        kind: 'system',
+        supportedLocales: ['pt-BR', 'en-US', 'es-ES'],
+        dictionaries: {
+          'pt-BR': './src/i18n/pt-BR.json',
+          'en-US': './src/i18n/en-US.json',
+          'es-ES': './src/i18n/es-ES.json',
+        },
+        meta: {
+          card: {
+            label: 'Boas-vindas Marco',
+            labelKey: 'miniapp.boas_vindas.card.title',
+            meta: 'Teste o fluxo completo com o painel oficial habilitado.',
+            metaKey: 'miniapp.boas_vindas.card.subtitle',
+            cta: 'Abrir painel principal',
+            ctaKey: 'miniapp.boas_vindas.card.cta',
+          },
+          badges: ['Demo', 'Pronto'],
+          badgeKeys: [
+            'miniapp.boas_vindas.badges.demo',
+            'miniapp.boas_vindas.badges.ready',
+          ],
+          panel: {
+            meta: 'MiniApp de demonstração que reutiliza o painel oficial.',
+            metaKey: 'miniapp.boas_vindas.panel.meta',
+          },
+          marketplace: {
+            title: 'Boas-vindas Marco',
+            titleKey: 'miniapp.boas_vindas.marketplace.title',
+            description:
+              'Cartão de validação para garantir que o host está pronto para novos MiniApps.',
+            descriptionKey: 'miniapp.boas_vindas.marketplace.description',
+            capabilities: ['Fluxo demo', 'Painel compartilhado', 'Documentação completa'],
+            capabilityKeys: [
+              'miniapp.boas_vindas.marketplace.capabilities.demo',
+              'miniapp.boas_vindas.marketplace.capabilities.panel',
+              'miniapp.boas_vindas.marketplace.capabilities.docs',
             ],
           },
         },

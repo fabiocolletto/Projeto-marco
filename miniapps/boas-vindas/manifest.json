@@ -1,0 +1,54 @@
+{
+  "miniappId": "boas-vindas",
+  "key": "boas-vindas",
+  "name": "Boas-vindas Marco",
+  "version": "1.0.0",
+  "kind": "system",
+  "supportedLocales": ["pt-BR", "en-US", "es-ES"],
+  "dictionaries": {
+    "pt-BR": "./src/i18n/pt-BR.json",
+    "en-US": "./src/i18n/en-US.json",
+    "es-ES": "./src/i18n/es-ES.json"
+  },
+  "localeOwner": {
+    "name": "Laura Ribeiro",
+    "email": "localization@marco.app",
+    "team": "Experiência Multilíngue"
+  },
+  "releaseNotesPath": "./docs/changelog.md",
+  "meta": {
+    "card": {
+      "label": "Boas-vindas Marco",
+      "labelKey": "miniapp.boas_vindas.card.title",
+      "meta": "Teste o fluxo completo com o painel oficial habilitado.",
+      "metaKey": "miniapp.boas_vindas.card.subtitle",
+      "cta": "Abrir painel principal",
+      "ctaKey": "miniapp.boas_vindas.card.cta"
+    },
+    "badges": ["Demo", "Pronto"],
+    "badgeKeys": [
+      "miniapp.boas_vindas.badges.demo",
+      "miniapp.boas_vindas.badges.ready"
+    ],
+    "panel": {
+      "meta": "MiniApp de demonstração que reutiliza o painel oficial.",
+      "metaKey": "miniapp.boas_vindas.panel.meta"
+    },
+    "marketplace": {
+      "title": "Boas-vindas Marco",
+      "titleKey": "miniapp.boas_vindas.marketplace.title",
+      "description": "Cartão de validação para garantir que o host está pronto para novos MiniApps.",
+      "descriptionKey": "miniapp.boas_vindas.marketplace.description",
+      "capabilities": ["Fluxo demo", "Painel compartilhado", "Documentação completa"],
+      "capabilityKeys": [
+        "miniapp.boas_vindas.marketplace.capabilities.demo",
+        "miniapp.boas_vindas.marketplace.capabilities.panel",
+        "miniapp.boas_vindas.marketplace.capabilities.docs"
+      ]
+    }
+  },
+  "module": {
+    "type": "template",
+    "url": "./module.js"
+  }
+}
