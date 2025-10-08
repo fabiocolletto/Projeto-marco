@@ -130,7 +130,6 @@
         "title": "Historial de actividades",
         "subtitle": "Sigue inicios, cierres y cambios de idioma registrados en este navegador.",
         "table": {
-          "revision": "Revisión",
           "event": "Evento",
           "time": "Hora"
         }
@@ -158,13 +157,7 @@
         "dirty": "Cambios pendientes",
         "disabled": "No disponible sin conexión"
       },
-      "meta": {
-        "base": "Desarrollado por 5Horas • Proyecto Marco — AppBase R1.1",
-        "revision": {
-          "value": "Revisión {{revision}} • Actualizado el {{datetime}}",
-          "empty": "Revisión inicial • A la espera de actualizaciones"
-        }
-      },
+      "meta": "Desarrollado por 5Horas • Proyecto Marco — AppBase R1.1",
       "login": { "ok": "Conectado" }
     },
     "settings": {

@@ -130,7 +130,6 @@
         "title": "Activity history",
         "subtitle": "Track logins, logoffs, and language changes recorded in this browser.",
         "table": {
-          "revision": "Revision",
           "event": "Event",
           "time": "Time"
         }
@@ -158,13 +157,7 @@
         "dirty": "Unsaved changes",
         "disabled": "Unavailable offline"
       },
-      "meta": {
-        "base": "Developed by 5Horas • Marco Project — AppBase R1.1",
-        "revision": {
-          "value": "Revision {{revision}} • Updated on {{datetime}}",
-          "empty": "Initial revision • Waiting for updates"
-        }
-      },
+      "meta": "Developed by 5Horas • Marco Project — AppBase R1.1",
       "login": { "ok": "Connected" }
     },
     "settings": {

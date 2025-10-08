@@ -1,24 +1,11 @@
 "use strict";
 (function () {
-  const HEADER_SELECTORS = [
-    ".ac-appbar__actions-buttons",
-    ".ac-appbar__actions",
-  ];
+  const HEADER_SELECTOR = ".ac-appbar__actions";
   const ACTION_ATTR = "data-action-id";
   const ACTION_CLASS = "ac-header-action";
 
   function qs(selector) {
     return document.querySelector(selector);
-  }
-
-  function getHeaderContainer() {
-    for (const selector of HEADER_SELECTORS) {
-      const node = qs(selector);
-      if (node) {
-        return node;
-      }
-    }
-    return null;
   }
 
   const LOCALE_ACTION_ID = "app.locale";
@@ -99,26 +86,11 @@
     if (!action || !action.id) {
       return;
     }
-    const container = getHeaderContainer();
+    const container = qs(HEADER_SELECTOR);
     if (!container) {
       return;
     }
-    const existing = container.querySelector(
-      `[${ACTION_ATTR}="${action.id}"]`
-    );
-    if (existing) {
-      if (!existing.classList.contains(ACTION_CLASS)) {
-        existing.classList.add(ACTION_CLASS);
-      }
-      if (!existing.dataset.headerActionBound) {
-        existing.addEventListener("click", () => {
-          window.dispatchEvent(
-            new CustomEvent("app:header:action:click", { detail: { id: action.id } })
-          );
-        });
-        existing.dataset.headerActionBound = "true";
-      }
-      updateButtonLabels(existing);
+    if (container.querySelector(`[${ACTION_ATTR}="${action.id}"]`)) {
       return;
     }
     const button = document.createElement("button");
@@ -133,7 +105,6 @@
         new CustomEvent("app:header:action:click", { detail: { id: action.id } })
       );
     });
-    button.dataset.headerActionBound = "true";
     container.appendChild(button);
     updateButtonLabels(button);
   }
@@ -161,17 +132,7 @@
 
   async function init() {
     const catalog = await loadCatalog();
-    const headerEntries = Array.isArray(catalog.header)
-      ? catalog.header.slice()
-      : [];
-    if (!headerEntries.some((entry) => entry.id === LOCALE_ACTION_ID)) {
-      headerEntries.push({
-        id: LOCALE_ACTION_ID,
-        iconRef: "ac-i-globe",
-        tooltipKey: "app.header.locale",
-      });
-    }
-    headerEntries
+    (catalog.header || [])
       .filter((entry) => entry.id === LOCALE_ACTION_ID)
       .forEach(addHeaderAction);
     updateLocaleIndicators();

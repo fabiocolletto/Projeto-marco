@@ -69,11 +69,6 @@ import {
     logoutClear: 'app.history.event.logout_clear',
     locale: 'app.history.event.locale_change',
   };
-  const HISTORY_TABLE_KEYS = {
-    revision: 'app.panel.history.table.revision',
-    event: 'app.panel.history.table.event',
-    time: 'app.panel.history.table.time',
-  };
   const LOCALE_NAME_FALLBACKS = {
     'pt-BR': 'Brasil',
     'en-US': 'Estados Unidos',
@@ -90,9 +85,6 @@ import {
     disabled: 'app.footer.dirty.disabled',
   };
   const FOOTER_DIRTY_LABEL_KEY = 'app.footer.dirty.label';
-  const FOOTER_META_BASE_KEY = 'app.footer.meta.base';
-  const FOOTER_REVISION_KEY = 'app.footer.meta.revision.value';
-  const FOOTER_REVISION_EMPTY_KEY = 'app.footer.meta.revision.empty';
   const SESSION_ACTIONS_LABEL_KEY = 'app.panel.session.actions.label';
   const RAIL_LABEL_KEY = 'app.rail.label';
   const PANEL_KPIS_GROUP_LABEL_KEY = 'app.panel.kpis.group_label';
@@ -145,12 +137,6 @@ import {
     [HISTORY_EVENT_KEYS.logoutPreserve]: 'Logoff (dados mantidos)',
     [HISTORY_EVENT_KEYS.logoutClear]: 'Logoff (dados removidos)',
     [HISTORY_EVENT_KEYS.locale]: 'Idioma alterado para {{locale}}',
-    [HISTORY_TABLE_KEYS.revision]: 'Revisão',
-    [HISTORY_TABLE_KEYS.event]: 'Evento',
-    [HISTORY_TABLE_KEYS.time]: 'Horário',
-    [FOOTER_META_BASE_KEY]: 'Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1',
-    [FOOTER_REVISION_KEY]: 'Revisão {{revision}} • Atualizado em {{datetime}}',
-    [FOOTER_REVISION_EMPTY_KEY]: 'Revisão inicial • Aguardando atualizações',
     'app.locale.menu.title': 'Idioma do AppBase',
     'app.locale.menu.options.pt-BR': 'Brasil',
     'app.locale.menu.options.en-US': 'Estados Unidos',
@@ -202,7 +188,6 @@ import {
     panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
     panelMeta: document.querySelector('[data-panel-meta]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
-    logTableHead: document.querySelector('[data-login-log-table] thead tr'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
@@ -221,7 +206,6 @@ import {
     footerDirtyDot: document.querySelector('[data-footer-dirty-dot]'),
     footerDirtyLabel: document.querySelector('[data-footer-dirty-label]'),
     footerDirtyStatus: document.querySelector('[data-footer-dirty-status]'),
-    footerRevision: document.querySelector('[data-footer-revision]'),
     phoneInput: document.querySelector('[data-phone-input]'),
     passwordInput: document.querySelector('[data-password-input]'),
     passwordToggle: document.querySelector('[data-password-toggle]'),
@@ -725,56 +709,12 @@ import {
     syncFullscreenStateFromDocument();
   }
 
-  function normaliseRevisionNumber(value) {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-      return 0;
-    }
-    return Math.floor(parsed);
-  }
-
-  function normaliseRevisionTimestamp(value) {
-    return typeof value === 'string' && value.trim() ? value.trim() : '';
-  }
-
-  function applyRevisionToHistory(entries) {
-    if (!Array.isArray(entries) || entries.length === 0) {
-      return [];
-    }
-    const total = entries.length;
-    return entries.map((entry, index) => {
-      const revision = normaliseRevisionNumber(entry?.revision);
-      if (revision > 0) {
-        return { ...entry, revision };
-      }
-      const fallbackRevision = Math.max(total - index, 1);
-      return { ...entry, revision: fallbackRevision };
-    });
-  }
-
-  function getRevisionMetaFromHistory(history, fallbackRevision = 0, fallbackTimestamp = '') {
-    const entries = Array.isArray(history) ? history : [];
-    const latest = entries.length ? entries[0] : null;
-    const revision = latest
-      ? normaliseRevisionNumber(latest.revision)
-      : normaliseRevisionNumber(fallbackRevision);
-    const timestamp = latest
-      ? normaliseRevisionTimestamp(latest.timestamp)
-      : normaliseRevisionTimestamp(fallbackTimestamp);
-    return {
-      revision,
-      revisionUpdatedAt: timestamp,
-    };
-  }
-
   function getEmptyState() {
     return {
       user: null,
       lastLogin: '',
       sessionActive: false,
       history: [],
-      revision: 0,
-      revisionUpdatedAt: '',
     };
   }
 
@@ -783,28 +723,14 @@ import {
     if (!raw || typeof raw !== 'object') {
       return base;
     }
-    const merged = { ...base, ...raw };
-    const user = normaliseUser(merged.user);
+    const user = normaliseUser(raw.user);
     const lastLogin =
-      typeof merged.lastLogin === 'string' && merged.lastLogin.trim()
-        ? merged.lastLogin
+      typeof raw.lastLogin === 'string' && raw.lastLogin.trim()
+        ? raw.lastLogin
         : '';
-    const history = normaliseHistory(merged.history);
-    const sessionActive = Boolean(merged.sessionActive) && Boolean(user);
-    const { revision, revisionUpdatedAt } = getRevisionMetaFromHistory(
-      history,
-      merged.revision,
-      merged.revisionUpdatedAt
-    );
-    return {
-      ...merged,
-      user,
-      lastLogin,
-      history,
-      sessionActive,
-      revision,
-      revisionUpdatedAt,
-    };
+    const history = normaliseHistory(raw.history);
+    const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
+    return { user, lastLogin, history, sessionActive };
   }
 
   function normaliseUser(rawUser) {
@@ -834,7 +760,7 @@ import {
     if (!Array.isArray(rawHistory)) {
       return [];
     }
-    const sorted = rawHistory
+    return rawHistory
       .map((entry) => normaliseHistoryEntry(entry))
       .filter(Boolean)
       .sort((a, b) => {
@@ -843,7 +769,6 @@ import {
         }
         return a.timestamp > b.timestamp ? -1 : 1;
       });
-    return applyRevisionToHistory(sorted);
   }
 
   function normaliseHistoryEntry(rawEntry) {
@@ -853,7 +778,10 @@ import {
     const type = VALID_HISTORY_TYPES.includes(rawEntry.type)
       ? rawEntry.type
       : null;
-    const timestamp = normaliseRevisionTimestamp(rawEntry.timestamp);
+    const timestamp =
+      typeof rawEntry.timestamp === 'string' && rawEntry.timestamp.trim()
+        ? rawEntry.timestamp
+        : '';
     if (!type || !timestamp) {
       return null;
     }
@@ -874,10 +802,6 @@ import {
     }
     if (localeLabel) {
       entry.localeLabel = localeLabel;
-    }
-    const revision = normaliseRevisionNumber(rawEntry.revision);
-    if (revision > 0) {
-      entry.revision = revision;
     }
     return entry;
   }
@@ -915,38 +839,6 @@ import {
     return normaliseHistoryEntry(base);
   }
 
-  function appendHistoryEntry(previousState, entry) {
-    const previousHistory = Array.isArray(previousState?.history)
-      ? previousState.history
-      : [];
-    if (!entry) {
-      const { revision, revisionUpdatedAt } = getRevisionMetaFromHistory(
-        previousHistory,
-        previousState?.revision,
-        previousState?.revisionUpdatedAt
-      );
-      return { history: previousHistory, revision, revisionUpdatedAt };
-    }
-    const timestamp =
-      normaliseRevisionTimestamp(entry.timestamp) || nowIso();
-    const entryWithTimestamp = { ...entry, timestamp };
-    const normalisedEntry = normaliseHistoryEntry(entryWithTimestamp);
-    const combinedHistory = normalisedEntry
-      ? [normalisedEntry, ...previousHistory]
-      : previousHistory;
-    const history = normaliseHistory(combinedHistory);
-    const { revision, revisionUpdatedAt } = getRevisionMetaFromHistory(
-      history,
-      previousState?.revision,
-      previousState?.revisionUpdatedAt
-    );
-    return {
-      history,
-      revision,
-      revisionUpdatedAt,
-    };
-  }
-
   function recordLocaleHistory(locale) {
     if (!locale) {
       return false;
@@ -960,23 +852,9 @@ import {
     }
     setState((previous) => ({
       ...previous,
-      ...appendHistoryEntry(previous, historyEntry),
+      history: [historyEntry, ...(previous.history || [])],
     }));
     return true;
-  }
-
-  function getRevisionNumber(currentState = state) {
-    if (!currentState || typeof currentState !== 'object') {
-      return 0;
-    }
-    return normaliseRevisionNumber(currentState.revision);
-  }
-
-  function getRevisionTimestamp(currentState = state) {
-    if (!currentState || typeof currentState !== 'object') {
-      return '';
-    }
-    return normaliseRevisionTimestamp(currentState.revisionUpdatedAt);
   }
 
   function getDisplayName(user) {
@@ -1059,7 +937,6 @@ import {
     updatePanelAccessControl();
     updateAriaLabels();
     updateStatusSummary();
-    updateRevisionMeta();
     updateStage();
     updateLoginFormFields();
     updateLogHistory();
@@ -1158,27 +1035,6 @@ import {
         : FOOTER_DIRTY_KEYS.clean;
       setElementTextFromKey(elements.footerDirtyLabel, dirtyKey);
     }
-  }
-
-  function updateRevisionMeta() {
-    if (!elements.footerRevision) {
-      return;
-    }
-    const revision = getRevisionNumber();
-    const updatedAt = getRevisionTimestamp();
-    if (revision > 0 && updatedAt) {
-      setElementTextFromKey(elements.footerRevision, FOOTER_REVISION_KEY, {
-        fallbackKey: FOOTER_REVISION_KEY,
-        replacements: {
-          revision: `#${revision}`,
-          datetime: formatDateTime(updatedAt),
-        },
-      });
-      return;
-    }
-    setElementTextFromKey(elements.footerRevision, FOOTER_REVISION_EMPTY_KEY, {
-      fallbackKey: FOOTER_REVISION_EMPTY_KEY,
-    });
   }
 
   function updateStage() {
@@ -1431,69 +1287,6 @@ import {
     return '';
   }
 
-  function getHistoryRevisionLabel(entry) {
-    const revisionNumber = normaliseRevisionNumber(entry?.revision);
-    if (revisionNumber > 0) {
-      return `#${revisionNumber}`;
-    }
-    return '—';
-  }
-
-  function ensureHistoryTableStructure() {
-    if (!elements.logTableWrap) {
-      return;
-    }
-    if (!elements.logTableHead || !elements.logTableHead.isConnected) {
-      elements.logTableHead = elements.logTableWrap.querySelector('thead tr');
-    }
-    const headRow = elements.logTableHead;
-    if (!headRow) {
-      return;
-    }
-    const { revision, event, time } = HISTORY_TABLE_KEYS;
-
-    const ensureHeader = (target, key, className) => {
-      if (!target) {
-        return null;
-      }
-      if (className) {
-        target.classList.add(className);
-      }
-      if (!target.getAttribute('data-i18n')) {
-        target.setAttribute('data-i18n', key);
-      }
-      setElementTextFromKey(target, key, { fallbackKey: key });
-      return target;
-    };
-
-    const headerCells = Array.from(headRow.querySelectorAll('th'));
-
-    let eventHeader =
-      headerCells.find((cell) => cell.getAttribute('data-i18n') === event) ||
-      headerCells[0] ||
-      null;
-    eventHeader = ensureHeader(eventHeader, event, 'ac-table__head--event');
-
-    let timeHeader =
-      headerCells.find((cell) => cell.getAttribute('data-i18n') === time) ||
-      (headerCells.length > 1 ? headerCells[headerCells.length - 1] : null);
-    timeHeader = ensureHeader(timeHeader, time, 'ac-table__head--time');
-
-    let revisionHeader = headRow.querySelector('.ac-table__head--revision');
-    if (!revisionHeader) {
-      revisionHeader = document.createElement('th');
-      revisionHeader.scope = 'col';
-      revisionHeader.className = 'ac-table__head--revision';
-      revisionHeader.setAttribute('data-i18n', revision);
-      if (eventHeader && eventHeader.parentNode === headRow) {
-        headRow.insertBefore(revisionHeader, eventHeader);
-      } else {
-        headRow.insertBefore(revisionHeader, headRow.firstChild);
-      }
-    }
-    ensureHeader(revisionHeader, revision, 'ac-table__head--revision');
-  }
-
   function updateLogHistory() {
     if (
       !elements.logTableBody ||
@@ -1502,7 +1295,6 @@ import {
     ) {
       return;
     }
-    ensureHistoryTableStructure();
     elements.logTableBody.textContent = '';
     const history = Array.isArray(state.history) ? state.history : [];
     if (history.length === 0) {
@@ -1516,16 +1308,10 @@ import {
     const fragment = document.createDocumentFragment();
     history.forEach((entry) => {
       const row = document.createElement('tr');
-      const revisionCell = document.createElement('td');
-      revisionCell.className = 'ac-table__cell--revision';
-      revisionCell.textContent = getHistoryRevisionLabel(entry);
       const eventCell = document.createElement('td');
-      eventCell.className = 'ac-table__cell--event';
       eventCell.textContent = getHistoryLabel(entry);
       const timeCell = document.createElement('td');
-      timeCell.className = 'ac-table__cell--time';
       timeCell.textContent = formatDateTime(entry.timestamp);
-      row.appendChild(revisionCell);
       row.appendChild(eventCell);
       row.appendChild(timeCell);
       fragment.appendChild(row);
@@ -1619,10 +1405,11 @@ import {
     const historyEntry = createHistoryEntry('login', { timestamp });
     panelOpen = true;
     await setState((previous) => {
-      const historyPatch = appendHistoryEntry(previous, historyEntry);
+      const nextHistory = historyEntry
+        ? [historyEntry, ...(previous.history || [])]
+        : previous.history || [];
       return {
         ...previous,
-        ...historyPatch,
         user: {
           nomeCompleto: nome,
           email,
@@ -1631,6 +1418,7 @@ import {
         },
         lastLogin: timestamp,
         sessionActive: true,
+        history: nextHistory,
       };
     });
 
@@ -1697,11 +1485,13 @@ import {
     clearLoginFeedback();
     panelOpen = false;
     await setState((previous) => {
-      const historyPatch = appendHistoryEntry(previous, historyEntry);
+      const nextHistory = historyEntry
+        ? [historyEntry, ...(previous.history || [])]
+        : previous.history || [];
       return {
         ...previous,
-        ...historyPatch,
         sessionActive: false,
+        history: nextHistory,
       };
     });
     focusPanelAccess();
@@ -1713,7 +1503,12 @@ import {
     }
     clearLoginFeedback();
     panelOpen = false;
-    await setState(getEmptyState());
+    await setState({
+      user: null,
+      lastLogin: '',
+      sessionActive: false,
+      history: [],
+    });
     focusPanelAccess();
   }
 

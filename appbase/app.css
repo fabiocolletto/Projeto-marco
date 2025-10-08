@@ -246,52 +246,33 @@ select {
 }
 
 .ac-footer {
-  padding: 8px 16px;
   justify-content: space-between;
-  flex-wrap: nowrap;
-  gap: 16px;
-  font-size: 0.8rem;
-  line-height: 1.2;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.95rem;
   color: var(--ac-muted);
-  white-space: nowrap;
-  overflow-x: auto;
 }
 
 .ac-footer__status {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-weight: 500;
+  gap: 8px;
+  font-weight: 600;
   color: var(--ac-text);
-  flex-shrink: 0;
 }
 
 .ac-footer__status-text {
   font-weight: 500;
   color: var(--ac-muted);
-  font-size: 0.75rem;
 }
 
 .ac-footer__status-label {
   line-height: 1.2;
-  font-size: 0.75rem;
 }
 
 .ac-footer__meta {
   flex: 1 1 auto;
-  min-width: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: inherit;
-  font-size: 0.75rem;
-}
-
-.ac-footer__revision {
-  font-weight: 500;
-  color: var(--ac-text);
-  font-size: 0.75rem;
+  text-align: center;
 }
 
 .ac-brand {
@@ -1666,26 +1647,6 @@ select {
 .ac-table tbody td {
   padding: 12px 16px;
   border-bottom: var(--ac-border-width) solid rgba(15, 23, 42, 0.08);
-}
-
-.ac-table__cell--revision,
-.ac-table__head--revision {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  width: 5.5rem;
-}
-
-.ac-table__cell--time,
-.ac-table__head--time {
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  width: 9rem;
-}
-
-.ac-table__cell--event,
-.ac-table__head--event {
-  min-width: 0;
 }
 
 .ac-table tbody tr:hover {

@@ -130,7 +130,6 @@
         "title": "Histórico de atividades",
         "subtitle": "Acompanhe logins, logoffs e trocas de idioma registradas neste navegador.",
         "table": {
-          "revision": "Revisão",
           "event": "Evento",
           "time": "Horário"
         }
@@ -158,13 +157,7 @@
         "dirty": "Alterações pendentes",
         "disabled": "Indisponível offline"
       },
-      "meta": {
-        "base": "Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1",
-        "revision": {
-          "value": "Revisão {{revision}} • Atualizado em {{datetime}}",
-          "empty": "Revisão inicial • Aguardando atualizações"
-        }
-      },
+      "meta": "Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1",
       "login": { "ok": "Conectado" }
     },
     "settings": {
