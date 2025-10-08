@@ -6,7 +6,7 @@ async function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-test.describe('Localização da interface (src/)', () => {
+test.describe('Localização da interface (archive/src-r0/)', () => {
   test('aplica apenas a última troca de idioma ao abortar requisições antigas', async ({ page }) => {
     let firstLocaleRequest = true;
 
@@ -35,7 +35,7 @@ test.describe('Localização da interface (src/)', () => {
       await route.continue();
     });
 
-    await page.goto('/src/index.html');
+    await page.goto('/archive/src-r0/index.html');
 
     const select = page.locator('[data-action="change-locale"]');
     await expect(select).toBeVisible();

@@ -8,7 +8,7 @@
 
 ## Exemplo (tema automático + responsivo)
 <picture>
-  <source srcset="/Projeto-marco/assets/app/brand/logo-dark-800.webp 800w, /Projeto-marco/assets/app/brand/logo-dark-400.webp 400w" media="(prefers-color-scheme: dark)" type="image/webp">
-  <source srcset="/Projeto-marco/assets/app/brand/logo-light-800.webp 800w, /Projeto-marco/assets/app/brand/logo-light-400.webp 400w" media="(prefers-color-scheme: light)" type="image/webp">
-  <img src="/Projeto-marco/assets/app/brand/logo-light-400.webp" alt="Logo 5 Horas" width="400" height="100">
+  <source srcset="./app/brand/logo-dark-800.webp 800w, ./app/brand/logo-dark-400.webp 400w" media="(prefers-color-scheme: dark)" type="image/webp">
+  <source srcset="./app/brand/logo-light-800.webp 800w, ./app/brand/logo-light-400.webp 400w" media="(prefers-color-scheme: light)" type="image/webp">
+  <img src="./app/brand/logo-light-400.webp" alt="Logo 5 Horas" width="400" height="100">
 </picture>

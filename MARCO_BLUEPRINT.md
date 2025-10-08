@@ -6,6 +6,18 @@
 
 ---
 
+## Governança de repositório (R1.4)
+
+* `manuals/` concentra o conteúdo N1 obrigatório para operação; divergências
+  com o código devem ser alinhadas via PCM antes de merges.
+* `miniapps/` guarda apenas a versão ativa de cada MiniApp. Releases anteriores
+  vão para `archive/miniapps/<nome>/<versão>/` e permanecem documentadas no
+  changelog do respectivo módulo.
+* O protótipo modular legado encontra-se em `archive/src-r0/` somente para
+  consulta histórica; evoluções acontecem em `appbase/` e nos MiniApps ativos.
+
+---
+
 ## 0) Sumário executivo
 
 * **AppBase** é o **host** que carrega MiniApps definidos por uma **array de habilitação** por usuário/tenant.

@@ -10,7 +10,8 @@ de cadastro local, etiqueta do rail e painel principal.
 
 ## Diretrizes
 - Trabalhe dentro do diretório `appbase/`, que concentra `index.html`,
-  `app.css` e `app.js`. A raiz mantém apenas o redirecionamento.
+  `app.css` e `app.js`. A raiz mantém apenas o redirecionamento e as rotas
+  auxiliares (`miniapps/`, `manuals/` e `archive/`).
 - Preserve a estrutura shell + rail + palco + rodapé conforme especificação
   R1.0, reaproveitando classes prefixadas `ac-` para novos elementos.
 - Estilos permanecem centralizados em `app.css`, usando os tokens `--ac-*`
@@ -36,6 +37,12 @@ de cadastro local, etiqueta do rail e painel principal.
   - `manuals/entregaveis-miniapp.md` para gerar o pacote de documentação
     (briefing, conteúdo, visual e QA) antes de abrir PRs e para orientar
     atualizações futuras dos MiniApps já publicados.
+- `miniapps/` mantém apenas a versão ativa de cada MiniApp. Variantes
+  anteriores e experimentos devem ser movidos para `archive/` com um diretório
+  nomeado (`miniapps/<nome>/vYYYYMMDD/`, por exemplo) e referenciados no
+  changelog local.
+- O protótipo modular legado vive em `archive/src-r0/` somente para consulta.
+  Não copie arquivos diretamente dessa pasta; use-a como referência histórica.
 
 ## Checklist rápido
 1. Abrir `appbase/index.html` após alterações para garantir que o layout 100vh,

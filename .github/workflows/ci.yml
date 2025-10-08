@@ -69,6 +69,27 @@ jobs:
         run: npm test
         if: steps.workspace.outputs.has_node == 'true'
 
+      - name: Verificação de links Markdown
+        if: steps.workspace.outputs.has_node == 'true'
+        run: |
+          set -euo pipefail
+          for file in $(git ls-files '*.md'); do
+            echo "Checando links em ${file}"
+            npx --yes markdown-link-check --quiet --config .markdown-link-check.json "$file"
+          done
+
+      - name: Snapshot da árvore do repositório (profundidade 2)
+        if: steps.workspace.outputs.has_node == 'true'
+        run: |
+          if command -v tree >/dev/null 2>&1; then
+            tree -a -L 2
+          elif command -v npx >/dev/null 2>&1; then
+            npx --yes tree-cli -l 2 -a
+          else
+            echo "Nem tree nem npx estão disponíveis." >&2
+            exit 1
+          fi
+
       - name: Registrar verificação estática
         if: steps.workspace.outputs.has_node == 'false'
         run: echo "Nenhum workspace Node detectado; etapas baseadas em npm foram ignoradas."
