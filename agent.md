@@ -28,7 +28,11 @@ de cadastro local, etiqueta do rail e painel principal.
   indicado. Em particular:
   - `manuals/novo-idioma.md` para inclusão ou manutenção de idiomas.
   - `manuals/novo-miniapp.md` para criação de MiniApps, garantindo a estrutura
-    multilíngue obrigatória desde o primeiro commit.
+    multilíngue obrigatória desde o primeiro commit e o fluxo operacional de
+    montagem do beta.
+  - `manuals/entregaveis-miniapp.md` para gerar o pacote de documentação
+    (briefing, conteúdo, visual e QA) antes de abrir PRs e para orientar
+    atualizações futuras dos MiniApps já publicados.
 
 ## Checklist rápido
 1. Abrir `appbase/index.html` após alterações para garantir que o layout 100vh,
