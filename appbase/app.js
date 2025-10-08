@@ -85,6 +85,9 @@ import {
     disabled: 'app.footer.dirty.disabled',
   };
   const FOOTER_DIRTY_LABEL_KEY = 'app.footer.dirty.label';
+  const FOOTER_META_BASE_KEY = 'app.footer.meta.base';
+  const FOOTER_REVISION_KEY = 'app.footer.meta.revision.value';
+  const FOOTER_REVISION_EMPTY_KEY = 'app.footer.meta.revision.empty';
   const SESSION_ACTIONS_LABEL_KEY = 'app.panel.session.actions.label';
   const RAIL_LABEL_KEY = 'app.rail.label';
   const PANEL_KPIS_GROUP_LABEL_KEY = 'app.panel.kpis.group_label';
@@ -137,6 +140,7 @@ import {
     [HISTORY_EVENT_KEYS.logoutPreserve]: 'Logoff (dados mantidos)',
     [HISTORY_EVENT_KEYS.logoutClear]: 'Logoff (dados removidos)',
     [HISTORY_EVENT_KEYS.locale]: 'Idioma alterado para {{locale}}',
+    'app.panel.history.table.revision': 'Revisão',
     'app.locale.menu.title': 'Idioma do AppBase',
     'app.locale.menu.options.pt-BR': 'Brasil',
     'app.locale.menu.options.en-US': 'Estados Unidos',
@@ -148,6 +152,9 @@ import {
     [FOOTER_DIRTY_KEYS.clean]: 'Sincronizado',
     [FOOTER_DIRTY_KEYS.dirty]: 'Alterações pendentes',
     [FOOTER_DIRTY_KEYS.disabled]: 'Indisponível offline',
+    [FOOTER_META_BASE_KEY]: 'Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1',
+    [FOOTER_REVISION_KEY]: 'Revisão {{revision}} • Atualizado em {{datetime}}',
+    [FOOTER_REVISION_EMPTY_KEY]: 'Revisão inicial • Aguardando atualizações',
     [SESSION_ACTIONS_LABEL_KEY]: 'Ações da sessão',
     [RAIL_LABEL_KEY]: 'Miniapps',
     [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
@@ -206,6 +213,7 @@ import {
     footerDirtyDot: document.querySelector('[data-footer-dirty-dot]'),
     footerDirtyLabel: document.querySelector('[data-footer-dirty-label]'),
     footerDirtyStatus: document.querySelector('[data-footer-dirty-status]'),
+    footerRevision: document.querySelector('[data-footer-revision]'),
     phoneInput: document.querySelector('[data-phone-input]'),
     passwordInput: document.querySelector('[data-password-input]'),
     passwordToggle: document.querySelector('[data-password-toggle]'),
@@ -709,12 +717,26 @@ import {
     syncFullscreenStateFromDocument();
   }
 
+  function normaliseRevisionNumber(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return 0;
+    }
+    return Math.floor(parsed);
+  }
+
+  function normaliseRevisionTimestamp(value) {
+    return typeof value === 'string' && value.trim() ? value.trim() : '';
+  }
+
   function getEmptyState() {
     return {
       user: null,
       lastLogin: '',
       sessionActive: false,
       history: [],
+      revision: 0,
+      revisionUpdatedAt: '',
     };
   }
 
@@ -730,7 +752,19 @@ import {
         : '';
     const history = normaliseHistory(raw.history);
     const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
-    return { user, lastLogin, history, sessionActive };
+    const revisionFromState = normaliseRevisionNumber(raw.revision);
+    let revisionUpdatedAt = normaliseRevisionTimestamp(raw.revisionUpdatedAt);
+    const newestRevision = history.length
+      ? normaliseRevisionNumber(history[0].revision)
+      : 0;
+    const newestTimestamp = history.length
+      ? normaliseRevisionTimestamp(history[0].timestamp)
+      : '';
+    const revision = newestRevision || revisionFromState;
+    if (!revisionUpdatedAt) {
+      revisionUpdatedAt = newestTimestamp || '';
+    }
+    return { user, lastLogin, history, sessionActive, revision, revisionUpdatedAt };
   }
 
   function normaliseUser(rawUser) {
@@ -760,7 +794,7 @@ import {
     if (!Array.isArray(rawHistory)) {
       return [];
     }
-    return rawHistory
+    const sorted = rawHistory
       .map((entry) => normaliseHistoryEntry(entry))
       .filter(Boolean)
       .sort((a, b) => {
@@ -769,6 +803,13 @@ import {
         }
         return a.timestamp > b.timestamp ? -1 : 1;
       });
+    const filled = sorted.map((entry) => ({ ...entry }));
+    let revisionCounter = 0;
+    for (let index = filled.length - 1; index >= 0; index -= 1) {
+      revisionCounter += 1;
+      filled[index].revision = revisionCounter;
+    }
+    return filled;
   }
 
   function normaliseHistoryEntry(rawEntry) {
@@ -778,10 +819,7 @@ import {
     const type = VALID_HISTORY_TYPES.includes(rawEntry.type)
       ? rawEntry.type
       : null;
-    const timestamp =
-      typeof rawEntry.timestamp === 'string' && rawEntry.timestamp.trim()
-        ? rawEntry.timestamp
-        : '';
+    const timestamp = normaliseRevisionTimestamp(rawEntry.timestamp);
     if (!type || !timestamp) {
       return null;
     }
@@ -803,7 +841,25 @@ import {
     if (localeLabel) {
       entry.localeLabel = localeLabel;
     }
+    const revision = normaliseRevisionNumber(rawEntry.revision);
+    if (revision > 0) {
+      entry.revision = revision;
+    }
     return entry;
+  }
+
+  function getRevisionNumber(currentState = state) {
+    if (!currentState || typeof currentState !== 'object') {
+      return 0;
+    }
+    return normaliseRevisionNumber(currentState.revision);
+  }
+
+  function getRevisionTimestamp(currentState = state) {
+    if (!currentState || typeof currentState !== 'object') {
+      return '';
+    }
+    return normaliseRevisionTimestamp(currentState.revisionUpdatedAt);
   }
 
   function hasUser(currentState = state) {
@@ -839,6 +895,38 @@ import {
     return normaliseHistoryEntry(base);
   }
 
+  function appendHistoryEntry(previousState, entry) {
+    const history = Array.isArray(previousState?.history)
+      ? previousState.history
+      : [];
+    if (!entry) {
+      return {
+        history,
+        revision: getRevisionNumber(previousState),
+        revisionUpdatedAt: getRevisionTimestamp(previousState),
+      };
+    }
+    const timestamp = normaliseRevisionTimestamp(entry.timestamp) || nowIso();
+    const nextRevision = history.length + 1;
+    const entryWithMetadata = normaliseHistoryEntry({
+      ...entry,
+      timestamp,
+      revision: nextRevision,
+    });
+    if (!entryWithMetadata) {
+      return {
+        history,
+        revision: getRevisionNumber(previousState),
+        revisionUpdatedAt: getRevisionTimestamp(previousState),
+      };
+    }
+    return {
+      history: [entryWithMetadata, ...history],
+      revision: nextRevision,
+      revisionUpdatedAt: timestamp,
+    };
+  }
+
   function recordLocaleHistory(locale) {
     if (!locale) {
       return false;
@@ -852,7 +940,7 @@ import {
     }
     setState((previous) => ({
       ...previous,
-      history: [historyEntry, ...(previous.history || [])],
+      ...appendHistoryEntry(previous, historyEntry),
     }));
     return true;
   }
@@ -937,6 +1025,7 @@ import {
     updatePanelAccessControl();
     updateAriaLabels();
     updateStatusSummary();
+    updateRevisionMeta();
     updateStage();
     updateLoginFormFields();
     updateLogHistory();
@@ -1035,6 +1124,27 @@ import {
         : FOOTER_DIRTY_KEYS.clean;
       setElementTextFromKey(elements.footerDirtyLabel, dirtyKey);
     }
+  }
+
+  function updateRevisionMeta() {
+    if (!elements.footerRevision) {
+      return;
+    }
+    const revision = getRevisionNumber();
+    const updatedAt = getRevisionTimestamp();
+    if (revision > 0 && updatedAt) {
+      setElementTextFromKey(elements.footerRevision, FOOTER_REVISION_KEY, {
+        fallbackKey: FOOTER_REVISION_KEY,
+        replacements: {
+          revision: `#${revision}`,
+          datetime: formatDateTime(updatedAt),
+        },
+      });
+      return;
+    }
+    setElementTextFromKey(elements.footerRevision, FOOTER_REVISION_EMPTY_KEY, {
+      fallbackKey: FOOTER_REVISION_EMPTY_KEY,
+    });
   }
 
   function updateStage() {
@@ -1287,6 +1397,14 @@ import {
     return '';
   }
 
+  function getHistoryRevisionLabel(entry) {
+    const revisionNumber = normaliseRevisionNumber(entry?.revision);
+    if (revisionNumber > 0) {
+      return `#${revisionNumber}`;
+    }
+    return '—';
+  }
+
   function updateLogHistory() {
     if (
       !elements.logTableBody ||
@@ -1308,10 +1426,13 @@ import {
     const fragment = document.createDocumentFragment();
     history.forEach((entry) => {
       const row = document.createElement('tr');
+      const revisionCell = document.createElement('td');
+      revisionCell.textContent = getHistoryRevisionLabel(entry);
       const eventCell = document.createElement('td');
       eventCell.textContent = getHistoryLabel(entry);
       const timeCell = document.createElement('td');
       timeCell.textContent = formatDateTime(entry.timestamp);
+      row.appendChild(revisionCell);
       row.appendChild(eventCell);
       row.appendChild(timeCell);
       fragment.appendChild(row);
@@ -1405,11 +1526,12 @@ import {
     const historyEntry = createHistoryEntry('login', { timestamp });
     panelOpen = true;
     await setState((previous) => {
-      const nextHistory = historyEntry
-        ? [historyEntry, ...(previous.history || [])]
-        : previous.history || [];
+      const historyPatch = historyEntry
+        ? appendHistoryEntry(previous, historyEntry)
+        : {};
       return {
         ...previous,
+        ...historyPatch,
         user: {
           nomeCompleto: nome,
           email,
@@ -1418,7 +1540,6 @@ import {
         },
         lastLogin: timestamp,
         sessionActive: true,
-        history: nextHistory,
       };
     });
 
@@ -1485,13 +1606,13 @@ import {
     clearLoginFeedback();
     panelOpen = false;
     await setState((previous) => {
-      const nextHistory = historyEntry
-        ? [historyEntry, ...(previous.history || [])]
-        : previous.history || [];
+      const historyPatch = historyEntry
+        ? appendHistoryEntry(previous, historyEntry)
+        : {};
       return {
         ...previous,
+        ...historyPatch,
         sessionActive: false,
-        history: nextHistory,
       };
     });
     focusPanelAccess();
@@ -1508,6 +1629,8 @@ import {
       lastLogin: '',
       sessionActive: false,
       history: [],
+      revision: 0,
+      revisionUpdatedAt: '',
     });
     focusPanelAccess();
   }

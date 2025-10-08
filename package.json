@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "pretest": "playwright install chromium",
-    "test": "playwright test"
+    "test": "playwright test",
+    "preview:capture": "node tests/visual/capture-preview.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.49.0"

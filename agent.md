@@ -32,3 +32,11 @@ de cadastro local, etiqueta do rail e painel principal.
 3. Executar `npm test` para rodar a suíte Playwright e confirmar que cadastro,
    persistência e toggles continuam estáveis.
 4. Verificar que nenhum asset ou dependência supérflua foi adicionado.
+
+## Boas práticas de verificação visual
+- Sempre gere as prévias da interface via Playwright executando `npm run preview:capture`.
+  O script `tests/visual/capture-preview.mjs` abre `appbase/index.html` direto do
+  repositório e captura telas nos temas claro e escuro em resolução desktop.
+- Utilize as imagens emitidas em `tests/artifacts/previews/` como referência em
+  revisões. Evite métodos alternativos de captura; este fluxo é padronizado e
+  confiável tanto para validações locais quanto em pipelines.

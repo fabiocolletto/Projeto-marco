@@ -58,8 +58,9 @@ test('menu de idiomas apresenta opções com bandeiras e registra histórico', a
   await openHostPanel(page);
   const historyTitle = page.locator('[data-i18n="app.panel.history.title"]');
   await expect(historyTitle).toHaveText('Historial de actividades');
-  const firstEvent = page.locator('[data-login-log-body] tr').first().locator('td').first();
-  await expect(firstEvent).toContainText('España');
+  const firstRow = page.locator('[data-login-log-body] tr').first().locator('td');
+  await expect(firstRow.first()).toHaveText('#1');
+  await expect(firstRow.nth(1)).toContainText('España');
 });
 
 test('menu de idiomas reflete seleção atual e atualiza traduções', async ({ page }) => {

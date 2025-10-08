@@ -208,7 +208,8 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
   const feedback = page.locator('[data-login-feedback]');
 
   await expect(logRows).toHaveCount(1);
-  await expect(logRows.first().locator('td').first()).toHaveText('Login realizado');
+  await expect(logRows.first().locator('td').first()).toHaveText(/#\d+/);
+  await expect(logRows.first().locator('td').nth(1)).toHaveText('Login realizado');
   await expect(page.locator('[data-action="logout-preserve"]')).toBeEnabled();
   await expect(page.locator('[data-action="logout-clear"]')).toBeEnabled();
 
@@ -222,9 +223,9 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
     );
     await expect(page.locator('[data-stage-empty] button')).toHaveCount(0);
 
-    await expect(logRows.first().locator('td').first()).toHaveText(
-      'Logoff (dados mantidos)'
-    );
+    const latestLogCells = logRows.first().locator('td');
+    await expect(latestLogCells.first()).toHaveText(/#\d+/);
+    await expect(latestLogCells.nth(1)).toHaveText('Logoff (dados mantidos)');
     await expect(logRows).toHaveCount(2 * cycle + 2);
     await expect(page.locator('[data-action="logout-preserve"]')).toBeDisabled();
     await expect(page.locator('[data-action="logout-clear"]')).toBeEnabled();
@@ -234,7 +235,8 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
     await expect(feedback).toHaveText('Cadastro atualizado com sucesso.');
 
     await expect(stage).toBeVisible();
-    await expect(logRows.first().locator('td').first()).toHaveText('Login realizado');
+    await expect(logRows.first().locator('td').first()).toHaveText(/#\d+/);
+    await expect(logRows.first().locator('td').nth(1)).toHaveText('Login realizado');
     await expect(logRows).toHaveCount(2 * cycle + 3);
     await expect(page.locator('[data-action="logout-preserve"]')).toBeEnabled();
   }

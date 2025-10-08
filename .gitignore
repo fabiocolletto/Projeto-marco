@@ -7,3 +7,4 @@ packages/*/*/.turbo/
 playwright-report/
 test-results/
 tests/visual/screenshots/
+tests/artifacts/
