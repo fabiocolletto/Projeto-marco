@@ -32,11 +32,9 @@ async function resetApp(page) {
   });
 }
 
-async function openSessionOverlay(page) {
+async function ensurePanelOpen(page) {
   const stage = page.locator('#painel-stage');
   const accessButton = page.locator('[data-panel-access]');
-  const overlay = page.locator('[data-panel-overlay][data-overlay-id="session"]');
-  const overlayTrigger = page.locator('[data-overlay-trigger="session"]');
 
   if (await stage.isHidden()) {
     await accessButton.click();
@@ -44,19 +42,12 @@ async function openSessionOverlay(page) {
     await expect(stage).toBeVisible({ timeout: 15000 });
   }
 
-  await expect(overlayTrigger).toBeVisible({ timeout: 15000 });
-
-  if (await overlay.getAttribute('aria-hidden') !== 'false') {
-    await overlayTrigger.click();
-  }
-
-  await expect(overlay).toHaveAttribute('aria-hidden', 'false');
-  return overlay;
+  return stage;
 }
 
 async function ensureLoginForm(page) {
-  const overlay = await openSessionOverlay(page);
-  const form = overlay.locator('[data-login-form]');
+  const stage = await ensurePanelOpen(page);
+  const form = stage.locator('[data-login-form]');
   await expect(form).toBeVisible();
   return form;
 }
@@ -82,15 +73,15 @@ async function registerUser(page, { nome, email, telefone = '', senha = 'SenhaFo
 }
 
 async function logoutPreserve(page) {
-  await openSessionOverlay(page);
-  const button = page.locator('[data-action="logout-preserve"]');
+  const stage = await ensurePanelOpen(page);
+  const button = stage.locator('[data-action="logout-preserve"]');
   await expect(button).toBeEnabled({ timeout: 10000 });
   await button.click({ timeout: 60000 });
 }
 
 async function logoutClear(page) {
-  await openSessionOverlay(page);
-  const button = page.locator('[data-action="logout-clear"]');
+  const stage = await ensurePanelOpen(page);
+  const button = stage.locator('[data-action="logout-clear"]');
   await expect(button).toBeEnabled({ timeout: 10000 });
   await button.click({ timeout: 60000 });
 }
