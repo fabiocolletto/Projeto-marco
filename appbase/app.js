@@ -269,13 +269,6 @@ import { AppBase } from './runtime/app-base.js';
     summaryBackup: document.querySelector('[data-summary-backup]'),
     loginForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
-    sessionOverlay: document.querySelector(
-      '[data-panel-overlay][data-overlay-id="session"]'
-    ),
-    sessionOverlayTriggers: Array.from(
-      document.querySelectorAll('[data-overlay-trigger="session"]') || []
-    ),
-    sessionOverlayClose: document.querySelector('[data-overlay-close="session"]'),
     panelStatusDot: Array.from(
       document.querySelectorAll('[data-panel-status-dot]') || []
     ),
@@ -930,8 +923,6 @@ import { AppBase } from './runtime/app-base.js';
   let currentTheme = normaliseTheme(resolveInitialTheme());
   let state = getEmptyState();
   let panelOpen = false;
-  let sessionOverlayOpen = false;
-  let sessionOverlayKeyHandler = null;
   let stateDirty = false;
   let feedbackTimer = null;
   let fullscreenSupported = isFullscreenSupported();
@@ -2131,7 +2122,7 @@ import { AppBase } from './runtime/app-base.js';
       };
     });
 
-    closeSessionOverlay({ focusTrigger: false });
+    focusStageTitle();
     setLoginFeedback('success', LOGIN_SUCCESS_FEEDBACK_KEY);
   }
 
@@ -2153,69 +2144,6 @@ import { AppBase } from './runtime/app-base.js';
     });
   }
 
-  function setSessionOverlayExpanded(expanded) {
-    if (!elements.sessionOverlayTriggers) {
-      return;
-    }
-    elements.sessionOverlayTriggers.forEach((trigger) => {
-      if (!trigger) {
-        return;
-      }
-      trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-    });
-  }
-
-  function focusSessionOverlayFirstField() {
-    if (!sessionOverlayOpen) {
-      return;
-    }
-    window.requestAnimationFrame(() => {
-      const target =
-        elements.loginForm?.querySelector('input, select, textarea, button');
-      if (target) {
-        target.focus();
-      }
-    });
-  }
-
-  function openSessionOverlay({ focus = true } = {}) {
-    if (!elements.sessionOverlay || sessionOverlayOpen) {
-      return;
-    }
-    sessionOverlayOpen = true;
-    elements.sessionOverlay.setAttribute('aria-hidden', 'false');
-    setSessionOverlayExpanded(true);
-    if (focus) {
-      focusSessionOverlayFirstField();
-    }
-    sessionOverlayKeyHandler = (event) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeSessionOverlay({ focusTrigger: true });
-      }
-    };
-    document.addEventListener('keydown', sessionOverlayKeyHandler);
-  }
-
-  function closeSessionOverlay({ focusTrigger = false } = {}) {
-    if (!elements.sessionOverlay || !sessionOverlayOpen) {
-      return;
-    }
-    sessionOverlayOpen = false;
-    elements.sessionOverlay.setAttribute('aria-hidden', 'true');
-    setSessionOverlayExpanded(false);
-    if (sessionOverlayKeyHandler) {
-      document.removeEventListener('keydown', sessionOverlayKeyHandler);
-      sessionOverlayKeyHandler = null;
-    }
-    if (focusTrigger && elements.sessionOverlayTriggers.length > 0) {
-      const target = elements.sessionOverlayTriggers[0];
-      window.requestAnimationFrame(() => {
-        target?.focus();
-      });
-    }
-  }
-
   function openPanel({ focus = true } = {}) {
     const wasClosed = !panelOpen;
     panelOpen = true;
@@ -2228,7 +2156,6 @@ import { AppBase } from './runtime/app-base.js';
   function closePanel({ focusButton = true } = {}) {
     const wasOpen = panelOpen;
     panelOpen = false;
-    closeSessionOverlay({ focusTrigger: false });
     updateUI();
     if (focusButton && wasOpen) {
       focusPanelAccess();
@@ -2272,7 +2199,6 @@ import { AppBase } from './runtime/app-base.js';
     });
     clearLoginFeedback();
     panelOpen = false;
-    closeSessionOverlay({ focusTrigger: false });
     await setState((previous) => {
       const nextHistory = historyEntry
         ? [historyEntry, ...(previous.history || [])]
@@ -2292,7 +2218,6 @@ import { AppBase } from './runtime/app-base.js';
     }
     clearLoginFeedback();
     panelOpen = false;
-    closeSessionOverlay({ focusTrigger: false });
     await setState({
       user: null,
       lastLogin: '',
@@ -2361,35 +2286,6 @@ import { AppBase } from './runtime/app-base.js';
         const nextTheme =
           currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
         setTheme(nextTheme);
-      });
-    }
-
-    if (elements.sessionOverlayTriggers.length > 0) {
-      elements.sessionOverlayTriggers.forEach((trigger) => {
-        trigger.addEventListener('click', (event) => {
-          event.preventDefault();
-          applyButtonFeedback(event.currentTarget);
-          if (sessionOverlayOpen) {
-            closeSessionOverlay({ focusTrigger: false });
-          } else {
-            openSessionOverlay();
-          }
-        });
-      });
-    }
-
-    if (elements.sessionOverlayClose) {
-      elements.sessionOverlayClose.addEventListener('click', (event) => {
-        event.preventDefault();
-        closeSessionOverlay({ focusTrigger: true });
-      });
-    }
-
-    if (elements.sessionOverlay) {
-      elements.sessionOverlay.addEventListener('click', (event) => {
-        if (event.target === elements.sessionOverlay) {
-          closeSessionOverlay();
-        }
       });
     }
 
