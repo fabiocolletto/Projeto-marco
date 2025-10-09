@@ -348,6 +348,13 @@ import { AppBase } from './runtime/app-base.js';
     syncMasterToggle: document.querySelector('[data-sync-master]'),
     backupMasterToggle: document.querySelector('[data-backup-master]'),
     syncMasterDot: document.querySelector('[data-sync-master-dot]'),
+    syncStatusMessage: document.querySelector('[data-sync-status-message]'),
+    syncLastUpdate: document.querySelector('[data-sync-last-update]'),
+    syncActionButton: document.querySelector('[data-sync-action]'),
+    syncProviders: Array.from(document.querySelectorAll('[data-sync-provider]') || []),
+    syncProviderBadges: Array.from(
+      document.querySelectorAll('[data-sync-provider-status]') || [],
+    ),
     backupMasterDot: document.querySelector('[data-backup-master-dot]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
@@ -1785,6 +1792,7 @@ import { AppBase } from './runtime/app-base.js';
 
   function updateIntegrationToggles() {
     const syncEnabled = Boolean(state.syncEnabled);
+    const lastSyncValue = state.lastSync ? formatDateTime(state.lastSync) : '—';
     if (elements.syncMasterToggle) {
       elements.syncMasterToggle.setAttribute('aria-pressed', syncEnabled ? 'true' : 'false');
       const labelNode = elements.syncMasterToggle.querySelector('.ac-ctrl-switch__label');
@@ -1795,6 +1803,48 @@ import { AppBase } from './runtime/app-base.js';
         elements.syncMasterDot.classList.toggle('ac-dot--ok', syncEnabled);
         elements.syncMasterDot.classList.toggle('ac-dot--crit', !syncEnabled);
       }
+    }
+
+    if (elements.syncActionButton) {
+      elements.syncActionButton.setAttribute(
+        'aria-pressed',
+        syncEnabled ? 'true' : 'false',
+      );
+      clearElementTranslation(
+        elements.syncActionButton,
+        syncEnabled ? 'Desincronizar' : 'Sincronizar',
+      );
+    }
+
+    if (elements.syncStatusMessage) {
+      const message = syncEnabled
+        ? state.lastSync
+          ? `Sincronização ativa. Última sincronização em ${lastSyncValue}.`
+          : 'Sincronização ativa.'
+        : 'Sincronização desativada no momento.';
+      clearElementTranslation(elements.syncStatusMessage, message);
+    }
+
+    if (elements.syncLastUpdate) {
+      clearElementTranslation(
+        elements.syncLastUpdate,
+        syncEnabled && state.lastSync ? lastSyncValue : '—',
+      );
+    }
+
+    if (elements.syncProviders.length) {
+      elements.syncProviders.forEach((provider) => {
+        provider.classList.toggle('ac-sync-provider--active', syncEnabled);
+      });
+    }
+
+    if (elements.syncProviderBadges.length) {
+      const badgeLabel = syncEnabled ? 'Ativo' : 'Inativo';
+      elements.syncProviderBadges.forEach((badge) => {
+        badge.classList.toggle('ac-sync-provider__badge--active', syncEnabled);
+        badge.classList.toggle('ac-sync-provider__badge--inactive', !syncEnabled);
+        clearElementTranslation(badge, badgeLabel);
+      });
     }
 
     const backupEnabled = Boolean(state.backupEnabled);
@@ -2405,6 +2455,14 @@ import { AppBase } from './runtime/app-base.js';
 
     if (elements.syncMasterToggle) {
       elements.syncMasterToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        toggleSyncMaster();
+      });
+    }
+
+    if (elements.syncActionButton) {
+      elements.syncActionButton.addEventListener('click', (event) => {
         event.preventDefault();
         applyButtonFeedback(event.currentTarget);
         toggleSyncMaster();
