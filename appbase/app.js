@@ -1752,16 +1752,37 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
+  function collectElementSet(staticList, root, selector) {
+    const nodes = new Set();
+    if (Array.isArray(staticList)) {
+      staticList.forEach((item) => {
+        if (item instanceof Element) {
+          nodes.add(item);
+        }
+      });
+    } else if (staticList instanceof Element) {
+      nodes.add(staticList);
+    }
+    if (root instanceof Element && selector) {
+      root.querySelectorAll(selector).forEach((item) => {
+        if (item instanceof Element) {
+          nodes.add(item);
+        }
+      });
+    }
+    return Array.from(nodes);
+  }
+
   function updateIntegrationToggles() {
     const syncEnabled = Boolean(state.syncEnabled);
     const lastSyncValue = state.lastSync ? formatDateTime(state.lastSync) : '—';
     if (elements.syncMasterToggle) {
       elements.syncMasterToggle.setAttribute('aria-pressed', syncEnabled ? 'true' : 'false');
-      const labels = elements.syncMasterLabels.length
-        ? elements.syncMasterLabels
-        : elements.syncMasterToggle
-          ? Array.from(elements.syncMasterToggle.querySelectorAll('[data-sync-master-label]'))
-          : [];
+      const labels = collectElementSet(
+        elements.syncMasterLabels,
+        elements.syncMasterToggle,
+        '[data-sync-master-label]',
+      );
       const labelKey = syncEnabled
         ? 'app.panel.integrations.sync.label.on'
         : 'app.panel.integrations.sync.label.off';
@@ -1786,9 +1807,9 @@ import { AppBase } from './runtime/app-base.js';
     if (elements.syncStatusMessage) {
       const statusKey = syncEnabled
         ? state.lastSync
-          ? 'app.panel.integrations.sync.status.active_with_time'
-          : 'app.panel.integrations.sync.status.active'
-        : 'app.panel.integrations.sync.status.inactive';
+          ? 'app.panel.integrations.sync.status.on_with_time'
+          : 'app.panel.integrations.sync.status.on'
+        : 'app.panel.integrations.sync.status.off';
       const replacements = syncEnabled && state.lastSync ? { time: lastSyncValue } : {};
       setElementTextFromKey(elements.syncStatusMessage, statusKey, { replacements });
     }
@@ -1823,11 +1844,11 @@ import { AppBase } from './runtime/app-base.js';
         'aria-pressed',
         backupEnabled ? 'true' : 'false',
       );
-      const labels = elements.backupMasterLabels.length
-        ? elements.backupMasterLabels
-        : elements.backupMasterToggle
-          ? Array.from(elements.backupMasterToggle.querySelectorAll('[data-backup-master-label]'))
-          : [];
+      const labels = collectElementSet(
+        elements.backupMasterLabels,
+        elements.backupMasterToggle,
+        '[data-backup-master-label]',
+      );
       const labelKey = backupEnabled
         ? 'app.panel.integrations.backup.label.on'
         : 'app.panel.integrations.backup.label.off';
