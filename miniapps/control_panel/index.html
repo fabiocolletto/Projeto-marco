@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Painel de Controle · MiniApp Marco</title>
+    <link rel="stylesheet" href="../../appbase/app.css" />
+    
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--ac-shell-gradient);
+        color: var(--ac-text);
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.5;
+        display: flex;
+        justify-content: center;
+        padding: 32px 24px 48px;
+      }
+
+      .cp-shell {
+        width: min(1200px, 100%);
+        display: grid;
+        gap: 24px;
+      }
+
+      .ac-card {
+        background: var(--ac-shell-surface);
+        border: var(--ac-border-width) solid var(--ac-border);
+        border-radius: 20px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        color: var(--ac-card-ink);
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.14);
+        transition: box-shadow 160ms ease, transform 160ms ease;
+      }
+
+      .ac-card.is-active {
+        box-shadow: 0 22px 42px rgba(15, 23, 42, 0.18);
+        transform: translateY(-2px);
+      }
+
+      .ac-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .ac-label__left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .ac-label__toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: var(--ac-border-width) solid var(--ac-border);
+        background: transparent;
+        color: var(--ac-primary);
+        font-weight: 600;
+        transition: background 160ms ease, color 160ms ease;
+      }
+
+      .ac-label__toggle:hover,
+      .ac-label__toggle:focus-visible {
+        background: rgba(54, 87, 195, 0.12);
+      }
+
+      .ac-label__meta {
+        display: grid;
+        gap: 6px;
+      }
+
+      .ac-label__title {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: var(--ac-primary);
+      }
+
+      .ac-label__subtitle {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--ac-muted);
+      }
+
+      .ac-label__badges {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .ac-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: var(--ac-border-width) solid var(--ac-border);
+        background: rgba(54, 87, 195, 0.1);
+        color: var(--ac-primary);
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .ac-badge__dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--ac-ok);
+      }
+
+      .ac-chip {
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: var(--ac-chip-bg);
+        border: var(--ac-border-width) solid var(--ac-chip-border);
+        color: var(--ac-chip-ink);
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .cp-panel {
+        border-radius: 24px;
+        border: var(--ac-border-width) solid var(--ac-border);
+        background: var(--ac-shell-surface);
+        color: var(--ac-card-ink);
+        box-shadow: 0 22px 48px rgba(15, 23, 42, 0.18);
+        display: grid;
+        grid-template-rows: auto 1fr;
+        overflow: hidden;
+      }
+
+      .cp-panel.is-collapsed {
+        display: none;
+      }
+
+      .ac-panel__toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 24px;
+        background: var(--ac-shell-surface);
+        border-bottom: var(--ac-border-width) solid var(--ac-border);
+      }
+
+      .ac-panel__titles {
+        display: grid;
+        gap: 4px;
+      }
+
+      .ac-panel__title {
+        margin: 0;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--ac-primary);
+      }
+
+      .ac-panel__subtitle {
+        margin: 0;
+        font-size: 0.95rem;
+        color: var(--ac-muted);
+      }
+
+      .ac-toolbar__actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .ac-toolbar__btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: var(--ac-border-width) solid transparent;
+        background: var(--ac-primary);
+        color: var(--ac-on-primary);
+        font-weight: 600;
+        transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+
+      .ac-toolbar__btn.is-secondary {
+        background: var(--ac-bg);
+        color: var(--ac-text);
+        border-color: var(--ac-border);
+      }
+
+      .ac-toolbar__btn:hover,
+      .ac-toolbar__btn:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+      }
+
+      .ac-toolbar__label {
+        font-size: 0.95rem;
+      }
+
+      .ac-icbtn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.12);
+        color: currentColor;
+        font-size: 0.85rem;
+      }
+
+      .ac-icbtn[data-ic='chev-down']::before {
+        content: '▾';
+      }
+
+      .ac-icbtn[data-ic='chev-right']::before {
+        content: '▸';
+      }
+
+      .ac-icbtn[data-ic='close']::before {
+        content: '✖';
+      }
+
+      .ac-icbtn[data-ic='refresh']::before {
+        content: '↻';
+      }
+
+      .ac-icbtn[data-ic='download']::before {
+        content: '⬇';
+      }
+
+      .ac-icbtn[data-ic='upload']::before {
+        content: '⬆';
+      }
+
+      .ac-icbtn[data-ic='settings']::before {
+        content: '⚙';
+      }
+
+      .ac-tile__summary {
+        display: grid;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .ac-summary__item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 0.95rem;
+      }
+
+      .ac-summary__label {
+        font-weight: 600;
+        color: var(--ac-muted);
+      }
+
+      .ac-summary__value {
+        font-weight: 600;
+        color: var(--ac-card-ink);
+      }
+
+      .ac-tile__body {
+        display: grid;
+        gap: 16px;
+      }
+
+      .ac-form {
+        display: grid;
+        gap: 16px;
+      }
+
+      .ac-form textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      .ac-tile__footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      .ac-status-chip {
+        border: var(--ac-border-width) solid var(--ac-border);
+        background: var(--ac-bg);
+        color: var(--ac-text);
+      }
+
+      .ac-status-chip.is-on {
+        border-color: var(--ac-ok);
+      }
+
+      .ac-status-chip.is-off {
+        border-color: var(--ac-crit);
+      }
+
+      .ac-indicator__label {
+        font-weight: 600;
+      }
+
+      .ac-check {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+      }
+
+      .ac-check input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--ac-primary);
+      }
+
+      .ac-limit-field {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.95rem;
+        color: var(--ac-muted);
+      }
+
+      .ac-limit-field label {
+        font-weight: 600;
+        color: var(--ac-text);
+      }
+
+      .ac-limit-field input {
+        width: 96px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: var(--ac-border-width) solid var(--ac-border);
+        background: var(--ac-bg);
+        color: var(--ac-text);
+      }
+
+      @media (max-width: 900px) {
+        body {
+          padding: 24px 16px 40px;
+        }
+
+        .ac-label {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+      }
+    </style>
+
+  </head>
+  <body>
+    <main class="cp-shell">
+      <section
+        class="ac-card ac-label is-active"
+        role="region"
+        aria-labelledby="ctrl-title"
+      >
+        <div class="ac-label__left">
+          <button
+            id="labelToggle"
+            class="ac-label__toggle"
+            type="button"
+            aria-expanded="true"
+            aria-controls="ac-panel"
+          >
+            <span class="ac-icbtn" data-ic="chev-down" aria-hidden="true"></span>
+            <span>Etiqueta • Painel</span>
+          </button>
+          <div class="ac-label__meta">
+            <h2 id="ctrl-title" class="ac-label__title">Painel de controle</h2>
+            <p class="ac-label__subtitle">Etiqueta + Painel · Versão 1.10</p>
+            <div class="ac-label__badges" aria-live="polite">
+              <span class="ac-badge">
+                <span class="ac-badge__dot" aria-hidden="true"></span>
+                Conexão estável
+              </span>
+              <span class="ac-badge">
+                <span class="ac-badge__dot" aria-hidden="true"></span>
+                Sync monitorada
+              </span>
+              <span class="ac-badge">
+                <span class="ac-badge__dot" aria-hidden="true"></span>
+                Backup contínuo
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="ac-chip">R1.10 • Unificação</div>
+      </section>
+
+      <section
+        id="ac-panel"
+        class="ac-panel cp-panel is-open"
+        role="region"
+        aria-labelledby="panel-title"
+      >
+        <header class="ac-panel__toolbar">
+          <div class="ac-panel__titles">
+            <h2 id="panel-title" class="ac-panel__title">Painel de Controle</h2>
+            <p id="panel-subtitle" class="ac-panel__subtitle">
+              Etiqueta acionável com resumo de Login, Sincronização, Backup e Eventos recentes.
+            </p>
+          </div>
+          <div class="ac-toolbar__actions">
+            <button
+              id="btnExpand"
+              class="ac-toolbar__btn"
+              type="button"
+              data-role="expand"
+              aria-expanded="true"
+            >
+              <span class="ac-icbtn" data-ic="chev-down" aria-hidden="true"></span>
+              <span class="ac-toolbar__label">Recolher detalhes</span>
+            </button>
+            <button id="btnClose" class="ac-toolbar__btn is-secondary" type="button">
+              <span class="ac-icbtn" data-ic="close" aria-hidden="true"></span>
+              <span class="ac-toolbar__label">Fechar painel</span>
+            </button>
+          </div>
+        </header>
+
+        <div id="grid" class="ac-grid">
+          <article id="tile-login" class="ac-tile ac-tile--span-4" aria-labelledby="login-title">
+            <header class="ac-tile__head">
+              <div>
+                <h3 id="login-title" class="ac-tile__title">Login</h3>
+                <div class="ac-tile__summary">
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Usuário</span>
+                    <span class="ac-summary__value">Juliana Alves</span>
+                  </div>
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Conta</span>
+                    <span class="ac-summary__value">juliana.marco.app</span>
+                  </div>
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Último acesso</span>
+                    <span class="ac-summary__value" data-timestamp="-5">
+                      há 5 minutos
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <span class="ac-status-chip">Ativo</span>
+            </header>
+            <div class="ac-tile__body">
+              <form class="ac-form" aria-labelledby="login-title">
+                <div class="ac-field">
+                  <label for="login-name">Nome completo</label>
+                  <input id="login-name" type="text" value="Juliana Alves" />
+                </div>
+                <div class="ac-field">
+                  <label for="login-email">E-mail corporativo</label>
+                  <input id="login-email" type="email" value="juliana@marco.app" />
+                </div>
+                <div class="ac-field">
+                  <label for="login-phone">Telefone</label>
+                  <input id="login-phone" type="tel" value="(11) 99888-4400" />
+                </div>
+                <div class="ac-field">
+                  <label for="login-notes">Notas rápidas</label>
+                  <textarea id="login-notes">Revisar políticas de acesso com o time de segurança.</textarea>
+                </div>
+              </form>
+            </div>
+            <footer class="ac-tile__footer">
+              <button class="ac-btn" type="button">Salvar alterações</button>
+              <button class="ac-btn ac-btn--outline" type="button">Enviar convite</button>
+              <button class="ac-btn ac-btn--ghost" type="button">Reiniciar sessão</button>
+              <button class="ac-btn ac-btn--ghost" type="button">Aplicar MFA</button>
+            </footer>
+          </article>
+
+          <article id="tile-sync" class="ac-tile ac-tile--span-4" aria-labelledby="sync-title">
+            <header class="ac-tile__head">
+              <div>
+                <h3 id="sync-title" class="ac-tile__title">Sincronização</h3>
+                <div class="ac-tile__summary">
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Dispositivos ativos</span>
+                    <span class="ac-summary__value">5 conectados</span>
+                  </div>
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Último sync</span>
+                    <span class="ac-summary__value" data-timestamp="-12">há 12 minutos</span>
+                  </div>
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Chave</span>
+                    <span class="ac-summary__value">sync.marco.tenant</span>
+                  </div>
+                </div>
+              </div>
+              <span id="sync-indicator" class="ac-status-chip is-on">
+                <span class="ac-dot ac-dot--ok" aria-hidden="true"></span>
+                <span class="ac-indicator__label">Online</span>
+              </span>
+            </header>
+            <div class="ac-tile__body">
+              <div class="ac-table-wrap ac-table-wrap--inner">
+                <table id="tbl-devices" class="ac-table ac-table--compact">
+                    <thead>
+                      <tr>
+                        <th scope="col">Dispositivo</th>
+                        <th scope="col">Plataforma</th>
+                        <th scope="col">Último sync</th>
+                        <th scope="col">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Notebook principal</td>
+                        <td>Windows 11</td>
+                        <td data-timestamp="-12">há 12 minutos</td>
+                        <td>
+                          <button class="ac-ghost-btn" type="button">
+                            <span class="ac-icbtn" data-ic="close" aria-hidden="true"></span>
+                            Revogar
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Tablet comercial</td>
+                        <td>iPadOS 17</td>
+                        <td data-timestamp="-26">há 26 minutos</td>
+                        <td>
+                          <button class="ac-ghost-btn" type="button">
+                            <span class="ac-icbtn" data-ic="close" aria-hidden="true"></span>
+                            Revogar
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Estação suporte</td>
+                        <td>Ubuntu 24.04</td>
+                        <td data-timestamp="-42">há 42 minutos</td>
+                        <td>
+                          <button class="ac-ghost-btn" type="button">
+                            <span class="ac-icbtn" data-ic="close" aria-hidden="true"></span>
+                            Revogar
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>App iOS</td>
+                        <td>iOS 18</td>
+                        <td data-timestamp="-5">há 5 minutos</td>
+                        <td>
+                          <button class="ac-ghost-btn" type="button">
+                            <span class="ac-icbtn" data-ic="close" aria-hidden="true"></span>
+                            Revogar
+                          </button>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>App Android</td>
+                        <td>Android 15</td>
+                        <td data-timestamp="-3">há 3 minutos</td>
+                        <td>
+                          <button class="ac-ghost-btn" type="button">
+                            <span class="ac-icbtn" data-ic="close" aria-hidden="true"></span>
+                            Revogar
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+              </div>
+            </div>
+            <footer class="ac-tile__footer">
+              <button class="ac-btn" type="button" data-toggle="sync">
+                <span class="ac-icbtn" data-ic="refresh" aria-hidden="true"></span>
+                Sincronizar agora
+              </button>
+              <button class="ac-btn ac-btn--outline" type="button">Adicionar dispositivo</button>
+              <button class="ac-btn ac-btn--ghost" type="button">Ajustar escopos</button>
+            </footer>
+          </article>
+
+          <article id="tile-backup" class="ac-tile ac-tile--span-4" aria-labelledby="backup-title">
+            <header class="ac-tile__head">
+              <div>
+                <h3 id="backup-title" class="ac-tile__title">Backup</h3>
+                <div class="ac-tile__summary">
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Último backup</span>
+                    <span class="ac-summary__value" data-timestamp="-35">há 35 minutos</span>
+                  </div>
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">MiniApps ativos</span>
+                    <span class="ac-summary__value">12 módulos</span>
+                  </div>
+                  <div class="ac-summary__item">
+                    <span class="ac-summary__label">Limite atual</span>
+                    <span class="ac-summary__value">250 MB</span>
+                  </div>
+                </div>
+              </div>
+              <span id="backup-indicator" class="ac-status-chip is-on">
+                <span class="ac-dot ac-dot--ok" aria-hidden="true"></span>
+                <span class="ac-indicator__label">Programado</span>
+              </span>
+            </header>
+            <div class="ac-tile__body">
+              <div class="ac-table-wrap ac-table-wrap--inner">
+                <table class="ac-table ac-table--compact">
+                    <thead>
+                      <tr>
+                        <th scope="col">MiniApp</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Último backup</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <label class="ac-check">
+                            <input type="checkbox" checked /> Painel de Controles
+                          </label>
+                        </td>
+                        <td>Protegido</td>
+                        <td data-timestamp="-35">há 35 minutos</td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label class="ac-check">
+                            <input type="checkbox" checked /> Boas-vindas Marco
+                          </label>
+                        </td>
+                        <td>Protegido</td>
+                        <td data-timestamp="-40">há 40 minutos</td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label class="ac-check">
+                            <input type="checkbox" /> Marketplace
+                          </label>
+                        </td>
+                        <td>Pendente</td>
+                        <td>—</td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <label class="ac-check">
+                            <input type="checkbox" checked /> Relatórios
+                          </label>
+                        </td>
+                        <td>Protegido</td>
+                        <td data-timestamp="-58">há 58 minutos</td>
+                      </tr>
+                    </tbody>
+                  </table>
+              </div>
+              <div class="ac-field ac-limit-field">
+                <label for="backup-limit">Limite por arquivo (MB)</label>
+                <input id="backup-limit" type="number" value="250" />
+              </div>
+            </div>
+            <footer class="ac-tile__footer">
+              <button class="ac-btn" type="button" data-toggle="backup">
+                <span class="ac-icbtn" data-ic="download" aria-hidden="true"></span>
+                Executar backup
+              </button>
+              <button class="ac-btn ac-btn--outline" type="button">
+                <span class="ac-icbtn" data-ic="upload" aria-hidden="true"></span>
+                Restaurar arquivo
+              </button>
+            </footer>
+          </article>
+
+          <article class="ac-tile ac-tile--span-12" aria-labelledby="events-title">
+            <header class="ac-tile__head">
+              <div>
+                <h3 id="events-title" class="ac-tile__title">Eventos recentes</h3>
+                <p class="ac-label__subtitle">Acompanhamento consolidado de acessos, sincronizações e backups.</p>
+              </div>
+              <span class="ac-status-chip">
+                <span class="ac-dot ac-dot--ok" aria-hidden="true"></span>
+                Atualizado em <span data-timestamp="-2">há 2 minutos</span>
+              </span>
+            </header>
+            <div id="events-wrap" class="ac-tile__body">
+              <div class="ac-table-wrap ac-table-wrap--inner">
+                <table id="events-table" class="ac-table ac-table--compact">
+                    <thead>
+                      <tr>
+                        <th scope="col">Horário</th>
+                        <th scope="col">Evento</th>
+                        <th scope="col">Origem</th>
+                        <th scope="col">Detalhes</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td data-timestamp="-2">há 2 minutos</td>
+                        <td>Backup concluído</td>
+                        <td>Scheduler</td>
+                        <td>Arquivo consolidado enviado para cofre S3.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-3">há 3 minutos</td>
+                        <td>Sync completo</td>
+                        <td>App Android</td>
+                        <td>Reposição de 1.250 registros.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-5">há 5 minutos</td>
+                        <td>Login confirmado</td>
+                        <td>App iOS</td>
+                        <td>Token MFA verificado com sucesso.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-12">há 12 minutos</td>
+                        <td>Sync parcial</td>
+                        <td>Notebook principal</td>
+                        <td>Diferença de 6 registros reconciliada.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-18">há 18 minutos</td>
+                        <td>Backup agendado</td>
+                        <td>Console</td>
+                        <td>Janela ajustada para 30 minutos.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-26">há 26 minutos</td>
+                        <td>Sync concluído</td>
+                        <td>Tablet comercial</td>
+                        <td>Permissões revisadas para equipe de campo.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-42">há 42 minutos</td>
+                        <td>Aviso de latência</td>
+                        <td>Monitoramento</td>
+                        <td>Fila da região sul operando com 2x SLA.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-58">há 58 minutos</td>
+                        <td>Backup parcial</td>
+                        <td>Agente CLI</td>
+                        <td>Backups diferenciais compactados.</td>
+                      </tr>
+                      <tr>
+                        <td data-timestamp="-73">há 73 minutos</td>
+                        <td>Sync retomado</td>
+                        <td>Estação suporte</td>
+                        <td>Autenticação renovada após expiração.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+              </div>
+            </div>
+            <footer class="ac-tile__footer">
+              <button class="ac-btn" type="button">
+                <span class="ac-icbtn" data-ic="download" aria-hidden="true"></span>
+                Exportar CSV
+              </button>
+              <button class="ac-btn ac-btn--outline" type="button">
+                <span class="ac-icbtn" data-ic="settings" aria-hidden="true"></span>
+                Configurar alertas
+              </button>
+              <button class="ac-btn ac-btn--ghost" type="button">
+                <span class="ac-icbtn" data-ic="info" aria-hidden="true"></span>
+                Ver política
+              </button>
+            </footer>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const panel = document.getElementById('ac-panel');
+      const btnExpand = document.getElementById('btnExpand');
+      const btnClose = document.getElementById('btnClose');
+      const labelToggle = document.getElementById('labelToggle');
+      const labelCard = document.querySelector('.ac-card');
+
+      function setPanelExpanded(expanded) {
+        panel.classList.toggle('is-collapsed', !expanded);
+        btnExpand.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        const icon = btnExpand.querySelector('.ac-icbtn');
+        const text = btnExpand.querySelector('.ac-toolbar__label');
+        if (icon) {
+          icon.setAttribute('data-ic', expanded ? 'chev-down' : 'chev-right');
+        }
+        if (text) {
+          text.textContent = expanded ? 'Recolher detalhes' : 'Expandir detalhes';
+        }
+      }
+
+      function setPanelOpen(open) {
+        panel.classList.toggle('is-open', open);
+        labelToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const icon = labelToggle.querySelector('.ac-icbtn');
+        if (icon) {
+          icon.setAttribute('data-ic', open ? 'chev-down' : 'chev-right');
+        }
+        if (open) {
+          setPanelExpanded(true);
+        }
+      }
+
+      btnExpand.addEventListener('click', () => {
+        const expanded = btnExpand.getAttribute('aria-expanded') === 'true';
+        setPanelExpanded(!expanded);
+      });
+
+      btnClose.addEventListener('click', () => {
+        setPanelOpen(false);
+        labelCard.classList.add('is-active');
+        labelToggle.focus();
+      });
+
+      labelToggle.addEventListener('click', () => {
+        const isOpen = panel.classList.contains('is-open');
+        setPanelOpen(!isOpen);
+        if (!isOpen) {
+          labelCard.classList.remove('is-active');
+        }
+      });
+
+      function toggleIndicator(indicator, isOn, labels) {
+        indicator.classList.toggle('is-on', isOn);
+        indicator.classList.toggle('is-off', !isOn);
+        const dot = indicator.querySelector('.ac-dot');
+        if (!dot) return;
+        dot.classList.toggle('ac-dot--ok', isOn);
+        dot.classList.toggle('ac-dot--crit', !isOn);
+        const label = indicator.querySelector('.ac-indicator__label');
+        if (label) {
+          label.textContent = isOn ? labels.on : labels.off;
+        }
+      }
+
+      const syncIndicator = document.getElementById('sync-indicator');
+      const backupIndicator = document.getElementById('backup-indicator');
+
+      document
+        .querySelector('[data-toggle="sync"]')
+        .addEventListener('click', () => {
+          const isOn = syncIndicator.classList.contains('is-on');
+          toggleIndicator(syncIndicator, !isOn, {
+            on: 'Online',
+            off: 'Offline',
+          });
+        });
+
+      document
+        .querySelector('[data-toggle="backup"]')
+        .addEventListener('click', () => {
+          const isOn = backupIndicator.classList.contains('is-on');
+          toggleIndicator(backupIndicator, !isOn, {
+            on: 'Programado',
+            off: 'Interrompido',
+          });
+        });
+
+      function normaliseTimestamp(element) {
+        if (!element.dataset.timeMs) {
+          const offsetMinutes = Number(element.dataset.timestamp) || 0;
+          const target = Date.now() + offsetMinutes * 60 * 1000;
+          element.dataset.timeMs = String(target);
+        }
+      }
+
+      function updateTimestamps() {
+        const formatter = new Intl.RelativeTimeFormat('pt-BR', { numeric: 'auto' });
+        const now = Date.now();
+        document.querySelectorAll('[data-timestamp]').forEach((element) => {
+          normaliseTimestamp(element);
+          const target = Number(element.dataset.timeMs);
+          if (!Number.isFinite(target)) {
+            return;
+          }
+          const diffMinutes = Math.round((target - now) / 60000);
+          element.textContent = formatter.format(diffMinutes, 'minute');
+        });
+      }
+
+      updateTimestamps();
+      setInterval(updateTimestamps, 30000);
+    </script>
+  </body>
+</html>

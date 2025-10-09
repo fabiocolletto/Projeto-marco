@@ -1,4 +1,4 @@
-export function createModule({ key = 'boas-vindas', manifest = null, meta = {} } = {}) {
+export function createModule({ key = 'control.panel', manifest = null, meta = {} } = {}) {
   const resolvedMeta = { ...meta };
   if (!resolvedMeta.id) {
     resolvedMeta.id = manifest?.miniappId ?? manifest?.id ?? key;

@@ -15,7 +15,7 @@ test.describe('MiniApp loader', () => {
     await clearStorage(page);
   });
 
-  test('renderiza Painel de Controles e reage à troca de idioma', async ({ page }) => {
+  test('renderiza Painel de Controle e reage à troca de idioma', async ({ page }) => {
     await page.goto('/appbase/index.html');
 
     const rail = page.locator('[data-miniapp-rail]');
@@ -29,7 +29,7 @@ test.describe('MiniApp loader', () => {
     const demoSubtitle = demoCard.locator('.ac-miniapp-card__subtitle');
 
     await expect(painelCard).toBeVisible();
-    await expect(painelTitle).toHaveText('Painel de Controles');
+    await expect(painelTitle).toHaveText('Painel de Controle');
     await expect(demoTitle).toHaveText('Boas-vindas Marco');
     await expect(demoSubtitle).toHaveText(
       'Teste o fluxo completo com o painel oficial habilitado.'
@@ -43,7 +43,7 @@ test.describe('MiniApp loader', () => {
     );
 
     await page.evaluate(async () => window.AppBaseI18n?.setLocale?.('es-ES'));
-    await expect(painelTitle).toHaveText('Panel de Controles');
+    await expect(painelTitle).toHaveText('Panel de Control');
     await expect(demoTitle).toHaveText('Bienvenida Marco');
     await expect(demoSubtitle).toHaveText(
       'Pruebe el flujo completo con el panel oficial habilitado.'
@@ -63,7 +63,7 @@ test.describe('MiniApp loader', () => {
         const text = message.text();
         if (
           text.startsWith('Failed to load resource') ||
-          text.includes('miniapps/painel-controles/manifest.json') ||
+          text.includes('miniapps/control_panel/manifest.json') ||
           text.includes('miniapps/boas-vindas/manifest.json') ||
           text.includes('5horas.com.br')
         ) {
@@ -73,7 +73,7 @@ test.describe('MiniApp loader', () => {
       }
     });
 
-    await page.route('**/miniapps/painel-controles/manifest.json', (route) => {
+    await page.route('**/miniapps/control_panel/manifest.json', (route) => {
       route.fulfill({ status: 500, body: 'erro' });
     });
     await page.route('**/miniapps/boas-vindas/manifest.json', (route) => {

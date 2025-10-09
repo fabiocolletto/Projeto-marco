@@ -174,13 +174,13 @@ import { AppBase } from './runtime/app-base.js';
     tenantId: 'tenant-marco',
     userId: 'appbase-admin',
     catalogBaseUrl: 'https://cdn.marco.app/catalog',
-    defaults: { enabledMiniApps: ['painel-controles', 'boas-vindas'] },
+    defaults: { enabledMiniApps: ['control.panel', 'boas-vindas'] },
     user: { enabledMiniApps: [], entitlements: {}, providers: {} },
     miniApps: [
       {
-        key: 'painel-controles',
-        manifestUrl: '../miniapps/painel-controles/manifest.json',
-        moduleUrl: '../miniapps/painel-controles/module.js',
+        key: 'control.panel',
+        manifestUrl: '../miniapps/control_panel/manifest.json',
+        moduleUrl: '../miniapps/control_panel/module.js',
       },
       {
         key: 'boas-vindas',
@@ -194,26 +194,34 @@ import { AppBase } from './runtime/app-base.js';
 
   const MINIAPP_FALLBACKS = [
     {
-      key: 'painel-controles',
+      key: 'control.panel',
       manifest: {
-        miniappId: 'painel-controles',
-        key: 'painel-controles',
-        name: 'Painel de Controles',
-        version: '1.0.0',
-        kind: 'system',
+        miniappId: 'control.panel',
+        id: 'control.panel',
+        key: 'control.panel',
+        name: 'Painel de Controle',
+        version: '1.10.0',
+        description:
+          'Etiqueta + Painel com Login, Sincronização, Backup e Eventos recentes (visual, sem lógica).',
+        loadOrder: 5,
+        dependsOn: ['base.theme', 'base.i18n'],
         supportedLocales: ['pt-BR', 'en-US', 'es-ES'],
         dictionaries: {
-          'pt-BR': './src/i18n/pt-BR.json',
-          'en-US': './src/i18n/en-US.json',
-          'es-ES': './src/i18n/es-ES.json',
+          'pt-BR': './i18n/pt-BR.json',
+          'en-US': './i18n/en-US.json',
+          'es-ES': './i18n/es-ES.json',
+        },
+        module: {
+          type: 'template',
+          url: './module.js',
         },
         meta: {
           card: {
-            label: 'Painel de Controles',
+            label: 'Painel de Controle',
             labelKey: 'miniapp.painel.card.title',
             meta: 'Sessão, sincronização e backups monitorados em tempo real.',
             metaKey: 'miniapp.painel.card.subtitle',
-            cta: 'Abrir painel de controles',
+            cta: 'Abrir painel de controle',
             ctaKey: 'miniapp.painel.card.cta',
           },
           badges: ['Sistema', 'Sync'],
@@ -222,11 +230,11 @@ import { AppBase } from './runtime/app-base.js';
             'miniapp.painel.badges.sync',
           ],
           panel: {
-            meta: 'Visão consolidada do painel de controles com integrações essenciais.',
+            meta: 'Visão consolidada do painel de controle com integrações essenciais.',
             metaKey: 'miniapp.painel.panel.meta',
           },
           marketplace: {
-            title: 'Painel de Controles',
+            title: 'Painel de Controle',
             titleKey: 'miniapp.painel.marketplace.title',
             description: 'Sessão, sincronização e backups monitorados em tempo real.',
             descriptionKey: 'miniapp.painel.marketplace.description',
@@ -522,7 +530,7 @@ import { AppBase } from './runtime/app-base.js';
   function createFallbackDefinition(manifest) {
     const meta = { ...(manifest.meta ?? {}) };
     if (!meta.id) {
-      meta.id = manifest.miniappId ?? manifest.key ?? manifest.name ?? '';
+      meta.id = manifest.miniappId ?? manifest.id ?? manifest.key ?? manifest.name ?? '';
     }
     return {
       meta,
@@ -800,7 +808,7 @@ import { AppBase } from './runtime/app-base.js';
   }
 
   async function instantiateMiniAppModule(entry, manifest, manifestUrl) {
-    const key = manifest.miniappId ?? manifest.key ?? entry.key;
+    const key = manifest.miniappId ?? manifest.id ?? manifest.key ?? entry.key;
     if (!key) {
       throw new Error('Manifesto de mini-app sem chave.');
     }
@@ -858,7 +866,12 @@ import { AppBase } from './runtime/app-base.js';
         }
         dictionaries[locale] = await response.json();
       } catch (error) {
-        console.warn(`AppBase: falha ao carregar dicionário de ${manifest.miniappId ?? manifest.key ?? 'miniapp'} (${locale})`, error);
+        console.warn(
+          `AppBase: falha ao carregar dicionário de ${
+            manifest.miniappId ?? manifest.id ?? manifest.key ?? 'miniapp'
+          } (${locale})`,
+          error,
+        );
       }
     }
     return dictionaries;
@@ -878,9 +891,9 @@ import { AppBase } from './runtime/app-base.js';
 
     try {
       const manifest = await loadMiniAppManifest(entry, manifestUrl);
-      const key = manifest.miniappId ?? manifest.key ?? entry.key;
+      const key = manifest.miniappId ?? manifest.id ?? manifest.key ?? entry.key;
       if (!key) {
-        throw new Error('Manifesto de mini-app sem miniappId.');
+        throw new Error('Manifesto de mini-app sem identificador.');
       }
       result.key = key;
       result.manifest = manifest;
