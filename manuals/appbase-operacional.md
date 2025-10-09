@@ -81,8 +81,8 @@
 
 - `appbase/app.js` — lógica do host, boot de MiniApps e gestão do painel.
 - `appbase/storage/indexeddb.js` — persistência com fallback.
-- `miniapps/painel-controles/` — MiniApp referência com documentação completa e
-  manifest compatível com automações.
+- `miniapps/control_panel/` — MiniApp visual R1.10 com manifest e dicionários
+  consumidos pelo host. Versões beta anteriores residem em `archive/miniapps/`.
 
 ## Log de revisões
 

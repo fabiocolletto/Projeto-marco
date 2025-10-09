@@ -1,0 +1,9 @@
+control_panel/
+├── index.html
+├── i18n/
+│   ├── en-US.json
+│   ├── es-ES.json
+│   └── pt-BR.json
+├── manifest.json
+├── module.js
+└── TREE.txt

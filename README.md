@@ -28,7 +28,7 @@ vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 ├── catalog/ui-extensions.json# Catálogo atual de miniapps carregado no runtime
 ├── miniapps/
 │   ├── boas-vindas/          # MiniApp estabilizado (versão ativa)
-│   └── painel-controles/     # MiniApp ativo carregado pelo host
+│   └── control_panel/        # MiniApp visual Painel de Controle R1.10
 ├── scripts/                  # Manifestos de dependências + utilitário de montagem
 ├── tests/                    # Suíte Playwright (inclui `trace-deps`)
 ├── manuals/                  # Manuais N1 (fluxos operacionais oficiais)
