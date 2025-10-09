@@ -99,9 +99,9 @@
             "off": "Sync desativada"
           },
           "status": {
-            "inactive": "Sincronização desativada no momento.",
-            "active": "Sincronização ativa.",
-            "active_with_time": "Sincronização ativa. Última sincronização em {{time}}."
+            "off": "Sincronização desativada no momento.",
+            "on": "Sincronização ativa.",
+            "on_with_time": "Sincronização ativa. Última sincronização em {{time}}."
           },
           "action": {
             "start": "Sincronizar",
@@ -119,6 +119,61 @@
           }
         },
         "export": "Exportar"
+      },
+      "cards": {
+        "sync": {
+          "title": "Sincronização",
+          "description": "Conecte o painel aos provedores suportados e distribua os dados.",
+          "providers": {
+            "google_drive": {
+              "name": "Google Drive",
+              "description": "Integração oficial com autenticação Google."
+            },
+            "microsoft_onedrive": {
+              "name": "OneDrive",
+              "description": "Sincronize com contas corporativas Microsoft."
+            }
+          },
+          "meta": {
+            "last_sync": "Última sincronização",
+            "server": "Servidor",
+            "devices": "Dispositivos conectados"
+          }
+        },
+        "backup": {
+          "title": "Backup",
+          "description": "Proteja registros críticos e restaure configurações em segundos.",
+          "meta": {
+            "last_backup": "Último backup",
+            "storage": "Armazenamento",
+            "storage_empty": "Sem destino",
+            "size": "Tamanho estimado"
+          },
+          "note": "Configure uma conta de nuvem ou exporte manualmente os dados para garantir redundância."
+        },
+        "connectivity": {
+          "title": "Conectividade",
+          "description": "Parâmetros ativos e latência dos serviços em tempo real.",
+          "meta": {
+            "endpoint": "Endpoint",
+            "region": "Região",
+            "latency": "Latência média"
+          },
+          "note": "Monitore tempo de resposta e priorize links redundantes durante janelas críticas de operação."
+        },
+        "security": {
+          "title": "Segurança",
+          "description": "Sessões autenticadas, políticas aplicadas e eventos recentes.",
+          "meta": {
+            "last_review": "Última revisão",
+            "status": "Status",
+            "alerts": "Alertas ativos"
+          },
+          "status": {
+            "pending": "Em análise"
+          },
+          "note": "Garanta autenticação multifator nos dispositivos conectados e revise logs semanalmente."
+        }
       },
       "summary": {
         "user": "Usuário",
