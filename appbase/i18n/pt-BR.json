@@ -82,15 +82,43 @@
             "inactive": "Último acesso registrado localmente.",
             "active": "Atualizado automaticamente após o login."
           }
-        },
-        "events": {
-          "label": "Eventos registrados",
-          "hint": {
-            "empty": "Aguardando primeiro registro.",
-            "single": "1 evento armazenado neste dispositivo.",
-            "multiple": "{{count}} eventos armazenados neste dispositivo."
-          }
+      },
+      "events": {
+        "label": "Eventos registrados",
+        "hint": {
+          "empty": "Aguardando primeiro registro.",
+          "single": "1 evento armazenado neste dispositivo.",
+          "multiple": "{{count}} eventos armazenados neste dispositivo."
         }
+      }
+    },
+      "integrations": {
+        "sync": {
+          "label": {
+            "on": "Sync ativada",
+            "off": "Sync desativada"
+          },
+          "status": {
+            "inactive": "Sincronização desativada no momento.",
+            "active": "Sincronização ativa.",
+            "active_with_time": "Sincronização ativa. Última sincronização em {{time}}."
+          },
+          "action": {
+            "start": "Sincronizar",
+            "stop": "Desincronizar"
+          },
+          "provider": {
+            "active": "Ativo",
+            "inactive": "Inativo"
+          }
+        },
+        "backup": {
+          "label": {
+            "on": "Backup ativado",
+            "off": "Backup desativado"
+          }
+        },
+        "export": "Exportar"
       },
       "summary": {
         "user": "Usuário",

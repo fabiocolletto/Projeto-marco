@@ -293,8 +293,12 @@ import { AppBase } from './runtime/app-base.js';
     panelMeta: document.querySelector('[data-panel-meta]'),
     syncMasterToggle: document.querySelector('[data-sync-master]'),
     backupMasterToggle: document.querySelector('[data-backup-master]'),
-    syncMasterLabel: document.querySelector('[data-sync-master-label]'),
-    backupMasterLabel: document.querySelector('[data-backup-master-label]'),
+    syncMasterLabels: Array.from(
+      document.querySelectorAll('[data-sync-master-label]') || [],
+    ),
+    backupMasterLabels: Array.from(
+      document.querySelectorAll('[data-backup-master-label]') || [],
+    ),
     syncMasterDot: document.querySelector('[data-sync-master-dot]'),
     syncStatusMessage: document.querySelector('[data-sync-status-message]'),
     syncLastUpdate: document.querySelector('[data-sync-last-update]'),
@@ -1753,12 +1757,15 @@ import { AppBase } from './runtime/app-base.js';
     const lastSyncValue = state.lastSync ? formatDateTime(state.lastSync) : '—';
     if (elements.syncMasterToggle) {
       elements.syncMasterToggle.setAttribute('aria-pressed', syncEnabled ? 'true' : 'false');
-      const labelNode = elements.syncMasterLabel ||
-        (elements.syncMasterToggle &&
-          elements.syncMasterToggle.querySelector('[data-sync-master-label]'));
-      if (labelNode) {
-        labelNode.textContent = syncEnabled ? 'Sync ativada' : 'Sync desativada';
-      }
+      const labels = elements.syncMasterLabels.length
+        ? elements.syncMasterLabels
+        : elements.syncMasterToggle
+          ? Array.from(elements.syncMasterToggle.querySelectorAll('[data-sync-master-label]'))
+          : [];
+      const labelKey = syncEnabled
+        ? 'app.panel.integrations.sync.label.on'
+        : 'app.panel.integrations.sync.label.off';
+      setElementTextFromKey(labels, labelKey);
       if (elements.syncMasterDot) {
         elements.syncMasterDot.classList.toggle('ac-dot--ok', syncEnabled);
         elements.syncMasterDot.classList.toggle('ac-dot--crit', !syncEnabled);
@@ -1770,19 +1777,20 @@ import { AppBase } from './runtime/app-base.js';
         'aria-pressed',
         syncEnabled ? 'true' : 'false',
       );
-      clearElementTranslation(
-        elements.syncActionButton,
-        syncEnabled ? 'Desincronizar' : 'Sincronizar',
-      );
+      const actionKey = syncEnabled
+        ? 'app.panel.integrations.sync.action.stop'
+        : 'app.panel.integrations.sync.action.start';
+      setElementTextFromKey(elements.syncActionButton, actionKey);
     }
 
     if (elements.syncStatusMessage) {
-      const message = syncEnabled
+      const statusKey = syncEnabled
         ? state.lastSync
-          ? `Sincronização ativa. Última sincronização em ${lastSyncValue}.`
-          : 'Sincronização ativa.'
-        : 'Sincronização desativada no momento.';
-      clearElementTranslation(elements.syncStatusMessage, message);
+          ? 'app.panel.integrations.sync.status.active_with_time'
+          : 'app.panel.integrations.sync.status.active'
+        : 'app.panel.integrations.sync.status.inactive';
+      const replacements = syncEnabled && state.lastSync ? { time: lastSyncValue } : {};
+      setElementTextFromKey(elements.syncStatusMessage, statusKey, { replacements });
     }
 
     if (elements.syncLastUpdate) {
@@ -1799,11 +1807,13 @@ import { AppBase } from './runtime/app-base.js';
     }
 
     if (elements.syncProviderBadges.length) {
-      const badgeLabel = syncEnabled ? 'Ativo' : 'Inativo';
+      const badgeKey = syncEnabled
+        ? 'app.panel.integrations.sync.provider.active'
+        : 'app.panel.integrations.sync.provider.inactive';
       elements.syncProviderBadges.forEach((badge) => {
         badge.classList.toggle('ac-sync-provider__badge--active', syncEnabled);
         badge.classList.toggle('ac-sync-provider__badge--inactive', !syncEnabled);
-        clearElementTranslation(badge, badgeLabel);
+        setElementTextFromKey(badge, badgeKey);
       });
     }
 
@@ -1813,12 +1823,15 @@ import { AppBase } from './runtime/app-base.js';
         'aria-pressed',
         backupEnabled ? 'true' : 'false',
       );
-      const labelNode = elements.backupMasterLabel ||
-        (elements.backupMasterToggle &&
-          elements.backupMasterToggle.querySelector('[data-backup-master-label]'));
-      if (labelNode) {
-        labelNode.textContent = backupEnabled ? 'Backup ativado' : 'Backup desativado';
-      }
+      const labels = elements.backupMasterLabels.length
+        ? elements.backupMasterLabels
+        : elements.backupMasterToggle
+          ? Array.from(elements.backupMasterToggle.querySelectorAll('[data-backup-master-label]'))
+          : [];
+      const labelKey = backupEnabled
+        ? 'app.panel.integrations.backup.label.on'
+        : 'app.panel.integrations.backup.label.off';
+      setElementTextFromKey(labels, labelKey);
       if (elements.backupMasterDot) {
         elements.backupMasterDot.classList.toggle('ac-dot--ok', backupEnabled);
         elements.backupMasterDot.classList.toggle('ac-dot--crit', !backupEnabled);
