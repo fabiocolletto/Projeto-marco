@@ -45,15 +45,10 @@ async function ensurePanelOpen(page) {
   return stage;
 }
 
-async function ensureLoginForm(page) {
+async function registerUser(page, { nome, email, telefone = '', senha = 'SenhaForte123' }) {
   const stage = await ensurePanelOpen(page);
   const form = stage.locator('[data-login-form]');
   await expect(form).toBeVisible();
-  return form;
-}
-
-async function registerUser(page, { nome, email, telefone = '', senha = 'SenhaForte123' }) {
-  const form = await ensureLoginForm(page);
 
   await form.locator('input[name="nome"]').fill(nome);
   await form.locator('input[name="email"]').fill(email);
@@ -142,7 +137,9 @@ test('botão do cabeçalho controla o painel sem acionar camadas extras', async 
 
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
-  await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
+  const inlineForm = stage.locator('[data-login-form]');
+
+  await expect(inlineForm).toBeVisible();
 
   await panelAccess.click();
   await expect(stage).toBeHidden();
@@ -153,7 +150,7 @@ test('botão do cabeçalho controla o painel sem acionar camadas extras', async 
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
-  await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
+  await expect(inlineForm).toBeVisible();
 
   await stageClose.click();
   await expect(stage).toBeHidden();
@@ -197,7 +194,7 @@ test('sessão encerrada mantém painel sob controle do cabeçalho', async ({
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
-  await expect(stage.locator('[data-overlay-open="login"]')).toHaveCount(0);
+  await expect(stage.locator('[data-login-form]')).toBeVisible();
 });
 
 test('histórico registra login e logoff com preservação e limpeza de dados', async ({
@@ -236,7 +233,8 @@ test('histórico registra login e logoff com preservação e limpeza de dados', 
     await expect(page.locator('[data-action="logout-preserve"]')).toBeDisabled();
     await expect(page.locator('[data-action="logout-clear"]')).toBeEnabled();
 
-    const form = await ensureLoginForm(page);
+    const form = (await ensurePanelOpen(page)).locator('[data-login-form]');
+    await expect(form).toBeVisible();
     await form.locator('[data-action="login-save"]').click();
     await expect(feedback).toHaveText('Cadastro atualizado com sucesso.');
 
