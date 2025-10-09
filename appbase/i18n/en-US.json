@@ -96,6 +96,8 @@
         "user": "User",
         "account": "Account",
         "last_login": "Last access",
+        "last_sync": "Last sync",
+        "last_backup": "Last backup",
         "empty": "Not configured"
       },
       "form": {
@@ -125,6 +127,7 @@
         "description": "End the session while keeping the stored data in this browser or remove all registration information.",
         "actions": {
           "label": "Session actions",
+          "save": "Save profile",
           "logout": "End session",
           "logout_clear": "End and remove data"
         }

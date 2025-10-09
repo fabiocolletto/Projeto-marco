@@ -96,6 +96,8 @@
         "user": "Usuario",
         "account": "Cuenta",
         "last_login": "Último acceso",
+        "last_sync": "Última sincronización",
+        "last_backup": "Última copia de seguridad",
         "empty": "No configurado"
       },
       "form": {
@@ -125,6 +127,7 @@
         "description": "Finaliza la sesión manteniendo los datos almacenados en este navegador o elimina toda la información del registro.",
         "actions": {
           "label": "Acciones de la sesión",
+          "save": "Guardar registro",
           "logout": "Cerrar sesión",
           "logout_clear": "Cerrar y eliminar datos"
         }
