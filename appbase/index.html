@@ -345,6 +345,164 @@
                   </div>
                 </section>
 
+                <article
+                  class="ac-panel-card ac-panel-card--session ac-ctrl-session"
+                  aria-labelledby="panel-session-title"
+                >
+                  <header class="ac-panel-card__head">
+                    <div class="ac-panel-card__titles">
+                      <h3
+                        id="panel-session-title"
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.form.title"
+                      >
+                        Cadastro
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.panel.form.subtitle"
+                      >
+                        Atualize os dados salvos neste dispositivo.
+                      </p>
+                    </div>
+                  </header>
+                  <form class="ac-panel-form" data-login-form novalidate>
+                    <div class="ac-panel-form__group">
+                      <label
+                        class="ac-panel-form__label"
+                        for="panel-name"
+                        data-i18n="app.panel.form.fields.name"
+                      >
+                        Nome completo
+                      </label>
+                      <input
+                        class="ac-input"
+                        id="panel-name"
+                        name="nome"
+                        type="text"
+                        autocomplete="name"
+                        required
+                      />
+                    </div>
+                    <div class="ac-panel-form__group">
+                      <label
+                        class="ac-panel-form__label"
+                        for="panel-email"
+                        data-i18n="app.panel.form.fields.email"
+                      >
+                        E-mail
+                      </label>
+                      <input
+                        class="ac-input"
+                        id="panel-email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        required
+                      />
+                    </div>
+                    <div class="ac-panel-form__group">
+                      <label
+                        class="ac-panel-form__label"
+                        for="panel-phone"
+                        data-i18n="app.panel.form.fields.phone"
+                      >
+                        Telefone (opcional)
+                      </label>
+                      <input
+                        class="ac-input"
+                        id="panel-phone"
+                        name="telefone"
+                        type="tel"
+                        inputmode="numeric"
+                        autocomplete="tel"
+                        data-phone-input
+                        placeholder="(99) 99999-9999"
+                      />
+                    </div>
+                    <div class="ac-panel-form__group">
+                      <label
+                        class="ac-panel-form__label"
+                        for="panel-password"
+                        data-i18n="app.panel.form.fields.password"
+                      >
+                        Senha
+                      </label>
+                      <div class="ac-password-field" data-password-field>
+                        <input
+                          class="ac-input"
+                          id="panel-password"
+                          name="senha"
+                          type="password"
+                          autocomplete="new-password"
+                          required
+                          data-password-input
+                        />
+                        <button
+                          class="ac-password-toggle"
+                          type="button"
+                          data-password-toggle
+                          aria-pressed="false"
+                          aria-controls="panel-password"
+                        >
+                          <span data-password-toggle-icon aria-hidden="true">👁</span>
+                          <span
+                            class="ac-visually-hidden"
+                            data-password-toggle-label
+                            data-i18n="app.panel.form.fields.password_toggle.show"
+                          >
+                            Mostrar senha
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                    <div
+                      class="ac-panel-form__actions"
+                      data-session-actions
+                      role="group"
+                    >
+                      <button
+                        class="ac-btn"
+                        type="submit"
+                        data-action="login-save"
+                        data-i18n="app.panel.session.actions.save"
+                      >
+                        Salvar cadastro
+                      </button>
+                      <button
+                        class="ac-btn ac-btn--ghost"
+                        type="button"
+                        data-action="logout-preserve"
+                        data-i18n="app.panel.session.actions.logout"
+                      >
+                        Encerrar sessão
+                      </button>
+                      <button
+                        class="ac-btn ac-btn--danger"
+                        type="button"
+                        data-action="logout-clear"
+                        data-i18n="app.panel.session.actions.logout_clear"
+                      >
+                        Encerrar e remover dados
+                      </button>
+                      <p
+                        class="ac-panel-form__hint"
+                        id="panel-session-hint"
+                        data-i18n="app.panel.session.description"
+                      >
+                        Encerre a sessão mantendo os dados armazenados neste navegador
+                        ou remova todas as informações do cadastro.
+                      </p>
+                    </div>
+                  </form>
+                  <p
+                    class="ac-feedback"
+                    data-login-feedback
+                    role="status"
+                    aria-live="polite"
+                  ></p>
+                </article>
+
                 <div class="ac-panel__grid">
                   <article
                     class="ac-panel-card ac-panel-card--sync"
@@ -629,246 +787,72 @@
                     </p>
                   </article>
                 </div>
+                <article
+                  class="ac-panel-card ac-panel-card--history ac-history ac-ctrl-history"
+                  aria-labelledby="login-log-title"
+                >
+                  <header class="ac-panel-card__head ac-history__head">
+                    <div class="ac-panel-card__titles ac-history__titles">
+                      <h3
+                        id="login-log-title"
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.history.title"
+                      >
+                        Eventos
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle ac-history__subtitle"
+                        data-i18n="app.panel.history.subtitle"
+                      >
+                        Acompanhe logins, backups e alertas registrados neste dispositivo.
+                      </p>
+                    </div>
+                    <form class="ac-history__filters" role="search">
+                      <label class="ac-history__search">
+                        <span class="ac-visually-hidden">Filtrar eventos</span>
+                        <input
+                          type="search"
+                          name="history-search"
+                          placeholder="Eventos (ex.: backup, login, 09)"
+                          autocomplete="off"
+                          data-history-search
+                        />
+                      </label>
+                      <label class="ac-history__select">
+                        <span class="ac-visually-hidden">Tipo de evento</span>
+                        <select name="history-type" data-history-filter>
+                          <option value="all">Todos os tipos</option>
+                          <option value="login">Logins</option>
+                          <option value="logout">Logoffs</option>
+                          <option value="backup">Backups</option>
+                          <option value="alert">Alertas</option>
+                        </select>
+                      </label>
+                    </form>
+                  </header>
+                  <div class="ac-history__body">
+                    <div class="ac-table-wrap ac-table-wrap--inner" data-login-log-table>
+                      <table class="ac-table ac-table--compact" aria-live="polite">
+                        <thead>
+                          <tr>
+                            <th data-i18n="app.panel.history.table.event">Evento</th>
+                            <th data-i18n="app.panel.history.table.time">Horário</th>
+                          </tr>
+                        </thead>
+                        <tbody data-login-log-body></tbody>
+                      </table>
+                    </div>
+                    <p class="ac-history__empty" data-login-log-empty data-i18n="app.history.empty">
+                      Sem registros.
+                    </p>
+                  </div>
+                </article>
               </div>
             </div>
           </section>
           </main>
       </div>
 
-      <div
-        class="ac-overlay"
-        data-panel-overlay
-        data-overlay-id="session"
-        id="panel-session-overlay"
-        aria-hidden="true"
-      >
-        <section
-          class="ac-sheet"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="panel-session-overlay-title"
-        >
-          <header class="ac-sheet__head">
-            <h3 id="panel-session-overlay-title" class="ac-sheet__title">
-              Gerenciar sessão
-            </h3>
-            <button
-              class="ac-iconbtn ac-iconbtn--small"
-              type="button"
-              data-overlay-close="session"
-              aria-label="Fechar gerenciamento de sessão"
-            >
-              <span aria-hidden="true">×</span>
-            </button>
-          </header>
-          <div class="ac-sheet__body">
-            <article class="ac-panel-card ac-panel-card--session ac-ctrl-session">
-              <header class="ac-panel-card__head">
-                <div class="ac-panel-card__titles">
-                  <h3 id="panel-session-title" class="ac-panel-card__title">
-                    Sessão e credenciais
-                  </h3>
-                  <p class="ac-panel-card__subtitle">
-                    Atualize os dados do usuário e gerencie a sessão atual.
-                  </p>
-                </div>
-              </header>
-              <form class="ac-panel-form" data-login-form novalidate>
-                <div class="ac-panel-form__group">
-                  <label class="ac-panel-form__label" for="panel-name">
-                    Nome completo
-                  </label>
-                  <input
-                    class="ac-input"
-                    id="panel-name"
-                    name="nome"
-                    type="text"
-                    autocomplete="name"
-                    required
-                  />
-                </div>
-                <div class="ac-panel-form__group">
-                  <label class="ac-panel-form__label" for="panel-email">
-                    E-mail
-                  </label>
-                  <input
-                    class="ac-input"
-                    id="panel-email"
-                    name="email"
-                    type="email"
-                    autocomplete="email"
-                    required
-                  />
-                </div>
-                <div class="ac-panel-form__group">
-                  <label class="ac-panel-form__label" for="panel-phone">
-                    Telefone
-                  </label>
-                  <input
-                    class="ac-input"
-                    id="panel-phone"
-                    name="telefone"
-                    type="tel"
-                    inputmode="numeric"
-                    autocomplete="tel"
-                    data-phone-input
-                    placeholder="(99) 99999-9999"
-                  />
-                </div>
-                <div class="ac-panel-form__group">
-                  <label class="ac-panel-form__label" for="panel-password">
-                    Senha
-                  </label>
-                  <div class="ac-password-field" data-password-field>
-                    <input
-                      class="ac-input"
-                      id="panel-password"
-                      name="senha"
-                      type="password"
-                      autocomplete="new-password"
-                      required
-                      data-password-input
-                    />
-                    <button
-                      class="ac-password-toggle"
-                      type="button"
-                      data-password-toggle
-                      aria-pressed="false"
-                      aria-controls="panel-password"
-                    >
-                      <span data-password-toggle-icon aria-hidden="true">👁</span>
-                      <span class="ac-visually-hidden" data-password-toggle-label>
-                        Mostrar senha
-                      </span>
-                    </button>
-                  </div>
-                </div>
-                <div class="ac-panel-form__actions" data-session-actions>
-                  <button
-                    class="ac-btn"
-                    type="submit"
-                    data-action="login-save"
-                    data-i18n="app.panel.session.actions.save"
-                  >
-                    Salvar cadastro
-                  </button>
-                  <button
-                    class="ac-btn ac-btn--ghost"
-                    type="button"
-                    data-action="logout-preserve"
-                    data-i18n="app.panel.session.actions.logout"
-                  >
-                    Encerrar sessão
-                  </button>
-                  <button
-                    class="ac-btn ac-btn--danger"
-                    type="button"
-                    data-action="logout-clear"
-                    data-i18n="app.panel.session.actions.logout_clear"
-                  >
-                    Encerrar e remover dados
-                  </button>
-                  <p
-                    class="ac-panel-form__hint"
-                    id="panel-session-hint"
-                    data-i18n="app.panel.session.description"
-                  >
-                    Encerre a sessão mantendo os dados armazenados neste navegador
-                    ou remova todas as informações do cadastro.
-                  </p>
-                </div>
-              </form>
-              <p
-                class="ac-feedback"
-                data-login-feedback
-                role="status"
-                aria-live="polite"
-              ></p>
-            </article>
-
-            <article
-              class="ac-panel-card ac-panel-card--history ac-history ac-ctrl-history"
-              aria-labelledby="login-log-title"
-            >
-              <header class="ac-panel-card__head ac-history__head">
-                <div class="ac-panel-card__titles ac-history__titles">
-                  <h3
-                    id="login-log-title"
-                    class="ac-panel-card__title"
-                    data-i18n="app.panel.history.title"
-                  >
-                    Eventos
-                  </h3>
-                  <p
-                    class="ac-panel-card__subtitle ac-history__subtitle"
-                    data-i18n="app.panel.history.subtitle"
-                  >
-                    Acompanhe logins, backups e alertas registrados neste dispositivo.
-                  </p>
-                </div>
-                <form class="ac-history__filters" role="search">
-                  <label class="ac-history__search">
-                    <span class="ac-visually-hidden">Filtrar eventos</span>
-                    <input
-                      type="search"
-                      name="history-search"
-                      placeholder="Eventos (ex.: backup, login, 09)"
-                      autocomplete="off"
-                      data-history-search
-                    />
-                  </label>
-                  <label class="ac-history__select">
-                    <span class="ac-visually-hidden">Tipo de evento</span>
-                    <select name="history-type" data-history-filter>
-                      <option value="all">Todos os tipos</option>
-                      <option value="login">Logins</option>
-                      <option value="logout">Logoffs</option>
-                      <option value="backup">Backups</option>
-                      <option value="alert">Alertas</option>
-                    </select>
-                  </label>
-                </form>
-              </header>
-              <div class="ac-history__body">
-                <div
-                  class="ac-table-wrap ac-table-wrap--inner"
-                  data-login-log-table
-                >
-                  <table
-                    class="ac-table ac-table--compact"
-                    aria-live="polite"
-                  >
-                    <thead>
-                      <tr>
-                        <th
-                          scope="col"
-                          data-i18n="app.panel.history.table.event"
-                        >
-                          Evento
-                        </th>
-                        <th
-                          scope="col"
-                          data-i18n="app.panel.history.table.time"
-                        >
-                          Horário
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody data-login-log-body></tbody>
-                  </table>
-                </div>
-                <p
-                  class="ac-history__empty"
-                  data-login-log-empty
-                  data-i18n="app.history.empty"
-                >
-                  Sem registros.
-                </p>
-              </div>
-            </article>
-          </div>
-        </section>
-      </div>
 
       <footer class="ac-footer" role="contentinfo">
         <span class="ac-footer__status" data-footer-status data-footer-session-status>
