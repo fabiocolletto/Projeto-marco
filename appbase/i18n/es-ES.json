@@ -82,15 +82,43 @@
             "inactive": "Último acceso registrado localmente.",
             "active": "Se actualiza automáticamente después del inicio de sesión."
           }
-        },
-        "events": {
-          "label": "Eventos registrados",
-          "hint": {
-            "empty": "Esperando el primer registro.",
-            "single": "1 evento almacenado en este dispositivo.",
-            "multiple": "{{count}} eventos almacenados en este dispositivo."
-          }
+      },
+      "events": {
+        "label": "Eventos registrados",
+        "hint": {
+          "empty": "Esperando el primer registro.",
+          "single": "1 evento almacenado en este dispositivo.",
+          "multiple": "{{count}} eventos almacenados en este dispositivo."
         }
+      }
+    },
+      "integrations": {
+        "sync": {
+          "label": {
+            "on": "Sincronización activada",
+            "off": "Sincronización desactivada"
+          },
+          "status": {
+            "inactive": "La sincronización está desactivada en este momento.",
+            "active": "La sincronización está activa.",
+            "active_with_time": "La sincronización está activa. Última sincronización el {{time}}."
+          },
+          "action": {
+            "start": "Activar sincronización",
+            "stop": "Desactivar sincronización"
+          },
+          "provider": {
+            "active": "Activo",
+            "inactive": "Inactivo"
+          }
+        },
+        "backup": {
+          "label": {
+            "on": "Copia de seguridad activada",
+            "off": "Copia de seguridad desactivada"
+          }
+        },
+        "export": "Exportar"
       },
       "summary": {
         "user": "Usuario",

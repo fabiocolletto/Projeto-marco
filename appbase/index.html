@@ -102,13 +102,28 @@
           >
             <span class="ac-status-chip" role="status">
               <span class="ac-status-chip__icon" aria-hidden="true">☁️</span>
-              <span class="ac-status-chip__label">Sync desativada</span>
+              <span
+                class="ac-status-chip__label"
+                data-i18n="app.panel.integrations.sync.label.off"
+              >
+                Sync desativada
+              </span>
             </span>
             <span class="ac-status-chip" role="status">
               <span class="ac-status-chip__icon" aria-hidden="true">💾</span>
-              <span class="ac-status-chip__label">Backup desativado</span>
+              <span
+                class="ac-status-chip__label"
+                data-i18n="app.panel.integrations.backup.label.off"
+              >
+                Backup desativado
+              </span>
             </span>
-            <button class="ac-btn ac-btn--outline ac-stage__export" type="button">
+            <button
+              class="ac-btn ac-btn--outline ac-stage__export"
+              type="button"
+              data-stage-export
+              data-i18n="app.panel.integrations.export"
+            >
               Exportar
             </button>
           </div>
@@ -290,7 +305,11 @@
                         aria-hidden="true"
                         data-sync-master-dot
                       ></span>
-                      <span class="ac-status-toggle__label" data-sync-master-label>
+                      <span
+                        class="ac-status-toggle__label"
+                        data-sync-master-label
+                        data-i18n="app.panel.integrations.sync.label.off"
+                      >
                         Sync desativada
                       </span>
                     </button>
@@ -305,7 +324,11 @@
                         aria-hidden="true"
                         data-backup-master-dot
                       ></span>
-                      <span class="ac-status-toggle__label" data-backup-master-label>
+                      <span
+                        class="ac-status-toggle__label"
+                        data-backup-master-label
+                        data-i18n="app.panel.integrations.backup.label.off"
+                      >
                         Backup desativado
                       </span>
                     </button>
@@ -313,6 +336,7 @@
                       class="ac-btn ac-btn--outline ac-panel-label__export"
                       type="button"
                       data-stage-export
+                      data-i18n="app.panel.integrations.export"
                     >
                       Exportar
                     </button>
@@ -342,6 +366,7 @@
                             data-sync-status-message
                             role="status"
                             aria-live="polite"
+                            data-i18n="app.panel.integrations.sync.status.inactive"
                           >
                             Sincronização desativada no momento.
                           </p>
@@ -352,6 +377,7 @@
                             type="button"
                             data-sync-action
                             aria-pressed="false"
+                            data-i18n="app.panel.integrations.sync.action.start"
                           >
                             Sincronizar
                           </button>
@@ -375,6 +401,7 @@
                           <span
                             class="ac-sync-provider__badge ac-sync-provider__badge--inactive"
                             data-sync-provider-status
+                            data-i18n="app.panel.integrations.sync.provider.inactive"
                           >
                             Inativo
                           </span>
@@ -396,6 +423,7 @@
                           <span
                             class="ac-sync-provider__badge ac-sync-provider__badge--inactive"
                             data-sync-provider-status
+                            data-i18n="app.panel.integrations.sync.provider.inactive"
                           >
                             Inativo
                           </span>

@@ -82,15 +82,43 @@
             "inactive": "Last access recorded locally.",
             "active": "Automatically updated after login."
           }
-        },
-        "events": {
-          "label": "Recorded events",
-          "hint": {
-            "empty": "Waiting for the first record.",
-            "single": "1 event stored on this device.",
-            "multiple": "{{count}} events stored on this device."
-          }
+      },
+      "events": {
+        "label": "Recorded events",
+        "hint": {
+          "empty": "Waiting for the first record.",
+          "single": "1 event stored on this device.",
+          "multiple": "{{count}} events stored on this device."
         }
+      }
+    },
+      "integrations": {
+        "sync": {
+          "label": {
+            "on": "Sync enabled",
+            "off": "Sync disabled"
+          },
+          "status": {
+            "inactive": "Sync is disabled right now.",
+            "active": "Sync is active.",
+            "active_with_time": "Sync is active. Last sync at {{time}}."
+          },
+          "action": {
+            "start": "Enable sync",
+            "stop": "Disable sync"
+          },
+          "provider": {
+            "active": "Active",
+            "inactive": "Inactive"
+          }
+        },
+        "backup": {
+          "label": {
+            "on": "Backup enabled",
+            "off": "Backup disabled"
+          }
+        },
+        "export": "Export"
       },
       "summary": {
         "user": "User",
