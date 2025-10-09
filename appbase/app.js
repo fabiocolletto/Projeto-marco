@@ -2103,7 +2103,8 @@ import { AppBase } from './runtime/app-base.js';
 
     const timestamp = nowIso();
     const historyEntry = createHistoryEntry('login', { timestamp });
-    panelOpen = true;
+    const shouldFocusStage = !panelOpen;
+    openPanel({ focus: false });
     await setState((previous) => {
       const nextHistory = historyEntry
         ? [historyEntry, ...(previous.history || [])]
@@ -2122,7 +2123,9 @@ import { AppBase } from './runtime/app-base.js';
       };
     });
 
-    focusStageTitle();
+    if (shouldFocusStage) {
+      focusStageTitle();
+    }
     setLoginFeedback('success', LOGIN_SUCCESS_FEEDBACK_KEY);
   }
 
