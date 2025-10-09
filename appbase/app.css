@@ -1319,33 +1319,50 @@ select {
   font-size: 0.95rem;
 }
 
-.ac-panel-form__actions {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 4px;
-}
-
-.ac-panel-form__hint {
-  flex-basis: 100%;
-  margin: 0;
-  margin-top: 4px;
-  font-size: 0.9rem;
-  color: var(--ac-muted);
-  text-align: right;
-}
-
 .ac-panel-card--history {
   padding-bottom: 28px;
   grid-column: 1 / -1;
 }
 
-.ac-panel-card--form {
+.ac-panel-card--form,
+.ac-panel-card--session {
   grid-column: auto;
   align-self: start;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.ac-panel-card--session {
+  grid-column: 1 / -1;
+  box-shadow: 0 16px 32px var(--ac-shadow);
+}
+
+.ac-panel__grid > .ac-panel-card--session {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 1280px) {
+  .ac-panel__grid > .ac-panel-card--session {
+    grid-column: span 2;
+  }
+}
+
+.ac-panel-card--session .ac-panel-form {
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.ac-panel-card--session .ac-panel-form__group {
+  display: grid;
+  gap: 6px;
+}
+
+@media (min-width: 960px) {
+  .ac-panel-card--session .ac-panel-form {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
 }
 
 .ac-panel-card--system {
@@ -1378,8 +1395,40 @@ select {
   margin: 0;
 }
 
-.ac-panel-card--form .ac-feedback {
+.ac-panel-card--form .ac-feedback,
+.ac-panel-card--session .ac-feedback {
   border-style: dashed;
+}
+
+.ac-panel-form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: var(--ac-border-width) solid var(--ac-border-soft);
+}
+
+.ac-panel-form__hint {
+  flex-basis: 100%;
+  margin: 0;
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--ac-muted);
+  text-align: right;
+}
+
+:root[data-theme='dark'] .ac-panel-card--session {
+  background: linear-gradient(
+      180deg,
+      rgba(96, 165, 250, 0.16) 0%,
+      rgba(17, 27, 47, 0.92) 100%
+    ),
+    var(--ac-card-bg);
+  box-shadow: 0 20px 44px rgba(2, 6, 23, 0.5);
 }
 
 @media (max-width: 960px) {
@@ -1397,6 +1446,10 @@ select {
 
   .ac-panel-kpis {
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+  .ac-panel-form__actions {
+    justify-content: flex-start;
   }
 }
 
