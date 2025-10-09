@@ -70,6 +70,12 @@
 .ac-locale-menu__flag {
   font-size: 1.35rem;
   line-height: 1;
+  font-family: 'Twemoji Mozilla', 'Segoe UI Emoji', 'Apple Color Emoji',
+    'Noto Color Emoji', sans-serif;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6ch;
 }
 
 .ac-locale-menu__name {
