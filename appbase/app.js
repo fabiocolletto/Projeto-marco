@@ -125,6 +125,11 @@ import { AppBase } from './runtime/app-base.js';
       'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.',
     [STAGE_EMPTY_KEYS.return]: 'Sessão encerrada. Acesse novamente para visualizar o painel.',
     [SUMMARY_EMPTY_KEY]: 'Não configurado',
+    'app.panel.summary.user': 'Usuário',
+    'app.panel.summary.account': 'Conta',
+    'app.panel.summary.last_login': 'Último acesso',
+    'app.panel.summary.last_sync': 'Último sync',
+    'app.panel.summary.last_backup': 'Último backup',
     [PANEL_STATUS_LABEL_KEYS.connected]: 'Conectado',
     [PANEL_STATUS_LABEL_KEYS.disconnected]: 'Desconectado',
     [PANEL_STATUS_HINT_KEYS.empty]: 'Cadastre um usuário para iniciar a sessão.',
@@ -165,6 +170,7 @@ import { AppBase } from './runtime/app-base.js';
     [LOGIN_PHONE_INVALID_FEEDBACK_KEY]:
       'Informe um telefone brasileiro com 10 ou 11 dígitos.',
     [LOGIN_PASSWORD_MISSING_FEEDBACK_KEY]: 'Informe uma senha para continuar.',
+    'app.panel.session.actions.save': 'Salvar cadastro',
     [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
     [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
     [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
@@ -174,14 +180,9 @@ import { AppBase } from './runtime/app-base.js';
     tenantId: 'tenant-marco',
     userId: 'appbase-admin',
     catalogBaseUrl: 'https://cdn.marco.app/catalog',
-    defaults: { enabledMiniApps: ['control.panel', 'boas-vindas'] },
+    defaults: { enabledMiniApps: ['boas-vindas'] },
     user: { enabledMiniApps: [], entitlements: {}, providers: {} },
     miniApps: [
-      {
-        key: 'control.panel',
-        manifestUrl: '../miniapps/control_panel/manifest.json',
-        moduleUrl: '../miniapps/control_panel/module.js',
-      },
       {
         key: 'boas-vindas',
         manifestUrl: '../miniapps/boas-vindas/manifest.json',
@@ -193,61 +194,6 @@ import { AppBase } from './runtime/app-base.js';
   };
 
   const MINIAPP_FALLBACKS = [
-    {
-      key: 'control.panel',
-      manifest: {
-        miniappId: 'control.panel',
-        id: 'control.panel',
-        key: 'control.panel',
-        name: 'Painel de Controle',
-        version: '1.10.0',
-        description:
-          'Etiqueta + Painel com Login, Sincronização, Backup e Eventos recentes (visual, sem lógica).',
-        loadOrder: 5,
-        dependsOn: ['base.theme', 'base.i18n'],
-        supportedLocales: ['pt-BR', 'en-US', 'es-ES'],
-        dictionaries: {
-          'pt-BR': './i18n/pt-BR.json',
-          'en-US': './i18n/en-US.json',
-          'es-ES': './i18n/es-ES.json',
-        },
-        module: {
-          type: 'template',
-          url: './module.js',
-        },
-        meta: {
-          card: {
-            label: 'Painel de Controle',
-            labelKey: 'miniapp.painel.card.title',
-            meta: 'Sessão, sincronização e backups monitorados em tempo real.',
-            metaKey: 'miniapp.painel.card.subtitle',
-            cta: 'Abrir painel de controle',
-            ctaKey: 'miniapp.painel.card.cta',
-          },
-          badges: ['Sistema', 'Sync'],
-          badgeKeys: [
-            'miniapp.painel.badges.system',
-            'miniapp.painel.badges.sync',
-          ],
-          panel: {
-            meta: 'Visão consolidada do painel de controle com integrações essenciais.',
-            metaKey: 'miniapp.painel.panel.meta',
-          },
-          marketplace: {
-            title: 'Painel de Controle',
-            titleKey: 'miniapp.painel.marketplace.title',
-            description: 'Sessão, sincronização e backups monitorados em tempo real.',
-            descriptionKey: 'miniapp.painel.marketplace.description',
-            capabilities: ['Sync', 'Backup', 'Sessão'],
-            capabilityKeys: [
-              'miniapp.painel.marketplace.capabilities.sync',
-              'miniapp.painel.marketplace.capabilities.backup',
-              'miniapp.painel.marketplace.capabilities.session',
-            ],
-          },
-        },
-      },
-    },
     {
       key: 'boas-vindas',
       manifest: {
@@ -347,6 +293,8 @@ import { AppBase } from './runtime/app-base.js';
     panelMeta: document.querySelector('[data-panel-meta]'),
     syncMasterToggle: document.querySelector('[data-sync-master]'),
     backupMasterToggle: document.querySelector('[data-backup-master]'),
+    syncMasterLabel: document.querySelector('[data-sync-master-label]'),
+    backupMasterLabel: document.querySelector('[data-backup-master-label]'),
     syncMasterDot: document.querySelector('[data-sync-master-dot]'),
     syncStatusMessage: document.querySelector('[data-sync-status-message]'),
     syncLastUpdate: document.querySelector('[data-sync-last-update]'),
@@ -786,12 +734,22 @@ import { AppBase } from './runtime/app-base.js';
     }
 
     const enabledSet = new Set(AppBase.getEnabledMiniApps());
+    const visibleEntries = registered.filter((entry) => {
+      const kind = entry.manifest?.kind || entry.meta?.kind;
+      return kind !== 'system';
+    });
+
+    if (!visibleEntries.length) {
+      miniAppState.activeKey = null;
+      return;
+    }
+
     if (!miniAppState.activeKey || !enabledSet.has(miniAppState.activeKey)) {
-      const fallbackActive = registered.find((entry) => enabledSet.has(entry.key)) ?? registered[0];
+      const fallbackActive = visibleEntries.find((entry) => enabledSet.has(entry.key)) ?? visibleEntries[0];
       miniAppState.activeKey = fallbackActive ? fallbackActive.key : null;
     }
 
-    registered.forEach((entry) => {
+    visibleEntries.forEach((entry) => {
       const node = createMiniAppCard(entry, {
         enabled: enabledSet.has(entry.key),
         active: entry.key === miniAppState.activeKey,
@@ -1795,7 +1753,9 @@ import { AppBase } from './runtime/app-base.js';
     const lastSyncValue = state.lastSync ? formatDateTime(state.lastSync) : '—';
     if (elements.syncMasterToggle) {
       elements.syncMasterToggle.setAttribute('aria-pressed', syncEnabled ? 'true' : 'false');
-      const labelNode = elements.syncMasterToggle.querySelector('.ac-ctrl-switch__label');
+      const labelNode = elements.syncMasterLabel ||
+        (elements.syncMasterToggle &&
+          elements.syncMasterToggle.querySelector('[data-sync-master-label]'));
       if (labelNode) {
         labelNode.textContent = syncEnabled ? 'Sync ativada' : 'Sync desativada';
       }
@@ -1853,7 +1813,9 @@ import { AppBase } from './runtime/app-base.js';
         'aria-pressed',
         backupEnabled ? 'true' : 'false',
       );
-      const labelNode = elements.backupMasterToggle.querySelector('.ac-ctrl-switch__label');
+      const labelNode = elements.backupMasterLabel ||
+        (elements.backupMasterToggle &&
+          elements.backupMasterToggle.querySelector('[data-backup-master-label]'));
       if (labelNode) {
         labelNode.textContent = backupEnabled ? 'Backup ativado' : 'Backup desativado';
       }

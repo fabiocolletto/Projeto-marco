@@ -27,9 +27,9 @@ async function resetApp(page) {
 
   await page.reload({ waitUntil: 'load' });
   await page.waitForLoadState('load');
-  await expect(
-    page.locator('[data-miniapp-rail] .ac-miniapp-card')
-  ).toHaveCount(2, { timeout: 20000 });
+  await expect(page.locator('[data-miniapp-rail] .ac-miniapp-card')).toHaveCount(0, {
+    timeout: 20000,
+  });
 }
 
 async function openSessionOverlay(page) {

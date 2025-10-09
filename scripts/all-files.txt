@@ -91,11 +91,6 @@ miniapps/boas-vindas/module.js
 miniapps/boas-vindas/src/i18n/en-US.json
 miniapps/boas-vindas/src/i18n/es-ES.json
 miniapps/boas-vindas/src/i18n/pt-BR.json
-miniapps/control_panel/i18n/en-US.json
-miniapps/control_panel/i18n/es-ES.json
-miniapps/control_panel/i18n/pt-BR.json
-miniapps/control_panel/manifest.json
-miniapps/control_panel/module.js
 package-lock.json
 package.json
 playwright.config.js

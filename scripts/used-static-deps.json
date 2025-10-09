@@ -3,11 +3,11 @@
   "files": [
     {
       "path": "appbase/app.css",
-      "sha256": "674e0cbb8daa2db94a9ee00488a8f0c60f00f06d92ff0e7dc1922bcfa2b2277b"
+      "sha256": "c9173b68be9731829952510b0f71dfd799ff153c2e754920bc068a0d426f89b8"
     },
     {
       "path": "appbase/app.js",
-      "sha256": "8e455a0aeb034536f0df9a88b430107677d068cf62602bd7fbc2ff6f025f32c6"
+      "sha256": "061f729fcd46c47389249b194bd4af1dddef10bfeebf5b5387a98fa1006b5983"
     },
     {
       "path": "appbase/i18n/i18n.js",
@@ -15,7 +15,7 @@
     },
     {
       "path": "appbase/index.html",
-      "sha256": "cc7f069b59ffcca5630475c78bf4622370432175c7b588ae0c695420af8e885f"
+      "sha256": "54823cbc4b9ae51e982ca4b1a83ff969b21f4e57c1deee73f0eda14d342ffd12"
     },
     {
       "path": "appbase/runtime/app-base.js",
@@ -27,7 +27,7 @@
     },
     {
       "path": "appbase/settings/settings.css",
-      "sha256": "dc84f4f2ecf783f4f8002721a73ae217e93fc95a4f462658d7c8511385113615"
+      "sha256": "3cbdfd18821929622559919b0554722de12d6be1bef04c8d0ae59d8bb1a394f2"
     },
     {
       "path": "appbase/settings/settings.js",

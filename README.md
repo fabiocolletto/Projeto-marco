@@ -20,15 +20,14 @@ vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 ```
 .
 ├── appbase/
-│   ├── index.html            # Shell do AppBase + MiniApp “Painel de controle”
+│   ├── index.html            # Shell do AppBase com painel de controle integrado
 │   ├── app.css               # Tokens `--ac-*`, grid responsivo e overlays
 │   ├── app.js                # Controle do painel e integrações vanilla
 │   ├── runtime/              # Núcleo AppBase (AppBase + event bus)
 │   └── storage/              # Persistência local (IndexedDB + fallback)
 ├── catalog/ui-extensions.json# Catálogo atual de miniapps carregado no runtime
 ├── miniapps/
-│   ├── boas-vindas/          # MiniApp estabilizado (versão ativa)
-│   └── control_panel/        # MiniApp visual Painel de Controle R1.10
+│   └── boas-vindas/          # MiniApp estabilizado (versão ativa)
 ├── scripts/                  # Manifestos de dependências + utilitário de montagem
 ├── tests/                    # Suíte Playwright (inclui `trace-deps`)
 ├── manuals/                  # Manuais N1 (fluxos operacionais oficiais)
@@ -68,8 +67,8 @@ vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
   - `deps-audit.yml`: reconstrói os manifests de dependências e falha se houver
     desvios não registrados em `scripts/used-*.txt`.
 
-A pasta `appbase/` concentra a implementação atual do shell R1.4 com o novo
-MiniApp “Painel de controle”. O protótipo modular legado foi movido para
+A pasta `appbase/` concentra a implementação atual do shell R1.4 com o painel
+principal integrado. O protótipo modular legado foi movido para
 `archive/src-r0/` apenas para referência e não recebe atualizações. MiniApps
 ativos permanecem em `miniapps/`; versões anteriores devem ser transferidas
 para `archive/miniapps/` junto com o registro em `docs/changelog.md`.
@@ -83,7 +82,7 @@ para `archive/miniapps/` junto com o registro em `docs/changelog.md`.
      `archive/src-r0/index.html` diretamente.
 3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
    botão “Começar cadastro” ou o atalho de usuário na AppBar (ícone 👤) para
-   abrir o painel detalhado e preencher o formulário diretamente no palco.
+   abrir o painel integrado e preencher o formulário diretamente no palco.
 4. Os dados cadastrados são persistidos primariamente no IndexedDB local
    (`marco-appbase/state`) com fallback automático para `localStorage`. Ao
    salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
@@ -92,7 +91,7 @@ para `archive/miniapps/` junto com o registro em `docs/changelog.md`.
 5. Utilize o atalho de usuário na AppBar para recolher/exibir o painel quando
    houver um cadastro ativo. A edição do cadastro acontece no mesmo painel,
    bastando atualizar os campos e salvar.
-6. Dentro do painel do miniapp, utilize os botões “Encerrar sessão” e “Encerrar e
+6. Dentro do painel integrado, utilize os botões “Encerrar sessão” e “Encerrar e
    remover dados” para registrar logoff preservando ou eliminando as
    informações. O histórico de acessos exibe os eventos mais recentes de login e
    logoff logo abaixo do formulário, sinalizando a ausência de registros tanto
@@ -111,7 +110,7 @@ logotipos hospedados pelo domínio oficial do projeto. O estado escolhido fica
 registrado no `localStorage` na chave `marco-appbase:theme`, permitindo que a
 preferência seja restaurada automaticamente na próxima visita.
 
-## MiniApp “Painel de controle” — destaques
+## Painel de controle integrado — destaques
 
 - **Atalho na AppBar** concentra o acesso ao painel principal, alternando o
   estado expandido, gerenciando foco automaticamente e habilitando a abertura
