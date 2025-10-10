@@ -83,11 +83,12 @@ para `archive/miniapps/` junto com o registro em `docs/changelog.md`.
 3. Ao abrir, o palco permanece vazio até que um usuário seja cadastrado. Use o
    botão “Começar cadastro” ou o atalho de usuário na AppBar (ícone 👤) para
    abrir o painel integrado e preencher o formulário diretamente no palco.
-4. Os dados cadastrados são persistidos primariamente no IndexedDB local
-   (`marco-appbase/state`) com fallback automático para `localStorage`. Ao
-   salvar, o painel é exibido com o nome, a conta derivada do e-mail e a data do
-   último acesso, e essas informações permanecem disponíveis em visitas
-   futuras.
+4. Os dados cadastrados ficam guardados no IndexedDB local
+   (`marco-appbase` → store `profiles`) com fallback automático no
+   `localStorage` (`marco-appbase:profiles`). Ao salvar, o painel é exibido com o
+   nome, a conta derivada do e-mail e a data do último acesso. Caso mais de um
+   perfil esteja disponível, o AppBase apresenta um seletor acessível antes de
+   carregar o palco.
 5. Utilize o atalho de usuário na AppBar para recolher/exibir o painel quando
    houver um cadastro ativo. A edição do cadastro acontece no mesmo painel,
    bastando atualizar os campos e salvar.
@@ -131,9 +132,14 @@ preferência seja restaurada automaticamente na próxima visita.
   clara/escura hospedadas no domínio oficial do projeto. A chave
   `marco-appbase:theme` no `localStorage` garante que a preferência retorne em
   novas sessões.
-- **Persistência local leve**: os dados são gravados no IndexedDB com fallback
-  transparente para `localStorage`, reaplicados automaticamente na próxima
-  visita e podem ser editados a qualquer momento sem dependências externas.
+- **Perfis locais múltiplos**: o IndexedDB armazena diferentes cadastros no
+  store `profiles` e o AppBase exibe um seletor modal acessível quando há mais
+  de um perfil disponível, permitindo alternar entre usuários antes de abrir o
+  painel.
+- **Persistência local leve**: os dados são gravados no IndexedDB (store
+  `profiles`) com fallback transparente para `localStorage`
+  (`marco-appbase:profiles`), reaplicados automaticamente na próxima visita e
+  editáveis a qualquer momento sem dependências externas.
 - **Histórico de acessos e controles de sessão**: o painel detalhado lista os
   registros de login/logoff com rolagem a partir de cinco eventos. Os botões de
   encerrar sessão permanecem ao lado do formulário, permitindo manter os dados
@@ -148,9 +154,10 @@ preferência seja restaurada automaticamente na próxima visita.
   bundlers ou frameworks. O shell segue os tokens `--ac-*` e classes `ac-*`
   definidos no blueprint visual.
 - **Persistência via IndexedDB + fallback**: garante que o cadastro funcione
-  offline com o object store `marco-appbase/state`, migrando dados legados do
-  `localStorage` quando necessário. A normalização de dados cuida de nomes,
-  contas e datas para manter a UI consistente.
+  offline com o object store `profiles`, migrando automaticamente o snapshot
+  legado (`marco-appbase:user`) para `marco-appbase:profiles` quando
+  necessário. A normalização de dados cuida de nomes, contas e datas para
+  manter a UI consistente.
 - **Acessibilidade nativa**: o formulário e os controles compartilham rótulos,
   `aria-live` para feedback e foco gerenciado ao abrir o painel, garantindo uma
   experiência compatível com leitores de tela sem depender de bibliotecas

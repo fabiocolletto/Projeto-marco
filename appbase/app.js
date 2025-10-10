@@ -1,6 +1,7 @@
 import {
-  loadState as loadPersistedState,
-  saveState as persistState,
+  listProfiles as listStoredProfiles,
+  loadProfile as loadStoredProfile,
+  saveProfile as persistProfile,
 } from './storage/indexeddb.js';
 import { AppBase } from './runtime/app-base.js';
 
@@ -42,6 +43,11 @@ import { AppBase } from './runtime/app-base.js';
     failure: 'app.header.fullscreen.failure',
   };
   const STAGE_CLOSE_LABEL_KEY = 'app.panel.stage.close';
+  const PROFILE_SELECTOR_TITLE_KEY = 'app.profile_selector.title';
+  const PROFILE_SELECTOR_DESCRIPTION_KEY = 'app.profile_selector.description';
+  const PROFILE_SELECTOR_NEW_KEY = 'app.profile_selector.new';
+  const PROFILE_SELECTOR_UPDATED_AT_KEY = 'app.profile_selector.updated_at';
+  const PROFILE_SELECTOR_EMAIL_MISSING_KEY = 'app.profile_selector.email_missing';
   const STAGE_EMPTY_KEYS = {
     empty: 'app.stage.empty.default',
     return: 'app.stage.empty.return',
@@ -150,6 +156,12 @@ import { AppBase } from './runtime/app-base.js';
     [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
     [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
     [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
+    [PROFILE_SELECTOR_TITLE_KEY]: 'Selecione um perfil',
+    [PROFILE_SELECTOR_DESCRIPTION_KEY]:
+      'Escolha qual cadastro carregar neste navegador.',
+    [PROFILE_SELECTOR_NEW_KEY]: 'Iniciar novo perfil',
+    [PROFILE_SELECTOR_UPDATED_AT_KEY]: 'Atualizado em {{date}}',
+    [PROFILE_SELECTOR_EMAIL_MISSING_KEY]: 'E-mail não informado',
   };
 
   const MINIAPP_BOOT_CONFIG = {
@@ -229,6 +241,10 @@ import { AppBase } from './runtime/app-base.js';
 
   const miniAppInstances = new Map();
   let miniAppChangeUnsubscribe = null;
+  let activeProfileId = null;
+  let availableProfiles = [];
+  let profileSelectionResolver = null;
+  let profileSelectorLastFocus = null;
 
   const elements = {
     stageShell: document.querySelector('[data-stage-shell]'),
@@ -269,6 +285,13 @@ import { AppBase } from './runtime/app-base.js';
     passwordInput: document.querySelector('[data-password-input]'),
     passwordToggle: document.querySelector('[data-password-toggle]'),
     passwordToggleIcon: document.querySelector('[data-password-toggle-icon]'),
+    profileSelectorOverlay: document.querySelector('[data-profile-selector]'),
+    profileSelectorDialog: document.querySelector('[data-profile-selector-dialog]'),
+    profileSelectorList: document.querySelector('[data-profile-selector-list]'),
+    profileSelectorDescription: document.querySelector(
+      '[data-profile-selector-description]'
+    ),
+    profileSelectorNewButton: document.querySelector('[data-profile-selector-new]'),
   };
 
   function fallbackFor(key, defaultValue = '') {
@@ -421,6 +444,26 @@ import { AppBase } from './runtime/app-base.js';
     }
     element.removeAttribute('data-i18n');
     element.textContent = text;
+  }
+
+  function getFocusableElements(container) {
+    if (!container) {
+      return [];
+    }
+    const focusableSelectors = [
+      'a[href]',
+      'button',
+      'input',
+      'select',
+      'textarea',
+      '[tabindex]:not([tabindex="-1"])',
+    ];
+    return Array.from(container.querySelectorAll(focusableSelectors.join(','))).filter(
+      (element) =>
+        !element.hasAttribute('disabled') &&
+        element.getAttribute('aria-hidden') !== 'true' &&
+        element.tabIndex !== -1
+    );
   }
 
   function createFallbackDefinition(manifest) {
@@ -1397,6 +1440,46 @@ import { AppBase } from './runtime/app-base.js';
     return account ? account : '—';
   }
 
+  function sortProfileSummaries(records) {
+    return [...records].sort((a, b) => {
+      if (a.updatedAt === b.updatedAt) {
+        return getDisplayName(a.state.user).localeCompare(
+          getDisplayName(b.state.user),
+          undefined,
+          { sensitivity: 'base' }
+        );
+      }
+      return a.updatedAt > b.updatedAt ? -1 : 1;
+    });
+  }
+
+  function updateAvailableProfiles(record) {
+    if (!record || typeof record !== 'object') {
+      return;
+    }
+    const normalised = {
+      ...record,
+      state: normaliseState(record.state),
+    };
+    const existingIndex = availableProfiles.findIndex((entry) => entry.id === normalised.id);
+    if (existingIndex >= 0) {
+      availableProfiles[existingIndex] = normalised;
+    } else {
+      availableProfiles.push(normalised);
+    }
+    availableProfiles = sortProfileSummaries(availableProfiles);
+    if (isProfileSelectorOpen()) {
+      renderProfileSelector(availableProfiles);
+    }
+  }
+
+  function findProfileById(id) {
+    if (!id) {
+      return null;
+    }
+    return availableProfiles.find((entry) => entry && entry.id === id) || null;
+  }
+
   function formatDateTime(iso) {
     if (!iso) {
       return '—';
@@ -1429,11 +1512,25 @@ import { AppBase } from './runtime/app-base.js';
     stateDirty = false;
     passwordVisible = false;
     updateUI();
-    return persistState(state)
+    return persistActiveProfile(state)
       .catch((error) => {
         console.warn('AppBase: falha ao persistir dados', error);
       })
       .then(() => state);
+  }
+
+  function persistActiveProfile(currentState) {
+    try {
+      return persistProfile(currentState, { id: activeProfileId }).then((record) => {
+        if (record && record.id) {
+          activeProfileId = record.id;
+          updateAvailableProfiles(record);
+        }
+        return record;
+      });
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   function updateUI() {
@@ -1447,6 +1544,7 @@ import { AppBase } from './runtime/app-base.js';
     updateLoginFormFields();
     updateLogHistory();
     updateLogControls();
+    updateProfileSelector();
   }
 
   function updateDocumentTitle() {
@@ -1763,6 +1861,234 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
+  function isProfileSelectorOpen() {
+    return (
+      elements.profileSelectorOverlay &&
+      elements.profileSelectorOverlay.getAttribute('aria-hidden') === 'false'
+    );
+  }
+
+  function updateProfileSelector() {
+    if (!elements.profileSelectorOverlay) {
+      return;
+    }
+    if (elements.profileSelectorDescription) {
+      setElementTextFromKey(
+        elements.profileSelectorDescription,
+        PROFILE_SELECTOR_DESCRIPTION_KEY,
+        { fallbackKey: PROFILE_SELECTOR_DESCRIPTION_KEY }
+      );
+    }
+    if (elements.profileSelectorNewButton) {
+      setElementTextFromKey(elements.profileSelectorNewButton, PROFILE_SELECTOR_NEW_KEY, {
+        fallbackKey: PROFILE_SELECTOR_NEW_KEY,
+      });
+    }
+    if (isProfileSelectorOpen()) {
+      renderProfileSelector(availableProfiles);
+    }
+  }
+
+  function renderProfileSelector(profiles) {
+    if (!elements.profileSelectorList) {
+      return;
+    }
+    const list = elements.profileSelectorList;
+    list.innerHTML = '';
+    const entries = Array.isArray(profiles) ? profiles : [];
+    if (!entries.length) {
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    const emailFallback = translate(
+      PROFILE_SELECTOR_EMAIL_MISSING_KEY,
+      fallbackFor(PROFILE_SELECTOR_EMAIL_MISSING_KEY)
+    );
+    const updatedTemplate = translate(
+      PROFILE_SELECTOR_UPDATED_AT_KEY,
+      fallbackFor(PROFILE_SELECTOR_UPDATED_AT_KEY)
+    );
+
+    entries.forEach((profile, index) => {
+      if (!profile || typeof profile !== 'object') {
+        return;
+      }
+      const item = document.createElement('li');
+      item.className = 'ac-profile-list__item';
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'ac-profile-option';
+      button.setAttribute('data-profile-option', profile.id);
+      button.setAttribute('data-profile-index', String(index));
+      if (profile.id === activeProfileId) {
+        button.setAttribute('data-profile-active', 'true');
+      }
+
+      const name = document.createElement('span');
+      name.className = 'ac-profile-option__name';
+      name.textContent = getDisplayName(profile.state.user);
+
+      const email = document.createElement('span');
+      email.className = 'ac-profile-option__meta';
+      email.textContent = profile.state?.user?.email || emailFallback;
+
+      const updated = document.createElement('span');
+      updated.className = 'ac-profile-option__meta ac-profile-option__meta--muted';
+      const formattedDate = formatDateTime(profile.updatedAt);
+      const updatedText =
+        formatMessage(updatedTemplate, { date: formattedDate }) || formattedDate;
+      updated.textContent = updatedText;
+
+      button.appendChild(name);
+      button.appendChild(email);
+      button.appendChild(updated);
+      item.appendChild(button);
+      fragment.appendChild(item);
+    });
+
+    list.appendChild(fragment);
+  }
+
+  function openProfileSelector() {
+    if (!elements.profileSelectorOverlay) {
+      return;
+    }
+    elements.profileSelectorOverlay.setAttribute('aria-hidden', 'false');
+    profileSelectorLastFocus =
+      document.activeElement && typeof document.activeElement.focus === 'function'
+        ? document.activeElement
+        : null;
+    updateProfileSelector();
+    window.requestAnimationFrame(() => {
+      const container = elements.profileSelectorDialog || elements.profileSelectorOverlay;
+      const focusable = getFocusableElements(container);
+      if (focusable.length) {
+        focusable[0].focus();
+      }
+    });
+  }
+
+  function closeProfileSelector() {
+    if (elements.profileSelectorOverlay) {
+      elements.profileSelectorOverlay.setAttribute('aria-hidden', 'true');
+    }
+    if (elements.profileSelectorList) {
+      elements.profileSelectorList.innerHTML = '';
+    }
+    const focusTarget = profileSelectorLastFocus;
+    profileSelectorLastFocus = null;
+    if (focusTarget && typeof focusTarget.focus === 'function') {
+      focusTarget.focus();
+    }
+  }
+
+  function resolveProfileSelection(selection) {
+    if (typeof profileSelectionResolver !== 'function') {
+      return;
+    }
+    const resolver = profileSelectionResolver;
+    profileSelectionResolver = null;
+    closeProfileSelector();
+    resolver(selection);
+  }
+
+  async function selectProfileById(id) {
+    if (!id) {
+      return;
+    }
+    try {
+      const record = await loadStoredProfile(id);
+      if (record) {
+        resolveProfileSelection({ profileId: record.id, state: record.state });
+        return;
+      }
+    } catch (error) {
+      console.warn('AppBase: falha ao carregar perfil selecionado', error);
+    }
+    const fallback = findProfileById(id);
+    if (fallback) {
+      resolveProfileSelection({ profileId: fallback.id, state: fallback.state });
+      return;
+    }
+    resolveProfileSelection({ profileId: null, state: getEmptyState() });
+  }
+
+  function handleProfileSelectorListClick(event) {
+    const target = event.target;
+    if (!elements.profileSelectorList || !target) {
+      return;
+    }
+    const button = target.closest('[data-profile-option]');
+    if (!button || !elements.profileSelectorList.contains(button)) {
+      return;
+    }
+    event.preventDefault();
+    const profileId = button.getAttribute('data-profile-option');
+    Promise.resolve(selectProfileById(profileId)).catch((error) => {
+      console.warn('AppBase: falha ao selecionar perfil', error);
+    });
+  }
+
+  function handleProfileSelectorNew(event) {
+    if (event) {
+      event.preventDefault();
+    }
+    resolveProfileSelection({ profileId: null, state: getEmptyState() });
+  }
+
+  function handleProfileSelectorKeydown(event) {
+    if (!isProfileSelectorOpen()) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      handleProfileSelectorNew();
+      return;
+    }
+    if (event.key !== 'Tab') {
+      return;
+    }
+    const container = elements.profileSelectorDialog || elements.profileSelectorOverlay;
+    if (!container) {
+      return;
+    }
+    const focusable = getFocusableElements(container);
+    if (!focusable.length) {
+      event.preventDefault();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement;
+    if (event.shiftKey) {
+      if (active === first || !container.contains(active)) {
+        event.preventDefault();
+        last.focus();
+      }
+      return;
+    }
+    if (active === last || !container.contains(active)) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  function promptProfileSelection(profiles) {
+    const sorted = sortProfileSummaries(Array.isArray(profiles) ? profiles : []);
+    availableProfiles = sorted;
+    if (!elements.profileSelectorOverlay || !elements.profileSelectorList || sorted.length <= 1) {
+      const fallback = sorted[0] || { id: null, state: getEmptyState() };
+      return Promise.resolve({ profileId: fallback.id ?? null, state: fallback.state });
+    }
+    return new Promise((resolve) => {
+      profileSelectionResolver = (selection) => {
+        resolve(selection);
+      };
+      openProfileSelector();
+    });
+  }
+
   function clearLoginFeedback() {
     if (feedbackTimer) {
       window.clearTimeout(feedbackTimer);
@@ -2068,6 +2394,16 @@ import { AppBase } from './runtime/app-base.js';
       });
     }
 
+    if (elements.profileSelectorList) {
+      elements.profileSelectorList.addEventListener('click', handleProfileSelectorListClick);
+    }
+    if (elements.profileSelectorNewButton) {
+      elements.profileSelectorNewButton.addEventListener('click', handleProfileSelectorNew);
+    }
+    if (elements.profileSelectorOverlay) {
+      elements.profileSelectorOverlay.addEventListener('keydown', handleProfileSelectorKeydown);
+    }
+
     if (elements.loginForm) {
       const handleFormMutation = () => {
         syncDirtyFlagFromForm();
@@ -2101,13 +2437,50 @@ import { AppBase } from './runtime/app-base.js';
 
   }
 
+  async function resolveInitialProfile() {
+    let profiles = [];
+    try {
+      profiles = await listStoredProfiles();
+    } catch (error) {
+      console.warn('AppBase: falha ao listar perfis persistidos', error);
+    }
+    const normalisedProfiles = sortProfileSummaries(
+      profiles.map((profile) => ({
+        ...profile,
+        state: normaliseState(profile?.state),
+      }))
+    );
+    availableProfiles = normalisedProfiles;
+    if (!normalisedProfiles.length) {
+      return { state: getEmptyState(), profileId: null };
+    }
+    if (normalisedProfiles.length === 1) {
+      const [single] = normalisedProfiles;
+      return { state: single.state, profileId: single.id };
+    }
+    const selection = await promptProfileSelection(normalisedProfiles);
+    const profileId = selection?.profileId ?? null;
+    const resolvedState = selection?.state
+      ? normaliseState(selection.state)
+      : getEmptyState();
+    if (profileId) {
+      const existing = normalisedProfiles.find((profile) => profile.id === profileId);
+      if (existing) {
+        updateAvailableProfiles({ ...existing, state: resolvedState });
+      }
+    }
+    return { state: resolvedState, profileId };
+  }
+
   async function boot() {
     try {
-      const persistedState = await loadPersistedState();
-      state = normaliseState(persistedState);
+      const resolved = await resolveInitialProfile();
+      state = normaliseState(resolved.state);
+      activeProfileId = resolved.profileId;
     } catch (error) {
       console.warn('AppBase: falha ao carregar estado persistido', error);
       state = getEmptyState();
+      activeProfileId = null;
     }
 
     stateHydrated = true;

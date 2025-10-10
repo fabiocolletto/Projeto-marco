@@ -487,6 +487,46 @@
           Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1
         </span>
       </footer>
+
+      <div class="ac-overlay" data-profile-selector aria-hidden="true">
+        <div
+          class="ac-sheet ac-profile-selector"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profile-selector-title"
+          data-profile-selector-dialog
+        >
+          <header class="ac-sheet__head">
+            <h2
+              id="profile-selector-title"
+              class="ac-sheet__title"
+              data-i18n="app.profile_selector.title"
+            >
+              Selecione um perfil
+            </h2>
+          </header>
+          <div class="ac-sheet__body ac-profile-selector__body">
+            <p
+              class="ac-profile-selector__description"
+              data-profile-selector-description
+              data-i18n="app.profile_selector.description"
+            >
+              Escolha qual cadastro carregar neste navegador.
+            </p>
+            <ul class="ac-profile-list" data-profile-selector-list></ul>
+            <div class="ac-profile-selector__actions">
+              <button
+                type="button"
+                class="ac-btn ac-btn--primary"
+                data-profile-selector-new
+                data-i18n="app.profile_selector.new"
+              >
+                Iniciar novo perfil
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </body>
