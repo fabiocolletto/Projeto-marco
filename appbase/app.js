@@ -78,6 +78,7 @@ import { AppBase } from './runtime/app-base.js';
   };
   const FOOTER_DIRTY_LABEL_KEY = 'app.footer.dirty.label';
   const SESSION_ACTIONS_LABEL_KEY = 'app.panel.session.actions.label';
+  const SESSION_PROFILE_MANAGE_KEY = 'app.panel.session.actions.manage_profiles';
   const SESSION_LOGIN_SUCCESS_KEY = 'app.panel.session.feedback.login';
   const SESSION_LOGIN_ALREADY_ACTIVE_KEY =
     'app.panel.session.feedback.already_active';
@@ -150,6 +151,7 @@ import { AppBase } from './runtime/app-base.js';
     [LOGIN_PASSWORD_MISSING_FEEDBACK_KEY]: 'Informe uma senha para continuar.',
     'app.panel.session.actions.save': 'Salvar cadastro',
     'app.panel.session.actions.login': 'Iniciar sessão',
+    [SESSION_PROFILE_MANAGE_KEY]: 'Gerenciar perfis',
     [SESSION_LOGIN_SUCCESS_KEY]: 'Sessão iniciada com sucesso.',
     [SESSION_LOGIN_ALREADY_ACTIVE_KEY]: 'A sessão já está ativa neste navegador.',
     [SESSION_LOGIN_ERROR_KEY]: 'Cadastre um usuário antes de iniciar a sessão.',
@@ -267,6 +269,7 @@ import { AppBase } from './runtime/app-base.js';
     sessionLoginButton: document.querySelector('[data-action="session-login"]'),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
     logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
+    profileManageButton: document.querySelector('[data-action="profile-manage"]'),
     sessionActions: document.querySelector('[data-session-actions]'),
     themeToggle: document.querySelector('[data-theme-toggle]'),
     themeToggleIcon: document.querySelector('[data-theme-toggle-icon]'),
@@ -1473,6 +1476,29 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
+  function applySelectedProfile(selection, options = {}) {
+    if (!selection || typeof selection !== 'object') {
+      return null;
+    }
+    const { focus = true } = options;
+    const resolvedState = normaliseState(selection.state || getEmptyState());
+    const profileIdRaw = selection.profileId;
+    const nextProfileId =
+      typeof profileIdRaw === 'string' && profileIdRaw.trim()
+        ? profileIdRaw.trim()
+        : null;
+    state = resolvedState;
+    activeProfileId = nextProfileId;
+    stateDirty = false;
+    passwordVisible = false;
+    panelOpen = true;
+    updateUI();
+    if (focus) {
+      focusStageTitle();
+    }
+    return { profileId: nextProfileId, state: resolvedState };
+  }
+
   function findProfileById(id) {
     if (!id) {
       return null;
@@ -2074,10 +2100,58 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
-  function promptProfileSelection(profiles) {
+  async function handleProfileSwitch(event) {
+    if (event) {
+      event.preventDefault();
+      if (event.currentTarget) {
+        applyButtonFeedback(event.currentTarget);
+      }
+    }
+    clearLoginFeedback();
+    const profilesSnapshot = availableProfiles
+      .map((entry) => {
+        if (!entry || typeof entry !== 'object') {
+          return null;
+        }
+        if (entry.id === activeProfileId) {
+          return { ...entry, state: normaliseState(state) };
+        }
+        return { ...entry };
+      })
+      .filter(Boolean);
+    if (
+      activeProfileId &&
+      !profilesSnapshot.some((profile) => profile && profile.id === activeProfileId)
+    ) {
+      profilesSnapshot.push({
+        id: activeProfileId,
+        state: normaliseState(state),
+        updatedAt: state.lastLogin || nowIso(),
+      });
+    }
+    try {
+      const selection = await promptProfileSelection(profilesSnapshot, { forceDialog: true });
+      if (!selection) {
+        return;
+      }
+      const applied = applySelectedProfile(selection);
+      if (applied?.profileId) {
+        const existing = findProfileById(applied.profileId);
+        if (existing) {
+          updateAvailableProfiles({ ...existing, state: applied.state });
+        }
+      }
+    } catch (error) {
+      console.warn('AppBase: falha ao alternar perfis', error);
+    }
+  }
+
+  function promptProfileSelection(profiles, options = {}) {
+    const { forceDialog = false } = options;
     const sorted = sortProfileSummaries(Array.isArray(profiles) ? profiles : []);
     availableProfiles = sorted;
-    if (!elements.profileSelectorOverlay || !elements.profileSelectorList || sorted.length <= 1) {
+    const canOpen = Boolean(elements.profileSelectorOverlay && elements.profileSelectorList);
+    if (!canOpen || (!forceDialog && sorted.length <= 1)) {
       const fallback = sorted[0] || { id: null, state: getEmptyState() };
       return Promise.resolve({ profileId: fallback.id ?? null, state: fallback.state });
     }
@@ -2391,6 +2465,12 @@ import { AppBase } from './runtime/app-base.js';
       elements.logoutClearButton.addEventListener('click', (event) => {
         event.preventDefault();
         void handleLogoutClear();
+      });
+    }
+
+    if (elements.profileManageButton) {
+      elements.profileManageButton.addEventListener('click', (event) => {
+        void handleProfileSwitch(event);
       });
     }
 
