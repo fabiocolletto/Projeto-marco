@@ -1139,51 +1139,11 @@ select {
   font-weight: 500;
 }
 
-.ac-panel-kpis {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-}
-
 .ac-panel-card__note {
   margin: 0;
   font-size: 0.9rem;
   color: var(--ac-info-muted);
   line-height: 1.5;
-}
-
-.ac-kpi-card {
-  background: var(--ac-bg);
-  border: var(--ac-border-width) solid var(--ac-border-soft);
-  border-radius: 16px;
-  padding: 18px 20px;
-  display: grid;
-  gap: 8px;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
-}
-
-.ac-kpi-card__label {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--ac-muted);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.ac-kpi-card__value {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--ac-primary);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.ac-kpi-card__meta {
-  margin: 0;
-  color: var(--ac-muted);
-  font-size: 0.95rem;
 }
 
 .ac-panel-card--history {
@@ -1344,10 +1304,6 @@ select {
     gap: 20px;
   }
 
-  .ac-panel-kpis {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  }
-
   .ac-panel-form__actions {
     justify-content: flex-start;
   }
@@ -1368,10 +1324,6 @@ select {
 
   .ac-panel-card {
     gap: 14px;
-  }
-
-  .ac-panel-kpis {
-    grid-template-columns: 1fr;
   }
 
   .ac-panel-form__actions {
