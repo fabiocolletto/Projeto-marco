@@ -29,6 +29,7 @@ Este índice é a **fonte única** para localizar e versionar os documentos oper
 - Repositório (branch ativa): `Projeto-Marco`
 - Entrada única do app: `appbase/index.html`
 - Pastas canônicas: `manuals/`, `miniapps/`, `archive/`, `.github/workflows/`
+- PCM proposto: [`pcm_20250206_eventbus_indexeddb.md`](pcm/pcm_20250206_eventbus_indexeddb.md) — auditoria do EventBus e da persistência IndexedDB.
 
 
 
