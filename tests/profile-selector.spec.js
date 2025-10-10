@@ -26,6 +26,47 @@ async function registerUser(page, { nome, email, telefone = '', senha = 'SenhaFo
   await expect(page.locator('[data-login-feedback]')).toHaveText('Cadastro atualizado com sucesso.');
 }
 
+const MULTI_PROFILE_FIXTURE = [
+  {
+    id: 'joana@example.com',
+    email: 'joana@example.com',
+    updatedAt: '2024-05-01T12:00:00.000Z',
+    state: {
+      user: {
+        nomeCompleto: 'Joana Teste',
+        email: 'joana@example.com',
+        telefone: '11988887777',
+        senha: 'SenhaForte123',
+      },
+      lastLogin: '2024-05-01T12:00:00.000Z',
+      sessionActive: true,
+      history: [],
+    },
+  },
+  {
+    id: 'mario@example.com',
+    email: 'mario@example.com',
+    updatedAt: '2024-05-02T10:00:00.000Z',
+    state: {
+      user: {
+        nomeCompleto: 'Mário Perfil',
+        email: 'mario@example.com',
+        telefone: '21977776666',
+        senha: 'SenhaForte123',
+      },
+      lastLogin: '2024-05-02T10:00:00.000Z',
+      sessionActive: true,
+      history: [],
+    },
+  },
+];
+
+async function seedProfiles(page, profiles) {
+  await page.addInitScript((seed) => {
+    window.localStorage.setItem('marco-appbase:profiles', JSON.stringify(seed));
+  }, profiles);
+}
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     try {
@@ -82,25 +123,7 @@ test('carrega automaticamente o único perfil salvo', async ({ page }) => {
 });
 
 test('permite abrir o modal e iniciar novo perfil mesmo com um cadastro salvo', async ({ page }) => {
-  await page.addInitScript(() => {
-    const profile = {
-      id: 'joana@example.com',
-      email: 'joana@example.com',
-      updatedAt: '2024-05-01T12:00:00.000Z',
-      state: {
-        user: {
-          nomeCompleto: 'Joana Teste',
-          email: 'joana@example.com',
-          telefone: '11988887777',
-          senha: 'SenhaForte123',
-        },
-        lastLogin: '2024-05-01T12:00:00.000Z',
-        sessionActive: true,
-        history: [],
-      },
-    };
-    window.localStorage.setItem('marco-appbase:profiles', JSON.stringify([profile]));
-  });
+  await seedProfiles(page, [MULTI_PROFILE_FIXTURE[0]]);
 
   await page.goto('/appbase/index.html');
 
@@ -126,42 +149,8 @@ test('permite abrir o modal e iniciar novo perfil mesmo com um cadastro salvo', 
   await expect(page.locator('[data-login-user]')).toHaveText('Não configurado');
 });
 
-test('permite escolher entre múltiplos perfis antes do boot', async ({ page }) => {
-  await page.addInitScript(() => {
-    const firstProfile = {
-      id: 'joana@example.com',
-      email: 'joana@example.com',
-      updatedAt: '2024-05-01T12:00:00.000Z',
-      state: {
-        user: {
-          nomeCompleto: 'Joana Teste',
-          email: 'joana@example.com',
-          telefone: '11988887777',
-          senha: 'SenhaForte123',
-        },
-        lastLogin: '2024-05-01T12:00:00.000Z',
-        sessionActive: true,
-        history: [],
-      },
-    };
-    const secondProfile = {
-      id: 'mario@example.com',
-      email: 'mario@example.com',
-      updatedAt: '2024-05-02T10:00:00.000Z',
-      state: {
-        user: {
-          nomeCompleto: 'Mário Perfil',
-          email: 'mario@example.com',
-          telefone: '21977776666',
-          senha: 'SenhaForte123',
-        },
-        lastLogin: '2024-05-02T10:00:00.000Z',
-        sessionActive: true,
-        history: [],
-      },
-    };
-    window.localStorage.setItem('marco-appbase:profiles', JSON.stringify([firstProfile, secondProfile]));
-  });
+test('fecha seletor ao escolher perfil existente na primeira abertura', async ({ page }) => {
+  await seedProfiles(page, MULTI_PROFILE_FIXTURE);
 
   await page.goto('/appbase/index.html');
 
@@ -175,6 +164,26 @@ test('permite escolher entre múltiplos perfis antes do boot', async ({ page }) 
   const stage = await ensurePanelOpen(page);
   await expect(stage.locator('input[name="email"]')).toHaveValue('mario@example.com');
   await expect(page.locator('[data-login-user]')).toHaveText('Mário Perfil');
+});
+
+test('fecha seletor ao iniciar novo perfil na primeira abertura', async ({ page }) => {
+  await seedProfiles(page, MULTI_PROFILE_FIXTURE);
+
+  await page.goto('/appbase/index.html');
+
+  const selector = page.locator('[data-profile-selector]');
+  await expect(selector).toHaveAttribute('aria-hidden', 'false');
+
+  const newButton = selector.locator('[data-profile-selector-new]');
+  await expect(newButton).toBeVisible();
+  await newButton.click();
+
+  await expect(selector).toHaveAttribute('aria-hidden', 'true');
+
+  const stage = await ensurePanelOpen(page);
+  await expect(stage.locator('input[name="nome"]').first()).toHaveValue('');
+  await expect(stage.locator('input[name="email"]').first()).toHaveValue('');
+  await expect(page.locator('[data-login-user]')).toHaveText('Não configurado');
 });
 
 test('persiste perfis no IndexedDB e no localStorage', async ({ page }) => {
