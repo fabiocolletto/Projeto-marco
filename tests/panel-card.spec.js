@@ -109,7 +109,9 @@ test('cadastro atualiza painel e botão do cabeçalho', async ({ page }) => {
   await expect(page.locator('[data-login-user]')).toHaveText('Maria Fernanda');
   await expect(page.locator('[data-login-account]')).toHaveText('maria');
   await expect(page.locator('[data-login-last]')).not.toHaveText('—');
-  await expect(stage.locator('.ac-panel-card')).toHaveCount(2);
+  await expect(stage.locator('.ac-panel-card')).toHaveCount(3);
+  await expect(stage.locator('.ac-panel-card--overview')).toBeVisible();
+  await expect(stage.locator('.ac-panel-card--session')).toBeVisible();
   await expect(stage.locator('.ac-panel-card--history')).toBeVisible();
   const headerStatusLabel = page.locator('[data-panel-status-label]').first();
   await expect(headerStatusLabel).toHaveText('Conectado');
