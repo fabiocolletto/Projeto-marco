@@ -154,6 +154,155 @@
 
               <div class="ac-panel__stack">
                 <article
+                  class="ac-panel-card ac-panel-card--system ac-panel-card--overview ac-ctrl-summary"
+                  aria-labelledby="panel-summary-title"
+                >
+                  <header class="ac-panel-card__head">
+                    <div class="ac-panel-card__titles">
+                      <h3
+                        id="panel-summary-title"
+                        class="ac-panel-card__title"
+                        data-i18n="app.panel.session.current"
+                      >
+                        Sessão atual
+                      </h3>
+                      <p
+                        class="ac-panel-card__subtitle"
+                        data-i18n="app.panel.kpis.subtitle"
+                      >
+                        Resumo do painel em tempo real.
+                      </p>
+                    </div>
+                  </header>
+                  <dl class="ac-panel-summary">
+                    <div class="ac-panel-summary__item">
+                      <dt
+                        class="ac-panel-summary__label"
+                        data-i18n="app.panel.summary.user"
+                      >
+                        Usuário
+                      </dt>
+                      <dd
+                        class="ac-panel-summary__value"
+                        data-login-user
+                        data-i18n="app.panel.summary.empty"
+                      >
+                        Não configurado
+                      </dd>
+                    </div>
+                    <div class="ac-panel-summary__item">
+                      <dt
+                        class="ac-panel-summary__label"
+                        data-i18n="app.panel.summary.account"
+                      >
+                        Conta
+                      </dt>
+                      <dd class="ac-panel-summary__value" data-login-account>—</dd>
+                    </div>
+                    <div class="ac-panel-summary__item">
+                      <dt
+                        class="ac-panel-summary__label"
+                        data-i18n="app.panel.summary.last_login"
+                      >
+                        Último acesso
+                      </dt>
+                      <dd class="ac-panel-summary__value" data-login-last>—</dd>
+                    </div>
+                  </dl>
+                  <div class="ac-panel-kpis" data-panel-kpis-group role="group">
+                    <div class="ac-kpi-card">
+                      <p
+                        class="ac-kpi-card__label"
+                        data-i18n="app.panel.kpis.status.label"
+                      >
+                        Status do painel
+                      </p>
+                      <p class="ac-kpi-card__value">
+                        <span class="ac-dot" data-panel-status-dot aria-hidden="true"></span>
+                        <span
+                          data-panel-status-label
+                          data-i18n="app.panel.kpis.status.states.disconnected"
+                        >
+                          Desconectado
+                        </span>
+                      </p>
+                      <p
+                        class="ac-kpi-card__meta"
+                        data-panel-status-hint
+                        data-i18n="app.panel.kpis.status.hint.empty"
+                      >
+                        Cadastre um usuário para iniciar a sessão.
+                      </p>
+                    </div>
+                    <div class="ac-kpi-card">
+                      <p
+                        class="ac-kpi-card__label"
+                        data-i18n="app.panel.kpis.last_login.label"
+                      >
+                        Último acesso
+                      </p>
+                      <p class="ac-kpi-card__value" data-panel-last-login>—</p>
+                      <p
+                        class="ac-kpi-card__meta"
+                        data-panel-last-login-hint
+                        data-i18n="app.panel.kpis.last_login.hint.empty"
+                      >
+                        Nenhum registro disponível.
+                      </p>
+                    </div>
+                    <div class="ac-kpi-card">
+                      <p
+                        class="ac-kpi-card__label"
+                        data-i18n="app.panel.kpis.events.label"
+                      >
+                        Eventos registrados
+                      </p>
+                      <p class="ac-kpi-card__value" data-panel-login-count>0</p>
+                      <p
+                        class="ac-kpi-card__meta"
+                        data-panel-login-hint
+                        data-i18n="app.panel.kpis.events.hint.empty"
+                      >
+                        Aguardando primeiro registro.
+                      </p>
+                    </div>
+                  </div>
+                  <div class="ac-panel-actions" data-session-actions role="group">
+                    <button
+                      class="ac-btn"
+                      type="button"
+                      data-action="session-login"
+                      data-i18n="app.panel.session.actions.login"
+                    >
+                      Iniciar sessão
+                    </button>
+                    <button
+                      class="ac-btn ac-btn--ghost"
+                      type="button"
+                      data-action="logout-preserve"
+                      data-i18n="app.panel.session.actions.logout"
+                    >
+                      Encerrar sessão
+                    </button>
+                    <button
+                      class="ac-btn ac-btn--danger"
+                      type="button"
+                      data-action="logout-clear"
+                      data-i18n="app.panel.session.actions.logout_clear"
+                    >
+                      Encerrar e remover dados
+                    </button>
+                  </div>
+                  <p
+                    class="ac-panel-actions__hint"
+                    data-i18n="app.panel.session.description"
+                  >
+                    Encerre a sessão mantendo os dados armazenados neste navegador ou
+                    remova todas as informações do cadastro.
+                  </p>
+                </article>
+
+                <article
                   class="ac-panel-card ac-panel-card--session ac-ctrl-session"
                   aria-labelledby="panel-session-title"
                 >
@@ -264,11 +413,7 @@
                         </button>
                       </div>
                     </div>
-                    <div
-                      class="ac-panel-form__actions"
-                      data-session-actions
-                      role="group"
-                    >
+                    <div class="ac-panel-form__actions" role="group">
                       <button
                         class="ac-btn"
                         type="submit"
@@ -277,30 +422,6 @@
                       >
                         Salvar cadastro
                       </button>
-                      <button
-                        class="ac-btn ac-btn--ghost"
-                        type="button"
-                        data-action="logout-preserve"
-                        data-i18n="app.panel.session.actions.logout"
-                      >
-                        Encerrar sessão
-                      </button>
-                      <button
-                        class="ac-btn ac-btn--danger"
-                        type="button"
-                        data-action="logout-clear"
-                        data-i18n="app.panel.session.actions.logout_clear"
-                      >
-                        Encerrar e remover dados
-                      </button>
-                      <p
-                        class="ac-panel-form__hint"
-                        id="panel-session-hint"
-                        data-i18n="app.panel.session.description"
-                      >
-                        Encerre a sessão mantendo os dados armazenados neste navegador
-                        ou remova todas as informações do cadastro.
-                      </p>
                     </div>
                   </form>
                   <p

@@ -1241,6 +1241,58 @@ select {
 
 .ac-panel-summary {
   margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.ac-panel-summary__item {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px 16px;
+  padding: 12px 0;
+  border-top: var(--ac-border-width) solid var(--ac-border-soft);
+}
+
+.ac-panel-summary__item:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+.ac-panel-summary__label {
+  margin: 0;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ac-muted);
+}
+
+.ac-panel-summary__value {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ac-primary);
+  min-width: 0;
+  word-break: break-word;
+}
+
+.ac-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.ac-panel-actions .ac-btn {
+  flex: 1 1 160px;
+  justify-content: center;
+}
+
+.ac-panel-actions__hint {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  color: var(--ac-muted);
 }
 
 .ac-panel-card--form .ac-feedback,

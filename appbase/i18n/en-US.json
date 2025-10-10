@@ -125,9 +125,15 @@
         "description": "End the session while keeping the stored data in this browser or remove all registration information.",
         "actions": {
           "label": "Session actions",
+          "login": "Start session",
           "save": "Save profile",
           "logout": "End session",
           "logout_clear": "End and remove data"
+        },
+        "feedback": {
+          "login": "Session started successfully.",
+          "already_active": "The session is already active on this browser.",
+          "missing_user": "Register a user before starting the session."
         }
       },
       "history": {
