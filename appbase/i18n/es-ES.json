@@ -82,105 +82,20 @@
             "inactive": "Último acceso registrado localmente.",
             "active": "Se actualiza automáticamente después del inicio de sesión."
           }
-      },
-      "events": {
-        "label": "Eventos registrados",
-        "hint": {
-          "empty": "Esperando el primer registro.",
-          "single": "1 evento almacenado en este dispositivo.",
-          "multiple": "{{count}} eventos almacenados en este dispositivo."
-        }
-      }
-    },
-      "integrations": {
-        "sync": {
-          "label": {
-            "on": "Sincronización activada",
-            "off": "Sincronización desactivada"
-          },
-          "status": {
-            "off": "La sincronización está desactivada en este momento.",
-            "on": "La sincronización está activa.",
-            "on_with_time": "La sincronización está activa. Última sincronización el {{time}}."
-          },
-          "action": {
-            "start": "Activar sincronización",
-            "stop": "Desactivar sincronización"
-          },
-          "provider": {
-            "active": "Activo",
-            "inactive": "Inactivo"
+        },
+        "events": {
+          "label": "Eventos registrados",
+          "hint": {
+            "empty": "Esperando el primer registro.",
+            "single": "1 evento almacenado en este dispositivo.",
+            "multiple": "{{count}} eventos almacenados en este dispositivo."
           }
-        },
-        "backup": {
-          "label": {
-            "on": "Copia de seguridad activada",
-            "off": "Copia de seguridad desactivada"
-          }
-        },
-        "export": "Exportar"
-      },
-      "cards": {
-        "sync": {
-          "title": "Sincronización",
-          "description": "Conecta el panel a los proveedores compatibles y distribuye los datos.",
-          "providers": {
-            "google_drive": {
-              "name": "Google Drive",
-              "description": "Integración oficial con autenticación de Google."
-            },
-            "microsoft_onedrive": {
-              "name": "OneDrive",
-              "description": "Sincroniza con cuentas corporativas de Microsoft."
-            }
-          },
-          "meta": {
-            "last_sync": "Última sincronización",
-            "server": "Servidor",
-            "devices": "Dispositivos conectados"
-          }
-        },
-        "backup": {
-          "title": "Copia de seguridad",
-          "description": "Protege registros críticos y restaura configuraciones en segundos.",
-          "meta": {
-            "last_backup": "Última copia de seguridad",
-            "storage": "Almacenamiento",
-            "storage_empty": "Sin destino",
-            "size": "Tamaño estimado"
-          },
-          "note": "Configura una cuenta en la nube o exporta los datos manualmente para garantizar redundancia."
-        },
-        "connectivity": {
-          "title": "Conectividad",
-          "description": "Parámetros activos y latencia de los servicios en tiempo real.",
-          "meta": {
-            "endpoint": "Endpoint",
-            "region": "Región",
-            "latency": "Latencia media"
-          },
-          "note": "Monitorea el tiempo de respuesta y prioriza enlaces redundantes durante ventanas críticas de operación."
-        },
-        "security": {
-          "title": "Seguridad",
-          "description": "Sesiones autenticadas, políticas aplicadas y eventos recientes.",
-          "meta": {
-            "last_review": "Última revisión",
-            "status": "Estado",
-            "alerts": "Alertas activas"
-          },
-          "status": {
-            "pending": "En revisión"
-          },
-          "note": "Garantiza la autenticación multifactor en los dispositivos conectados y revisa los registros semanalmente."
         }
       },
       "summary": {
         "user": "Usuario",
         "account": "Cuenta",
         "last_login": "Último acceso",
-        "last_sync": "Última sincronización",
-        "last_backup": "Última copia de seguridad",
         "empty": "No configurado"
       },
       "form": {
@@ -217,7 +132,7 @@
       },
       "history": {
         "title": "Historial de actividades",
-        "subtitle": "Sigue inicios, cierres y cambios de idioma registrados en este navegador.",
+        "subtitle": "Acompaña inicios de sesión y ajustes guardados en este navegador.",
         "table": {
           "event": "Evento",
           "time": "Hora"
@@ -247,7 +162,9 @@
         "disabled": "No disponible sin conexión"
       },
       "meta": "Desarrollado por 5Horas • Proyecto Marco — AppBase R1.1",
-      "login": { "ok": "Conectado" }
+      "login": {
+        "ok": "Conectado"
+      }
     },
     "settings": {
       "title": "Configuración",

@@ -50,23 +50,6 @@
   --ac-panel-head-sub: rgba(255, 255, 255, 0.78);
   --ac-panel-head-border: rgba(255, 255, 255, 0.24);
   --ac-panel-border: rgba(148, 163, 208, 0.7);
-  --ac-sync-toggle-bg: var(--ac-bg);
-  --ac-sync-toggle-border: rgba(54, 87, 195, 0.2);
-  --ac-sync-toggle-ink: var(--ac-text);
-  --ac-sync-toggle-muted: var(--ac-muted);
-  --ac-sync-toggle-active-bg: var(--ac-primary);
-  --ac-sync-toggle-active-border: var(--ac-border);
-  --ac-sync-toggle-active-ink: var(--ac-on-primary);
-  --ac-sync-toggle-error-bg: var(--ac-crit-bg);
-  --ac-sync-toggle-error-ink: var(--ac-crit);
-  --ac-sync-indicator-off: var(--ac-muted);
-  --ac-sync-indicator-on: var(--ac-ok);
-  --ac-sync-indicator-error: var(--ac-crit);
-  --ac-sync-badge-bg: var(--ac-primary);
-  --ac-sync-badge-ink: var(--ac-on-primary);
-  --ac-sync-badge-muted-bg: rgba(148, 163, 208, 0.2);
-  --ac-sync-badge-muted-ink: var(--ac-muted);
-  --ac-sync-device-border: rgba(20, 38, 92, 0.12);
 }
 
 :root[data-theme='dark'] {
@@ -117,7 +100,6 @@
   --ac-panel-head-sub: rgba(226, 232, 240, 0.75);
   --ac-panel-head-border: rgba(148, 163, 184, 0.35);
   --ac-panel-border: rgba(96, 165, 250, 0.38);
-  --ac-sync-badge-muted-bg: rgba(148, 163, 184, 0.25);
   --ac-stage-empty-bg: rgba(15, 23, 42, 0.82);
   --ac-stage-empty-border: rgba(96, 165, 250, 0.45);
 }
@@ -978,6 +960,8 @@ select {
   display: grid;
   gap: 28px;
   align-content: start;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
 }
 
 .ac-panel-label__head {
@@ -1022,7 +1006,7 @@ select {
 .ac-panel-label__grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .ac-panel-label__item {
@@ -1099,62 +1083,6 @@ select {
   font-size: 0.85rem;
 }
 
-.ac-panel-label__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  align-items: center;
-}
-
-.ac-status-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: var(--ac-border-width) solid var(--ac-border);
-  background: rgba(255, 255, 255, 0.82);
-  font-weight: 600;
-  color: var(--ac-primary);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
-  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
-}
-
-.ac-status-toggle[aria-pressed='true'] {
-  background: var(--ac-ok-bg);
-  border-color: var(--ac-ok);
-  color: var(--ac-ok);
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
-}
-
-.ac-status-toggle[aria-pressed='true'] .ac-dot {
-  background: var(--ac-ok);
-}
-
-.ac-panel-label__export {
-  font-weight: 700;
-  border-width: var(--ac-border-width-strong);
-  border-color: var(--ac-border);
-}
-
-.ac-panel__grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-
-@media (max-width: 1280px) {
-  .ac-panel-label__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 1120px) {
-  .ac-panel__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 920px) {
   .ac-panel-label__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1166,10 +1094,6 @@ select {
 }
 
 @media (max-width: 720px) {
-  .ac-panel__grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .ac-card {
     padding: 24px 20px;
   }
@@ -1224,52 +1148,6 @@ select {
   margin: 0;
   color: var(--ac-muted);
   font-weight: 500;
-}
-
-.ac-status-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: var(--ac-border-width) solid var(--ac-chip-border);
-  background: var(--ac-chip-bg);
-  color: var(--ac-chip-ink);
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease,
-    box-shadow 160ms ease;
-  flex-shrink: 0;
-}
-
-.ac-status-chip__icon {
-  font-size: 1rem;
-  line-height: 1;
-}
-
-.ac-status-chip__label {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ac-status-chip--interactive {
-  cursor: pointer;
-  background: var(--ac-bg);
-}
-
-.ac-status-chip--interactive:hover,
-.ac-status-chip--interactive:focus-visible {
-  background: var(--ac-chip-active-bg);
-  color: var(--ac-chip-active-ink);
-  border-color: transparent;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
-}
-
-.ac-status-chip--interactive[aria-pressed='true'] {
-  background: var(--ac-chip-active-bg);
-  color: var(--ac-chip-active-ink);
-  border-color: transparent;
 }
 
 .ac-panel-kpis {
@@ -1334,18 +1212,7 @@ select {
 }
 
 .ac-panel-card--session {
-  grid-column: 1 / -1;
   box-shadow: 0 16px 32px var(--ac-shadow);
-}
-
-.ac-panel__grid > .ac-panel-card--session {
-  grid-column: 1 / -1;
-}
-
-@media (min-width: 1280px) {
-  .ac-panel__grid > .ac-panel-card--session {
-    grid-column: span 2;
-  }
 }
 
 .ac-panel-card--session .ac-panel-form {
@@ -1672,172 +1539,6 @@ select {
 }
 
 
-.ac-sync {
-  display: grid;
-  gap: 20px;
-  padding: 20px;
-  border-radius: 18px;
-  border: var(--ac-border-width) solid var(--ac-sync-toggle-border);
-  background: var(--ac-sync-toggle-bg);
-}
-
-.ac-sync__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.ac-sync__status {
-  display: grid;
-  gap: 4px;
-  flex: 1 1 240px;
-  min-width: 0;
-}
-
-.ac-sync__status-message {
-  margin: 0;
-  font-size: 0.95rem;
-  color: var(--ac-sync-toggle-ink);
-}
-
-.ac-sync__actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.ac-sync__toggle {
-  min-width: 0;
-  white-space: nowrap;
-}
-
-.ac-sync__providers {
-  display: grid;
-  gap: 12px;
-}
-
-.ac-sync-provider {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 16px;
-  border-radius: 16px;
-  border: var(--ac-border-width) solid var(--ac-sync-device-border);
-  background: rgba(148, 163, 208, 0.15);
-}
-
-:root[data-theme='dark'] .ac-sync-provider {
-  background: rgba(148, 163, 184, 0.16);
-  border-color: rgba(148, 163, 184, 0.35);
-}
-
-.ac-sync-provider--active {
-  border-color: rgba(54, 87, 195, 0.35);
-  background: rgba(54, 87, 195, 0.12);
-}
-
-:root[data-theme='dark'] .ac-sync-provider--active {
-  background: rgba(54, 87, 195, 0.2);
-  border-color: rgba(129, 140, 248, 0.45);
-}
-
-.ac-sync-provider__details {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.ac-sync-provider__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(54, 87, 195, 0.14);
-  color: var(--ac-primary);
-  display: grid;
-  place-items: center;
-  font-size: 1.35rem;
-  flex: 0 0 auto;
-}
-
-:root[data-theme='dark'] .ac-sync-provider__icon {
-  background: rgba(129, 140, 248, 0.22);
-  color: var(--ac-on-primary);
-}
-
-.ac-sync-provider__text {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
-
-.ac-sync-provider__name {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--ac-text);
-}
-
-.ac-sync-provider__description {
-  margin: 0;
-  font-size: 0.8rem;
-  color: var(--ac-muted);
-}
-
-.ac-sync-provider__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.ac-sync-provider__badge--inactive {
-  background: var(--ac-sync-badge-muted-bg);
-  color: var(--ac-sync-badge-muted-ink);
-}
-
-.ac-sync-provider__badge--active {
-  background: var(--ac-sync-badge-bg);
-  color: var(--ac-sync-badge-ink);
-}
-
-.ac-sync__meta {
-  margin: 0;
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.ac-sync__meta-item {
-  display: grid;
-  gap: 4px;
-}
-
-.ac-sync__meta dt {
-  margin: 0;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--ac-muted);
-}
-
-.ac-sync__meta dd {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--ac-sync-toggle-ink);
-}
 
 .ac-mono {
   font-family: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Consolas,

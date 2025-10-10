@@ -82,105 +82,20 @@
             "inactive": "Último acesso registrado localmente.",
             "active": "Atualizado automaticamente após o login."
           }
-      },
-      "events": {
-        "label": "Eventos registrados",
-        "hint": {
-          "empty": "Aguardando primeiro registro.",
-          "single": "1 evento armazenado neste dispositivo.",
-          "multiple": "{{count}} eventos armazenados neste dispositivo."
-        }
-      }
-    },
-      "integrations": {
-        "sync": {
-          "label": {
-            "on": "Sync ativada",
-            "off": "Sync desativada"
-          },
-          "status": {
-            "off": "Sincronização desativada no momento.",
-            "on": "Sincronização ativa.",
-            "on_with_time": "Sincronização ativa. Última sincronização em {{time}}."
-          },
-          "action": {
-            "start": "Sincronizar",
-            "stop": "Desincronizar"
-          },
-          "provider": {
-            "active": "Ativo",
-            "inactive": "Inativo"
+        },
+        "events": {
+          "label": "Eventos registrados",
+          "hint": {
+            "empty": "Aguardando primeiro registro.",
+            "single": "1 evento armazenado neste dispositivo.",
+            "multiple": "{{count}} eventos armazenados neste dispositivo."
           }
-        },
-        "backup": {
-          "label": {
-            "on": "Backup ativado",
-            "off": "Backup desativado"
-          }
-        },
-        "export": "Exportar"
-      },
-      "cards": {
-        "sync": {
-          "title": "Sincronização",
-          "description": "Conecte o painel aos provedores suportados e distribua os dados.",
-          "providers": {
-            "google_drive": {
-              "name": "Google Drive",
-              "description": "Integração oficial com autenticação Google."
-            },
-            "microsoft_onedrive": {
-              "name": "OneDrive",
-              "description": "Sincronize com contas corporativas Microsoft."
-            }
-          },
-          "meta": {
-            "last_sync": "Última sincronização",
-            "server": "Servidor",
-            "devices": "Dispositivos conectados"
-          }
-        },
-        "backup": {
-          "title": "Backup",
-          "description": "Proteja registros críticos e restaure configurações em segundos.",
-          "meta": {
-            "last_backup": "Último backup",
-            "storage": "Armazenamento",
-            "storage_empty": "Sem destino",
-            "size": "Tamanho estimado"
-          },
-          "note": "Configure uma conta de nuvem ou exporte manualmente os dados para garantir redundância."
-        },
-        "connectivity": {
-          "title": "Conectividade",
-          "description": "Parâmetros ativos e latência dos serviços em tempo real.",
-          "meta": {
-            "endpoint": "Endpoint",
-            "region": "Região",
-            "latency": "Latência média"
-          },
-          "note": "Monitore tempo de resposta e priorize links redundantes durante janelas críticas de operação."
-        },
-        "security": {
-          "title": "Segurança",
-          "description": "Sessões autenticadas, políticas aplicadas e eventos recentes.",
-          "meta": {
-            "last_review": "Última revisão",
-            "status": "Status",
-            "alerts": "Alertas ativos"
-          },
-          "status": {
-            "pending": "Em análise"
-          },
-          "note": "Garanta autenticação multifator nos dispositivos conectados e revise logs semanalmente."
         }
       },
       "summary": {
         "user": "Usuário",
         "account": "Conta",
         "last_login": "Último acesso",
-        "last_sync": "Último sync",
-        "last_backup": "Último backup",
         "empty": "Não configurado"
       },
       "form": {
@@ -217,7 +132,7 @@
       },
       "history": {
         "title": "Histórico de atividades",
-        "subtitle": "Acompanhe logins, logoffs e trocas de idioma registradas neste navegador.",
+        "subtitle": "Acompanhe logins e ajustes registrados neste navegador.",
         "table": {
           "event": "Evento",
           "time": "Horário"
@@ -247,7 +162,9 @@
         "disabled": "Indisponível offline"
       },
       "meta": "Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1",
-      "login": { "ok": "Conectado" }
+      "login": {
+        "ok": "Conectado"
+      }
     },
     "settings": {
       "title": "Configurações",

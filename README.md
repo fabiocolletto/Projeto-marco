@@ -22,7 +22,7 @@ vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 ├── appbase/
 │   ├── index.html            # Shell do AppBase com painel de controle integrado
 │   ├── app.css               # Tokens `--ac-*`, grid responsivo e overlays
-│   ├── app.js                # Controle do painel e integrações vanilla
+│   ├── app.js                # Controle do painel e persistência local
 │   ├── runtime/              # Núcleo AppBase (AppBase + event bus)
 │   └── storage/              # Persistência local (IndexedDB + fallback)
 ├── catalog/ui-extensions.json# Catálogo atual de miniapps carregado no runtime
@@ -98,7 +98,9 @@ para `archive/miniapps/` junto com o registro em `docs/changelog.md`.
    na tabela quanto no estado vazio do palco.
 7. Para rodar os testes de regressão, execute `npm install` seguido de `npm test`
    (a suíte Playwright valida cadastro, persistência e o comportamento do atalho
-   na AppBar).
+   na AppBar). Em ambientes Linux sem as bibliotecas do Chromium, instale-as com
+   `npx playwright install-deps` (ou o comando `apt-get` sugerido pelo runner)
+   antes de disparar os testes end-to-end.
 
 ### Alternância de tema na AppBar
 
@@ -115,9 +117,9 @@ preferência seja restaurada automaticamente na próxima visita.
 - **Atalho na AppBar** concentra o acesso ao painel principal, alternando o
   estado expandido, gerenciando foco automaticamente e habilitando a abertura
   mesmo quando não há cadastro salvo.
-- **Painel unificado** organiza indicadores, resumo do cadastro, formulário e
-  histórico em cards empilhados no mesmo plano, eliminando pop-ups e reforçando
-  a leitura sequencial.
+- **Painel unificado** organiza indicadores e formulário em duas colunas
+  responsivas, com o histórico ocupando toda a largura logo abaixo para manter a
+  leitura sequencial.
 - **Cadastro direto no palco**, com campos pré-preenchidos, feedback inline e
   controles de sessão (encerrar ou limpar dados) na mesma seção.
 - **Validações reforçadas** exigem senha para concluir o cadastro, formatam
@@ -131,13 +133,13 @@ preferência seja restaurada automaticamente na próxima visita.
   novas sessões.
 - **Persistência local leve**: os dados são gravados no IndexedDB com fallback
   transparente para `localStorage`, reaplicados automaticamente na próxima
-  visita e podem ser editados a qualquer momento sem dependências de sync/backup.
+  visita e podem ser editados a qualquer momento sem dependências externas.
 - **Histórico de acessos e controles de sessão**: o painel detalhado lista os
   registros de login/logoff com rolagem a partir de cinco eventos. Os botões de
   encerrar sessão permanecem ao lado do formulário, permitindo manter os dados
   salvos para um retorno futuro ou limpar tudo do navegador.
-- **Indicadores contextuais** desativam a sinalização de sincronização enquanto
-  a sessão está desconectada, evitando falsa impressão de estado atualizado.
+- **Layout simplificado** reduz os cartões auxiliares, privilegiando o resumo do
+  cadastro e a tabela de eventos sem exibir controles herdados de sincronização.
 
 ## Tecnologias adotadas e compatibilidade
 
@@ -163,9 +165,9 @@ de autenticação ou módulos adicionais) sem reescrever a base.
 
 ## Próximos passos sugeridos
 
-- Reintroduzir gradualmente os módulos de sincronização, backup e eventos a
-  partir deste núcleo enxuto, validando compatibilidade antes de expandir o
-  escopo.
+- Avaliar se é necessário reintroduzir gradualmente módulos de sincronização ou
+  backup a partir deste núcleo enxuto, validando compatibilidade antes de
+  expandir o escopo.
 - Avaliar a integração com um backend real de autenticação quando o fluxo de
   cadastro estiver validado com usuários.
 - Ampliar a suíte de testes end-to-end cobrindo cenários de edição contínua,
