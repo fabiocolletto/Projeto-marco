@@ -64,9 +64,13 @@ test.describe('Persistência com IndexedDB indisponível', () => {
 
     await expect(page.locator('[data-login-feedback]')).toHaveText('Cadastro atualizado com sucesso.');
 
-    const storedFallback = await page.evaluate(() => window.localStorage.getItem('marco-appbase:user'));
-    expect(storedFallback).not.toBeNull();
-    expect(storedFallback).toContain('fallback@example.com');
+    const storedProfiles = await page.evaluate(() => {
+      const raw = window.localStorage.getItem('marco-appbase:profiles');
+      return raw ? JSON.parse(raw) : null;
+    });
+    expect(storedProfiles).not.toBeNull();
+    expect(Array.isArray(storedProfiles)).toBe(true);
+    expect(storedProfiles[0]?.state?.user?.email).toBe('fallback@example.com');
 
     await page.reload({ waitUntil: 'load' });
 
@@ -150,9 +154,13 @@ test.describe('Persistência com IndexedDB indisponível', () => {
     await expect(page.locator('[data-login-user]')).toHaveText('IndexedDB Primário');
     await expect(page.locator('[data-login-account]')).toHaveText('resiliente');
 
-    const storedFallback = await page.evaluate(() => window.localStorage.getItem('marco-appbase:user'));
-    expect(storedFallback).not.toBeNull();
-    expect(storedFallback).toContain('resiliente@example.com');
+    const storedProfiles = await page.evaluate(() => {
+      const raw = window.localStorage.getItem('marco-appbase:profiles');
+      return raw ? JSON.parse(raw) : null;
+    });
+    expect(storedProfiles).not.toBeNull();
+    expect(Array.isArray(storedProfiles)).toBe(true);
+    expect(storedProfiles[0]?.state?.user?.email).toBe('resiliente@example.com');
 
     await page.evaluate(() => {
       try {
