@@ -81,6 +81,51 @@ test('carrega automaticamente o único perfil salvo', async ({ page }) => {
   await expect(stage.locator('input[name="telefone"]')).toHaveValue('(11) 98888-7777');
 });
 
+test('permite abrir o modal e iniciar novo perfil mesmo com um cadastro salvo', async ({ page }) => {
+  await page.addInitScript(() => {
+    const profile = {
+      id: 'joana@example.com',
+      email: 'joana@example.com',
+      updatedAt: '2024-05-01T12:00:00.000Z',
+      state: {
+        user: {
+          nomeCompleto: 'Joana Teste',
+          email: 'joana@example.com',
+          telefone: '11988887777',
+          senha: 'SenhaForte123',
+        },
+        lastLogin: '2024-05-01T12:00:00.000Z',
+        sessionActive: true,
+        history: [],
+      },
+    };
+    window.localStorage.setItem('marco-appbase:profiles', JSON.stringify([profile]));
+  });
+
+  await page.goto('/appbase/index.html');
+
+  const selector = page.locator('[data-profile-selector]');
+  await expect(selector).toHaveAttribute('aria-hidden', 'true');
+
+  const stage = await ensurePanelOpen(page);
+  const manageButton = stage.locator('[data-action="profile-manage"]');
+  await expect(manageButton).toBeVisible();
+
+  await manageButton.click();
+  await expect(selector).toHaveAttribute('aria-hidden', 'false');
+
+  const options = selector.locator('[data-profile-selector-list] button');
+  await expect(options).toHaveCount(1);
+  await expect(options.first()).toHaveText(/Joana Teste/);
+
+  await selector.locator('[data-profile-selector-new]').click();
+  await expect(selector).toHaveAttribute('aria-hidden', 'true');
+
+  await expect(stage.locator('input[name="nome"]').first()).toHaveValue('');
+  await expect(stage.locator('input[name="email"]').first()).toHaveValue('');
+  await expect(page.locator('[data-login-user]')).toHaveText('Não configurado');
+});
+
 test('permite escolher entre múltiplos perfis antes do boot', async ({ page }) => {
   await page.addInitScript(() => {
     const firstProfile = {

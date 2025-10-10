@@ -2146,12 +2146,15 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
-  function promptProfileSelection(profiles, options = {}) {
-    const { forceDialog = false } = options;
+  function promptProfileSelection(profiles, { forceDialog = false } = {}) {
     const sorted = sortProfileSummaries(Array.isArray(profiles) ? profiles : []);
     availableProfiles = sorted;
     const canOpen = Boolean(elements.profileSelectorOverlay && elements.profileSelectorList);
-    if (!canOpen || (!forceDialog && sorted.length <= 1)) {
+    if (!canOpen) {
+      const fallback = sorted[0] || { id: null, state: getEmptyState() };
+      return Promise.resolve({ profileId: fallback.id ?? null, state: fallback.state });
+    }
+    if (!forceDialog && sorted.length <= 1) {
       const fallback = sorted[0] || { id: null, state: getEmptyState() };
       return Promise.resolve({ profileId: fallback.id ?? null, state: fallback.state });
     }
@@ -2534,11 +2537,7 @@ import { AppBase } from './runtime/app-base.js';
     if (!normalisedProfiles.length) {
       return { state: getEmptyState(), profileId: null };
     }
-    if (normalisedProfiles.length === 1) {
-      const [single] = normalisedProfiles;
-      return { state: single.state, profileId: single.id };
-    }
-    const selection = await promptProfileSelection(normalisedProfiles);
+    const selection = await promptProfileSelection(normalisedProfiles, { forceDialog: false });
     const profileId = selection?.profileId ?? null;
     const resolvedState = selection?.state
       ? normaliseState(selection.state)
