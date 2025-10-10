@@ -936,13 +936,7 @@ select {
 }
 
 :root[data-theme='dark'] .ac-panel {
-  background: linear-gradient(
-      180deg,
-      rgba(30, 64, 175, 0.22) 0%,
-      rgba(15, 23, 42, 0.25) 48%,
-      rgba(15, 23, 42, 0.55) 100%
-    ),
-    var(--ac-panel-soft-bg);
+  background: var(--ac-panel-soft-bg);
 }
 
 .ac-panel__stack {
@@ -1234,27 +1228,15 @@ select {
 }
 
 .ac-panel-card--overview {
-  background: linear-gradient(
-      145deg,
-      rgba(59, 130, 246, 0.18) 0%,
-      rgba(239, 246, 255, 0.75) 60%,
-      var(--ac-card-bg) 100%
-    ),
-    var(--ac-card-bg);
-  box-shadow: 0 20px 44px rgba(15, 23, 42, 0.12);
+  background: var(--ac-card-bg);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
   grid-column: auto;
   align-self: stretch;
 }
 
 :root[data-theme='dark'] .ac-panel-card--overview {
-  background: linear-gradient(
-      145deg,
-      rgba(37, 99, 235, 0.32) 0%,
-      rgba(15, 23, 42, 0.75) 65%,
-      var(--ac-card-bg) 100%
-    ),
-    var(--ac-card-bg);
-  box-shadow: 0 18px 40px rgba(2, 6, 23, 0.45);
+  background: var(--ac-card-bg);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
 }
 
 .ac-panel-summary {
