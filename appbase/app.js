@@ -128,8 +128,7 @@ import { AppBase } from './runtime/app-base.js';
     'app.panel.summary.user': 'Usuário',
     'app.panel.summary.account': 'Conta',
     'app.panel.summary.last_login': 'Último acesso',
-    'app.panel.summary.last_sync': 'Último sync',
-    'app.panel.summary.last_backup': 'Último backup',
+    'app.panel.history.subtitle': 'Acompanhe logins e ajustes registrados neste navegador.',
     [PANEL_STATUS_LABEL_KEYS.connected]: 'Conectado',
     [PANEL_STATUS_LABEL_KEYS.disconnected]: 'Desconectado',
     [PANEL_STATUS_HINT_KEYS.empty]: 'Cadastre um usuário para iniciar a sessão.',
@@ -265,8 +264,6 @@ import { AppBase } from './runtime/app-base.js';
     loginUser: document.querySelector('[data-login-user]'),
     loginAccount: document.querySelector('[data-login-account]'),
     loginLast: document.querySelector('[data-login-last]'),
-    summarySync: document.querySelector('[data-summary-sync]'),
-    summaryBackup: document.querySelector('[data-summary-backup]'),
     loginForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
     panelStatusDot: Array.from(
@@ -283,24 +280,6 @@ import { AppBase } from './runtime/app-base.js';
     miniAppRail: document.querySelector('[data-miniapp-rail]'),
     miniAppRailTitle: document.querySelector('[data-miniapp-rail-title]'),
     panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
-    panelMeta: document.querySelector('[data-panel-meta]'),
-    syncMasterToggle: document.querySelector('[data-sync-master]'),
-    backupMasterToggle: document.querySelector('[data-backup-master]'),
-    syncMasterLabels: Array.from(
-      document.querySelectorAll('[data-sync-master-label]') || [],
-    ),
-    backupMasterLabels: Array.from(
-      document.querySelectorAll('[data-backup-master-label]') || [],
-    ),
-    syncMasterDot: document.querySelector('[data-sync-master-dot]'),
-    syncStatusMessage: document.querySelector('[data-sync-status-message]'),
-    syncLastUpdate: document.querySelector('[data-sync-last-update]'),
-    syncActionButton: document.querySelector('[data-sync-action]'),
-    syncProviders: Array.from(document.querySelectorAll('[data-sync-provider]') || []),
-    syncProviderBadges: Array.from(
-      document.querySelectorAll('[data-sync-provider-status]') || [],
-    ),
-    backupMasterDot: document.querySelector('[data-backup-master-dot]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
@@ -324,7 +303,6 @@ import { AppBase } from './runtime/app-base.js';
     passwordInput: document.querySelector('[data-password-input]'),
     passwordToggle: document.querySelector('[data-password-toggle]'),
     passwordToggleIcon: document.querySelector('[data-password-toggle-icon]'),
-    stageExport: document.querySelector('[data-stage-export]'),
   };
 
   function fallbackFor(key, defaultValue = '') {
@@ -1271,10 +1249,6 @@ import { AppBase } from './runtime/app-base.js';
       lastLogin: '',
       sessionActive: false,
       history: [],
-      syncEnabled: false,
-      backupEnabled: false,
-      lastSync: '',
-      lastBackup: '',
     };
   }
 
@@ -1290,21 +1264,11 @@ import { AppBase } from './runtime/app-base.js';
         : '';
     const history = normaliseHistory(raw.history);
     const sessionActive = Boolean(raw.sessionActive) && Boolean(user);
-    const lastSync =
-      typeof raw.lastSync === 'string' && raw.lastSync.trim() ? raw.lastSync : '';
-    const lastBackup =
-      typeof raw.lastBackup === 'string' && raw.lastBackup.trim() ? raw.lastBackup : '';
-    const syncEnabled = Boolean(raw.syncEnabled);
-    const backupEnabled = Boolean(raw.backupEnabled);
     return {
       user,
       lastLogin,
       history,
       sessionActive,
-      syncEnabled,
-      backupEnabled,
-      lastSync,
-      lastBackup,
     };
   }
 
@@ -1512,7 +1476,6 @@ import { AppBase } from './runtime/app-base.js';
     updatePanelAccessControl();
     updateAriaLabels();
     updateStatusSummary();
-    updateIntegrationToggles();
     updateStage();
     updateLoginFormFields();
     updateLogHistory();
@@ -1632,11 +1595,6 @@ import { AppBase } from './runtime/app-base.js';
       elements.stage.hidden = !panelOpen;
     }
 
-    if (elements.panelMeta) {
-      elements.panelMeta.hidden = !panelOpen;
-      elements.panelMeta.setAttribute('aria-hidden', panelOpen ? 'false' : 'true');
-    }
-
     if (elements.stageShell) {
       elements.stageShell.classList.toggle(STAGE_PANEL_OPEN_CLASS, panelOpen);
     }
@@ -1655,22 +1613,6 @@ import { AppBase } from './runtime/app-base.js';
     if (elements.loginLast) {
       const value = hasData ? formatDateTime(state.lastLogin) : '—';
       clearElementTranslation(elements.loginLast, value);
-    }
-
-    if (elements.summarySync) {
-      const value = state.lastSync ? formatDateTime(state.lastSync) : '—';
-      clearElementTranslation(
-        elements.summarySync,
-        state.syncEnabled && state.lastSync ? value : '—',
-      );
-    }
-
-    if (elements.summaryBackup) {
-      const value = state.lastBackup ? formatDateTime(state.lastBackup) : '—';
-      clearElementTranslation(
-        elements.summaryBackup,
-        state.backupEnabled && state.lastBackup ? value : '—',
-      );
     }
 
     updatePanelIndicators({ hasData, loggedIn });
@@ -1743,113 +1685,6 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
-  function collectElementSet(staticList, root, selector) {
-    const nodes = new Set();
-    if (Array.isArray(staticList)) {
-      staticList.forEach((item) => {
-        if (item instanceof Element) {
-          nodes.add(item);
-        }
-      });
-    } else if (staticList instanceof Element) {
-      nodes.add(staticList);
-    }
-    if (root instanceof Element && selector) {
-      root.querySelectorAll(selector).forEach((item) => {
-        if (item instanceof Element) {
-          nodes.add(item);
-        }
-      });
-    }
-    return Array.from(nodes);
-  }
-
-  function updateIntegrationToggles() {
-    const syncEnabled = Boolean(state.syncEnabled);
-    const lastSyncValue = state.lastSync ? formatDateTime(state.lastSync) : '—';
-    if (elements.syncMasterToggle) {
-      elements.syncMasterToggle.setAttribute('aria-pressed', syncEnabled ? 'true' : 'false');
-      const labels = collectElementSet(
-        elements.syncMasterLabels,
-        elements.syncMasterToggle,
-        '[data-sync-master-label]',
-      );
-      const labelKey = syncEnabled
-        ? 'app.panel.integrations.sync.label.on'
-        : 'app.panel.integrations.sync.label.off';
-      setElementTextFromKey(labels, labelKey);
-      if (elements.syncMasterDot) {
-        elements.syncMasterDot.classList.toggle('ac-dot--ok', syncEnabled);
-        elements.syncMasterDot.classList.toggle('ac-dot--crit', !syncEnabled);
-      }
-    }
-
-    if (elements.syncActionButton) {
-      elements.syncActionButton.setAttribute(
-        'aria-pressed',
-        syncEnabled ? 'true' : 'false',
-      );
-      const actionKey = syncEnabled
-        ? 'app.panel.integrations.sync.action.stop'
-        : 'app.panel.integrations.sync.action.start';
-      setElementTextFromKey(elements.syncActionButton, actionKey);
-    }
-
-    if (elements.syncStatusMessage) {
-      const statusKey = syncEnabled
-        ? state.lastSync
-          ? 'app.panel.integrations.sync.status.on_with_time'
-          : 'app.panel.integrations.sync.status.on'
-        : 'app.panel.integrations.sync.status.off';
-      const replacements = syncEnabled && state.lastSync ? { time: lastSyncValue } : {};
-      setElementTextFromKey(elements.syncStatusMessage, statusKey, { replacements });
-    }
-
-    if (elements.syncLastUpdate) {
-      clearElementTranslation(
-        elements.syncLastUpdate,
-        syncEnabled && state.lastSync ? lastSyncValue : '—',
-      );
-    }
-
-    if (elements.syncProviders.length) {
-      elements.syncProviders.forEach((provider) => {
-        provider.classList.toggle('ac-sync-provider--active', syncEnabled);
-      });
-    }
-
-    if (elements.syncProviderBadges.length) {
-      const badgeKey = syncEnabled
-        ? 'app.panel.integrations.sync.provider.active'
-        : 'app.panel.integrations.sync.provider.inactive';
-      elements.syncProviderBadges.forEach((badge) => {
-        badge.classList.toggle('ac-sync-provider__badge--active', syncEnabled);
-        badge.classList.toggle('ac-sync-provider__badge--inactive', !syncEnabled);
-        setElementTextFromKey(badge, badgeKey);
-      });
-    }
-
-    const backupEnabled = Boolean(state.backupEnabled);
-    if (elements.backupMasterToggle) {
-      elements.backupMasterToggle.setAttribute(
-        'aria-pressed',
-        backupEnabled ? 'true' : 'false',
-      );
-      const labels = collectElementSet(
-        elements.backupMasterLabels,
-        elements.backupMasterToggle,
-        '[data-backup-master-label]',
-      );
-      const labelKey = backupEnabled
-        ? 'app.panel.integrations.backup.label.on'
-        : 'app.panel.integrations.backup.label.off';
-      setElementTextFromKey(labels, labelKey);
-      if (elements.backupMasterDot) {
-        elements.backupMasterDot.classList.toggle('ac-dot--ok', backupEnabled);
-        elements.backupMasterDot.classList.toggle('ac-dot--crit', !backupEnabled);
-      }
-    }
-  }
 
   function getLoginFormSnapshot() {
     if (!elements.loginForm) {
@@ -2173,20 +2008,6 @@ import { AppBase } from './runtime/app-base.js';
     closePanel();
   }
 
-  function toggleSyncMaster() {
-    setState((previous) => ({
-      syncEnabled: !previous.syncEnabled,
-      lastSync: !previous.syncEnabled ? nowIso() : '',
-    }));
-  }
-
-  function toggleBackupMaster() {
-    setState((previous) => ({
-      backupEnabled: !previous.backupEnabled,
-      lastBackup: !previous.backupEnabled ? nowIso() : '',
-    }));
-  }
-
   async function handleLogoutPreserve() {
     if (!isLoggedIn()) {
       return;
@@ -2344,29 +2165,6 @@ import { AppBase } from './runtime/app-base.js';
       });
     }
 
-    if (elements.syncMasterToggle) {
-      elements.syncMasterToggle.addEventListener('click', (event) => {
-        event.preventDefault();
-        applyButtonFeedback(event.currentTarget);
-        toggleSyncMaster();
-      });
-    }
-
-    if (elements.syncActionButton) {
-      elements.syncActionButton.addEventListener('click', (event) => {
-        event.preventDefault();
-        applyButtonFeedback(event.currentTarget);
-        toggleSyncMaster();
-      });
-    }
-
-    if (elements.backupMasterToggle) {
-      elements.backupMasterToggle.addEventListener('click', (event) => {
-        event.preventDefault();
-        applyButtonFeedback(event.currentTarget);
-        toggleBackupMaster();
-      });
-    }
   }
 
   async function boot() {

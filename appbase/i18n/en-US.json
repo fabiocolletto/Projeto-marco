@@ -82,105 +82,20 @@
             "inactive": "Last access recorded locally.",
             "active": "Automatically updated after login."
           }
-      },
-      "events": {
-        "label": "Recorded events",
-        "hint": {
-          "empty": "Waiting for the first record.",
-          "single": "1 event stored on this device.",
-          "multiple": "{{count}} events stored on this device."
-        }
-      }
-    },
-      "integrations": {
-        "sync": {
-          "label": {
-            "on": "Sync enabled",
-            "off": "Sync disabled"
-          },
-          "status": {
-            "off": "Sync is disabled right now.",
-            "on": "Sync is active.",
-            "on_with_time": "Sync is active. Last sync at {{time}}."
-          },
-          "action": {
-            "start": "Enable sync",
-            "stop": "Disable sync"
-          },
-          "provider": {
-            "active": "Active",
-            "inactive": "Inactive"
+        },
+        "events": {
+          "label": "Recorded events",
+          "hint": {
+            "empty": "Waiting for the first record.",
+            "single": "1 event stored on this device.",
+            "multiple": "{{count}} events stored on this device."
           }
-        },
-        "backup": {
-          "label": {
-            "on": "Backup enabled",
-            "off": "Backup disabled"
-          }
-        },
-        "export": "Export"
-      },
-      "cards": {
-        "sync": {
-          "title": "Synchronization",
-          "description": "Connect the panel to supported providers and distribute data.",
-          "providers": {
-            "google_drive": {
-              "name": "Google Drive",
-              "description": "Official integration with Google authentication."
-            },
-            "microsoft_onedrive": {
-              "name": "OneDrive",
-              "description": "Sync with Microsoft corporate accounts."
-            }
-          },
-          "meta": {
-            "last_sync": "Last sync",
-            "server": "Server",
-            "devices": "Connected devices"
-          }
-        },
-        "backup": {
-          "title": "Backup",
-          "description": "Protect critical records and restore configurations in seconds.",
-          "meta": {
-            "last_backup": "Last backup",
-            "storage": "Storage",
-            "storage_empty": "No destination",
-            "size": "Estimated size"
-          },
-          "note": "Set up a cloud account or export data manually to ensure redundancy."
-        },
-        "connectivity": {
-          "title": "Connectivity",
-          "description": "Active parameters and service latency in real time.",
-          "meta": {
-            "endpoint": "Endpoint",
-            "region": "Region",
-            "latency": "Average latency"
-          },
-          "note": "Monitor response time and prioritize redundant links during critical windows."
-        },
-        "security": {
-          "title": "Security",
-          "description": "Authenticated sessions, applied policies, and recent events.",
-          "meta": {
-            "last_review": "Last review",
-            "status": "Status",
-            "alerts": "Active alerts"
-          },
-          "status": {
-            "pending": "Under review"
-          },
-          "note": "Ensure multi-factor authentication on connected devices and review logs weekly."
         }
       },
       "summary": {
         "user": "User",
         "account": "Account",
         "last_login": "Last access",
-        "last_sync": "Last sync",
-        "last_backup": "Last backup",
         "empty": "Not configured"
       },
       "form": {
@@ -217,7 +132,7 @@
       },
       "history": {
         "title": "Activity history",
-        "subtitle": "Track logins, logoffs, and language changes recorded in this browser.",
+        "subtitle": "Track logins and updates saved on this browser.",
         "table": {
           "event": "Event",
           "time": "Time"
@@ -247,7 +162,9 @@
         "disabled": "Unavailable offline"
       },
       "meta": "Developed by 5Horas • Marco Project — AppBase R1.1",
-      "login": { "ok": "Connected" }
+      "login": {
+        "ok": "Connected"
+      }
     },
     "settings": {
       "title": "Settings",

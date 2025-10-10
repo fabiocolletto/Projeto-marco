@@ -92,43 +92,6 @@
               >
             </button>
           </div>
-          <div
-            class="ac-appbar__chips"
-            data-panel-meta-header
-            role="group"
-            aria-label="Status das integrações"
-            hidden
-            aria-hidden="true"
-          >
-            <span class="ac-status-chip" role="status">
-              <span class="ac-status-chip__icon" aria-hidden="true">☁️</span>
-              <span
-                class="ac-status-chip__label"
-                data-sync-master-label
-                data-i18n="app.panel.integrations.sync.label.off"
-              >
-                Sync desativada
-              </span>
-            </span>
-            <span class="ac-status-chip" role="status">
-              <span class="ac-status-chip__icon" aria-hidden="true">💾</span>
-              <span
-                class="ac-status-chip__label"
-                data-backup-master-label
-                data-i18n="app.panel.integrations.backup.label.off"
-              >
-                Backup desativado
-              </span>
-            </span>
-            <button
-              class="ac-btn ac-btn--outline ac-stage__export"
-              type="button"
-              data-stage-export
-              data-i18n="app.panel.integrations.export"
-            >
-              Exportar
-            </button>
-          </div>
           <div class="ac-locale-menu" data-locale-menu hidden aria-hidden="true">
             <p class="ac-locale-menu__title" data-i18n="app.locale.menu.title">
               Idioma do AppBase
@@ -225,14 +188,6 @@
                         <dt data-i18n="app.panel.summary.last_login">Último acesso</dt>
                         <dd data-login-last>—</dd>
                       </div>
-                      <div class="ac-panel-label__item">
-                        <dt data-i18n="app.panel.summary.last_sync">Último sync</dt>
-                        <dd data-summary-sync>—</dd>
-                      </div>
-                      <div class="ac-panel-label__item">
-                        <dt data-i18n="app.panel.summary.last_backup">Último backup</dt>
-                        <dd data-summary-backup>—</dd>
-                      </div>
                     </dl>
 
                     <div class="ac-panel-label__insights">
@@ -288,61 +243,6 @@
                     </div>
                   </div>
 
-                  <div
-                    class="ac-panel-label__actions"
-                    data-panel-meta
-                    role="group"
-                    aria-label="Status das integrações"
-                    hidden
-                    aria-hidden="true"
-                  >
-                    <button
-                      class="ac-status-toggle"
-                      type="button"
-                      data-sync-master
-                      aria-pressed="false"
-                    >
-                      <span
-                        class="ac-dot ac-dot--crit"
-                        aria-hidden="true"
-                        data-sync-master-dot
-                      ></span>
-                      <span
-                        class="ac-status-toggle__label"
-                        data-sync-master-label
-                        data-i18n="app.panel.integrations.sync.label.off"
-                      >
-                        Sync desativada
-                      </span>
-                    </button>
-                    <button
-                      class="ac-status-toggle"
-                      type="button"
-                      data-backup-master
-                      aria-pressed="false"
-                    >
-                      <span
-                        class="ac-dot ac-dot--crit"
-                        aria-hidden="true"
-                        data-backup-master-dot
-                      ></span>
-                      <span
-                        class="ac-status-toggle__label"
-                        data-backup-master-label
-                        data-i18n="app.panel.integrations.backup.label.off"
-                      >
-                        Backup desativado
-                      </span>
-                    </button>
-                    <button
-                      class="ac-btn ac-btn--outline ac-panel-label__export"
-                      type="button"
-                      data-stage-export
-                      data-i18n="app.panel.integrations.export"
-                    >
-                      Exportar
-                    </button>
-                  </div>
                 </section>
 
                 <article
@@ -503,290 +403,6 @@
                   ></p>
                 </article>
 
-                <div class="ac-panel__grid">
-                  <article
-                    class="ac-panel-card ac-panel-card--sync"
-                    aria-labelledby="painel-sistema-title"
-                  >
-                    <header class="ac-panel-card__head">
-                      <div class="ac-panel-card__titles">
-                        <h3
-                          id="painel-sistema-title"
-                          class="ac-panel-card__title"
-                          data-i18n="app.panel.cards.sync.title"
-                        >
-                          Sincronização
-                        </h3>
-                        <p
-                          class="ac-panel-card__subtitle"
-                          data-i18n="app.panel.cards.sync.description"
-                        >
-                          Conecte o painel aos provedores suportados e distribua os dados.
-                        </p>
-                      </div>
-                    </header>
-                    <div class="ac-sync" data-sync-panel>
-                      <div class="ac-sync__header">
-                        <div class="ac-sync__status">
-                          <p
-                            class="ac-sync__status-message"
-                            data-sync-status-message
-                            role="status"
-                            aria-live="polite"
-                            data-i18n="app.panel.integrations.sync.status.off"
-                          >
-                            Sincronização desativada no momento.
-                          </p>
-                        </div>
-                        <div class="ac-sync__actions">
-                          <button
-                            class="ac-btn ac-btn--primary ac-sync__toggle"
-                            type="button"
-                            data-sync-action
-                            aria-pressed="false"
-                            data-i18n="app.panel.integrations.sync.action.start"
-                          >
-                            Sincronizar
-                          </button>
-                        </div>
-                      </div>
-                      <div class="ac-sync__providers" role="list">
-                        <article
-                          class="ac-sync-provider"
-                          data-sync-provider="google-drive"
-                          role="listitem"
-                        >
-                          <div class="ac-sync-provider__details">
-                            <span class="ac-sync-provider__icon" aria-hidden="true">☁️</span>
-                            <div class="ac-sync-provider__text">
-                              <h4
-                                class="ac-sync-provider__name"
-                                data-i18n="app.panel.cards.sync.providers.google_drive.name"
-                              >
-                                Google Drive
-                              </h4>
-                              <p
-                                class="ac-sync-provider__description"
-                                data-i18n="app.panel.cards.sync.providers.google_drive.description"
-                              >
-                                Integração oficial com autenticação Google.
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            class="ac-sync-provider__badge ac-sync-provider__badge--inactive"
-                            data-sync-provider-status
-                            data-i18n="app.panel.integrations.sync.provider.inactive"
-                          >
-                            Inativo
-                          </span>
-                        </article>
-                        <article
-                          class="ac-sync-provider"
-                          data-sync-provider="microsoft-onedrive"
-                          role="listitem"
-                        >
-                          <div class="ac-sync-provider__details">
-                            <span class="ac-sync-provider__icon" aria-hidden="true">🗂️</span>
-                            <div class="ac-sync-provider__text">
-                              <h4
-                                class="ac-sync-provider__name"
-                                data-i18n="app.panel.cards.sync.providers.microsoft_onedrive.name"
-                              >
-                                OneDrive
-                              </h4>
-                              <p
-                                class="ac-sync-provider__description"
-                                data-i18n="app.panel.cards.sync.providers.microsoft_onedrive.description"
-                              >
-                                Sincronize com contas corporativas Microsoft.
-                              </p>
-                            </div>
-                          </div>
-                          <span
-                            class="ac-sync-provider__badge ac-sync-provider__badge--inactive"
-                            data-sync-provider-status
-                            data-i18n="app.panel.integrations.sync.provider.inactive"
-                          >
-                            Inativo
-                          </span>
-                        </article>
-                      </div>
-                      <dl class="ac-sync__meta">
-                        <div class="ac-sync__meta-item">
-                          <dt data-i18n="app.panel.cards.sync.meta.last_sync">
-                            Última sincronização
-                          </dt>
-                          <dd class="ac-mono" data-sync-last-update>—</dd>
-                        </div>
-                        <div class="ac-sync__meta-item">
-                          <dt data-i18n="app.panel.cards.sync.meta.server">Servidor</dt>
-                          <dd class="ac-mono">api.marco.local</dd>
-                        </div>
-                        <div class="ac-sync__meta-item">
-                          <dt data-i18n="app.panel.cards.sync.meta.devices">
-                            Dispositivos conectados
-                          </dt>
-                          <dd class="ac-mono">0</dd>
-                        </div>
-                      </dl>
-                    </div>
-                  </article>
-
-                  <article class="ac-panel-card ac-panel-card--backup">
-                    <header class="ac-panel-card__head">
-                      <div class="ac-panel-card__titles">
-                        <h3
-                          class="ac-panel-card__title"
-                          data-i18n="app.panel.cards.backup.title"
-                        >
-                          Backup
-                        </h3>
-                        <p
-                          class="ac-panel-card__subtitle"
-                          data-i18n="app.panel.cards.backup.description"
-                        >
-                          Proteja registros críticos e restaure configurações em segundos.
-                        </p>
-                      </div>
-                      <span class="ac-status-chip" role="status">
-                        <span class="ac-status-chip__icon" aria-hidden="true">💾</span>
-                        <span
-                          class="ac-status-chip__label"
-                          data-backup-master-label
-                          data-i18n="app.panel.integrations.backup.label.off"
-                        >
-                          Backup desativado
-                        </span>
-                      </span>
-                    </header>
-                    <dl class="ac-info-list" role="list">
-                      <div>
-                        <dt data-i18n="app.panel.cards.backup.meta.last_backup">
-                          Último backup
-                        </dt>
-                        <dd class="ac-mono" data-backup-last>—</dd>
-                      </div>
-                      <div>
-                        <dt data-i18n="app.panel.cards.backup.meta.storage">Armazenamento</dt>
-                        <dd
-                          class="ac-mono"
-                          data-backup-target
-                          data-i18n="app.panel.cards.backup.meta.storage_empty"
-                        >
-                          Sem destino
-                        </dd>
-                      </div>
-                      <div>
-                        <dt data-i18n="app.panel.cards.backup.meta.size">
-                          Tamanho estimado
-                        </dt>
-                        <dd class="ac-mono" data-backup-size>0 KB</dd>
-                      </div>
-                    </dl>
-                    <p
-                      class="ac-panel-card__note"
-                      data-i18n="app.panel.cards.backup.note"
-                    >
-                      Configure uma conta de nuvem ou exporte manualmente os dados para
-                      garantir redundância.
-                    </p>
-                  </article>
-
-                  <article class="ac-panel-card ac-panel-card--connectivity">
-                    <header class="ac-panel-card__head">
-                      <div class="ac-panel-card__titles">
-                        <h3
-                          class="ac-panel-card__title"
-                          data-i18n="app.panel.cards.connectivity.title"
-                        >
-                          Conectividade
-                        </h3>
-                        <p
-                          class="ac-panel-card__subtitle"
-                          data-i18n="app.panel.cards.connectivity.description"
-                        >
-                          Parâmetros ativos e latência dos serviços em tempo real.
-                        </p>
-                      </div>
-                    </header>
-                    <dl class="ac-info-list" role="list">
-                      <div>
-                        <dt data-i18n="app.panel.cards.connectivity.meta.endpoint">
-                          Endpoint
-                        </dt>
-                        <dd class="ac-mono" data-connect-endpoint>api.marco.local</dd>
-                      </div>
-                      <div>
-                        <dt data-i18n="app.panel.cards.connectivity.meta.region">Região</dt>
-                        <dd class="ac-mono" data-connect-region>br-south</dd>
-                      </div>
-                      <div>
-                        <dt data-i18n="app.panel.cards.connectivity.meta.latency">
-                          Latência média
-                        </dt>
-                        <dd class="ac-mono" data-connect-latency>—</dd>
-                      </div>
-                    </dl>
-                    <p
-                      class="ac-panel-card__note"
-                      data-i18n="app.panel.cards.connectivity.note"
-                    >
-                      Monitore tempo de resposta e priorize links redundantes durante janelas
-                      críticas de operação.
-                    </p>
-                  </article>
-
-                  <article class="ac-panel-card ac-panel-card--security">
-                    <header class="ac-panel-card__head">
-                      <div class="ac-panel-card__titles">
-                        <h3
-                          class="ac-panel-card__title"
-                          data-i18n="app.panel.cards.security.title"
-                        >
-                          Segurança
-                        </h3>
-                        <p
-                          class="ac-panel-card__subtitle"
-                          data-i18n="app.panel.cards.security.description"
-                        >
-                          Sessões autenticadas, políticas aplicadas e eventos recentes.
-                        </p>
-                      </div>
-                    </header>
-                    <dl class="ac-info-list" role="list">
-                      <div>
-                        <dt data-i18n="app.panel.cards.security.meta.last_review">
-                          Última revisão
-                        </dt>
-                        <dd class="ac-mono" data-security-last>—</dd>
-                      </div>
-                      <div>
-                        <dt data-i18n="app.panel.cards.security.meta.status">Status</dt>
-                        <dd
-                          class="ac-mono"
-                          data-security-status
-                          data-i18n="app.panel.cards.security.status.pending"
-                        >
-                          Em análise
-                        </dd>
-                      </div>
-                      <div>
-                        <dt data-i18n="app.panel.cards.security.meta.alerts">
-                          Alertas ativos
-                        </dt>
-                        <dd class="ac-mono" data-security-alerts>0</dd>
-                      </div>
-                    </dl>
-                    <p
-                      class="ac-panel-card__note"
-                      data-i18n="app.panel.cards.security.note"
-                    >
-                      Garanta autenticação multifator nos dispositivos conectados e revise
-                      logs semanalmente.
-                    </p>
-                  </article>
-                </div>
                 <article
                   class="ac-panel-card ac-panel-card--history ac-history ac-ctrl-history"
                   aria-labelledby="login-log-title"
@@ -800,12 +416,12 @@
                       >
                         Eventos
                       </h3>
-                      <p
-                        class="ac-panel-card__subtitle ac-history__subtitle"
-                        data-i18n="app.panel.history.subtitle"
-                      >
-                        Acompanhe logins, backups e alertas registrados neste dispositivo.
-                      </p>
+                        <p
+                          class="ac-panel-card__subtitle ac-history__subtitle"
+                          data-i18n="app.panel.history.subtitle"
+                        >
+                          Acompanhe logins e ajustes registrados neste navegador.
+                        </p>
                     </div>
                     <form class="ac-history__filters" role="search">
                       <label class="ac-history__search">
@@ -813,7 +429,7 @@
                         <input
                           type="search"
                           name="history-search"
-                          placeholder="Eventos (ex.: backup, login, 09)"
+                          placeholder="Eventos (ex.: login, idioma, 09)"
                           autocomplete="off"
                           data-history-search
                         />
@@ -824,8 +440,7 @@
                           <option value="all">Todos os tipos</option>
                           <option value="login">Logins</option>
                           <option value="logout">Logoffs</option>
-                          <option value="backup">Backups</option>
-                          <option value="alert">Alertas</option>
+                          <option value="locale">Idioma</option>
                         </select>
                       </label>
                     </form>
