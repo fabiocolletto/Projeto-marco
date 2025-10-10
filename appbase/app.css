@@ -949,7 +949,7 @@ select {
   display: grid;
   gap: 28px;
   align-content: start;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
 }
 
