@@ -171,3 +171,79 @@ test('persiste perfis no IndexedDB e no localStorage', async ({ page }) => {
   expect(Array.isArray(persisted)).toBe(true);
   expect(persisted.some((profile) => profile?.state?.user?.email === 'persist@example.com')).toBe(true);
 });
+
+test('permite gerenciar e alternar perfis pelo painel', async ({ page }) => {
+  await page.addInitScript(() => {
+    const firstProfile = {
+      id: 'joana@example.com',
+      email: 'joana@example.com',
+      updatedAt: '2024-05-01T12:00:00.000Z',
+      state: {
+        user: {
+          nomeCompleto: 'Joana Teste',
+          email: 'joana@example.com',
+          telefone: '11988887777',
+          senha: 'SenhaForte123',
+        },
+        lastLogin: '2024-05-01T12:00:00.000Z',
+        sessionActive: true,
+        history: [],
+      },
+    };
+    const secondProfile = {
+      id: 'mario@example.com',
+      email: 'mario@example.com',
+      updatedAt: '2024-05-03T08:30:00.000Z',
+      state: {
+        user: {
+          nomeCompleto: 'Mário Perfil',
+          email: 'mario@example.com',
+          telefone: '21977776666',
+          senha: 'SenhaForte123',
+        },
+        lastLogin: '2024-05-03T08:30:00.000Z',
+        sessionActive: true,
+        history: [],
+      },
+    };
+    window.localStorage.setItem(
+      'marco-appbase:profiles',
+      JSON.stringify([firstProfile, secondProfile])
+    );
+  });
+
+  await page.goto('/appbase/index.html');
+
+  const selector = page.locator('[data-profile-selector]');
+  await expect(selector).toHaveAttribute('aria-hidden', 'false');
+  await selector
+    .locator('[data-profile-selector-list] button')
+    .filter({ hasText: 'Mário Perfil' })
+    .first()
+    .click();
+  await expect(selector).toHaveAttribute('aria-hidden', 'true');
+
+  const stage = await ensurePanelOpen(page);
+  const manageButton = stage.locator('[data-action="profile-manage"]');
+  await expect(manageButton).toBeVisible();
+
+  await manageButton.click();
+  await expect(selector).toHaveAttribute('aria-hidden', 'false');
+
+  const options = selector.locator('[data-profile-selector-list] button');
+  await expect(options).toHaveCount(2);
+  await options.filter({ hasText: 'Joana Teste' }).first().click();
+
+  await expect(selector).toHaveAttribute('aria-hidden', 'true');
+  await expect(stage.locator('input[name="email"]')).toHaveValue('joana@example.com');
+  await expect(page.locator('[data-login-user]')).toHaveText('Joana Teste');
+
+  await manageButton.click();
+  await expect(selector).toHaveAttribute('aria-hidden', 'false');
+
+  await selector.locator('[data-profile-selector-new]').click();
+  await expect(selector).toHaveAttribute('aria-hidden', 'true');
+  await expect(stage.locator('input[name="nome"]').first()).toHaveValue('');
+  await expect(stage.locator('input[name="email"]').first()).toHaveValue('');
+  await expect(page.locator('[data-login-user]')).toHaveText('Não configurado');
+});
