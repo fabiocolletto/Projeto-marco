@@ -10,6 +10,10 @@ module.exports = defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'chromium-mobile',
+      use: { ...devices['Pixel 5'] },
+    },
   ],
   webServer: {
     command: 'node tests/static-server.js',
