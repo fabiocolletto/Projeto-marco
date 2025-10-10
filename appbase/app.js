@@ -91,6 +91,10 @@ import { AppBase } from './runtime/app-base.js';
   };
   const FOOTER_DIRTY_LABEL_KEY = 'app.footer.dirty.label';
   const SESSION_ACTIONS_LABEL_KEY = 'app.panel.session.actions.label';
+  const SESSION_LOGIN_SUCCESS_KEY = 'app.panel.session.feedback.login';
+  const SESSION_LOGIN_ALREADY_ACTIVE_KEY =
+    'app.panel.session.feedback.already_active';
+  const SESSION_LOGIN_ERROR_KEY = 'app.panel.session.feedback.missing_user';
   const RAIL_LABEL_KEY = 'app.rail.label';
   const PANEL_KPIS_GROUP_LABEL_KEY = 'app.panel.kpis.group_label';
   const LOGIN_ERROR_FEEDBACK_KEY = 'app.panel.form.feedback.error';
@@ -125,18 +129,24 @@ import { AppBase } from './runtime/app-base.js';
       'Nenhum usuário cadastrado. Abra o painel pelo cabeçalho para iniciar o cadastro.',
     [STAGE_EMPTY_KEYS.return]: 'Sessão encerrada. Acesse novamente para visualizar o painel.',
     [SUMMARY_EMPTY_KEY]: 'Não configurado',
+    'app.panel.session.current': 'Sessão atual',
     'app.panel.summary.user': 'Usuário',
     'app.panel.summary.account': 'Conta',
     'app.panel.summary.last_login': 'Último acesso',
+    'app.panel.kpis.title': 'Indicadores',
+    'app.panel.kpis.subtitle': 'Resumo do painel em tempo real.',
+    'app.panel.kpis.status.label': 'Status do painel',
     'app.panel.history.subtitle': 'Acompanhe logins e ajustes registrados neste navegador.',
     [PANEL_STATUS_LABEL_KEYS.connected]: 'Conectado',
     [PANEL_STATUS_LABEL_KEYS.disconnected]: 'Desconectado',
+    'app.panel.kpis.last_login.label': 'Último acesso',
     [PANEL_STATUS_HINT_KEYS.empty]: 'Cadastre um usuário para iniciar a sessão.',
     [PANEL_STATUS_HINT_KEYS.inactive]: 'Sessão encerrada. Abra o painel e salve para retomar.',
     [PANEL_STATUS_HINT_KEYS.active]: 'Sessão ativa neste navegador.',
     [PANEL_LAST_LOGIN_HINT_KEYS.empty]: 'Nenhum registro disponível.',
     [PANEL_LAST_LOGIN_HINT_KEYS.inactive]: 'Último acesso registrado localmente.',
     [PANEL_LAST_LOGIN_HINT_KEYS.active]: 'Atualizado automaticamente após o login.',
+    'app.panel.kpis.events.label': 'Eventos registrados',
     [PANEL_EVENTS_HINT_KEYS.empty]: 'Aguardando primeiro registro.',
     [PANEL_EVENTS_HINT_KEYS.single]: '1 evento armazenado neste dispositivo.',
     [PANEL_EVENTS_HINT_KEYS.multiple]: '{{count}} eventos armazenados neste dispositivo.',
@@ -170,6 +180,10 @@ import { AppBase } from './runtime/app-base.js';
       'Informe um telefone brasileiro com 10 ou 11 dígitos.',
     [LOGIN_PASSWORD_MISSING_FEEDBACK_KEY]: 'Informe uma senha para continuar.',
     'app.panel.session.actions.save': 'Salvar cadastro',
+    'app.panel.session.actions.login': 'Iniciar sessão',
+    [SESSION_LOGIN_SUCCESS_KEY]: 'Sessão iniciada com sucesso.',
+    [SESSION_LOGIN_ALREADY_ACTIVE_KEY]: 'A sessão já está ativa neste navegador.',
+    [SESSION_LOGIN_ERROR_KEY]: 'Cadastre um usuário antes de iniciar a sessão.',
     [FORM_PHONE_PLACEHOLDER_KEY]: '(99) 99999-9999',
     [PASSWORD_TOGGLE_LABEL_KEYS.show]: 'Mostrar senha',
     [PASSWORD_TOGGLE_LABEL_KEYS.hide]: 'Ocultar senha',
@@ -283,6 +297,7 @@ import { AppBase } from './runtime/app-base.js';
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
+    sessionLoginButton: document.querySelector('[data-action="session-login"]'),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
     logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
     sessionActions: document.querySelector('[data-session-actions]'),
@@ -1860,6 +1875,9 @@ import { AppBase } from './runtime/app-base.js';
   }
 
   function updateLogControls() {
+    if (elements.sessionLoginButton) {
+      elements.sessionLoginButton.disabled = !hasUser() || isLoggedIn();
+    }
     if (elements.logoutButton) {
       elements.logoutButton.disabled = !isLoggedIn();
     }
@@ -2008,6 +2026,35 @@ import { AppBase } from './runtime/app-base.js';
     closePanel();
   }
 
+  async function handleSessionLogin(event) {
+    if (event && event.currentTarget) {
+      applyButtonFeedback(event.currentTarget);
+    }
+    if (!hasUser()) {
+      setLoginFeedback('error', SESSION_LOGIN_ERROR_KEY);
+      return;
+    }
+    if (isLoggedIn()) {
+      setLoginFeedback('success', SESSION_LOGIN_ALREADY_ACTIVE_KEY);
+      return;
+    }
+    const timestamp = nowIso();
+    const historyEntry = createHistoryEntry('login', { timestamp });
+    panelOpen = true;
+    await setState((previous) => {
+      const nextHistory = historyEntry
+        ? [historyEntry, ...(previous.history || [])]
+        : previous.history || [];
+      return {
+        ...previous,
+        lastLogin: timestamp,
+        sessionActive: true,
+        history: nextHistory,
+      };
+    });
+    setLoginFeedback('success', SESSION_LOGIN_SUCCESS_KEY);
+  }
+
   async function handleLogoutPreserve() {
     if (!isLoggedIn()) {
       return;
@@ -2117,6 +2164,13 @@ import { AppBase } from './runtime/app-base.js';
       elements.stageClose.addEventListener('click', (event) => {
         event.preventDefault();
         handleStageClose();
+      });
+    }
+
+    if (elements.sessionLoginButton) {
+      elements.sessionLoginButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        void handleSessionLogin(event);
       });
     }
 

@@ -125,9 +125,15 @@
         "description": "Finaliza la sesión manteniendo los datos almacenados en este navegador o elimina toda la información del registro.",
         "actions": {
           "label": "Acciones de la sesión",
+          "login": "Iniciar sesión",
           "save": "Guardar registro",
           "logout": "Cerrar sesión",
           "logout_clear": "Cerrar y eliminar datos"
+        },
+        "feedback": {
+          "login": "Sesión iniciada correctamente.",
+          "already_active": "La sesión ya está activa en este navegador.",
+          "missing_user": "Registra un usuario antes de iniciar la sesión."
         }
       },
       "history": {

@@ -125,9 +125,15 @@
         "description": "Encerre a sessão mantendo os dados armazenados neste navegador ou remova todas as informações do cadastro.",
         "actions": {
           "label": "Ações da sessão",
+          "login": "Iniciar sessão",
           "save": "Salvar cadastro",
           "logout": "Encerrar sessão",
           "logout_clear": "Encerrar e remover dados"
+        },
+        "feedback": {
+          "login": "Sessão iniciada com sucesso.",
+          "already_active": "A sessão já está ativa neste navegador.",
+          "missing_user": "Cadastre um usuário antes de iniciar a sessão."
         }
       },
       "history": {

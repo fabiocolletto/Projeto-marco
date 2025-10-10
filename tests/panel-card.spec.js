@@ -81,6 +81,14 @@ async function logoutClear(page) {
   await button.click({ timeout: 60000 });
 }
 
+async function resumeSession(page) {
+  const stage = await ensurePanelOpen(page);
+  const button = stage.locator('[data-action="session-login"]');
+  await expect(button).toBeEnabled({ timeout: 10000 });
+  await button.click({ timeout: 60000 });
+  return button;
+}
+
 test.beforeEach(async ({ page }) => {
   page.on('dialog', (dialog) => dialog.dismiss().catch(() => {}));
 });
@@ -165,6 +173,27 @@ test('botão do cabeçalho controla o painel sem acionar camadas extras', async 
   await expect(stage).toBeVisible();
   await expect(stageEmpty).toBeHidden();
   await expect(panelAccess).toHaveAttribute('aria-expanded', 'true');
+});
+
+test('painel permite retomar sessão a partir do cartão de status', async ({
+  page,
+}) => {
+  await resetApp(page);
+  await registerUser(page, {
+    nome: 'Eduarda Lima',
+    email: 'eduarda@example.com',
+  });
+
+  await logoutPreserve(page);
+
+  const loginButton = await resumeSession(page);
+  await expect(page.locator('[data-login-feedback]')).toHaveText(
+    'Sessão iniciada com sucesso.'
+  );
+  await expect(loginButton).toBeDisabled();
+  const statusLabel = page.locator('[data-panel-status-label]').first();
+  await expect(statusLabel).toHaveText('Conectado');
+  await expect(page.locator('[data-panel-login-count]')).toHaveText('3');
 });
 
 test('sessão encerrada mantém painel sob controle do cabeçalho', async ({
