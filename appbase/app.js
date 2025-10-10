@@ -47,25 +47,6 @@ import { AppBase } from './runtime/app-base.js';
     return: 'app.stage.empty.return',
   };
   const SUMMARY_EMPTY_KEY = 'app.panel.summary.empty';
-  const PANEL_STATUS_LABEL_KEYS = {
-    connected: 'app.panel.kpis.status.states.connected',
-    disconnected: 'app.panel.kpis.status.states.disconnected',
-  };
-  const PANEL_STATUS_HINT_KEYS = {
-    empty: 'app.panel.kpis.status.hint.empty',
-    inactive: 'app.panel.kpis.status.hint.inactive',
-    active: 'app.panel.kpis.status.hint.active',
-  };
-  const PANEL_LAST_LOGIN_HINT_KEYS = {
-    empty: 'app.panel.kpis.last_login.hint.empty',
-    inactive: 'app.panel.kpis.last_login.hint.inactive',
-    active: 'app.panel.kpis.last_login.hint.active',
-  };
-  const PANEL_EVENTS_HINT_KEYS = {
-    empty: 'app.panel.kpis.events.hint.empty',
-    single: 'app.panel.kpis.events.hint.single',
-    multiple: 'app.panel.kpis.events.hint.multiple',
-  };
   const HISTORY_EMPTY_KEY = 'app.history.empty';
   const HISTORY_EVENT_KEYS = {
     login: 'app.history.event.login',
@@ -96,7 +77,6 @@ import { AppBase } from './runtime/app-base.js';
     'app.panel.session.feedback.already_active';
   const SESSION_LOGIN_ERROR_KEY = 'app.panel.session.feedback.missing_user';
   const RAIL_LABEL_KEY = 'app.rail.label';
-  const PANEL_KPIS_GROUP_LABEL_KEY = 'app.panel.kpis.group_label';
   const LOGIN_ERROR_FEEDBACK_KEY = 'app.panel.form.feedback.error';
   const LOGIN_SUCCESS_FEEDBACK_KEY = 'app.panel.form.feedback.success';
   const LOGIN_PHONE_INVALID_FEEDBACK_KEY = 'app.panel.form.feedback.phone_invalid';
@@ -133,23 +113,7 @@ import { AppBase } from './runtime/app-base.js';
     'app.panel.summary.user': 'Usuário',
     'app.panel.summary.account': 'Conta',
     'app.panel.summary.last_login': 'Último acesso',
-    'app.panel.kpis.title': 'Indicadores',
-    'app.panel.kpis.subtitle': 'Resumo do painel em tempo real.',
-    'app.panel.kpis.status.label': 'Status do painel',
     'app.panel.history.subtitle': 'Acompanhe logins e ajustes registrados neste navegador.',
-    [PANEL_STATUS_LABEL_KEYS.connected]: 'Conectado',
-    [PANEL_STATUS_LABEL_KEYS.disconnected]: 'Desconectado',
-    'app.panel.kpis.last_login.label': 'Último acesso',
-    [PANEL_STATUS_HINT_KEYS.empty]: 'Cadastre um usuário para iniciar a sessão.',
-    [PANEL_STATUS_HINT_KEYS.inactive]: 'Sessão encerrada. Abra o painel e salve para retomar.',
-    [PANEL_STATUS_HINT_KEYS.active]: 'Sessão ativa neste navegador.',
-    [PANEL_LAST_LOGIN_HINT_KEYS.empty]: 'Nenhum registro disponível.',
-    [PANEL_LAST_LOGIN_HINT_KEYS.inactive]: 'Último acesso registrado localmente.',
-    [PANEL_LAST_LOGIN_HINT_KEYS.active]: 'Atualizado automaticamente após o login.',
-    'app.panel.kpis.events.label': 'Eventos registrados',
-    [PANEL_EVENTS_HINT_KEYS.empty]: 'Aguardando primeiro registro.',
-    [PANEL_EVENTS_HINT_KEYS.single]: '1 evento armazenado neste dispositivo.',
-    [PANEL_EVENTS_HINT_KEYS.multiple]: '{{count}} eventos armazenados neste dispositivo.',
     [HISTORY_EMPTY_KEY]: 'Sem registros.',
     [HISTORY_EVENT_KEYS.login]: 'Login realizado',
     [HISTORY_EVENT_KEYS.logout]: 'Logoff',
@@ -173,7 +137,6 @@ import { AppBase } from './runtime/app-base.js';
     'app.rail.loading': 'Carregando miniapps…',
     'app.rail.error': 'Não foi possível carregar miniapps.',
     'app.rail.fallback': 'Carregado via fallback local',
-    [PANEL_KPIS_GROUP_LABEL_KEY]: 'Indicadores do painel',
     [LOGIN_ERROR_FEEDBACK_KEY]: 'Informe nome e e-mail para continuar.',
     [LOGIN_SUCCESS_FEEDBACK_KEY]: 'Cadastro atualizado com sucesso.',
     [LOGIN_PHONE_INVALID_FEEDBACK_KEY]:
@@ -280,20 +243,8 @@ import { AppBase } from './runtime/app-base.js';
     loginLast: document.querySelector('[data-login-last]'),
     loginForm: document.querySelector('[data-login-form]'),
     feedback: document.querySelector('[data-login-feedback]'),
-    panelStatusDot: Array.from(
-      document.querySelectorAll('[data-panel-status-dot]') || []
-    ),
-    panelStatusLabel: Array.from(
-      document.querySelectorAll('[data-panel-status-label]') || []
-    ),
-    panelStatusHint: document.querySelector('[data-panel-status-hint]'),
-    panelLastLogin: document.querySelector('[data-panel-last-login]'),
-    panelLastLoginHint: document.querySelector('[data-panel-last-login-hint]'),
-    panelLoginCount: document.querySelector('[data-panel-login-count]'),
-    panelLoginHint: document.querySelector('[data-panel-login-hint]'),
     miniAppRail: document.querySelector('[data-miniapp-rail]'),
     miniAppRailTitle: document.querySelector('[data-miniapp-rail-title]'),
-    panelKpisGroup: document.querySelector('[data-panel-kpis-group]'),
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
@@ -1535,12 +1486,6 @@ import { AppBase } from './runtime/app-base.js';
         translate(RAIL_LABEL_KEY, fallbackFor(RAIL_LABEL_KEY))
       );
     }
-    if (elements.panelKpisGroup) {
-      elements.panelKpisGroup.setAttribute(
-        'aria-label',
-        translate(PANEL_KPIS_GROUP_LABEL_KEY, fallbackFor(PANEL_KPIS_GROUP_LABEL_KEY))
-      );
-    }
     if (elements.sessionActions) {
       elements.sessionActions.setAttribute(
         'aria-label',
@@ -1593,7 +1538,6 @@ import { AppBase } from './runtime/app-base.js';
 
   function updateStage() {
     const hasData = hasUser();
-    const loggedIn = isLoggedIn();
 
     if (elements.stageEmpty) {
       elements.stageEmpty.hidden = panelOpen;
@@ -1630,74 +1574,6 @@ import { AppBase } from './runtime/app-base.js';
       clearElementTranslation(elements.loginLast, value);
     }
 
-    updatePanelIndicators({ hasData, loggedIn });
-  }
-
-  function getHistoryCount() {
-    const history = Array.isArray(state.history) ? state.history : [];
-    return history.length;
-  }
-
-  function updatePanelIndicators({ hasData = hasUser(), loggedIn = isLoggedIn() } = {}) {
-    const historyCount = getHistoryCount();
-    const lastLoginValue = hasData ? formatDateTime(state.lastLogin) : '—';
-
-    if (Array.isArray(elements.panelStatusDot) && elements.panelStatusDot.length) {
-      elements.panelStatusDot.forEach((dot) => {
-        dot.classList.toggle('ac-dot--ok', loggedIn);
-        dot.classList.toggle('ac-dot--crit', !loggedIn && !hasData);
-        dot.classList.toggle('ac-dot--warn', hasData && !loggedIn);
-      });
-    }
-
-    if (Array.isArray(elements.panelStatusLabel) && elements.panelStatusLabel.length) {
-      const statusKey = loggedIn
-        ? PANEL_STATUS_LABEL_KEYS.connected
-        : PANEL_STATUS_LABEL_KEYS.disconnected;
-      setElementTextFromKey(elements.panelStatusLabel, statusKey);
-    }
-
-    if (elements.panelStatusHint) {
-      let hintKey = PANEL_STATUS_HINT_KEYS.empty;
-      if (hasData && !loggedIn) {
-        hintKey = PANEL_STATUS_HINT_KEYS.inactive;
-      } else if (loggedIn) {
-        hintKey = PANEL_STATUS_HINT_KEYS.active;
-      }
-      setElementTextFromKey(elements.panelStatusHint, hintKey);
-    }
-
-    if (elements.panelLastLogin) {
-      clearElementTranslation(elements.panelLastLogin, hasData ? lastLoginValue : '—');
-    }
-
-    if (elements.panelLastLoginHint) {
-      let hintKey = PANEL_LAST_LOGIN_HINT_KEYS.empty;
-      if (hasData && !loggedIn) {
-        hintKey = PANEL_LAST_LOGIN_HINT_KEYS.inactive;
-      } else if (loggedIn) {
-        hintKey = PANEL_LAST_LOGIN_HINT_KEYS.active;
-      }
-      setElementTextFromKey(elements.panelLastLoginHint, hintKey);
-    }
-
-    if (elements.panelLoginCount) {
-      elements.panelLoginCount.textContent = String(historyCount);
-    }
-
-    if (elements.panelLoginHint) {
-      let hintKey = PANEL_EVENTS_HINT_KEYS.empty;
-      let replacements = {};
-      if (historyCount === 1) {
-        hintKey = PANEL_EVENTS_HINT_KEYS.single;
-      } else if (historyCount > 1) {
-        hintKey = PANEL_EVENTS_HINT_KEYS.multiple;
-        replacements = { count: historyCount };
-      }
-      setElementTextFromKey(elements.panelLoginHint, hintKey, {
-        replacements,
-      });
-    }
   }
 
 
