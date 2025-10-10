@@ -48,17 +48,6 @@ function writeLegacyState(value) {
   }
 }
 
-function clearLegacyState() {
-  if (!hasLocalStorage()) {
-    return;
-  }
-  try {
-    window.localStorage.removeItem(STORAGE_KEY);
-  } catch (error) {
-    console.warn('AppBaseStorage: falha ao limpar dados legados do localStorage', error);
-  }
-}
-
 function openDatabase() {
   if (!hasIndexedDB()) {
     return Promise.resolve(null);
@@ -143,10 +132,10 @@ async function migrateLegacyState(database) {
   }
   try {
     await putState(database, legacyState);
-    clearLegacyState();
   } catch (error) {
     console.warn('AppBaseStorage: falha ao migrar dados do localStorage para IndexedDB', error);
   }
+  writeLegacyState(legacyState);
   return legacyState;
 }
 
@@ -175,10 +164,14 @@ export async function loadState() {
       if (typeof value === 'undefined') {
         transaction.oncomplete = async () => {
           const migrated = await migrateLegacyState(database);
+          if (migrated) {
+            writeLegacyState(migrated);
+          }
           finish(migrated);
         };
         return;
       }
+      writeLegacyState(value);
       finish(value);
     };
 
@@ -202,9 +195,8 @@ export async function saveState(value) {
   }
   try {
     await putState(database, value);
-    clearLegacyState();
   } catch (error) {
     console.warn('AppBaseStorage: falha ao salvar dados no IndexedDB, usando localStorage', error);
-    writeLegacyState(value);
   }
+  writeLegacyState(value);
 }
