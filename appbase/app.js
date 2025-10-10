@@ -868,6 +868,7 @@ import { AppBase } from './runtime/app-base.js';
   let state = getEmptyState();
   let panelOpen = false;
   let stateDirty = false;
+  let stateHydrated = false;
   let feedbackTimer = null;
   let fullscreenSupported = isFullscreenSupported();
   let fullscreenActive = isFullscreenActive();
@@ -1974,7 +1975,10 @@ import { AppBase } from './runtime/app-base.js';
     const detailLocale = event?.detail?.locale;
     const currentLocale = detailLocale || getActiveLocale();
     const shouldLog =
-      localeSyncInitialised && currentLocale && currentLocale !== lastLocaleSeen;
+      stateHydrated &&
+      localeSyncInitialised &&
+      currentLocale &&
+      currentLocale !== lastLocaleSeen;
     if (!localeSyncInitialised) {
       localeSyncInitialised = true;
     }
@@ -2105,6 +2109,8 @@ import { AppBase } from './runtime/app-base.js';
       console.warn('AppBase: falha ao carregar estado persistido', error);
       state = getEmptyState();
     }
+
+    stateHydrated = true;
 
     panelOpen = hasUser(state) && state.sessionActive;
 
