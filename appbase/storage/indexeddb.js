@@ -67,7 +67,17 @@ function openDatabase() {
     return openDatabasePromise;
   }
   openDatabasePromise = new Promise((resolve) => {
-    const request = window.indexedDB.open(DB_NAME, DB_VERSION);
+    let request;
+    try {
+      request = window.indexedDB.open(DB_NAME, DB_VERSION);
+    } catch (error) {
+      console.warn(
+        'AppBaseStorage: falha ao iniciar IndexedDB, utilizando localStorage',
+        error
+      );
+      resolve(null);
+      return;
+    }
 
     request.onupgradeneeded = (event) => {
       const database = event.target.result;
@@ -92,6 +102,9 @@ function openDatabase() {
     request.onblocked = () => {
       console.warn('AppBaseStorage: abertura do IndexedDB bloqueada por outra aba');
     };
+  }).catch((error) => {
+    console.warn('AppBaseStorage: erro inesperado ao abrir IndexedDB', error);
+    return null;
   });
   return openDatabasePromise;
 }
