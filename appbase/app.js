@@ -1145,8 +1145,9 @@ import { AppBase } from './runtime/app-base.js';
       }
     }
 
-    if (!miniAppState.activeKey || !enabledSet.has(miniAppState.activeKey)) {
-      const fallbackActive = visibleEntries.find((entry) => enabledSet.has(entry.key)) ?? visibleEntries[0];
+    if (miniAppState.activeKey && !enabledSet.has(miniAppState.activeKey)) {
+      const fallbackActive =
+        visibleEntries.find((entry) => enabledSet.has(entry.key)) ?? visibleEntries[0];
       miniAppState.activeKey = fallbackActive ? fallbackActive.key : null;
     }
 
@@ -3127,19 +3128,13 @@ import { AppBase } from './runtime/app-base.js';
       const enabled = Array.isArray(event.enabled)
         ? event.enabled
         : AppBase.getEnabledMiniApps();
-      if (!miniAppState.activeKey || !enabled.includes(miniAppState.activeKey)) {
-        miniAppState.activeKey = enabled[0] ?? miniAppState.activeKey;
+      if (miniAppState.activeKey && !enabled.includes(miniAppState.activeKey)) {
+        miniAppState.activeKey = enabled[0] ?? null;
       }
       renderMiniAppRail();
     });
 
     AppBase.boot(MINIAPP_BOOT_CONFIG);
-
-    const enabledMiniApps = AppBase.getEnabledMiniApps();
-    if (enabledMiniApps.length && !miniAppState.activeKey) {
-      miniAppState.activeKey = enabledMiniApps[0];
-      renderMiniAppRail();
-    }
 
     initialiseHeaderMenuState();
     initialiseMiniAppMenuState();
