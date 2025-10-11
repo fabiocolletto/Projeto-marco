@@ -3029,7 +3029,11 @@ import { AppBase } from './runtime/app-base.js';
 
     stateHydrated = true;
 
-    panelOpen = hasUser(state) && state.sessionActive;
+    const hasProfileData = hasUser(state);
+    const hasSelectedProfile = Boolean(resolvedProfileId);
+    // Always reveal the panel after choosing a profile so the details remain visible
+    // even if the previous session is inactive.
+    panelOpen = hasProfileData || hasSelectedProfile;
 
     await initialiseMiniApps();
 
