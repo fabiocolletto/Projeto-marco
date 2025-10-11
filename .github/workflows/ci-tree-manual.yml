@@ -1,0 +1,24 @@
+name: Auditoria (Tree Dump) — Manual
+on:
+  workflow_dispatch:
+    inputs:
+      base:
+        description: 'Base branch para comparar'
+        required: true
+        default: 'Projeto-Marco'
+jobs:
+  tree_dump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Diff e árvore
+        run: |
+          mkdir -p ci-artifacts
+          git fetch origin ${{ github.event.inputs.base }} --depth=1
+          git diff --name-status origin/${{ github.event.inputs.base }}... > ci-artifacts/TREE_DIFF.txt
+          git ls-tree -r --name-only HEAD > ci-artifacts/TREE_HEAD.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tree
+          path: ci-artifacts
