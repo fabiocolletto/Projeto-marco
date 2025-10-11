@@ -256,6 +256,7 @@ import { AppBase } from './runtime/app-base.js';
     entries: [],
     error: null,
     activeKey: null,
+    hasVisibleMiniApps: false,
   };
 
   const miniAppInstances = new Map();
@@ -580,13 +581,20 @@ import { AppBase } from './runtime/app-base.js';
     if (!elements.miniAppMenuToggle) {
       return;
     }
+    const hasVisibleEntries = miniAppState.hasVisibleMiniApps;
+    const isExpanded = hasVisibleEntries && expanded;
     const labelKey = expanded
       ? MINIAPP_MENU_LABEL_KEYS.close
       : MINIAPP_MENU_LABEL_KEYS.open;
     const label = translate(labelKey, fallbackFor(labelKey));
-    elements.miniAppMenuToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    elements.miniAppMenuToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     elements.miniAppMenuToggle.setAttribute('aria-label', label);
     elements.miniAppMenuToggle.setAttribute('title', label);
+    if (!hasVisibleEntries) {
+      elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
+    } else {
+      elements.miniAppMenuToggle.removeAttribute('aria-disabled');
+    }
     if (elements.miniAppMenuLabel) {
       elements.miniAppMenuLabel.setAttribute('data-i18n', labelKey);
       elements.miniAppMenuLabel.textContent = label;
@@ -653,7 +661,11 @@ import { AppBase } from './runtime/app-base.js';
   }
 
   function openMiniAppMenu({ focus = true } = {}) {
-    if (!elements.railShell || !isMiniAppMenuCompact()) {
+    if (
+      !elements.railShell ||
+      !isMiniAppMenuCompact() ||
+      !miniAppState.hasVisibleMiniApps
+    ) {
       return;
     }
     collapseHeaderMenuForAction();
@@ -665,6 +677,7 @@ import { AppBase } from './runtime/app-base.js';
       return;
     }
     miniAppMenuOpen = true;
+    elements.railShell.removeAttribute('hidden');
     elements.railShell.classList.add(MINIAPP_MENU_OPEN_CLASS);
     elements.railShell.setAttribute('aria-hidden', 'false');
     document.body.classList.add(BODY_MINIAPP_MENU_OPEN_CLASS);
@@ -695,7 +708,7 @@ import { AppBase } from './runtime/app-base.js';
   }
 
   function toggleMiniAppMenu() {
-    if (!isMiniAppMenuCompact()) {
+    if (!isMiniAppMenuCompact() || !miniAppState.hasVisibleMiniApps) {
       return;
     }
     if (miniAppMenuOpen) {
@@ -711,12 +724,30 @@ import { AppBase } from './runtime/app-base.js';
 
   function initialiseMiniAppMenuState() {
     const compact = isMiniAppMenuCompact();
+    if (!miniAppState.hasVisibleMiniApps) {
+      miniAppMenuOpen = false;
+      if (elements.miniAppMenuToggle) {
+        elements.miniAppMenuToggle.hidden = true;
+        elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
+      }
+      if (elements.railShell) {
+        elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
+        elements.railShell.setAttribute('aria-hidden', 'true');
+        elements.railShell.setAttribute('hidden', '');
+      }
+      document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
+      detachMiniAppMenuDismissListeners();
+      updateMiniAppMenuButton(false);
+      updateMiniAppMenuCloseButton();
+      return;
+    }
     if (elements.miniAppMenuToggle) {
       elements.miniAppMenuToggle.hidden = !compact;
       elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
     }
     if (elements.railShell) {
       elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
+      elements.railShell.removeAttribute('hidden');
       elements.railShell.setAttribute('aria-hidden', compact ? 'true' : 'false');
     }
     document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
@@ -1013,17 +1044,20 @@ import { AppBase } from './runtime/app-base.js';
     container.innerHTML = '';
 
     if (miniAppState.loading) {
+      miniAppState.hasVisibleMiniApps = false;
       container.appendChild(createRailStatusCard('app.rail.loading'));
       return;
     }
 
     if (miniAppState.error) {
+      miniAppState.hasVisibleMiniApps = false;
       container.appendChild(createRailStatusCard('app.rail.error', miniAppState.error));
       return;
     }
 
     const registered = miniAppState.entries.filter((entry) => entry.registered);
     if (!registered.length) {
+      miniAppState.hasVisibleMiniApps = false;
       container.appendChild(createRailStatusCard('app.rail.empty'));
       return;
     }
@@ -1034,9 +1068,37 @@ import { AppBase } from './runtime/app-base.js';
       return kind !== 'system';
     });
 
-    if (!visibleEntries.length) {
+    miniAppState.hasVisibleMiniApps = visibleEntries.length > 0;
+
+    if (!miniAppState.hasVisibleMiniApps) {
       miniAppState.activeKey = null;
+      closeMiniAppMenu({ focusToggle: false });
+      if (elements.railShell) {
+        elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
+        elements.railShell.setAttribute('aria-hidden', 'true');
+        elements.railShell.setAttribute('hidden', '');
+      }
+      if (elements.miniAppMenuToggle) {
+        elements.miniAppMenuToggle.hidden = true;
+        elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
+        elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
+      }
+      document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
       return;
+    }
+
+    if (elements.railShell) {
+      elements.railShell.removeAttribute('hidden');
+      if (!miniAppMenuOpen) {
+        elements.railShell.setAttribute(
+          'aria-hidden',
+          isMiniAppMenuCompact() ? 'true' : 'false'
+        );
+      }
+    }
+    if (elements.miniAppMenuToggle) {
+      elements.miniAppMenuToggle.hidden = !isMiniAppMenuCompact();
+      elements.miniAppMenuToggle.removeAttribute('aria-disabled');
     }
 
     if (!miniAppState.activeKey || !enabledSet.has(miniAppState.activeKey)) {
