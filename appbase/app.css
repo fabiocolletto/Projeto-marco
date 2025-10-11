@@ -1160,6 +1160,11 @@ select {
 }
 
 @media (max-width: 640px) {
+  .ac-rail-shell,
+  .ac-rail-shell.is-open {
+    display: none;
+  }
+
   .ac-stage {
     padding: 0;
   }
