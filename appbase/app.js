@@ -2950,15 +2950,20 @@ import { AppBase } from './runtime/app-base.js';
   }
 
   async function boot() {
+    registerEventListeners();
+
+    let resolvedState = getEmptyState();
+    let resolvedProfileId = null;
     try {
       const resolved = await resolveInitialProfile();
-      state = normaliseState(resolved.state);
-      activeProfileId = resolved.profileId;
+      resolvedState = normaliseState(resolved.state);
+      resolvedProfileId = resolved.profileId;
     } catch (error) {
       console.warn('AppBase: falha ao carregar estado persistido', error);
-      state = getEmptyState();
-      activeProfileId = null;
     }
+
+    state = resolvedState;
+    activeProfileId = resolvedProfileId;
 
     stateHydrated = true;
 
@@ -3000,7 +3005,6 @@ import { AppBase } from './runtime/app-base.js';
     setTheme(currentTheme, { persist: false });
     updateUI();
     initialiseFullscreenToggle();
-    registerEventListeners();
   }
 
   boot().catch((error) => {
