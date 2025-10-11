@@ -1,9 +1,11 @@
 name: Deploy Pages
 
 on:
-  push:
-    branches: ["Projeto-Marco"]
   workflow_dispatch:
+    inputs:
+      note:
+        description: "Workflow arquivado — execute apenas para referência histórica"
+        required: false
 
 permissions:
   contents: read
