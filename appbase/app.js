@@ -726,19 +726,7 @@ import { AppBase } from './runtime/app-base.js';
     const compact = isMiniAppMenuCompact();
     if (!miniAppState.hasVisibleMiniApps) {
       miniAppMenuOpen = false;
-      if (elements.miniAppMenuToggle) {
-        elements.miniAppMenuToggle.hidden = true;
-        elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
-      }
-      if (elements.railShell) {
-        elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
-        elements.railShell.setAttribute('aria-hidden', 'true');
-        elements.railShell.setAttribute('hidden', '');
-      }
-      document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
-      detachMiniAppMenuDismissListeners();
-      updateMiniAppMenuButton(false);
-      updateMiniAppMenuCloseButton();
+      prepareMiniAppRailForStatus();
       return;
     }
     if (elements.miniAppMenuToggle) {
@@ -1035,6 +1023,24 @@ import { AppBase } from './runtime/app-base.js';
     openPanel({ focus });
   }
 
+  function prepareMiniAppRailForStatus() {
+    closeMiniAppMenu({ focusToggle: false });
+    if (elements.railShell) {
+      elements.railShell.removeAttribute('hidden');
+      elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
+      elements.railShell.setAttribute('aria-hidden', 'false');
+    }
+    if (elements.miniAppMenuToggle) {
+      elements.miniAppMenuToggle.hidden = true;
+      elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
+      elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
+    }
+    document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
+    detachMiniAppMenuDismissListeners();
+    updateMiniAppMenuButton(false);
+    updateMiniAppMenuCloseButton();
+  }
+
   function renderMiniAppRail() {
     if (!elements.miniAppRail) {
       return;
@@ -1045,12 +1051,14 @@ import { AppBase } from './runtime/app-base.js';
 
     if (miniAppState.loading) {
       miniAppState.hasVisibleMiniApps = false;
+      prepareMiniAppRailForStatus();
       container.appendChild(createRailStatusCard('app.rail.loading'));
       return;
     }
 
     if (miniAppState.error) {
       miniAppState.hasVisibleMiniApps = false;
+      prepareMiniAppRailForStatus();
       container.appendChild(createRailStatusCard('app.rail.error', miniAppState.error));
       return;
     }
@@ -1058,6 +1066,7 @@ import { AppBase } from './runtime/app-base.js';
     const registered = miniAppState.entries.filter((entry) => entry.registered);
     if (!registered.length) {
       miniAppState.hasVisibleMiniApps = false;
+      prepareMiniAppRailForStatus();
       container.appendChild(createRailStatusCard('app.rail.empty'));
       return;
     }
@@ -1072,18 +1081,8 @@ import { AppBase } from './runtime/app-base.js';
 
     if (!miniAppState.hasVisibleMiniApps) {
       miniAppState.activeKey = null;
-      closeMiniAppMenu({ focusToggle: false });
-      if (elements.railShell) {
-        elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
-        elements.railShell.setAttribute('aria-hidden', 'true');
-        elements.railShell.setAttribute('hidden', '');
-      }
-      if (elements.miniAppMenuToggle) {
-        elements.miniAppMenuToggle.hidden = true;
-        elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
-        elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
-      }
-      document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
+      prepareMiniAppRailForStatus();
+      container.appendChild(createRailStatusCard('app.rail.empty'));
       return;
     }
 
