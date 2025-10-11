@@ -48,61 +48,111 @@
           </p>
         </div>
         <div class="ac-appbar__actions">
-          <div class="ac-appbar__actions-buttons" data-header-actions>
-            <button
-              class="ac-theme-toggle ac-panel-toggle"
-              type="button"
-              data-panel-access
-              aria-controls="painel-stage"
-              aria-expanded="false"
-              aria-label="Abrir painel do usuário"
-              title="Abrir painel do usuário"
+          <button
+            class="ac-appbar__menu-toggle"
+            type="button"
+            data-header-menu-toggle
+            aria-controls="ac-header-menu"
+            aria-expanded="false"
+            aria-label="Abrir menu do cabeçalho"
+            title="Abrir menu do cabeçalho"
+          >
+            <span class="ac-appbar__menu-toggle-icon" aria-hidden="true">☰</span>
+            <span
+              class="ac-visually-hidden"
+              data-header-menu-label
+              data-i18n="app.header.menu.toggle.open"
             >
-              <span class="ac-theme-toggle__icon" aria-hidden="true">👤</span>
-            </button>
-            <button
-              class="ac-theme-toggle"
-              type="button"
-              data-theme-toggle
-              aria-pressed="false"
-              aria-label="Ativar modo escuro"
-              title="Ativar modo escuro"
-            >
-              <span class="ac-theme-toggle__icon" data-theme-toggle-icon aria-hidden="true"
-                >☀️</span
+              Abrir menu do cabeçalho
+            </span>
+          </button>
+          <div
+            class="ac-appbar__menu"
+            id="ac-header-menu"
+            data-header-menu
+          >
+            <div class="ac-appbar__actions-buttons" data-header-actions>
+              <button
+                class="ac-theme-toggle ac-panel-toggle"
+                type="button"
+                data-panel-access
+                aria-controls="painel-stage"
+                aria-expanded="false"
+                aria-label="Abrir painel do usuário"
+                title="Abrir painel do usuário"
               >
-              <span class="ac-visually-hidden" data-i18n="app.header.darkmode"
-                >Alternar tema</span
+                <span class="ac-theme-toggle__icon" aria-hidden="true">👤</span>
+              </button>
+              <button
+                class="ac-theme-toggle"
+                type="button"
+                data-theme-toggle
+                aria-pressed="false"
+                aria-label="Ativar modo escuro"
+                title="Ativar modo escuro"
               >
-            </button>
-            <button
-              class="ac-theme-toggle ac-fullscreen-toggle"
-              type="button"
-              data-fullscreen-toggle
-              aria-pressed="false"
-              aria-label="Ativar tela cheia"
-              title="Ativar tela cheia"
-              hidden
-            >
-              <span
-                class="ac-theme-toggle__icon"
-                data-fullscreen-toggle-icon
-                aria-hidden="true"
+                <span class="ac-theme-toggle__icon" data-theme-toggle-icon aria-hidden="true"
+                  >☀️</span
+                >
+                <span class="ac-visually-hidden" data-i18n="app.header.darkmode"
+                  >Alternar tema</span
+                >
+              </button>
+              <button
+                class="ac-theme-toggle ac-fullscreen-toggle"
+                type="button"
+                data-fullscreen-toggle
+                aria-pressed="false"
+                aria-label="Ativar tela cheia"
+                title="Ativar tela cheia"
+                hidden
+              >
+                <span
+                  class="ac-theme-toggle__icon"
+                  data-fullscreen-toggle-icon
+                  aria-hidden="true"
                 >⛶</span
+                >
+              </button>
+            </div>
+            <button
+              class="ac-appbar__menu-item"
+              type="button"
+              data-miniapp-menu-toggle
+              aria-controls="miniapp-rail-shell"
+              aria-expanded="false"
+              aria-label="Abrir lista de miniapps"
+              title="Abrir lista de miniapps"
+            >
+              <span class="ac-appbar__menu-item-icon" aria-hidden="true">🧩</span>
+              <span class="ac-appbar__menu-item-text" data-i18n="app.rail.label"
+                >Miniapps</span
               >
+              <span
+                class="ac-visually-hidden"
+                data-miniapp-menu-label
+                data-i18n="app.header.miniapps.toggle.open"
+              >
+                Abrir lista de miniapps
+              </span>
             </button>
-          </div>
-          <div class="ac-locale-menu" data-locale-menu hidden aria-hidden="true">
-            <p class="ac-locale-menu__title" data-i18n="app.locale.menu.title">
-              Idioma do AppBase
-            </p>
-            <ul class="ac-locale-menu__list" data-locale-options role="menu"></ul>
+            <div class="ac-locale-menu" data-locale-menu hidden aria-hidden="true">
+              <p class="ac-locale-menu__title" data-i18n="app.locale.menu.title">
+                Idioma do AppBase
+              </p>
+              <ul class="ac-locale-menu__list" data-locale-options role="menu"></ul>
+            </div>
           </div>
         </div>
       </header>
 
       <div class="ac-layout">
-        <aside class="ac-rail-shell" aria-labelledby="miniapp-rail-title">
+        <aside
+          class="ac-rail-shell"
+          id="miniapp-rail-shell"
+          aria-labelledby="miniapp-rail-title"
+          data-miniapp-rail-shell
+        >
           <header class="ac-rail__header">
             <h2
               id="miniapp-rail-title"
@@ -112,6 +162,15 @@
             >
               Miniapps
             </h2>
+            <button
+              class="ac-rail__close"
+              type="button"
+              data-miniapp-menu-close
+              aria-label="Fechar lista de miniapps"
+              title="Fechar lista de miniapps"
+            >
+              <span aria-hidden="true">×</span>
+            </button>
           </header>
           <nav class="ac-rail" role="list" data-miniapp-rail></nav>
         </aside>

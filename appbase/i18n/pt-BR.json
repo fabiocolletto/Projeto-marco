@@ -28,6 +28,18 @@
         "exit": "Sair da tela cheia",
         "unsupported": "Tela cheia não é suportada neste navegador.",
         "failure": "Não foi possível alternar o modo de tela cheia. Verifique as permissões do navegador."
+      },
+      "menu": {
+        "toggle": {
+          "open": "Abrir menu do cabeçalho",
+          "close": "Fechar menu do cabeçalho"
+        }
+      },
+      "miniapps": {
+        "toggle": {
+          "open": "Abrir lista de miniapps",
+          "close": "Fechar lista de miniapps"
+        }
       }
     },
     "locale": {

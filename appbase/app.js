@@ -22,6 +22,19 @@ import { AppBase } from './runtime/app-base.js';
     open: 'app.header.panel.trigger.open',
     close: 'app.header.panel.trigger.close',
   };
+  const HEADER_MENU_LABEL_KEYS = {
+    open: 'app.header.menu.toggle.open',
+    close: 'app.header.menu.toggle.close',
+  };
+  const HEADER_MENU_BREAKPOINT = '(max-width: 600px)';
+  const HEADER_MENU_OPEN_CLASS = 'is-open';
+  const MINIAPP_MENU_LABEL_KEYS = {
+    open: 'app.header.miniapps.toggle.open',
+    close: 'app.header.miniapps.toggle.close',
+  };
+  const MINIAPP_MENU_BREAKPOINT = '(max-width: 900px)';
+  const MINIAPP_MENU_OPEN_CLASS = 'is-open';
+  const BODY_MINIAPP_MENU_OPEN_CLASS = 'has-miniapp-menu-open';
   const BRAND_ICONS = {
     [THEMES.LIGHT]:
       'https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp',
@@ -103,6 +116,10 @@ import { AppBase } from './runtime/app-base.js';
     [TITLE_WITH_USER_KEY]: 'Projeto Marco — {{user}}',
     [PANEL_ACCESS_LABEL_KEYS.open]: 'Abrir painel do usuário',
     [PANEL_ACCESS_LABEL_KEYS.close]: 'Fechar painel do usuário',
+    [HEADER_MENU_LABEL_KEYS.open]: 'Abrir menu do cabeçalho',
+    [HEADER_MENU_LABEL_KEYS.close]: 'Fechar menu do cabeçalho',
+    [MINIAPP_MENU_LABEL_KEYS.open]: 'Abrir lista de miniapps',
+    [MINIAPP_MENU_LABEL_KEYS.close]: 'Fechar lista de miniapps',
     [THEME_LABEL_KEYS[THEMES.LIGHT]]: 'Ativar modo escuro',
     [THEME_LABEL_KEYS[THEMES.DARK]]: 'Ativar modo claro',
     [FULLSCREEN_LABEL_KEYS.enter]: 'Ativar tela cheia',
@@ -266,6 +283,13 @@ import { AppBase } from './runtime/app-base.js';
     logTableWrap: document.querySelector('[data-login-log-table]'),
     logTableBody: document.querySelector('[data-login-log-body]'),
     logEmpty: Array.from(document.querySelectorAll('[data-login-log-empty]')),
+    headerMenuToggle: document.querySelector('[data-header-menu-toggle]'),
+    headerMenu: document.querySelector('[data-header-menu]'),
+    headerMenuLabel: document.querySelector('[data-header-menu-label]'),
+    headerActions: document.querySelector('[data-header-actions]'),
+    miniAppMenuToggle: document.querySelector('[data-miniapp-menu-toggle]'),
+    miniAppMenuLabel: document.querySelector('[data-miniapp-menu-label]'),
+    miniAppMenuClose: document.querySelector('[data-miniapp-menu-close]'),
     sessionLoginButton: document.querySelector('[data-action="session-login"]'),
     logoutButton: document.querySelector('[data-action="logout-preserve"]'),
     logoutClearButton: document.querySelector('[data-action="logout-clear"]'),
@@ -419,6 +443,302 @@ import { AppBase } from './runtime/app-base.js';
 
   function togglePasswordVisibility() {
     setPasswordVisibility(!passwordVisible);
+  }
+
+  function isHeaderMenuCompact() {
+    return Boolean(headerMenuMedia && headerMenuMedia.matches);
+  }
+
+  function updateHeaderMenuButton(expanded = headerMenuOpen) {
+    if (!elements.headerMenuToggle) {
+      return;
+    }
+    const labelKey = expanded
+      ? HEADER_MENU_LABEL_KEYS.close
+      : HEADER_MENU_LABEL_KEYS.open;
+    const label = translate(labelKey, fallbackFor(labelKey));
+    elements.headerMenuToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    elements.headerMenuToggle.setAttribute('aria-label', label);
+    elements.headerMenuToggle.setAttribute('title', label);
+    if (elements.headerMenuLabel) {
+      elements.headerMenuLabel.setAttribute('data-i18n', labelKey);
+      elements.headerMenuLabel.textContent = label;
+    }
+  }
+
+  function handleHeaderMenuOutside(event) {
+    if (!headerMenuOpen || !elements.headerMenu) {
+      return;
+    }
+    const target = event.target;
+    if (!target) {
+      return;
+    }
+    if (elements.headerMenu.contains(target)) {
+      return;
+    }
+    if (elements.headerMenuToggle?.contains(target)) {
+      return;
+    }
+    closeHeaderMenu({ focusToggle: false });
+  }
+
+  function handleHeaderMenuKeydown(event) {
+    if (!headerMenuOpen) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeHeaderMenu({ focusToggle: true });
+    }
+  }
+
+  function attachHeaderMenuDismissListeners() {
+    document.addEventListener('pointerdown', handleHeaderMenuOutside, true);
+    document.addEventListener('keydown', handleHeaderMenuKeydown, true);
+  }
+
+  function detachHeaderMenuDismissListeners() {
+    document.removeEventListener('pointerdown', handleHeaderMenuOutside, true);
+    document.removeEventListener('keydown', handleHeaderMenuKeydown, true);
+  }
+
+  function openHeaderMenu() {
+    if (!elements.headerMenu || !elements.headerMenuToggle || !isHeaderMenuCompact()) {
+      return;
+    }
+    if (miniAppMenuOpen) {
+      closeMiniAppMenu({ focusToggle: false });
+    }
+    if (headerMenuOpen) {
+      updateHeaderMenuButton(true);
+      return;
+    }
+    headerMenuOpen = true;
+    elements.headerMenu.classList.add(HEADER_MENU_OPEN_CLASS);
+    elements.headerMenu.setAttribute('aria-hidden', 'false');
+    updateHeaderMenuButton(true);
+    attachHeaderMenuDismissListeners();
+  }
+
+  function closeHeaderMenu({ focusToggle = false } = {}) {
+    if (!elements.headerMenu || !elements.headerMenuToggle) {
+      return;
+    }
+    headerMenuOpen = false;
+    elements.headerMenu.classList.remove(HEADER_MENU_OPEN_CLASS);
+    elements.headerMenu.setAttribute(
+      'aria-hidden',
+      isHeaderMenuCompact() ? 'true' : 'false'
+    );
+    updateHeaderMenuButton(false);
+    detachHeaderMenuDismissListeners();
+    if (focusToggle) {
+      elements.headerMenuToggle.focus();
+    }
+  }
+
+  function toggleHeaderMenu() {
+    if (!isHeaderMenuCompact()) {
+      return;
+    }
+    if (headerMenuOpen) {
+      closeHeaderMenu({ focusToggle: false });
+    } else {
+      openHeaderMenu();
+    }
+  }
+
+  function handleHeaderMenuMediaChange() {
+    closeHeaderMenu({ focusToggle: false });
+  }
+
+  function collapseHeaderMenuForAction() {
+    if (headerMenuOpen) {
+      closeHeaderMenu({ focusToggle: false });
+    }
+    if (miniAppMenuOpen) {
+      closeMiniAppMenu({ focusToggle: false });
+    }
+  }
+
+  function initialiseHeaderMenuState() {
+    if (elements.headerMenu) {
+      elements.headerMenu.classList.remove(HEADER_MENU_OPEN_CLASS);
+      elements.headerMenu.setAttribute('aria-hidden', isHeaderMenuCompact() ? 'true' : 'false');
+    }
+    detachHeaderMenuDismissListeners();
+    headerMenuOpen = false;
+    updateHeaderMenuButton(false);
+  }
+
+  function isMiniAppMenuCompact() {
+    return Boolean(miniAppMenuMedia && miniAppMenuMedia.matches);
+  }
+
+  function updateMiniAppMenuButton(expanded = miniAppMenuOpen) {
+    if (!elements.miniAppMenuToggle) {
+      return;
+    }
+    const labelKey = expanded
+      ? MINIAPP_MENU_LABEL_KEYS.close
+      : MINIAPP_MENU_LABEL_KEYS.open;
+    const label = translate(labelKey, fallbackFor(labelKey));
+    elements.miniAppMenuToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    elements.miniAppMenuToggle.setAttribute('aria-label', label);
+    elements.miniAppMenuToggle.setAttribute('title', label);
+    if (elements.miniAppMenuLabel) {
+      elements.miniAppMenuLabel.setAttribute('data-i18n', labelKey);
+      elements.miniAppMenuLabel.textContent = label;
+    }
+  }
+
+  function updateMiniAppRailVisibility(open = miniAppMenuOpen) {
+    if (!elements.railShell) {
+      return;
+    }
+    const compact = isMiniAppMenuCompact();
+    if (compact) {
+      elements.railShell.hidden = !open;
+    } else {
+      elements.railShell.hidden = false;
+    }
+  }
+
+  function updateMiniAppMenuCloseButton() {
+    if (!elements.miniAppMenuClose) {
+      return;
+    }
+    const labelKey = MINIAPP_MENU_LABEL_KEYS.close;
+    const label = translate(labelKey, fallbackFor(labelKey));
+    elements.miniAppMenuClose.setAttribute('aria-label', label);
+    elements.miniAppMenuClose.setAttribute('title', label);
+  }
+
+  function focusMiniAppMenu() {
+    if (!miniAppMenuOpen || !elements.railShell) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      const focusable = getFocusableElements(elements.railShell);
+      if (focusable.length) {
+        focusable[0].focus();
+      }
+    });
+  }
+
+  function handleMiniAppMenuOutside(event) {
+    if (!miniAppMenuOpen || !elements.railShell) {
+      return;
+    }
+    const target = event.target;
+    if (!target) {
+      return;
+    }
+    if (elements.railShell.contains(target)) {
+      return;
+    }
+    if (elements.miniAppMenuToggle?.contains(target)) {
+      return;
+    }
+    closeMiniAppMenu({ focusToggle: false });
+  }
+
+  function handleMiniAppMenuKeydown(event) {
+    if (!miniAppMenuOpen) {
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeMiniAppMenu({ focusToggle: true });
+    }
+  }
+
+  function attachMiniAppMenuDismissListeners() {
+    document.addEventListener('pointerdown', handleMiniAppMenuOutside, true);
+    document.addEventListener('keydown', handleMiniAppMenuKeydown, true);
+  }
+
+  function detachMiniAppMenuDismissListeners() {
+    document.removeEventListener('pointerdown', handleMiniAppMenuOutside, true);
+    document.removeEventListener('keydown', handleMiniAppMenuKeydown, true);
+  }
+
+  function openMiniAppMenu({ focus = true } = {}) {
+    if (!elements.railShell || !isMiniAppMenuCompact()) {
+      return;
+    }
+    collapseHeaderMenuForAction();
+    if (miniAppMenuOpen) {
+      updateMiniAppMenuButton(true);
+      if (focus) {
+        focusMiniAppMenu();
+      }
+      return;
+    }
+    miniAppMenuOpen = true;
+    updateMiniAppRailVisibility(true);
+    elements.railShell.classList.add(MINIAPP_MENU_OPEN_CLASS);
+    elements.railShell.setAttribute('aria-hidden', 'false');
+    document.body.classList.add(BODY_MINIAPP_MENU_OPEN_CLASS);
+    updateMiniAppMenuButton(true);
+    updateMiniAppMenuCloseButton();
+    attachMiniAppMenuDismissListeners();
+    if (focus) {
+      focusMiniAppMenu();
+    }
+  }
+
+  function closeMiniAppMenu({ focusToggle = false } = {}) {
+    if (!elements.railShell) {
+      return;
+    }
+    miniAppMenuOpen = false;
+    elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
+    elements.railShell.setAttribute(
+      'aria-hidden',
+      isMiniAppMenuCompact() ? 'true' : 'false'
+    );
+    updateMiniAppRailVisibility(false);
+    document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
+    updateMiniAppMenuButton(false);
+    detachMiniAppMenuDismissListeners();
+    if (focusToggle && elements.miniAppMenuToggle && !elements.miniAppMenuToggle.hidden) {
+      elements.miniAppMenuToggle.focus();
+    }
+  }
+
+  function toggleMiniAppMenu() {
+    if (!isMiniAppMenuCompact()) {
+      return;
+    }
+    if (miniAppMenuOpen) {
+      closeMiniAppMenu({ focusToggle: false });
+    } else {
+      openMiniAppMenu();
+    }
+  }
+
+  function handleMiniAppMenuMediaChange() {
+    initialiseMiniAppMenuState();
+  }
+
+  function initialiseMiniAppMenuState() {
+    const compact = isMiniAppMenuCompact();
+    if (elements.miniAppMenuToggle) {
+      elements.miniAppMenuToggle.hidden = !compact;
+      elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
+    }
+    if (elements.railShell) {
+      elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
+      elements.railShell.setAttribute('aria-hidden', compact ? 'true' : 'false');
+    }
+    document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
+    miniAppMenuOpen = false;
+    detachMiniAppMenuDismissListeners();
+    updateMiniAppRailVisibility(false);
+    updateMiniAppMenuButton(false);
+    updateMiniAppMenuCloseButton();
   }
 
   function setElementTextFromKey(element, key, options = {}) {
@@ -692,6 +1012,9 @@ import { AppBase } from './runtime/app-base.js';
     const entry = miniAppState.entries.find((item) => item.key === key);
     ensureMiniAppInitialised(key, entry);
     miniAppState.activeKey = key;
+    if (miniAppMenuOpen) {
+      closeMiniAppMenu({ focusToggle: false });
+    }
     renderMiniAppRail();
     openPanel({ focus });
   }
@@ -743,6 +1066,10 @@ import { AppBase } from './runtime/app-base.js';
       });
       container.appendChild(node);
     });
+
+    if (miniAppMenuOpen) {
+      focusMiniAppMenu();
+    }
   }
 
   async function loadMiniAppManifest(entry, manifestUrl) {
@@ -923,6 +1250,16 @@ import { AppBase } from './runtime/app-base.js';
   let passwordVisible = false;
   let localeSyncInitialised = false;
   let lastLocaleSeen = null;
+  let headerMenuOpen = false;
+  const headerMenuMedia =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia(HEADER_MENU_BREAKPOINT)
+      : null;
+  let miniAppMenuOpen = false;
+  const miniAppMenuMedia =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia(MINIAPP_MENU_BREAKPOINT)
+      : null;
 
   function canUseStorage() {
     try {
@@ -1622,6 +1959,9 @@ import { AppBase } from './runtime/app-base.js';
       elements.stageClose.setAttribute('aria-label', label);
       elements.stageClose.setAttribute('title', label);
     }
+    updateHeaderMenuButton(headerMenuOpen);
+    updateMiniAppMenuButton(miniAppMenuOpen);
+    updateMiniAppMenuCloseButton();
   }
 
   function updateStatusSummary() {
@@ -2374,6 +2714,17 @@ import { AppBase } from './runtime/app-base.js';
     focusPanelAccess();
   }
 
+  window.addEventListener('app:header:action:click', (event) => {
+    const actionId = event?.detail?.id;
+    if (actionId === 'app.locale') {
+      if (isHeaderMenuCompact()) {
+        openHeaderMenu();
+      }
+      return;
+    }
+    collapseHeaderMenuForAction();
+  });
+
   window.addEventListener('app:i18n:locale_changed', (event) => {
     const detailLocale = event?.detail?.locale;
     const currentLocale = detailLocale || getActiveLocale();
@@ -2399,6 +2750,22 @@ import { AppBase } from './runtime/app-base.js';
     }
   });
 
+  if (headerMenuMedia) {
+    if (typeof headerMenuMedia.addEventListener === 'function') {
+      headerMenuMedia.addEventListener('change', handleHeaderMenuMediaChange);
+    } else if (typeof headerMenuMedia.addListener === 'function') {
+      headerMenuMedia.addListener(handleHeaderMenuMediaChange);
+    }
+  }
+
+  if (miniAppMenuMedia) {
+    if (typeof miniAppMenuMedia.addEventListener === 'function') {
+      miniAppMenuMedia.addEventListener('change', handleMiniAppMenuMediaChange);
+    } else if (typeof miniAppMenuMedia.addListener === 'function') {
+      miniAppMenuMedia.addListener(handleMiniAppMenuMediaChange);
+    }
+  }
+
   const fullscreenChangeEvents = [
     'fullscreenchange',
     'webkitfullscreenchange',
@@ -2421,10 +2788,52 @@ import { AppBase } from './runtime/app-base.js';
       document.addEventListener(eventName, handleFullscreenError);
     });
 
+    if (elements.headerMenuToggle) {
+      elements.headerMenuToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        toggleHeaderMenu();
+      });
+    }
+
+    if (elements.miniAppMenuToggle) {
+      elements.miniAppMenuToggle.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        toggleMiniAppMenu();
+      });
+    }
+
+    if (elements.miniAppMenuClose) {
+      elements.miniAppMenuClose.addEventListener('click', (event) => {
+        event.preventDefault();
+        applyButtonFeedback(event.currentTarget);
+        closeMiniAppMenu({ focusToggle: true });
+      });
+    }
+
+    if (elements.headerActions) {
+      elements.headerActions.addEventListener('click', (event) => {
+        const button = event.target.closest('button');
+        if (!button || button === elements.headerMenuToggle) {
+          return;
+        }
+        const actionId = button.getAttribute('data-action-id');
+        if (actionId === 'app.locale') {
+          if (isHeaderMenuCompact()) {
+            openHeaderMenu();
+          }
+          return;
+        }
+        collapseHeaderMenuForAction();
+      });
+    }
+
     if (elements.panelAccess) {
       elements.panelAccess.addEventListener('click', (event) => {
         event.preventDefault();
         applyButtonFeedback(event.currentTarget);
+        collapseHeaderMenuForAction();
         togglePanelAccess();
       });
     }
@@ -2433,6 +2842,7 @@ import { AppBase } from './runtime/app-base.js';
       elements.themeToggle.addEventListener('click', (event) => {
         event.preventDefault();
         applyButtonFeedback(event.currentTarget);
+        collapseHeaderMenuForAction();
         const nextTheme =
           currentTheme === THEMES.DARK ? THEMES.LIGHT : THEMES.DARK;
         setTheme(nextTheme);
@@ -2440,7 +2850,10 @@ import { AppBase } from './runtime/app-base.js';
     }
 
     if (elements.fullscreenToggle) {
-      elements.fullscreenToggle.addEventListener('click', handleFullscreenToggle);
+      elements.fullscreenToggle.addEventListener('click', (event) => {
+        collapseHeaderMenuForAction();
+        handleFullscreenToggle(event);
+      });
     }
 
     if (elements.stageClose) {
@@ -2597,6 +3010,8 @@ import { AppBase } from './runtime/app-base.js';
       renderMiniAppRail();
     }
 
+    initialiseHeaderMenuState();
+    initialiseMiniAppMenuState();
     setTheme(currentTheme, { persist: false });
     updateUI();
     initialiseFullscreenToggle();
