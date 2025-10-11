@@ -1,9 +1,11 @@
 name: md-link-check
 
 on:
-  push:
-    branches: ["main", "Projeto-Marco"]
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Workflow arquivado — execute apenas para referência histórica"
+        required: false
 
 jobs:
   markdown-links:

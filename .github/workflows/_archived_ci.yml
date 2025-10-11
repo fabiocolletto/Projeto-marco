@@ -1,11 +1,11 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - main
-      - develop
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Workflow arquivado — execute apenas para referência histórica"
+        required: false
 
 jobs:
   build-test:

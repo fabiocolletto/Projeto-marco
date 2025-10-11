@@ -1,12 +1,11 @@
 name: Deploy AppBase Widget
 
 on:
-  push:
-    branches:
-      - main
-  release:
-    types:
-      - published
+  workflow_dispatch:
+    inputs:
+      note:
+        description: "Workflow arquivado — execute apenas para referência histórica"
+        required: false
 
 jobs:
   deploy-widget:
