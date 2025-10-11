@@ -489,3 +489,54 @@ export async function saveProfile(state, options = {}) {
   persistLocally(record);
   return record;
 }
+
+function removeProfileLocally(id) {
+  const current = readProfileCollection();
+  const next = current.filter((entry) => entry && entry.id !== id);
+  writeProfileCollection(next);
+}
+
+export async function deleteProfile(id) {
+  if (!id) {
+    removeProfileLocally(id);
+    return;
+  }
+  const database = await openDatabase();
+  await migrateLegacyData(database);
+  if (database) {
+    try {
+      await new Promise((resolve, reject) => {
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        let request;
+        try {
+          request = store.delete(id);
+        } catch (error) {
+          reject(error);
+          return;
+        }
+
+        transaction.oncomplete = () => {
+          resolve();
+        };
+
+        transaction.onerror = () => {
+          reject(transaction.error);
+        };
+
+        transaction.onabort = () => {
+          reject(transaction.error);
+        };
+
+        if (request) {
+          request.onerror = () => {
+            reject(request.error);
+          };
+        }
+      });
+    } catch (error) {
+      console.warn('AppBaseStorage: falha ao remover perfil no IndexedDB', error);
+    }
+  }
+  removeProfileLocally(id);
+}
