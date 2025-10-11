@@ -2,6 +2,7 @@ import {
   listProfiles as listStoredProfiles,
   loadProfile as loadStoredProfile,
   saveProfile as persistProfile,
+  deleteProfile,
 } from './storage/indexeddb.js';
 import { AppBase } from './runtime/app-base.js';
 
@@ -1859,6 +1860,13 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
+  function removeAvailableProfile(id) {
+    availableProfiles = availableProfiles.filter((entry) => entry && entry.id !== id);
+    if (isProfileSelectorOpen()) {
+      renderProfileSelector(availableProfiles);
+    }
+  }
+
   function applySelectedProfile(selection, options = {}) {
     if (!selection || typeof selection !== 'object') {
       return null;
@@ -2751,12 +2759,22 @@ import { AppBase } from './runtime/app-base.js';
     }
     clearLoginFeedback();
     panelOpen = false;
+    const previousProfileId = activeProfileId;
     await setState({
       user: null,
       lastLogin: '',
       sessionActive: false,
       history: [],
     });
+    activeProfileId = null;
+    removeAvailableProfile(previousProfileId);
+    if (previousProfileId) {
+      try {
+        await deleteProfile(previousProfileId);
+      } catch (error) {
+        console.warn('AppBase: falha ao remover perfil armazenado', error);
+      }
+    }
     focusPanelAccess();
   }
 
