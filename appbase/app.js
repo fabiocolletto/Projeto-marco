@@ -34,6 +34,7 @@ import { AppBase } from './runtime/app-base.js';
     close: 'app.header.miniapps.toggle.close',
   };
   const MINIAPP_MENU_BREAKPOINT = '(max-width: 900px)';
+  const MINIAPP_MENU_HIDE_BREAKPOINT = '(max-width: 640px)';
   const MINIAPP_MENU_OPEN_CLASS = 'is-open';
   const BODY_MINIAPP_MENU_OPEN_CLASS = 'has-miniapp-menu-open';
   const BRAND_ICONS = {
@@ -574,7 +575,14 @@ import { AppBase } from './runtime/app-base.js';
     updateHeaderMenuButton(false);
   }
 
+  function isMiniAppMenuHidden() {
+    return Boolean(miniAppMenuHideMedia && miniAppMenuHideMedia.matches);
+  }
+
   function isMiniAppMenuCompact() {
+    if (isMiniAppMenuHidden()) {
+      return false;
+    }
     return Boolean(miniAppMenuMedia && miniAppMenuMedia.matches);
   }
 
@@ -583,7 +591,8 @@ import { AppBase } from './runtime/app-base.js';
       return;
     }
     const hasVisibleEntries = miniAppState.hasVisibleMiniApps;
-    const isExpanded = hasVisibleEntries && expanded;
+    const menuHidden = isMiniAppMenuHidden();
+    const isExpanded = hasVisibleEntries && !menuHidden && expanded;
     const labelKey = expanded
       ? MINIAPP_MENU_LABEL_KEYS.close
       : MINIAPP_MENU_LABEL_KEYS.open;
@@ -591,7 +600,7 @@ import { AppBase } from './runtime/app-base.js';
     elements.miniAppMenuToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     elements.miniAppMenuToggle.setAttribute('aria-label', label);
     elements.miniAppMenuToggle.setAttribute('title', label);
-    if (!hasVisibleEntries) {
+    if (!hasVisibleEntries || menuHidden) {
       elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
     } else {
       elements.miniAppMenuToggle.removeAttribute('aria-disabled');
@@ -696,10 +705,16 @@ import { AppBase } from './runtime/app-base.js';
     }
     miniAppMenuOpen = false;
     elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
-    elements.railShell.setAttribute(
-      'aria-hidden',
-      isMiniAppMenuCompact() ? 'true' : 'false'
-    );
+    if (isMiniAppMenuHidden()) {
+      elements.railShell.setAttribute('hidden', '');
+      elements.railShell.setAttribute('aria-hidden', 'true');
+    } else {
+      elements.railShell.removeAttribute('hidden');
+      elements.railShell.setAttribute(
+        'aria-hidden',
+        isMiniAppMenuCompact() ? 'true' : 'false'
+      );
+    }
     document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
     updateMiniAppMenuButton(false);
     detachMiniAppMenuDismissListeners();
@@ -725,19 +740,30 @@ import { AppBase } from './runtime/app-base.js';
 
   function initialiseMiniAppMenuState() {
     const compact = isMiniAppMenuCompact();
+    const menuHidden = isMiniAppMenuHidden();
     if (!miniAppState.hasVisibleMiniApps) {
       miniAppMenuOpen = false;
       prepareMiniAppRailForStatus();
       return;
     }
     if (elements.miniAppMenuToggle) {
-      elements.miniAppMenuToggle.hidden = !compact;
+      elements.miniAppMenuToggle.hidden = menuHidden || !compact;
       elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
+      if (menuHidden) {
+        elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
+      } else {
+        elements.miniAppMenuToggle.removeAttribute('aria-disabled');
+      }
     }
     if (elements.railShell) {
       elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
-      elements.railShell.removeAttribute('hidden');
-      elements.railShell.setAttribute('aria-hidden', compact ? 'true' : 'false');
+      if (menuHidden) {
+        elements.railShell.setAttribute('hidden', '');
+        elements.railShell.setAttribute('aria-hidden', 'true');
+      } else {
+        elements.railShell.removeAttribute('hidden');
+        elements.railShell.setAttribute('aria-hidden', compact ? 'true' : 'false');
+      }
     }
     document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
     miniAppMenuOpen = false;
@@ -1027,9 +1053,14 @@ import { AppBase } from './runtime/app-base.js';
   function prepareMiniAppRailForStatus() {
     closeMiniAppMenu({ focusToggle: false });
     if (elements.railShell) {
-      elements.railShell.removeAttribute('hidden');
       elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
-      elements.railShell.setAttribute('aria-hidden', 'false');
+      if (isMiniAppMenuHidden()) {
+        elements.railShell.setAttribute('hidden', '');
+        elements.railShell.setAttribute('aria-hidden', 'true');
+      } else {
+        elements.railShell.removeAttribute('hidden');
+        elements.railShell.setAttribute('aria-hidden', 'false');
+      }
     }
     if (elements.miniAppMenuToggle) {
       elements.miniAppMenuToggle.hidden = true;
@@ -1087,18 +1118,31 @@ import { AppBase } from './runtime/app-base.js';
       return;
     }
 
+    const menuHidden = isMiniAppMenuHidden();
+    const compact = isMiniAppMenuCompact();
+
     if (elements.railShell) {
-      elements.railShell.removeAttribute('hidden');
-      if (!miniAppMenuOpen) {
-        elements.railShell.setAttribute(
-          'aria-hidden',
-          isMiniAppMenuCompact() ? 'true' : 'false'
-        );
+      if (menuHidden) {
+        elements.railShell.classList.remove(MINIAPP_MENU_OPEN_CLASS);
+        elements.railShell.setAttribute('hidden', '');
+        elements.railShell.setAttribute('aria-hidden', 'true');
+        miniAppMenuOpen = false;
+        document.body.classList.remove(BODY_MINIAPP_MENU_OPEN_CLASS);
+        detachMiniAppMenuDismissListeners();
+      } else {
+        elements.railShell.removeAttribute('hidden');
+        if (!miniAppMenuOpen) {
+          elements.railShell.setAttribute('aria-hidden', compact ? 'true' : 'false');
+        }
       }
     }
     if (elements.miniAppMenuToggle) {
-      elements.miniAppMenuToggle.hidden = !isMiniAppMenuCompact();
-      elements.miniAppMenuToggle.removeAttribute('aria-disabled');
+      elements.miniAppMenuToggle.hidden = menuHidden || !compact;
+      if (!menuHidden && miniAppState.hasVisibleMiniApps) {
+        elements.miniAppMenuToggle.removeAttribute('aria-disabled');
+      } else {
+        elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
+      }
     }
 
     if (!miniAppState.activeKey || !enabledSet.has(miniAppState.activeKey)) {
@@ -1113,6 +1157,8 @@ import { AppBase } from './runtime/app-base.js';
       });
       container.appendChild(node);
     });
+
+    updateMiniAppMenuButton(miniAppMenuOpen);
 
     if (miniAppMenuOpen) {
       focusMiniAppMenu();
@@ -1306,6 +1352,10 @@ import { AppBase } from './runtime/app-base.js';
   const miniAppMenuMedia =
     typeof window !== 'undefined' && typeof window.matchMedia === 'function'
       ? window.matchMedia(MINIAPP_MENU_BREAKPOINT)
+      : null;
+  const miniAppMenuHideMedia =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia(MINIAPP_MENU_HIDE_BREAKPOINT)
       : null;
 
   function canUseStorage() {
@@ -2827,6 +2877,14 @@ import { AppBase } from './runtime/app-base.js';
       miniAppMenuMedia.addEventListener('change', handleMiniAppMenuMediaChange);
     } else if (typeof miniAppMenuMedia.addListener === 'function') {
       miniAppMenuMedia.addListener(handleMiniAppMenuMediaChange);
+    }
+  }
+
+  if (miniAppMenuHideMedia) {
+    if (typeof miniAppMenuHideMedia.addEventListener === 'function') {
+      miniAppMenuHideMedia.addEventListener('change', handleMiniAppMenuMediaChange);
+    } else if (typeof miniAppMenuHideMedia.addListener === 'function') {
+      miniAppMenuHideMedia.addListener(handleMiniAppMenuMediaChange);
     }
   }
 
