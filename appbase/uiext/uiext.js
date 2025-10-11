@@ -23,6 +23,17 @@
     }
   }
 
+  const LOCALE_FLAGS = {
+    "pt-BR": "🇧🇷",
+    pt: "🇧🇷",
+    "en-US": "🇺🇸",
+    en: "🇺🇸",
+    "es-ES": "🇪🇸",
+    es: "🇪🇸",
+  };
+
+  const FLAG_FALLBACK = "🌐";
+
   function localeToInitials(locale) {
     if (!locale) {
       return "";
@@ -32,12 +43,38 @@
     return letters.slice(0, 2).toUpperCase();
   }
 
-  function applyLocaleInitials(target) {
+  function getLocaleFlag(locale) {
+    if (!locale) {
+      return "";
+    }
+    if (Object.prototype.hasOwnProperty.call(LOCALE_FLAGS, locale)) {
+      return LOCALE_FLAGS[locale];
+    }
+    const primaryTag = `${locale}`.split(/[-_]/)[0];
+    if (Object.prototype.hasOwnProperty.call(LOCALE_FLAGS, primaryTag)) {
+      return LOCALE_FLAGS[primaryTag];
+    }
+    return "";
+  }
+
+  function getLocaleIndicator(locale) {
+    const flag = getLocaleFlag(locale);
+    if (flag) {
+      return flag;
+    }
+    const initials = localeToInitials(locale);
+    if (initials) {
+      return initials;
+    }
+    return FLAG_FALLBACK;
+  }
+
+  function applyLocaleIndicator(target) {
     if (!target) {
       return;
     }
-    const initials = localeToInitials(getCurrentLocale());
-    target.textContent = initials || "--";
+    const indicator = getLocaleIndicator(getCurrentLocale());
+    target.textContent = indicator;
   }
 
   function updateLocaleIndicators() {
@@ -45,7 +82,7 @@
       .querySelectorAll(
         `[${ACTION_ATTR}="${LOCALE_ACTION_ID}"] .${LOCALE_ICON_CLASS}`
       )
-      .forEach((element) => applyLocaleInitials(element));
+      .forEach((element) => applyLocaleIndicator(element));
   }
 
   function createIcon(action) {
@@ -58,7 +95,7 @@
       .filter(Boolean)
       .join(" ");
     icon.setAttribute("aria-hidden", "true");
-    applyLocaleInitials(icon);
+    applyLocaleIndicator(icon);
     return icon;
   }
 
