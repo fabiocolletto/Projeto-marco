@@ -150,7 +150,8 @@
 
   function ensureMenuPosition() {
     const button = getButton();
-    const container = button?.parentElement;
+    const container =
+      button?.closest('[data-header-menu]') || button?.parentElement || menuElement?.parentElement;
     if (!container || !menuElement) {
       return;
     }
