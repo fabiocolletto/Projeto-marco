@@ -189,7 +189,7 @@ import { AppBase } from './runtime/app-base.js';
     tenantId: 'tenant-marco',
     userId: 'appbase-admin',
     catalogBaseUrl: 'https://cdn.marco.app/catalog',
-    defaults: { enabledMiniApps: ['boas-vindas'] },
+    defaults: { enabledMiniApps: [] },
     user: { enabledMiniApps: [], entitlements: {}, providers: {} },
     miniApps: [
       {
@@ -3106,10 +3106,8 @@ import { AppBase } from './runtime/app-base.js';
     stateHydrated = true;
 
     const hasProfileData = hasUser(state);
-    const hasSelectedProfile = Boolean(resolvedProfileId);
-    // Always reveal the panel after choosing a profile so the details remain visible
-    // even if the previous session is inactive.
-    panelOpen = hasProfileData || hasSelectedProfile;
+    // Keep the stage hidden until there is persisted data to display in the panel.
+    panelOpen = hasProfileData;
 
     await initialiseMiniApps();
 
