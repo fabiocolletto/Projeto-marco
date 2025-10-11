@@ -42,7 +42,6 @@ manuals/modelo_release_notes_R1.0.md
 manuals/modelo_testes_R1.0.md
 manuals/novo-idioma.md
 manuals/novo-miniapp.md
-manuals/pcm/pcm_20250206_eventbus_indexeddb.md
 miniapps/boas-vindas/manifest.json
 miniapps/boas-vindas/module.js
 miniapps/boas-vindas/src/i18n/en-US.json
@@ -61,10 +60,7 @@ scripts/used-static-deps.json
 tests/language-panel.spec.js
 tests/miniapp-loader.spec.js
 tests/panel-card.spec.js
-tests/profile-selector.spec.js
-tests/session-hydration.spec.js
 tests/src-localization.spec.js
 tests/static-server.js
-tests/storage-fallback.spec.js
 tests/theme-toggle.spec.js
 tests/tools/trace-deps.spec.ts

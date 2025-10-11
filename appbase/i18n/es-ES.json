@@ -28,18 +28,6 @@
         "exit": "Salir de pantalla completa",
         "unsupported": "Pantalla completa no es compatible en este navegador.",
         "failure": "No se pudo alternar el modo de pantalla completa. Revisa los permisos del navegador."
-      },
-      "menu": {
-        "toggle": {
-          "open": "Abrir menú del encabezado",
-          "close": "Cerrar menú del encabezado"
-        }
-      },
-      "miniapps": {
-        "toggle": {
-          "open": "Mostrar lista de miniapps",
-          "close": "Ocultar lista de miniapps"
-        }
       }
     },
     "locale": {

@@ -28,18 +28,6 @@
         "exit": "Exit fullscreen",
         "unsupported": "Fullscreen is not supported in this browser.",
         "failure": "Could not toggle fullscreen mode. Check your browser permissions."
-      },
-      "menu": {
-        "toggle": {
-          "open": "Open header menu",
-          "close": "Close header menu"
-        }
-      },
-      "miniapps": {
-        "toggle": {
-          "open": "Show miniapps list",
-          "close": "Hide miniapps list"
-        }
       }
     },
     "locale": {
