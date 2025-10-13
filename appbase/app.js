@@ -33,7 +33,7 @@ import { AppBase } from './runtime/app-base.js';
     open: 'app.header.miniapps.toggle.open',
     close: 'app.header.miniapps.toggle.close',
   };
-  const MINIAPP_MENU_BREAKPOINT = '(max-width: 900px)';
+  const MINIAPP_MENU_BREAKPOINT = '(max-width: 640px)';
   const MINIAPP_MENU_HIDE_BREAKPOINT = '(max-width: 640px)';
   const MINIAPP_MENU_OPEN_CLASS = 'is-open';
   const BODY_MINIAPP_MENU_OPEN_CLASS = 'has-miniapp-menu-open';
