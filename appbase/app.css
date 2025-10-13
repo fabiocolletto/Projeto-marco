@@ -707,7 +707,7 @@ select {
   box-shadow: none;
 }
 
-@media (min-width: 901px) {
+@media (min-width: 641px) {
   .ac-rail-shell {
     display: flex;
   }
