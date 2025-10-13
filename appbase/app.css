@@ -485,7 +485,7 @@ select {
   }
 }
 
-@media (max-width: 900px), (orientation: portrait) and (max-width: 1200px) {
+@media (max-width: 640px) {
   .ac-layout {
     grid-template-columns: 1fr;
     gap: 0;
@@ -1133,7 +1133,12 @@ select {
   font-weight: 500;
 }
 
-@media (max-width: 960px), (orientation: portrait) and (max-width: 1200px) {
+@media (max-width: 640px) {
+  .ac-rail-shell,
+  .ac-rail-shell.is-open {
+    display: none;
+  }
+
   .ac-stage {
     padding: 0;
   }
@@ -1151,42 +1156,19 @@ select {
     box-shadow: none;
   }
 
-  .ac-stage__empty {
-    padding: 32px 20px;
-    border: none;
-    border-radius: 0;
-  }
-
   .ac-stage--panel-open .ac-stage__panel {
     border-radius: 0;
   }
 
-  .ac-panel {
-    padding: 32px 20px 24px;
+  .ac-stage__empty {
+    padding: 28px 18px;
+    border: none;
+    border-radius: 0;
   }
 
   .ac-rail-shell[aria-hidden='true'] + .ac-stage > *:not([hidden]) {
     min-height: 0;
     height: 100%;
-  }
-}
-
-@media (max-width: 640px) {
-  .ac-rail-shell,
-  .ac-rail-shell.is-open {
-    display: none;
-  }
-
-  .ac-stage {
-    padding: 0;
-  }
-
-  .ac-stage__empty {
-    padding: 28px 18px;
-  }
-
-  .ac-panel {
-    padding: 24px 16px 18px;
   }
 }
 
@@ -1238,7 +1220,7 @@ select {
   }
 }
 
-@media (max-width: 960px), (orientation: portrait) and (max-width: 1200px) {
+@media (max-width: 640px) {
   .ac-panel__stack {
     grid-template-columns: 1fr;
   }
@@ -1468,7 +1450,7 @@ select {
   min-width: 0;
 }
 
-@media (max-width: 960px), (orientation: portrait) and (max-width: 1200px) {
+@media (max-width: 640px) {
   .ac-panel-card--session .ac-panel-form {
     grid-template-columns: 1fr;
   }
@@ -1582,27 +1564,18 @@ select {
   box-shadow: 0 20px 44px rgba(2, 6, 23, 0.5);
 }
 
-@media (max-width: 960px), (orientation: portrait) and (max-width: 1200px) {
+@media (max-width: 640px) {
   .ac-panel {
-    padding: 36px 22px 24px;
+    padding: 24px 16px 18px;
   }
 
   .ac-panel-card {
     padding: 18px 20px;
+    gap: 14px;
   }
 
   .ac-panel__stack {
     gap: 20px;
-  }
-
-  .ac-panel-form__actions {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 640px) {
-  .ac-panel {
-    padding: 24px 16px 18px;
   }
 
   .ac-panel-card__title {
@@ -1611,10 +1584,6 @@ select {
 
   .ac-panel-card__subtitle {
     font-size: 0.95rem;
-  }
-
-  .ac-panel-card {
-    gap: 14px;
   }
 
   .ac-panel-form__actions {
