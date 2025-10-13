@@ -1014,17 +1014,6 @@ select {
   box-shadow: none;
 }
 
-.ac-stage--panel-open {
-  padding: 0;
-  background: none;
-  border: none;
-  box-shadow: none;
-}
-
-.ac-stage--panel-open .ac-stage__panel {
-  border-radius: 0;
-}
-
 .ac-stage__empty {
   display: flex;
   flex-direction: column;
@@ -1149,6 +1138,13 @@ select {
     padding: 0;
   }
 
+  .ac-stage--panel-open {
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+
   .ac-stage__panel {
     border-radius: 0;
     border: none;
@@ -1158,6 +1154,10 @@ select {
   .ac-stage__empty {
     padding: 32px 20px;
     border: none;
+    border-radius: 0;
+  }
+
+  .ac-stage--panel-open .ac-stage__panel {
     border-radius: 0;
   }
 
