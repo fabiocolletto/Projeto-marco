@@ -802,7 +802,7 @@ select {
   outline-offset: 2px;
 }
 
-@media (hover: none) and (pointer: coarse) {
+@media (hover: none) and (pointer: coarse) and (max-width: 640px) {
   .ac-rail-shell,
   .ac-rail-shell.is-open {
     display: none !important;
