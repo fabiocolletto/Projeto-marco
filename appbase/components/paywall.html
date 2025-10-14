@@ -1,0 +1,43 @@
+<style>
+  .paywall{display:none;max-width:680px;margin:10vh auto;padding:24px;border-radius:16px;border:1px solid #e6e6e6;box-shadow:0 2px 18px rgba(0,0,0,.06);font-family:system-ui}
+  .paywall h2{margin:0 0 8px}
+  .paywall p{opacity:.8}
+  .paywall .row{display:flex;gap:8px;margin-top:12px}
+  .paywall input, .paywall button{padding:12px;border-radius:12px;border:1px solid #ccc;flex:1}
+  .paywall button{cursor:pointer}
+</style>
+<div id="paywall" class="paywall">
+  <h2>Ative sua assinatura</h2>
+  <p>Para acessar este MiniApp, ative o plano PRO. Informe seu e-mail e confirme o pagamento.</p>
+  <div class="row">
+    <input id="pay_email" type="email" placeholder="seu@email.com">
+    <button id="pay_go">Assinar</button>
+  </div>
+</div>
+<script>
+  // hook padrão que o single-app.js espera
+  const host = window.parent && window.parent !== window ? window.parent : window;
+  host.AppBase = host.AppBase || {};
+  const root = host.document.getElementById("paywall") || document.getElementById("paywall");
+  if (root && root.ownerDocument !== host.document) {
+    host.document.body.appendChild(root);
+  }
+  host.AppBase.ui = Object.assign({}, host.AppBase.ui, {
+    renderPaywall({title, message, onSubscribe}) {
+      const scope = host.document.getElementById("paywall");
+      if (!scope) return;
+      scope.querySelector("h2").textContent = title || "Ative sua assinatura";
+      scope.querySelector("p").textContent = message || "";
+      scope.querySelector("#pay_email").value = "";
+      scope.querySelector("#pay_go").onclick = () => {
+        const email = scope.querySelector("#pay_email").value.trim();
+        if (!email) return host.alert ? host.alert("Informe seu e-mail.") : console.warn("Informe seu e-mail.");
+        onSubscribe(email);
+      };
+      scope.style.display = "block";
+    },
+    hideCatalog(){ host.document.documentElement.classList.add("no-catalog"); },
+    enterFullscreen(){ host.document.documentElement.requestFullscreen?.().catch(()=>{}); },
+    toast(msg){ host.console?.log("[AppBase]", msg); }
+  });
+</script>

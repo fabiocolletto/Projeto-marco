@@ -1,0 +1,7 @@
+{
+  "mode": "single-miniapp",
+  "miniapp_id": "pb-consignado",
+  "worker_url": "https://SEU-WORKER.workers.dev",
+  "licensing": { "plan_required": "pro", "grace_days": 3 },
+  "features": { "themes": true, "multiuser": true, "fullscreen": true }
+}

@@ -2487,3 +2487,7 @@ select {
 .ac-header-action:focus-visible {
   outline: none;
 }
+
+/* SINGLE_MODE_START */
+html.no-catalog [data-ui="catalog"], html.no-catalog nav[data-ui="catalog"] { display:none !important; }
+/* SINGLE_MODE_END */

@@ -180,3 +180,20 @@ de autenticação ou módulos adicionais) sem reescrever a base.
   cadastro estiver validado com usuários.
 - Ampliar a suíte de testes end-to-end cobrindo cenários de edição contínua,
   múltiplos cadastros e comportamento em navegadores móveis.
+
+<!-- APPBASE_V3_START -->
+## AppBase v3.0 (modo single-miniapp)
+- Define `appbase/config/app.config.json`:
+  - `"mode": "single-miniapp"`, `"miniapp_id": "pb-consignado"`
+  - `"worker_url": "https://SEU-WORKER.workers.dev"`
+  - `"licensing.plan_required": "pro"`
+- O AppBase oculta o catálogo, entra em tela cheia e carrega o MiniApp único.
+- Licença é validada no boot via `GET /license/validate?user=<ref>`.
+
+### Billing (Mercado Pago)
+- Configure o **Worker** com `PLAN_STARTER_ID`, `PLAN_PRO_ID`, `PLAN_MASTER_ID` e os **secrets** do Mercado Pago.
+- O paywall chama `POST /subscribe` e abre `init_point` quando disponível.
+
+### Testes
+- `npm run test:e2e` — cobre licença ativa/inativa, fullscreen, tema e multiusuário.
+<!-- APPBASE_V3_END -->
