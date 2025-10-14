@@ -1,0 +1,77 @@
+{
+  "miniapp": {
+    "gestor_tarefas": {
+      "card": {
+        "title": "Gestor de tarefas Marco",
+        "subtitle": "Acompanhe prazos e situação de cada tarefa da equipe.",
+        "cta": "Abrir gestor"
+      },
+      "badges": {
+        "beta": "Beta"
+      },
+      "panel": {
+        "meta": "Organize entregas com painel leve de tarefas, prazos e status."
+      },
+      "marketplace": {
+        "title": "Gestor de tarefas Marco",
+        "description": "MiniApp para planejar tarefas internas com resumo de prazos e controle de situação.",
+        "capabilities": {
+          "create": "Cadastro rápido de tarefas",
+          "deadlines": "Gestão de prazos com alerta",
+          "summary": "Resumo por situação"
+        }
+      },
+      "ui": {
+        "header": {
+          "title": "Gestor de tarefas Marco",
+          "subtitle": "Acompanhe prazos e situação de cada tarefa da equipe.",
+          "badge": "Beta",
+          "note": "Centralize demandas de squads e acompanhe o que está atrasado."
+        },
+        "summary": {
+          "metrics": "{{total}} tarefas — {{pending}} pendentes · {{inProgress}} em andamento · {{blocked}} bloqueadas · {{done}} concluídas",
+          "empty": "Nenhuma tarefa cadastrada."
+        },
+        "form": {
+          "title": "Título da tarefa",
+          "titlePlaceholder": "Ex.: Revisar apresentação da squad",
+          "dueDate": "Prazo",
+          "status": "Situação",
+          "submit": "Adicionar tarefa",
+          "feedback": {
+            "created": "\"{{title}}\" adicionada à lista.",
+            "updated": "Situação de \"{{title}}\" alterada para {{status}}.",
+            "deleted": "\"{{title}}\" removida da lista.",
+            "validation": "Informe um título para adicionar a tarefa."
+          }
+        },
+        "table": {
+          "title": "Tarefas cadastradas",
+          "note": "Visualize prazos, atualize a situação e remova entregas concluídas.",
+          "caption": "Tabela de tarefas com prazos e situação",
+          "columns": {
+            "task": "Tarefa",
+            "dueDate": "Prazo",
+            "status": "Situação",
+            "actions": "Ações"
+          },
+          "empty": "Nenhuma tarefa cadastrada ainda.",
+          "noDueDate": "Sem prazo definido",
+          "dueToday": "Entrega hoje",
+          "delete": "Remover",
+          "deleteAria": "Remover \"{{task}}\"",
+          "statusAria": "Atualizar situação de \"{{task}}\""
+        },
+        "loading": "Carregando gestor de tarefas..."
+      },
+      "statuses": {
+        "pending": "Pendente",
+        "in_progress": "Em andamento",
+        "blocked": "Bloqueada",
+        "done": "Concluída",
+        "overdue": "Atrasada",
+        "due_today": "Entrega hoje"
+      }
+    }
+  }
+}

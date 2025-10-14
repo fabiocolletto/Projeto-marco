@@ -1,0 +1,64 @@
+{
+  "miniappId": "gestor-tarefas",
+  "key": "gestor-tarefas",
+  "name": "Gestor de tarefas Marco",
+  "version": "0.1.0",
+  "kind": "experience",
+  "loadOrder": 30,
+  "permissions": ["storage"],
+  "dependsOn": [
+    "base.theme",
+    "base.i18n",
+    "base.security",
+    "base.sync",
+    "base.logs"
+  ],
+  "supportedLocales": ["pt-BR", "en-US", "es-ES"],
+  "dictionaries": {
+    "pt-BR": "./src/i18n/pt-BR.json",
+    "en-US": "./src/i18n/en-US.json",
+    "es-ES": "./src/i18n/es-ES.json"
+  },
+  "localeOwner": {
+    "name": "Equipe de Conteúdo Marco",
+    "email": "conteudo@marco.app",
+    "team": "Produto e Experiência"
+  },
+  "releaseNotesPath": "./docs/changelog.md",
+  "meta": {
+    "card": {
+      "label": "Gestor de tarefas Marco",
+      "labelKey": "miniapp.gestor_tarefas.card.title",
+      "meta": "Acompanhe prazos e situação de cada tarefa da equipe.",
+      "metaKey": "miniapp.gestor_tarefas.card.subtitle",
+      "cta": "Abrir gestor",
+      "ctaKey": "miniapp.gestor_tarefas.card.cta"
+    },
+    "badges": ["Beta"],
+    "badgeKeys": ["miniapp.gestor_tarefas.badges.beta"],
+    "panel": {
+      "meta": "Organize entregas com painel leve de tarefas, prazos e status.",
+      "metaKey": "miniapp.gestor_tarefas.panel.meta"
+    },
+    "marketplace": {
+      "title": "Gestor de tarefas Marco",
+      "titleKey": "miniapp.gestor_tarefas.marketplace.title",
+      "description": "MiniApp para planejar tarefas internas com resumo de prazos e controle de situação.",
+      "descriptionKey": "miniapp.gestor_tarefas.marketplace.description",
+      "capabilities": [
+        "Cadastro rápido de tarefas",
+        "Gestão de prazos com alerta",
+        "Resumo por situação"
+      ],
+      "capabilityKeys": [
+        "miniapp.gestor_tarefas.marketplace.capabilities.create",
+        "miniapp.gestor_tarefas.marketplace.capabilities.deadlines",
+        "miniapp.gestor_tarefas.marketplace.capabilities.summary"
+      ]
+    }
+  },
+  "module": {
+    "type": "template",
+    "url": "./module.js"
+  }
+}
