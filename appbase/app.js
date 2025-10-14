@@ -3070,10 +3070,9 @@ import { AppBase } from './runtime/app-base.js';
       }))
     );
     availableProfiles = normalisedProfiles;
-    if (!normalisedProfiles.length) {
-      return { state: getEmptyState(), profileId: null };
-    }
-    const selection = await promptProfileSelection(normalisedProfiles, { forceDialog: false });
+    const selection =
+      (await promptProfileSelection(normalisedProfiles, { forceDialog: true })) ||
+      { state: getEmptyState(), profileId: null };
     const profileId = selection?.profileId ?? null;
     const resolvedState = selection?.state
       ? normaliseState(selection.state)
