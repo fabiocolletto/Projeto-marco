@@ -86,6 +86,24 @@
               <button
                 class="ac-theme-toggle"
                 type="button"
+                data-miniapp-menu-toggle
+                aria-controls="miniapp-rail-shell"
+                aria-expanded="false"
+                aria-label="Abrir lista de miniapps"
+                title="Abrir lista de miniapps"
+              >
+                <span class="ac-theme-toggle__icon" aria-hidden="true">🧩</span>
+                <span
+                  class="ac-visually-hidden"
+                  data-miniapp-menu-label
+                  data-i18n="app.header.miniapps.toggle.open"
+                >
+                  Abrir lista de miniapps
+                </span>
+              </button>
+              <button
+                class="ac-theme-toggle"
+                type="button"
                 data-theme-toggle
                 aria-pressed="false"
                 aria-label="Ativar modo escuro"
@@ -115,27 +133,6 @@
                 >
               </button>
             </div>
-            <button
-              class="ac-appbar__menu-item"
-              type="button"
-              data-miniapp-menu-toggle
-              aria-controls="miniapp-rail-shell"
-              aria-expanded="false"
-              aria-label="Abrir lista de miniapps"
-              title="Abrir lista de miniapps"
-            >
-              <span class="ac-appbar__menu-item-icon" aria-hidden="true">🧩</span>
-              <span class="ac-appbar__menu-item-text" data-i18n="app.rail.label"
-                >Miniapps</span
-              >
-              <span
-                class="ac-visually-hidden"
-                data-miniapp-menu-label
-                data-i18n="app.header.miniapps.toggle.open"
-              >
-                Abrir lista de miniapps
-              </span>
-            </button>
             <div class="ac-locale-menu" data-locale-menu hidden aria-hidden="true">
               <p class="ac-locale-menu__title" data-i18n="app.locale.menu.title">
                 Idioma do AppBase
