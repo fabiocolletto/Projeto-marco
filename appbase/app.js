@@ -27,14 +27,11 @@ import { AppBase } from './runtime/app-base.js';
     open: 'app.header.menu.toggle.open',
     close: 'app.header.menu.toggle.close',
   };
-  const HEADER_MENU_BREAKPOINT = '(max-width: 600px)';
   const HEADER_MENU_OPEN_CLASS = 'is-open';
   const MINIAPP_MENU_LABEL_KEYS = {
     open: 'app.header.miniapps.toggle.open',
     close: 'app.header.miniapps.toggle.close',
   };
-  const MINIAPP_MENU_BREAKPOINT = '(max-width: 640px)';
-  const MINIAPP_MENU_HIDE_BREAKPOINT = '(max-width: 640px)';
   const MINIAPP_MENU_OPEN_CLASS = 'is-open';
   const BODY_MINIAPP_MENU_OPEN_CLASS = 'has-miniapp-menu-open';
   const BRAND_ICONS = {
@@ -499,7 +496,7 @@ import { AppBase } from './runtime/app-base.js';
   }
 
   function isHeaderMenuCompact() {
-    return Boolean(headerMenuMedia && headerMenuMedia.matches);
+    return true;
   }
 
   function updateHeaderMenuButton(expanded = headerMenuOpen) {
@@ -602,10 +599,6 @@ import { AppBase } from './runtime/app-base.js';
     }
   }
 
-  function handleHeaderMenuMediaChange() {
-    closeHeaderMenu({ focusToggle: false });
-  }
-
   function collapseHeaderMenuForAction() {
     if (headerMenuOpen) {
       closeHeaderMenu({ focusToggle: false });
@@ -626,14 +619,11 @@ import { AppBase } from './runtime/app-base.js';
   }
 
   function isMiniAppMenuHidden() {
-    return Boolean(miniAppMenuHideMedia && miniAppMenuHideMedia.matches);
+    return false;
   }
 
   function isMiniAppMenuCompact() {
-    if (isMiniAppMenuHidden()) {
-      return false;
-    }
-    return Boolean(miniAppMenuMedia && miniAppMenuMedia.matches);
+    return true;
   }
 
   function updateMiniAppMenuButton(expanded = miniAppMenuOpen) {
@@ -783,10 +773,6 @@ import { AppBase } from './runtime/app-base.js';
     } else {
       openMiniAppMenu();
     }
-  }
-
-  function handleMiniAppMenuMediaChange() {
-    initialiseMiniAppMenuState();
   }
 
   function initialiseMiniAppMenuState() {
@@ -1110,7 +1096,7 @@ import { AppBase } from './runtime/app-base.js';
         elements.railShell.setAttribute('aria-hidden', 'true');
       } else {
         elements.railShell.removeAttribute('hidden');
-        elements.railShell.setAttribute('aria-hidden', 'false');
+        elements.railShell.setAttribute('aria-hidden', 'true');
       }
     }
     if (elements.miniAppMenuToggle) {
@@ -1396,19 +1382,7 @@ import { AppBase } from './runtime/app-base.js';
   let localeSyncInitialised = false;
   let lastLocaleSeen = null;
   let headerMenuOpen = false;
-  const headerMenuMedia =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia(HEADER_MENU_BREAKPOINT)
-      : null;
   let miniAppMenuOpen = false;
-  const miniAppMenuMedia =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia(MINIAPP_MENU_BREAKPOINT)
-      : null;
-  const miniAppMenuHideMedia =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia(MINIAPP_MENU_HIDE_BREAKPOINT)
-      : null;
 
   function canUseStorage() {
     try {
@@ -2915,30 +2889,6 @@ import { AppBase } from './runtime/app-base.js';
       lastLocaleSeen = currentLocale;
     }
   });
-
-  if (headerMenuMedia) {
-    if (typeof headerMenuMedia.addEventListener === 'function') {
-      headerMenuMedia.addEventListener('change', handleHeaderMenuMediaChange);
-    } else if (typeof headerMenuMedia.addListener === 'function') {
-      headerMenuMedia.addListener(handleHeaderMenuMediaChange);
-    }
-  }
-
-  if (miniAppMenuMedia) {
-    if (typeof miniAppMenuMedia.addEventListener === 'function') {
-      miniAppMenuMedia.addEventListener('change', handleMiniAppMenuMediaChange);
-    } else if (typeof miniAppMenuMedia.addListener === 'function') {
-      miniAppMenuMedia.addListener(handleMiniAppMenuMediaChange);
-    }
-  }
-
-  if (miniAppMenuHideMedia) {
-    if (typeof miniAppMenuHideMedia.addEventListener === 'function') {
-      miniAppMenuHideMedia.addEventListener('change', handleMiniAppMenuMediaChange);
-    } else if (typeof miniAppMenuHideMedia.addListener === 'function') {
-      miniAppMenuHideMedia.addListener(handleMiniAppMenuMediaChange);
-    }
-  }
 
   const fullscreenChangeEvents = [
     'fullscreenchange',

@@ -144,34 +144,6 @@
       </header>
 
       <div class="ac-layout">
-        <aside
-          class="ac-rail-shell"
-          id="miniapp-rail-shell"
-          aria-labelledby="miniapp-rail-title"
-          data-miniapp-rail-shell
-        >
-          <header class="ac-rail__header">
-            <h2
-              id="miniapp-rail-title"
-              class="ac-rail__title"
-              data-miniapp-rail-title
-              data-i18n="app.rail.label"
-            >
-              Miniapps
-            </h2>
-            <button
-              class="ac-rail__close"
-              type="button"
-              data-miniapp-menu-close
-              aria-label="Fechar lista de miniapps"
-              title="Fechar lista de miniapps"
-            >
-              <span aria-hidden="true">×</span>
-            </button>
-          </header>
-          <nav class="ac-rail" role="list" data-miniapp-rail></nav>
-        </aside>
-
         <main class="ac-stage" role="main" data-stage-shell>
           <div class="ac-stage__empty" data-stage-empty>
             <div class="ac-stage__empty-main">
@@ -479,7 +451,36 @@
               </div>
             </div>
           </section>
-          </main>
+        </main>
+      </div>
+
+      <div
+        class="ac-rail-shell"
+        id="miniapp-rail-shell"
+        aria-labelledby="miniapp-rail-title"
+        data-miniapp-rail-shell
+        aria-hidden="true"
+      >
+        <header class="ac-rail__header">
+          <h2
+            id="miniapp-rail-title"
+            class="ac-rail__title"
+            data-miniapp-rail-title
+            data-i18n="app.rail.label"
+          >
+            Miniapps
+          </h2>
+          <button
+            class="ac-rail__close"
+            type="button"
+            data-miniapp-menu-close
+            aria-label="Fechar lista de miniapps"
+            title="Fechar lista de miniapps"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </header>
+        <nav class="ac-rail" role="list" data-miniapp-rail></nav>
       </div>
 
 
