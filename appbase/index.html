@@ -16,6 +16,32 @@
     <script defer src="./settings/settings.js"></script>
   </head>
   <body>
+<!-- CLEAN_MOUNT_START -->
+    <div data-clean-shell></div>
+    <script>
+      (async () => {
+        const mount = document.querySelector('[data-clean-shell]');
+        const res = await fetch('./components/clean-mobile.html');
+        const html = await res.text();
+        const tpl = document.createElement('template');
+        tpl.innerHTML = html.trim();
+        const fragment = tpl.content.cloneNode(true);
+        const scripts = Array.from(fragment.querySelectorAll('script'));
+        scripts.forEach((script) => script.remove());
+        mount.replaceChildren(fragment);
+        for (const script of scripts) {
+          const node = document.createElement('script');
+          if (script.type) node.type = script.type;
+          if (script.src) node.src = script.src;
+          if (script.textContent) node.textContent = script.textContent;
+          mount.appendChild(node);
+        }
+        document.documentElement.classList.add('no-catalog');
+        const legacyApp = document.querySelector('.ac-app');
+        if (legacyApp) legacyApp.setAttribute('hidden', '');
+      })();
+    </script>
+    <!-- CLEAN_MOUNT_END -->
     <div class="ac-app">
       <header class="ac-appbar">
         <div class="ac-brand">
@@ -528,7 +554,7 @@
           </span>
         </span>
         <span class="ac-footer__meta" data-i18n="app.footer.meta">
-          Desenvolvido por 5Horas • Projeto Marco — AppBase v3.0
+          Desenvolvido por 5Horas • Projeto Marco — AppBase v3.0 • Clean
         </span>
       </footer>
 
