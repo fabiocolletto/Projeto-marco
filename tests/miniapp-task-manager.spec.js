@@ -37,8 +37,12 @@ test.describe('MiniApp gestor de tarefas', () => {
     await expect(card).toBeVisible();
     await card.locator('button').first().click();
 
+    const stage = page.locator('#painel-stage');
+    await expect(stage).toHaveAttribute('data-miniapp-stage', 'gestor-tarefas');
     const panel = page.locator('[data-miniapp-panel="gestor-tarefas"]');
     await expect(panel).toBeVisible();
+    await expect(panel.locator('.miniapp-task-manager__form')).toBeVisible();
+    await expect(panel.locator('.miniapp-task-manager__table')).toBeVisible();
 
     const titleInput = panel.locator('#gestor-tarefas-task-title');
     const dueInput = panel.locator('#gestor-tarefas-task-due');
