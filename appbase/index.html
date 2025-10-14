@@ -585,5 +585,16 @@
     </script>
     <!-- SINGLE_BOOT_END -->
 
+    <!-- OP_PANEL_MOUNT_START -->
+    <div data-operator-panel></div>
+    <script>
+      (async ()=>{
+        const mount = document.querySelector('[data-operator-panel]');
+        const res = await fetch('./components/operator-panel.html');
+        mount.innerHTML = await res.text();
+      })();
+    </script>
+    <!-- OP_PANEL_MOUNT_END -->
+
   </body>
 </html>

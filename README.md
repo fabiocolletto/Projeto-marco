@@ -15,6 +15,18 @@ vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 - **Como criar um MiniApp:** siga o modelo
   [`modelo_miniapp_R3.0.md`](manuals/modelo_miniapp_R3.0.md).
 
+<!-- OPERATOR_PANEL_START -->
+## Painel do Operador (embutido)
+- Atalho: **Shift+M** (ou clique no botão de chave inglesa no canto inferior direito).
+- Primeiro uso: informe o **passcode** (definido em `ADMIN_PASSCODE` no Worker).
+- Ações:
+  - **Validar licença** (`/license/validate?user=...`)
+  - **Assinar/upgrade** (`/subscribe` → abre `init_point` se existir)
+  - **Forçar refresh** (`/op/license/refresh`) — requer sessão de operador
+  - **Health** do Worker (`/health`) e **Planos** (`/plans`)
+Segurança: painel é utilitário de operação. Para produção pública, proteja a URL do Worker e o passcode em canal seguro.
+<!-- OPERATOR_PANEL_END -->
+
 ## Estrutura do repositório
 
 ```
