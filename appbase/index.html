@@ -528,7 +528,7 @@
           </span>
         </span>
         <span class="ac-footer__meta" data-i18n="app.footer.meta">
-          Desenvolvido por 5Horas • Projeto Marco — AppBase R1.1
+          Desenvolvido por 5Horas • Projeto Marco — AppBase v3.0
         </span>
       </footer>
 
@@ -572,6 +572,18 @@
         </div>
       </div>
     </div>
+
+  <!-- SINGLE_BOOT_START -->
+    <script type="module">
+      import { bootSingleApp } from "./modules/single-app.js";
+      import cfg from "./config/app.config.json" assert { type:"json" };
+      // Adaptação leve aos objetos já existentes do AppBase:
+      const ui = window.AppBase?.ui || {};
+      const users = window.AppBase?.users || { getCurrent: ()=>null, ensureAnonymous: ()=>({ ref:"guest" }) };
+      const miniapps = window.AppBase?.miniapps || { load: async (id)=>{ location.hash = "#/miniapps/"+id; } };
+      bootSingleApp({ config: cfg, ui, users, miniapps });
+    </script>
+    <!-- SINGLE_BOOT_END -->
 
   </body>
 </html>
