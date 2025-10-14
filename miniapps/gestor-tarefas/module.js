@@ -256,17 +256,47 @@ function saveTasks(tasks) {
 }
 
 function createMiniAppMount(container, key) {
-  const isStage = container && container.id === 'painel-stage';
+  if (!container) {
+    return {
+      isStage: false,
+      host: null,
+      destroy() {},
+    };
+  }
+
+  const isStage = container.id === 'painel-stage';
   if (isStage) {
     container.setAttribute('data-miniapp-stage', key);
+    const stagePanel = container.querySelector('[data-panel]') ?? container;
+    const previousPanelAttr = stagePanel.getAttribute('data-miniapp-panel');
+    stagePanel.setAttribute('data-miniapp-panel', key);
     return {
+      isStage: true,
+      host: stagePanel,
       destroy() {
+        if (previousPanelAttr === null) {
+          stagePanel.removeAttribute('data-miniapp-panel');
+        } else {
+          stagePanel.setAttribute('data-miniapp-panel', previousPanelAttr);
+        }
         container.removeAttribute('data-miniapp-stage');
       },
     };
   }
+
+  const previousPanelAttr = container.getAttribute('data-miniapp-panel');
   container.setAttribute('data-miniapp-panel', key);
-  return null;
+  return {
+    isStage: false,
+    host: container,
+    destroy() {
+      if (previousPanelAttr === null) {
+        container.removeAttribute('data-miniapp-panel');
+      } else {
+        container.setAttribute('data-miniapp-panel', previousPanelAttr);
+      }
+    },
+  };
 }
 
 export function createModule({ key = 'gestor-tarefas', manifest = null, meta = {} } = {}) {
@@ -291,12 +321,9 @@ export function createModule({ key = 'gestor-tarefas', manifest = null, meta = {
         return { destroy() {} };
       }
 
-      const stageMount = createMiniAppMount(container, key);
-      if (stageMount) {
-        return stageMount;
-      }
-
-      container.classList.add('miniapp-task-manager__mount');
+      const mountContext = createMiniAppMount(container, key);
+      const host = mountContext.host || container;
+      host.classList.add('miniapp-task-manager__mount');
 
       const state = {
         tasks: loadTasks(),
@@ -506,9 +533,10 @@ export function createModule({ key = 'gestor-tarefas', manifest = null, meta = {
         listCard.appendChild(tableWrap);
         root.appendChild(listCard);
 
-        container.appendChild(root);
+        host.appendChild(root);
 
         elements.root = root;
+        elements.host = host;
         elements.summaryCard = summaryCard;
         elements.badge = badge;
         elements.title = title;
@@ -864,11 +892,13 @@ export function createModule({ key = 'gestor-tarefas', manifest = null, meta = {
           elements.titleInput?.removeEventListener('input', handleInputChange);
           elements.dueInput?.removeEventListener('input', handleInputChange);
           elements.statusSelect?.removeEventListener('change', handleInputChange);
-          container.removeAttribute('data-miniapp-panel');
-          container.classList.remove('miniapp-task-manager__mount');
-          if (elements.root && container.contains(elements.root)) {
-            container.removeChild(elements.root);
+          mountContext?.destroy?.();
+          host.classList.remove('miniapp-task-manager__mount');
+          if (elements.root && elements.host && elements.host.contains(elements.root)) {
+            elements.host.removeChild(elements.root);
           }
+          elements.root = null;
+          elements.host = null;
         },
       };
     },
