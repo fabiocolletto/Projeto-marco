@@ -2491,3 +2491,11 @@ select {
 /* SINGLE_MODE_START */
 html.no-catalog [data-ui="catalog"], html.no-catalog nav[data-ui="catalog"] { display:none !important; }
 /* SINGLE_MODE_END */
+
+/* CLEAN_HIDE_CATALOG_START */
+html.no-catalog [data-ui="catalog"],
+html.no-catalog nav[data-ui="catalog"],
+html.no-catalog .ac-app {
+  display: none !important;
+}
+/* CLEAN_HIDE_CATALOG_END */
