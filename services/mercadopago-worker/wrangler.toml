@@ -4,8 +4,8 @@ compatibility_date = "2024-06-05"
 
 [vars]
 ORIGIN_ALLOWED = "https://fabiocolletto.github.io"
-PLAN_STARTER_ID = "REPLACE_STARTER"
-PLAN_PRO_ID     = "REPLACE_PRO"
-PLAN_MASTER_ID  = "REPLACE_MASTER"
-BACK_URL        = ""
+PLAN_STARTER_ID = "74c6b04f57a04d6db6855307975dc12b"
+PLAN_PRO_ID     = "b10caa06c8e34532845b597a79346963"
+PLAN_MASTER_ID  = "305768f19aab48cabb969e97d38c98b4"
+BACK_URL        = "https://fabiocolletto.github.io/Projeto-marco/appbase/index.html"
 ADMIN_PASSCODE  = "defina-um-passcode-forte"
