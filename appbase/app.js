@@ -642,7 +642,8 @@ import { AppBase } from './runtime/app-base.js';
     }
     const hasVisibleEntries = miniAppState.hasVisibleMiniApps;
     const menuHidden = isMiniAppMenuHidden();
-    const isExpanded = hasVisibleEntries && !menuHidden && expanded;
+    const compact = isMiniAppMenuCompact();
+    const isExpanded = hasVisibleEntries && compact && !menuHidden && expanded;
     const labelKey = expanded
       ? MINIAPP_MENU_LABEL_KEYS.close
       : MINIAPP_MENU_LABEL_KEYS.open;
@@ -650,7 +651,7 @@ import { AppBase } from './runtime/app-base.js';
     elements.miniAppMenuToggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
     elements.miniAppMenuToggle.setAttribute('aria-label', label);
     elements.miniAppMenuToggle.setAttribute('title', label);
-    if (!hasVisibleEntries || menuHidden) {
+    if (!hasVisibleEntries || menuHidden || !compact) {
       elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
     } else {
       elements.miniAppMenuToggle.removeAttribute('aria-disabled');
@@ -797,9 +798,9 @@ import { AppBase } from './runtime/app-base.js';
       return;
     }
     if (elements.miniAppMenuToggle) {
-      elements.miniAppMenuToggle.hidden = menuHidden || !compact;
+      elements.miniAppMenuToggle.hidden = menuHidden;
       elements.miniAppMenuToggle.setAttribute('aria-expanded', 'false');
-      if (menuHidden) {
+      if (menuHidden || !compact) {
         elements.miniAppMenuToggle.setAttribute('aria-disabled', 'true');
       } else {
         elements.miniAppMenuToggle.removeAttribute('aria-disabled');
