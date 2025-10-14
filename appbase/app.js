@@ -189,13 +189,18 @@ import { AppBase } from './runtime/app-base.js';
     tenantId: 'tenant-marco',
     userId: 'appbase-admin',
     catalogBaseUrl: 'https://cdn.marco.app/catalog',
-    defaults: { enabledMiniApps: [] },
+    defaults: { enabledMiniApps: ['gestor-tarefas'] },
     user: { enabledMiniApps: [], entitlements: {}, providers: {} },
     miniApps: [
       {
         key: 'boas-vindas',
         manifestUrl: '../miniapps/boas-vindas/manifest.json',
         moduleUrl: '../miniapps/boas-vindas/module.js',
+      },
+      {
+        key: 'gestor-tarefas',
+        manifestUrl: '../miniapps/gestor-tarefas/manifest.json',
+        moduleUrl: '../miniapps/gestor-tarefas/module.js',
       },
     ],
     ui: { theme: 'light', layout: 'panel' },
@@ -246,6 +251,51 @@ import { AppBase } from './runtime/app-base.js';
               'miniapp.boas_vindas.marketplace.capabilities.demo',
               'miniapp.boas_vindas.marketplace.capabilities.panel',
               'miniapp.boas_vindas.marketplace.capabilities.docs',
+            ],
+          },
+        },
+      },
+    },
+    {
+      key: 'gestor-tarefas',
+      manifest: {
+        miniappId: 'gestor-tarefas',
+        key: 'gestor-tarefas',
+        name: 'Gestor de tarefas Marco',
+        version: '0.1.0',
+        kind: 'experience',
+        supportedLocales: ['pt-BR', 'en-US', 'es-ES'],
+        dictionaries: {
+          'pt-BR': './src/i18n/pt-BR.json',
+          'en-US': './src/i18n/en-US.json',
+          'es-ES': './src/i18n/es-ES.json',
+        },
+        meta: {
+          card: {
+            label: 'Gestor de tarefas Marco',
+            labelKey: 'miniapp.gestor_tarefas.card.title',
+            meta: 'Acompanhe prazos e situação de cada tarefa da equipe.',
+            metaKey: 'miniapp.gestor_tarefas.card.subtitle',
+            cta: 'Abrir gestor',
+            ctaKey: 'miniapp.gestor_tarefas.card.cta',
+          },
+          badges: ['Beta'],
+          badgeKeys: ['miniapp.gestor_tarefas.badges.beta'],
+          panel: {
+            meta: 'Organize entregas com painel leve de tarefas, prazos e status.',
+            metaKey: 'miniapp.gestor_tarefas.panel.meta',
+          },
+          marketplace: {
+            title: 'Gestor de tarefas Marco',
+            titleKey: 'miniapp.gestor_tarefas.marketplace.title',
+            description:
+              'MiniApp para planejar tarefas internas com resumo de prazos e controle de situação.',
+            descriptionKey: 'miniapp.gestor_tarefas.marketplace.description',
+            capabilities: ['Cadastro rápido de tarefas', 'Gestão de prazos com alerta', 'Resumo por situação'],
+            capabilityKeys: [
+              'miniapp.gestor_tarefas.marketplace.capabilities.create',
+              'miniapp.gestor_tarefas.marketplace.capabilities.deadlines',
+              'miniapp.gestor_tarefas.marketplace.capabilities.summary',
             ],
           },
         },

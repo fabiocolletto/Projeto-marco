@@ -1989,6 +1989,151 @@ select {
   box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.18);
 }
 
+/* MiniApp — Gestor de tarefas */
+.miniapp-task-manager {
+  display: grid;
+  gap: 20px;
+}
+
+.miniapp-task-manager__card {
+  height: 100%;
+}
+
+.miniapp-task-manager__summary {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ac-muted);
+}
+
+.miniapp-task-manager__form {
+  display: grid;
+  gap: 16px;
+}
+
+.miniapp-task-manager__form-grid {
+  align-items: end;
+}
+
+.miniapp-task-manager__form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.miniapp-task-manager__status-select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-card-bg);
+  color: var(--ac-card-ink);
+  font: inherit;
+}
+
+.miniapp-task-manager__status-select:focus-visible {
+  outline: 3px solid rgba(59, 130, 246, 0.35);
+  outline-offset: 1px;
+}
+
+:root[data-theme='dark'] .miniapp-task-manager__status-select {
+  background: var(--ac-panel-soft-bg);
+  color: var(--ac-card-ink);
+}
+
+.miniapp-task-manager__task-title {
+  font-weight: 600;
+  color: var(--ac-card-ink);
+  word-break: break-word;
+}
+
+.miniapp-task-manager__title-cell {
+  min-width: 180px;
+}
+
+.miniapp-task-manager__due-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.miniapp-task-manager__due-date {
+  font-weight: 600;
+  color: var(--ac-primary);
+}
+
+.miniapp-task-manager__status-cell {
+  display: grid;
+  gap: 6px;
+}
+
+.miniapp-task-manager__status-label {
+  font-weight: 600;
+  color: var(--ac-primary);
+}
+
+.miniapp-task-manager__status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: var(--ac-border-width) solid var(--ac-chip-border);
+  background: var(--ac-chip-bg);
+  color: var(--ac-chip-ink);
+}
+
+.miniapp-task-manager__status-badge--overdue {
+  background: var(--ac-crit-bg);
+  border-color: var(--ac-crit);
+  color: var(--ac-crit);
+}
+
+.miniapp-task-manager__status-badge--today {
+  background: rgba(249, 115, 22, 0.14);
+  border-color: rgba(249, 115, 22, 0.32);
+  color: var(--ac-accent);
+}
+
+:root[data-theme='dark'] .miniapp-task-manager__status-badge--today {
+  background: rgba(251, 191, 36, 0.22);
+  border-color: rgba(251, 191, 36, 0.48);
+  color: #fbbf24;
+}
+
+.miniapp-task-manager__list-note {
+  margin: 0;
+  color: var(--ac-muted);
+  font-weight: 500;
+}
+
+.miniapp-task-manager__empty {
+  padding: 32px 16px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--ac-muted);
+}
+
+.miniapp-task-manager__delete {
+  padding: 8px 14px;
+}
+
+@media (min-width: 960px) {
+  .miniapp-task-manager {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .miniapp-task-manager__card--list {
+    grid-column: span 2;
+  }
+}
+
 .ac-btn:hover,
 .ac-btn:focus-visible {
   background: var(--ac-primary);

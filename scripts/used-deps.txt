@@ -48,6 +48,16 @@ miniapps/boas-vindas/module.js
 miniapps/boas-vindas/src/i18n/en-US.json
 miniapps/boas-vindas/src/i18n/es-ES.json
 miniapps/boas-vindas/src/i18n/pt-BR.json
+miniapps/gestor-tarefas/docs/01-briefing-funcional.md
+miniapps/gestor-tarefas/docs/02-pacote-conteudo.md
+miniapps/gestor-tarefas/docs/03-pacote-visual.md
+miniapps/gestor-tarefas/docs/04-plano-qa.md
+miniapps/gestor-tarefas/docs/changelog.md
+miniapps/gestor-tarefas/manifest.json
+miniapps/gestor-tarefas/module.js
+miniapps/gestor-tarefas/src/i18n/en-US.json
+miniapps/gestor-tarefas/src/i18n/es-ES.json
+miniapps/gestor-tarefas/src/i18n/pt-BR.json
 package-lock.json
 package.json
 playwright.config.js
@@ -60,6 +70,7 @@ scripts/used-runtime-deps.txt
 scripts/used-static-deps.json
 tests/language-panel.spec.js
 tests/miniapp-loader.spec.js
+tests/miniapp-task-manager.spec.js
 tests/panel-card.spec.js
 tests/profile-selector.spec.js
 tests/session-hydration.spec.js

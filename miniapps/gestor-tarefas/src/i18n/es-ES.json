@@ -1,0 +1,77 @@
+{
+  "miniapp": {
+    "gestor_tarefas": {
+      "card": {
+        "title": "Gestor de tareas Marco",
+        "subtitle": "Sigue los plazos y el estado de cada tarea del equipo.",
+        "cta": "Abrir gestor"
+      },
+      "badges": {
+        "beta": "Beta"
+      },
+      "panel": {
+        "meta": "Organiza entregas con un tablero ligero de tareas, plazos y estado."
+      },
+      "marketplace": {
+        "title": "Gestor de tareas Marco",
+        "description": "MiniApp para planificar el trabajo interno con seguimiento de plazos y control de estado.",
+        "capabilities": {
+          "create": "Registro rápido de tareas",
+          "deadlines": "Alertas de plazo",
+          "summary": "Resumen por estado"
+        }
+      },
+      "ui": {
+        "header": {
+          "title": "Gestor de tareas Marco",
+          "subtitle": "Sigue los plazos y el estado de cada tarea del equipo.",
+          "badge": "Beta",
+          "note": "Centraliza el trabajo de los squads y detecta lo que está atrasado."
+        },
+        "summary": {
+          "metrics": "{{total}} tareas — {{pending}} pendientes · {{inProgress}} en progreso · {{blocked}} bloqueadas · {{done}} completadas",
+          "empty": "No hay tareas registradas."
+        },
+        "form": {
+          "title": "Título de la tarea",
+          "titlePlaceholder": "Ej.: Revisar presentación del squad",
+          "dueDate": "Plazo",
+          "status": "Estado",
+          "submit": "Agregar tarea",
+          "feedback": {
+            "created": "\"{{title}}\" añadida a la lista.",
+            "updated": "Estado de \"{{title}}\" actualizado a {{status}}.",
+            "deleted": "\"{{title}}\" eliminada de la lista.",
+            "validation": "Ingresa un título para agregar la tarea."
+          }
+        },
+        "table": {
+          "title": "Tareas registradas",
+          "note": "Consulta plazos, actualiza el estado y elimina entregas finalizadas.",
+          "caption": "Tabla de tareas con plazos y estado",
+          "columns": {
+            "task": "Tarea",
+            "dueDate": "Plazo",
+            "status": "Estado",
+            "actions": "Acciones"
+          },
+          "empty": "No hay tareas registradas aún.",
+          "noDueDate": "Sin plazo definido",
+          "dueToday": "Entrega hoy",
+          "delete": "Eliminar",
+          "deleteAria": "Eliminar \"{{task}}\"",
+          "statusAria": "Actualizar estado de \"{{task}}\""
+        },
+        "loading": "Cargando gestor de tareas..."
+      },
+      "statuses": {
+        "pending": "Pendiente",
+        "in_progress": "En progreso",
+        "blocked": "Bloqueada",
+        "done": "Completada",
+        "overdue": "Atrasada",
+        "due_today": "Entrega hoy"
+      }
+    }
+  }
+}

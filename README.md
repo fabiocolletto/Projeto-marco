@@ -27,7 +27,8 @@ vanilla na pasta `appbase/`, seguindo as diretrizes do blueprint visual.
 │   └── storage/              # Persistência local (IndexedDB + fallback)
 ├── catalog/ui-extensions.json# Catálogo atual de miniapps carregado no runtime
 ├── miniapps/
-│   └── boas-vindas/          # MiniApp estabilizado (versão ativa)
+│   ├── boas-vindas/          # MiniApp estabilizado (versão ativa)
+│   └── gestor-tarefas/       # Gestor de tarefas beta com prazos e situação
 ├── scripts/                  # Manifestos de dependências + utilitário de montagem
 ├── tests/                    # Suíte Playwright (inclui `trace-deps`)
 ├── manuals/                  # Manuais N1 (fluxos operacionais oficiais)
