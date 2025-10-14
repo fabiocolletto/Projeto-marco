@@ -981,6 +981,8 @@ select {
   height: 100%;
   overflow: hidden;
   box-shadow: none;
+  width: min(1080px, 100%);
+  margin: 0 auto;
 }
 
 .ac-stage__empty {
