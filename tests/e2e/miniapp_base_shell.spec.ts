@@ -63,11 +63,27 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('#panel')).toBeVisible();
     await expect(page.locator('.app-footer')).toBeVisible();
 
-    await page.click('#btnCollapse');
-    await expect(page.locator('.app-shell')).toHaveClass(/is-collapsed/);
+    const shell = page.locator('.app-shell');
+    const settingsSubmenu = page.locator('#settings-submenu');
+
+    await expect(shell).not.toHaveClass(/is-collapsed/);
 
     await page.click('#settings-toggle');
-    await expect(page.locator('#settings-submenu')).toBeVisible();
+    await expect(shell).toHaveClass(/is-collapsed/);
+    await expect(settingsSubmenu).toBeVisible();
+
+    await page.click('#settings-toggle');
+    await expect(settingsSubmenu).toBeHidden();
+    await expect(shell).toHaveClass(/is-collapsed/);
+
+    await page.click('#btnMenu');
+    await expect(shell).not.toHaveClass(/is-collapsed/);
+
+    await page.click('#btnCollapse');
+    await expect(shell).toHaveClass(/is-collapsed/);
+
+    await page.click('#settings-toggle');
+    await expect(settingsSubmenu).toBeVisible();
 
     await page.click('#btnTheme');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');

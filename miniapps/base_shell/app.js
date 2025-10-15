@@ -57,6 +57,8 @@ let settingsMenuControls = null;
 let isRedirectingHome = false;
 let userManagementControls = null;
 
+let sidebarControls = null;
+
 const userManagementState = {
   mode: null,
   targetId: null
@@ -216,20 +218,42 @@ function updateRevisionMetadata() {
   }
 }
 
-function setupSidebar() {
+function getSidebarControls() {
+  if (sidebarControls) {
+    return sidebarControls;
+  }
   const shell = document.querySelector('.app-shell');
-  const toggleButtons = [
+  const buttons = [
     document.getElementById('btnMenu'),
     document.getElementById('btnCollapse')
   ].filter(Boolean);
-  if (!shell || toggleButtons.length === 0) return;
-  toggleButtons.forEach(button => {
+  if (!shell || buttons.length === 0) {
+    return null;
+  }
+  sidebarControls = { shell, buttons };
+  return sidebarControls;
+}
+
+function setSidebarCollapsed(collapsed, options = {}) {
+  const controls = getSidebarControls();
+  if (!controls) return;
+  const { shell, buttons } = controls;
+  const shouldCollapse = Boolean(collapsed);
+  shell.classList.toggle('is-collapsed', shouldCollapse);
+  buttons.forEach(button => button.setAttribute('aria-expanded', String(!shouldCollapse)));
+  if (shouldCollapse && options.closeSettingsMenu !== false) {
+    closeSettingsMenu();
+  }
+}
+
+function setupSidebar() {
+  const controls = getSidebarControls();
+  if (!controls) return;
+  const { shell, buttons } = controls;
+  buttons.forEach(button => {
     button.addEventListener('click', () => {
-      const collapsed = shell.classList.toggle('is-collapsed');
-      toggleButtons.forEach(control => control.setAttribute('aria-expanded', String(!collapsed)));
-      if (collapsed) {
-        closeSettingsMenu();
-      }
+      const next = !shell.classList.contains('is-collapsed');
+      setSidebarCollapsed(next);
     });
   });
 }
@@ -245,11 +269,15 @@ function setupSettingsMenu() {
   toggle.addEventListener('click', () => {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     const next = !expanded;
-    toggle.setAttribute('aria-expanded', String(next));
-    submenu.hidden = !next;
     if (next) {
+      const controls = getSidebarControls();
+      if (controls && !controls.shell.classList.contains('is-collapsed')) {
+        setSidebarCollapsed(true, { closeSettingsMenu: false });
+      }
       closeActiveMenu();
     }
+    toggle.setAttribute('aria-expanded', String(next));
+    submenu.hidden = !next;
   });
 }
 
