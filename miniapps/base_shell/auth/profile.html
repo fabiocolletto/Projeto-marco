@@ -97,22 +97,58 @@
           <section class="panel-content">
             <article class="card" id="profile-card">
               <h2 data-i18n="auth.profile.title">Perfil</h2>
-              <dl class="profile-data">
-                <div>
-                  <dt data-i18n="auth.form.name">Nome</dt>
-                  <dd id="profile-name">--</dd>
+              <form id="profile-form" class="form" novalidate>
+                <fieldset>
+                  <legend data-i18n="auth.profile.form.profileLegend">Dados pessoais</legend>
+                  <div class="form-field">
+                    <label for="profile-name" data-i18n="auth.form.name">Nome</label>
+                    <input id="profile-name" name="name" type="text" autocomplete="name" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="profile-email" data-i18n="auth.form.email">E-mail</label>
+                    <input id="profile-email" name="email" type="email" autocomplete="email" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="profile-role" data-i18n="auth.form.role">Perfil de acesso</label>
+                    <select id="profile-role" name="role" required>
+                      <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
+                      <option value="member" data-i18n="auth.form.member">Membro</option>
+                    </select>
+                  </div>
+                </fieldset>
+                <div class="form-actions">
+                  <button type="submit" class="cta" data-i18n="actions.save">Salvar</button>
+                  <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
                 </div>
-                <div>
-                  <dt data-i18n="auth.form.email">E-mail</dt>
-                  <dd id="profile-email">--</dd>
+                <p id="profile-form-feedback" class="feedback" role="status" aria-live="polite"></p>
+              </form>
+              <form id="password-form" class="form" novalidate>
+                <fieldset>
+                  <legend data-i18n="auth.profile.form.passwordLegend">Segurança</legend>
+                  <div class="form-field">
+                    <label for="password-current" data-i18n="auth.form.currentPassword">Senha atual</label>
+                    <input id="password-current" name="currentPassword" type="password" autocomplete="current-password" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="password-new" data-i18n="auth.form.newPassword">Nova senha</label>
+                    <input id="password-new" name="newPassword" type="password" autocomplete="new-password" required />
+                  </div>
+                  <div class="form-field">
+                    <label for="password-confirm" data-i18n="auth.form.confirmPassword">Confirmar nova senha</label>
+                    <input id="password-confirm" name="confirmPassword" type="password" autocomplete="new-password" required />
+                  </div>
+                </fieldset>
+                <div class="form-actions">
+                  <button type="submit" class="cta" data-i18n="auth.profile.form.updatePassword">Atualizar senha</button>
+                  <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
                 </div>
-                <div>
-                  <dt data-i18n="auth.form.role">Perfil de acesso</dt>
-                  <dd id="profile-role">--</dd>
-                </div>
-              </dl>
-              <button id="profile-logout" class="cta secondary" data-i18n="auth.profile.logout">Encerrar sessão</button>
-              <p id="profile-feedback" class="feedback" role="status" aria-live="polite"></p>
+                <p id="password-form-feedback" class="feedback" role="status" aria-live="polite"></p>
+              </form>
+              <div class="profile-actions">
+                <button id="profile-logout" class="cta secondary" type="button" data-i18n="auth.profile.logout">Encerrar sessão</button>
+                <button id="delete-account" class="cta danger" type="button" data-i18n="auth.profile.delete">Excluir conta</button>
+                <p id="profile-feedback" class="feedback" role="status" aria-live="polite"></p>
+              </div>
             </article>
           </section>
         </main>

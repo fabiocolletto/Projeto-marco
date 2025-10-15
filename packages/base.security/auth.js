@@ -52,6 +52,10 @@ export function listUsers() {
   return readStore(USERS_KEY, []);
 }
 
+function persistUsers(users) {
+  writeStore(USERS_KEY, users);
+}
+
 export function currentUser() {
   const sessionId = readStore(SESSION_KEY, null);
   if (!sessionId) return null;
@@ -72,7 +76,7 @@ export function register({ name, email, password, role = 'member' }) {
     createdAt: new Date().toISOString()
   };
   users.push(newUser);
-  writeStore(USERS_KEY, users);
+  persistUsers(users);
   setSession(newUser.id);
   return newUser;
 }
@@ -90,6 +94,60 @@ export function login({ email, password }) {
 export function logout() {
   writeStore(SESSION_KEY, null);
   notify();
+}
+
+export function updateUserProfile(id, { name, email, role }) {
+  const users = listUsers();
+  const index = users.findIndex(user => user.id === id);
+  if (index === -1) {
+    throw new Error('auth:user-not-found');
+  }
+  const nextEmail = email ?? users[index].email;
+  if (nextEmail && users.some(user => user.email === nextEmail && user.id !== id)) {
+    throw new Error('auth:user-exists');
+  }
+  const updated = {
+    ...users[index],
+    name: name ?? users[index].name,
+    email: nextEmail,
+    role: normalizeRole(role ?? users[index].role)
+  };
+  users[index] = updated;
+  persistUsers(users);
+  notify();
+  return updated;
+}
+
+export function changePassword(id, { currentPassword, newPassword }) {
+  const users = listUsers();
+  const index = users.findIndex(user => user.id === id);
+  if (index === -1) {
+    throw new Error('auth:user-not-found');
+  }
+  const user = users[index];
+  if (user.password !== currentPassword) {
+    throw new Error('auth:invalid-password');
+  }
+  users[index] = { ...user, password: newPassword };
+  persistUsers(users);
+  notify();
+  return users[index];
+}
+
+export function deleteUser(id) {
+  const users = listUsers();
+  const index = users.findIndex(user => user.id === id);
+  if (index === -1) {
+    throw new Error('auth:user-not-found');
+  }
+  const [removed] = users.splice(index, 1);
+  persistUsers(users);
+  const sessionId = readStore(SESSION_KEY, null);
+  if (sessionId === id) {
+    writeStore(SESSION_KEY, null);
+  }
+  notify();
+  return removed;
 }
 
 export function switchUser(email) {
