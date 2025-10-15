@@ -33,6 +33,12 @@ const THEME_ICON_MAP = {
   dark: '🌙'
 };
 
+const LANG_ICON_MAP = {
+  'pt-BR': '🇧🇷',
+  'en-US': '🇺🇸',
+  'es-419': '🇪🇸'
+};
+
 let activeMenu = null;
 
 bootstrap();
@@ -43,13 +49,13 @@ async function bootstrap() {
   document.documentElement.lang = initialLang;
   applyTranslations();
   initTheme(getTheme().mode);
-  updateLanguageButton();
+  setupLanguageToggle();
+  updateLanguageToggle();
   setupThemeToggle();
   updateThemeToggle();
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
   setupSidebar();
-  setupLanguageMenu();
   setupUserMenu();
   setupAuthForms();
   document.addEventListener('click', handleDocumentClick);
@@ -57,9 +63,8 @@ async function bootstrap() {
   onLanguageChange(lang => {
     document.documentElement.lang = lang;
     applyTranslations();
-    updateLanguageButton();
+    updateLanguageToggle();
     updateThemeToggle();
-    refreshLanguageMenu();
     refreshUserMenu();
   });
   onThemeChange(() => {
@@ -131,41 +136,34 @@ function setupSidebar() {
   });
 }
 
-function setupLanguageMenu() {
+function setupLanguageToggle() {
   const button = document.getElementById('btnLang');
   if (!button) return;
-  const menu = ensureMenu('lang-menu', button);
-  button.addEventListener('click', event => {
-    event.stopPropagation();
-    toggleMenu(button, menu, renderLanguageMenu);
+  button.addEventListener('click', () => {
+    const current = getLang();
+    const index = LANG_RESOURCES.findIndex(resource => resource.lang === current);
+    const next = LANG_RESOURCES[(index + 1) % LANG_RESOURCES.length];
+    setLang(next.lang);
   });
 }
 
-function renderLanguageMenu(menu) {
-  menu.innerHTML = '';
+function updateLanguageToggle() {
+  const button = document.getElementById('btnLang');
+  if (!button) return;
+  const icon = button.querySelector('[data-lang-icon]');
+  const srOnly = button.querySelector('.sr-only');
   const current = getLang();
-  LANG_RESOURCES.forEach(resource => {
-    const item = document.createElement('li');
-    const option = document.createElement('button');
-    option.type = 'button';
-    option.textContent = t(resource.labelKey);
-    option.dataset.lang = resource.lang;
-    if (resource.lang === current) {
-      option.setAttribute('aria-current', 'true');
-    }
-    option.addEventListener('click', () => {
-      setLang(resource.lang);
-      closeActiveMenu();
-    });
-    item.appendChild(option);
-    menu.appendChild(item);
-  });
-}
-
-function refreshLanguageMenu() {
-  const menu = document.getElementById('lang-menu');
-  if (menu) {
-    renderLanguageMenu(menu);
+  const resource = LANG_RESOURCES.find(item => item.lang === current);
+  const label = resource ? t(resource.labelKey) : current;
+  const actionLabel = t('actions.toggleLanguage');
+  const withContext = `${actionLabel} (${label})`;
+  button.setAttribute('aria-label', withContext);
+  button.title = withContext;
+  if (srOnly) {
+    srOnly.textContent = withContext;
+  }
+  if (icon) {
+    icon.textContent = LANG_ICON_MAP[current] || '🌐';
   }
 }
 
@@ -250,14 +248,6 @@ function handleUserAction(action) {
   }
 }
 
-function updateLanguageButton() {
-  const button = document.querySelector('#btnLang span');
-  if (!button) return;
-  const current = getLang();
-  const resource = LANG_RESOURCES.find(item => item.lang === current);
-  button.textContent = resource ? t(resource.labelKey) : current;
-}
-
 function updateThemeToggle() {
   const button = document.getElementById('btnTheme');
   if (!button) return;
@@ -275,18 +265,6 @@ function updateThemeToggle() {
   if (srOnly) {
     srOnly.textContent = label;
   }
-}
-
-function ensureMenu(id, button) {
-  let menu = document.getElementById(id);
-  if (!menu) {
-    menu = document.createElement('ul');
-    menu.id = id;
-    menu.className = 'menu';
-    menu.hidden = true;
-    button.insertAdjacentElement('afterend', menu);
-  }
-  return menu;
 }
 
 function toggleMenu(button, menu, renderer) {

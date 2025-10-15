@@ -16,8 +16,9 @@
         <img id="logo" class="brand" src="../../assets/brand/logo-light.svg" alt="MiniApp Base" />
         <h1 id="page-title" data-i18n="app.title">MiniApp Base</h1>
         <div class="toolbar" role="group" aria-label="Global actions">
-          <button id="btnLang" class="ghost" aria-haspopup="true" aria-expanded="false">
-            <span data-i18n="actions.language">Idioma</span>
+          <button id="btnLang" class="ghost icon-only" type="button">
+            <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+            <span aria-hidden="true" data-lang-icon>🇧🇷</span>
           </button>
           <button id="btnTheme" class="ghost icon-only" type="button" aria-pressed="false">
             <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
