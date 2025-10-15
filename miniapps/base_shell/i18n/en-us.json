@@ -33,6 +33,8 @@
   "auth.profile.userManagementTitle": "User management",
   "auth.profile.userAdd": "Add user",
   "auth.profile.userManagementDescription": "Review and manage every account stored on this device.",
+  "auth.profile.userPanelLoginRequired": "Sign in to access your panel.",
+  "auth.profile.userPanelOwnerOnly": "Only owners can manage users.",
   "auth.profile.userTable.name": "Name",
   "auth.profile.userTable.email": "Email",
   "auth.profile.userTable.role": "Role",
