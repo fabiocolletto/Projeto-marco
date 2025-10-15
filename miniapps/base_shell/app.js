@@ -270,10 +270,6 @@ function setupSettingsMenu() {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     const next = !expanded;
     if (next) {
-      const controls = getSidebarControls();
-      if (controls && !controls.shell.classList.contains('is-collapsed')) {
-        setSidebarCollapsed(true, { closeSettingsMenu: false });
-      }
       closeActiveMenu();
     }
     toggle.setAttribute('aria-expanded', String(next));
