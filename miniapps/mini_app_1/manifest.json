@@ -1,0 +1,9 @@
+{
+  "id": "mini-app-1",
+  "name": "Mini-app 1",
+  "version": "0.1.0",
+  "revision": "R0",
+  "route": "/miniapps/mini_app_1/",
+  "dependsOn": ["base.shell", "base.theme", "base.i18n"],
+  "description": "Skeleton do Mini-app 1 executado dentro do shell base."
+}
