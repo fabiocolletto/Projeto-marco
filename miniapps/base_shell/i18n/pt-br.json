@@ -3,6 +3,7 @@
   "actions.language": "Idioma",
   "actions.theme": "Tema",
   "actions.toggleTheme": "Alternar tema",
+  "actions.toggleLanguage": "Alternar idioma",
   "actions.profile": "Perfil",
   "actions.switchUser": "Trocar usuário",
   "actions.logout": "Sair",
