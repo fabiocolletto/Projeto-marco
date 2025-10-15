@@ -195,6 +195,24 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('#storage-count')).toHaveText('0');
     await expect(page.locator('#storage-projects li')).toHaveText('No se encontraron proyectos.');
     await expect(page.locator('#storage-feedback')).toHaveText('Todos los proyectos fueron eliminados.');
+
+    await expect(page.locator('#profile-name')).toHaveText('Alice Owner');
+    await expect(page.locator('#profile-email')).toHaveText('alice@example.com');
+    await expect(page.locator('#profile-role')).toHaveText('Propietario');
+
+    await page.click('#profile-logout');
+    await expect(page.locator('#profile-feedback')).toHaveText('Cerrar sesión');
+    await expect(page.locator('#profile-name')).toHaveText('--');
+    await expect(page.locator('#current-user')).toHaveText('--');
+
+    await page.goto(`${baseURL}/miniapps/base_shell/auth/login.html`);
+    await page.fill('#login-email', 'alice@example.com');
+    await page.fill('#login-password', 'secret1');
+    await page.click('#login-form .cta');
+    await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Alice Owner.');
+
+    await page.goto(`${baseURL}/miniapps/base_shell/auth/profile.html`);
+    await expect(page.locator('#profile-name')).toHaveText('Alice Owner');
   });
 
   test('cartão de armazenamento quando IndexedDB não está disponível', async ({ page }) => {

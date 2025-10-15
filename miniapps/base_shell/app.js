@@ -58,11 +58,11 @@ const storageCardState = {
   available: false,
   busy: false,
   status: 'checking',
-  statusParams: null,
   projects: [],
   feedbackKey: null,
   feedbackParams: null,
-  errorMessage: null,
+  errorKey: null,
+  errorParams: null,
   persisted: null,
   persistenceSupported: null
 };
@@ -523,6 +523,8 @@ async function setupStorageCard() {
   if (!isStoreAvailable()) {
     storageCardState.available = false;
     storageCardState.status = 'unsupported';
+    storageCardState.projects = [];
+    clearStorageError();
     setStorageFeedback('storage.feedback.unavailable');
     updateStorageCardUI();
     return;
@@ -610,9 +612,11 @@ function updateStorageCardUI() {
   if (card) {
     card.dataset.status = storageCardState.status;
     card.classList.toggle('is-busy', storageCardState.busy);
+    card.setAttribute('aria-busy', String(storageCardState.busy));
   }
   if (spinner) {
     spinner.hidden = !storageCardState.busy;
+    spinner.setAttribute('aria-hidden', storageCardState.busy ? 'false' : 'true');
   }
   if (statusText) {
     const message = renderStorageStatus();
@@ -652,9 +656,11 @@ function updateStorageCardUI() {
   if (persistLink) {
     if (disableControls) {
       persistLink.setAttribute('aria-disabled', 'true');
+      persistLink.setAttribute('tabindex', '-1');
       persistLink.classList.add('is-disabled');
     } else {
       persistLink.removeAttribute('aria-disabled');
+      persistLink.removeAttribute('tabindex');
       persistLink.classList.remove('is-disabled');
     }
   }
@@ -674,7 +680,7 @@ async function handleStorageExport() {
     });
   } catch (error) {
     const resolved = resolveStorageError(error);
-    markStorageError(resolved);
+    markStorageError(resolved, { fatal: false });
     setStorageFeedback('storage.feedback.exportError', {
       reasonKey: resolved.key,
       reasonParams: resolved.params
@@ -714,7 +720,7 @@ async function handleStorageFileImport(event) {
     });
   } catch (error) {
     const resolved = resolveStorageError(error);
-    markStorageError(resolved);
+    markStorageError(resolved, { fatal: false });
     setStorageFeedback('storage.feedback.importError', {
       reasonKey: resolved.key,
       reasonParams: resolved.params
@@ -735,7 +741,7 @@ async function handleStorageWipe() {
     setStorageFeedback('storage.feedback.wipeSuccess');
   } catch (error) {
     const resolved = resolveStorageError(error);
-    markStorageError(resolved);
+    markStorageError(resolved, { fatal: false });
     setStorageFeedback('storage.feedback.wipeError', {
       reasonKey: resolved.key,
       reasonParams: resolved.params
@@ -767,7 +773,7 @@ async function handleStoragePersistence(event) {
     }
   } catch (error) {
     const resolved = resolveStorageError(error);
-    markStorageError(resolved);
+    markStorageError(resolved, { fatal: false });
     setStorageFeedback('storage.feedback.persistenceError', {
       reasonKey: resolved.key,
       reasonParams: resolved.params
@@ -796,6 +802,7 @@ function setStorageBusy(value) {
 function clearStorageFeedback() {
   storageCardState.feedbackKey = null;
   storageCardState.feedbackParams = null;
+  updateStorageCardUI();
 }
 
 function setStorageFeedback(key, params) {
@@ -820,9 +827,16 @@ function markStorageReady() {
   clearStorageError();
 }
 
-function markStorageError(resolved) {
-  storageCardState.status = 'error';
+function markStorageError(resolved, options = {}) {
+  const fatal = options.fatal ?? (typeof resolved.fatal === 'boolean' ? resolved.fatal : true);
   setStorageError(resolved.key, resolved.params);
+  if (fatal) {
+    storageCardState.status = 'error';
+    storageCardState.available = false;
+  } else if (storageCardState.available) {
+    storageCardState.status = 'ready';
+  }
+  updateStorageCardUI();
 }
 
 function renderStorageStatus() {
@@ -833,14 +847,13 @@ function renderStorageStatus() {
     error: 'storage.status.error'
   };
   const key = map[storageCardState.status] || map.error;
-  let params = storageCardState.statusParams || {};
   if (storageCardState.status === 'error') {
     const reason = storageCardState.errorKey
       ? t(storageCardState.errorKey, storageCardState.errorParams || {})
       : '';
-    params = { message: reason };
+    return t(key, { message: reason });
   }
-  return t(key, params);
+  return t(key);
 }
 
 function renderStorageFeedback() {
@@ -890,30 +903,34 @@ function refreshStorageProjects() {
 
 function resolveStorageError(error) {
   if (!error) {
-    return { key: 'storage.errors.unknown' };
+    return { key: 'storage.errors.unknown', fatal: true };
   }
   const name = error.name || '';
   if (name === 'QuotaExceededError') {
-    return { key: 'storage.errors.quota' };
+    return { key: 'storage.errors.quota', fatal: false };
   }
   if (name === 'NotAllowedError') {
-    return { key: 'storage.errors.notAllowed' };
+    return { key: 'storage.errors.notAllowed', fatal: false };
   }
   if (name === 'AbortError') {
-    return { key: 'storage.errors.aborted' };
+    return { key: 'storage.errors.aborted', fatal: false };
   }
   if (error instanceof SyntaxError) {
-    return { key: 'storage.errors.invalidJson' };
+    return { key: 'storage.errors.invalidJson', fatal: false };
   }
+  const fatalNames = ['InvalidStateError', 'UnknownError', 'SecurityError'];
+  const fatal = fatalNames.includes(name) || !name;
   return {
     key: 'storage.errors.generic',
-    params: { message: error.message || String(error) }
+    params: { message: error.message || String(error) },
+    fatal
   };
 }
 
 function downloadJSON(filename, text) {
   try {
-    const blob = new Blob([text], { type: 'application/json' });
+    const content = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+    const blob = new Blob([content], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
