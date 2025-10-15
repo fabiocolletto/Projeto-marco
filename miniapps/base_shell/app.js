@@ -28,11 +28,10 @@ const LANG_RESOURCES = [
   { lang: 'es-419', file: 'es-419.json', labelKey: 'lang.es' }
 ];
 
-const THEME_OPTIONS = [
-  { value: 'light', labelKey: 'theme.light' },
-  { value: 'dark', labelKey: 'theme.dark' },
-  { value: 'system', labelKey: 'theme.system' }
-];
+const THEME_ICON_MAP = {
+  light: '☀️',
+  dark: '🌙'
+};
 
 let activeMenu = null;
 
@@ -45,12 +44,12 @@ async function bootstrap() {
   applyTranslations();
   initTheme(getTheme().mode);
   updateLanguageButton();
-  updateThemeButton();
+  setupThemeToggle();
+  updateThemeToggle();
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
   setupSidebar();
   setupLanguageMenu();
-  setupThemeMenu();
   setupUserMenu();
   setupAuthForms();
   document.addEventListener('click', handleDocumentClick);
@@ -59,12 +58,12 @@ async function bootstrap() {
     document.documentElement.lang = lang;
     applyTranslations();
     updateLanguageButton();
+    updateThemeToggle();
     refreshLanguageMenu();
-    refreshThemeMenu();
     refreshUserMenu();
   });
   onThemeChange(() => {
-    updateThemeButton();
+    updateThemeToggle();
   });
   onAuthChange(user => {
     updateUserDisplay(user);
@@ -170,42 +169,14 @@ function refreshLanguageMenu() {
   }
 }
 
-function setupThemeMenu() {
+function setupThemeToggle() {
   const button = document.getElementById('btnTheme');
   if (!button) return;
-  const menu = ensureMenu('theme-menu', button);
-  button.addEventListener('click', event => {
-    event.stopPropagation();
-    toggleMenu(button, menu, renderThemeMenu);
+  button.addEventListener('click', () => {
+    const { resolved } = getTheme();
+    const next = resolved === 'dark' ? 'light' : 'dark';
+    setTheme(next);
   });
-}
-
-function renderThemeMenu(menu) {
-  menu.innerHTML = '';
-  const current = getTheme().mode;
-  THEME_OPTIONS.forEach(option => {
-    const item = document.createElement('li');
-    const control = document.createElement('button');
-    control.type = 'button';
-    control.textContent = t(option.labelKey);
-    control.dataset.theme = option.value;
-    if (option.value === current) {
-      control.setAttribute('aria-current', 'true');
-    }
-    control.addEventListener('click', () => {
-      setTheme(option.value);
-      closeActiveMenu();
-    });
-    item.appendChild(control);
-    menu.appendChild(item);
-  });
-}
-
-function refreshThemeMenu() {
-  const menu = document.getElementById('theme-menu');
-  if (menu) {
-    renderThemeMenu(menu);
-  }
 }
 
 function setupUserMenu() {
@@ -287,12 +258,23 @@ function updateLanguageButton() {
   button.textContent = resource ? t(resource.labelKey) : current;
 }
 
-function updateThemeButton() {
-  const button = document.querySelector('#btnTheme span');
+function updateThemeToggle() {
+  const button = document.getElementById('btnTheme');
   if (!button) return;
-  const current = getTheme().mode;
-  const option = THEME_OPTIONS.find(item => item.value === current);
-  button.textContent = option ? t(option.labelKey) : current;
+  const icon = button.querySelector('[data-theme-icon]');
+  const label = t('actions.toggleTheme');
+  const { resolved } = getTheme();
+  const symbol = THEME_ICON_MAP[resolved] || THEME_ICON_MAP.light;
+  button.setAttribute('aria-pressed', String(resolved === 'dark'));
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  if (icon) {
+    icon.textContent = symbol;
+  }
+  const srOnly = button.querySelector('.sr-only');
+  if (srOnly) {
+    srOnly.textContent = label;
+  }
 }
 
 function ensureMenu(id, button) {

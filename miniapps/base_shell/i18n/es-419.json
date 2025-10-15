@@ -2,6 +2,7 @@
   "app.title": "MiniApp Base",
   "actions.language": "Idioma",
   "actions.theme": "Tema",
+  "actions.toggleTheme": "Cambiar tema",
   "actions.profile": "Perfil",
   "actions.switchUser": "Cambiar usuario",
   "actions.logout": "Cerrar sesión",
