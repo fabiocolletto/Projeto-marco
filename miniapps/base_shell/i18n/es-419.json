@@ -64,5 +64,6 @@
   "lang.en": "Inglés",
   "lang.es": "Español",
   "footer.revision": "{appName} · Revisión {revision} (v{version})",
-  "footer.revisionFallback": "{appName} · Revisión no disponible"
+  "footer.revisionFallback": "{appName} · Revisión no disponible",
+  "footer.revisionLog": "Ver registro de revisiones"
 }

@@ -64,5 +64,6 @@
   "lang.en": "English",
   "lang.es": "Spanish",
   "footer.revision": "{appName} · Revision {revision} (v{version})",
-  "footer.revisionFallback": "{appName} · Revision unavailable"
+  "footer.revisionFallback": "{appName} · Revision unavailable",
+  "footer.revisionLog": "View revision log"
 }

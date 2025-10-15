@@ -1,8 +1,8 @@
 {
   "id": "base.shell",
   "name": "MiniApp Base",
-  "version": "1.0.0",
-  "revision": "R1",
+  "version": "1.0.1",
+  "revision": "R2",
   "route": "/",
   "dependsOn": ["base.theme", "base.i18n", "base.security"]
 }

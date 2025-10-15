@@ -4,6 +4,7 @@ Shell responsivo com cabeçalho, barra lateral recolhível e painel central expa
 
 ## Estrutura
 - **app.js** – inicia o shell, carrega i18n/tema, sincroniza usuário atual e trata menus.
+- **REVISION_LOG.md** – registro numerado das revisões do shell, referenciado no rodapé.
 - **i18n/** – dicionários de idioma.
 - **auth/** – páginas de login, registro e perfil reutilizando o layout base.
 - **styles.css** – layout geral, cartões de autenticação e responsividade.
@@ -34,3 +35,8 @@ Se algum desses elementos não aparecer, confirme se os assets estão sendo serv
 
 ## Testes
 Execute `npx playwright test` para rodar o smoke test em `tests/e2e/miniapp_base_shell.spec.ts`.
+
+### Validação visual
+- Suba o servidor com `npm run dev` e abra `http://localhost:4173/` em tela cheia.
+- Confirme que o rodapé exibe a revisão atual e o link para `REVISION_LOG.md`.
+- Garanta que o menu do usuário, o alternador de idioma e o alternador de tema respondem a interações com mouse e teclado.
