@@ -66,17 +66,21 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#btnCollapse');
     await expect(page.locator('.app-shell')).toHaveClass(/is-collapsed/);
 
+    await page.click('#settings-toggle');
+    await expect(page.locator('#settings-submenu')).toBeVisible();
+
     await page.click('#btnTheme');
-    await page.click('ul#theme-menu button[data-theme="dark"]');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
     await page.click('#btnLang');
-    await page.click('ul#lang-menu button[data-lang="en-US"]');
     await expect(page.locator('a.cta').first()).toHaveText('Sign in');
 
     await page.click('#btnLang');
-    await page.click('ul#lang-menu button[data-lang="es-419"]');
     await expect(page.locator('a.cta').first()).toHaveText('Ingresar');
+
+    await expect(page.locator('#btnUserPanel')).toHaveAttribute('aria-label', 'Abrir panel de usuario');
+
+    await page.click('#settings-toggle');
 
     await page.click('a[data-i18n="panel.actions.register"]');
     await expect(page).toHaveURL(/register\.html$/);
@@ -128,5 +132,13 @@ test.describe('MiniApp Base shell', () => {
       });
     }).toBe('Alice Owner');
     await expect(page.locator('#current-user')).toHaveText('Alice Owner');
+
+    await page.click('#settings-toggle');
+    await expect(page.locator('#btnUserPanel')).toHaveAttribute(
+      'aria-label',
+      'Abrir panel de usuario de Alice Owner'
+    );
+    await page.click('#btnUserPanel');
+    await expect(page).toHaveURL(/auth\/profile\.html$/);
   });
 });
