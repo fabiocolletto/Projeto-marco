@@ -42,6 +42,28 @@ const LANG_ICON_MAP = {
   'es-419': '🇪🇸'
 };
 
+const MINI_APP_CATALOG = [
+  {
+    id: 'mini-app-1',
+    labelKey: 'nav.miniapps.item1',
+    welcomeTitleKey: 'panel.miniapps.item1.title',
+    welcomeMessageKey: 'panel.miniapps.item1.message',
+    icon: '🧩'
+  },
+  {
+    id: 'mini-app-2',
+    labelKey: 'nav.miniapps.item2',
+    welcomeTitleKey: 'panel.miniapps.item2.title',
+    welcomeMessageKey: 'panel.miniapps.item2.message',
+    icon: '🧩'
+  }
+];
+
+const DEFAULT_MINI_APP_CONTENT = {
+  titleKey: 'panel.welcomeTitle',
+  messageKey: 'panel.welcomeMessage'
+};
+
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
 const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
@@ -58,10 +80,16 @@ let isRedirectingHome = false;
 let userManagementControls = null;
 
 let sidebarControls = null;
+let miniAppMenuControls = null;
 
 const userManagementState = {
   mode: null,
   targetId: null
+};
+
+const miniAppState = {
+  items: [],
+  activeId: null
 };
 
 bootstrap();
@@ -83,6 +111,8 @@ async function bootstrap() {
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
   setupSidebar();
+  const miniApps = await loadActiveMiniApps();
+  setupMiniAppMenu(miniApps);
   setupSettingsMenu();
   setupUserMenu();
   setupAuthForms();
@@ -98,6 +128,8 @@ async function bootstrap() {
     updateThemeToggle();
     updateUserPanelShortcut();
     refreshUserMenu();
+    renderMiniAppMenu();
+    updateMiniAppPanel();
   });
   onThemeChange(() => {
     updateThemeToggle();
@@ -140,6 +172,11 @@ async function loadRevisionInfo() {
       return null;
     }
   }
+}
+
+async function loadActiveMiniApps() {
+  // Placeholder implementation until webhook integration is available.
+  return MINI_APP_CATALOG.map(item => ({ ...item }));
 }
 
 function extractRevisionInfo(manifest) {
@@ -243,6 +280,7 @@ function setSidebarCollapsed(collapsed, options = {}) {
   buttons.forEach(button => button.setAttribute('aria-expanded', String(!shouldCollapse)));
   if (shouldCollapse && options.closeSettingsMenu !== false) {
     closeSettingsMenu();
+    closeMiniAppMenu();
   }
 }
 
@@ -258,6 +296,137 @@ function setupSidebar() {
   });
 }
 
+function setupMiniAppMenu(items) {
+  const toggle = document.getElementById('miniapp-toggle');
+  const submenu = document.getElementById('miniapp-submenu');
+  if (!toggle || !submenu) return;
+  const container = toggle.closest('.has-submenu');
+  miniAppMenuControls = { toggle, submenu, container };
+  toggle.setAttribute('aria-expanded', 'false');
+  submenu.hidden = true;
+  miniAppState.items = Array.isArray(items) ? [...items] : [];
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    const next = !expanded;
+    if (next) {
+      closeSettingsMenu();
+      closeActiveMenu();
+    }
+    toggle.setAttribute('aria-expanded', String(next));
+    submenu.hidden = !next;
+    if (next) {
+      renderMiniAppMenu();
+    }
+  });
+  renderMiniAppMenu();
+  updateMiniAppPanel();
+}
+
+function renderMiniAppMenu() {
+  if (!miniAppMenuControls) return;
+  const { toggle, submenu } = miniAppMenuControls;
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  submenu.innerHTML = '';
+  toggle.disabled = items.length === 0;
+  toggle.setAttribute('aria-disabled', items.length === 0 ? 'true' : 'false');
+  if (!items.length) {
+    toggle.setAttribute('aria-expanded', 'false');
+    submenu.hidden = true;
+    updateMiniAppToggleLabel();
+    return;
+  }
+  items.forEach(item => {
+    const listItem = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.classList.add('submenu-action');
+    button.dataset.miniappId = item.id;
+    const isActive = item.id === miniAppState.activeId;
+    if (isActive) {
+      button.classList.add('is-active');
+      button.setAttribute('aria-pressed', 'true');
+    } else {
+      button.setAttribute('aria-pressed', 'false');
+    }
+    const icon = document.createElement('span');
+    icon.className = 'submenu-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = item.icon || '🧩';
+    const label = document.createElement('span');
+    label.className = 'submenu-label';
+    label.setAttribute('aria-hidden', 'true');
+    label.dataset.i18n = item.labelKey;
+    label.textContent = item.labelKey;
+    const srOnly = document.createElement('span');
+    srOnly.className = 'sr-only';
+    srOnly.dataset.i18n = item.labelKey;
+    srOnly.textContent = item.labelKey;
+    button.append(icon, label, srOnly);
+    button.addEventListener('click', () => {
+      setActiveMiniApp(item.id);
+      closeMiniAppMenu();
+    });
+    listItem.appendChild(button);
+    submenu.appendChild(listItem);
+  });
+  applyTranslations();
+  submenu.querySelectorAll('.submenu-action').forEach(button => {
+    const srOnly = button.querySelector('.sr-only');
+    if (srOnly) {
+      const label = srOnly.textContent.trim();
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+  });
+  updateMiniAppToggleLabel();
+}
+
+function setActiveMiniApp(id) {
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  const next = items.some(item => item.id === id) ? id : null;
+  if (miniAppState.activeId === next) {
+    updateMiniAppPanel();
+    return;
+  }
+  miniAppState.activeId = next;
+  renderMiniAppMenu();
+  updateMiniAppPanel();
+}
+
+function closeMiniAppMenu() {
+  if (!miniAppMenuControls) return;
+  const { toggle, submenu } = miniAppMenuControls;
+  if (!toggle || !submenu) return;
+  toggle.setAttribute('aria-expanded', 'false');
+  submenu.hidden = true;
+}
+
+function updateMiniAppPanel() {
+  const titleNode = document.querySelector('[data-miniapp-title]');
+  const messageNode = document.querySelector('[data-miniapp-message]');
+  if (!titleNode || !messageNode) return;
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  const active = items.find(item => item.id === miniAppState.activeId);
+  const titleKey = active ? active.welcomeTitleKey : DEFAULT_MINI_APP_CONTENT.titleKey;
+  const messageKey = active ? active.welcomeMessageKey : DEFAULT_MINI_APP_CONTENT.messageKey;
+  titleNode.dataset.i18n = titleKey;
+  delete titleNode.dataset.i18nParams;
+  messageNode.dataset.i18n = messageKey;
+  delete messageNode.dataset.i18nParams;
+  applyTranslations();
+}
+
+function updateMiniAppToggleLabel() {
+  if (!miniAppMenuControls) return;
+  const { toggle } = miniAppMenuControls;
+  if (!toggle) return;
+  const labelNode = toggle.querySelector('.label');
+  const labelText = labelNode ? labelNode.textContent.trim() : '';
+  const text = labelText || t('nav.miniapps');
+  toggle.setAttribute('aria-label', text);
+  toggle.title = text;
+}
+
 function setupSettingsMenu() {
   const toggle = document.getElementById('settings-toggle');
   const submenu = document.getElementById('settings-submenu');
@@ -271,6 +440,7 @@ function setupSettingsMenu() {
     const next = !expanded;
     if (next) {
       closeActiveMenu();
+      closeMiniAppMenu();
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
@@ -335,6 +505,7 @@ function setupUserPanelShortcut() {
       handleUserAction('profile');
     }
     closeSettingsMenu();
+    closeMiniAppMenu();
   });
 }
 
@@ -509,6 +680,12 @@ function handleDocumentClick(event) {
       closeSettingsMenu();
     }
   }
+  if (miniAppMenuControls && miniAppMenuControls.container) {
+    const { container } = miniAppMenuControls;
+    if (!container.contains(event.target)) {
+      closeMiniAppMenu();
+    }
+  }
   if (!activeMenu) return;
   const { button, menu } = activeMenu;
   if (button.contains(event.target) || menu.contains(event.target)) return;
@@ -519,6 +696,7 @@ function handleKeydown(event) {
   if (event.key === 'Escape') {
     closeSettingsMenu();
     closeActiveMenu();
+    closeMiniAppMenu();
   }
 }
 

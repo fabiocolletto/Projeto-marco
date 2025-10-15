@@ -58,6 +58,20 @@
               </li>
               <li class="has-submenu">
                 <button
+                  id="miniapp-toggle"
+                  class="submenu-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="miniapp-submenu"
+                >
+                  <span class="icon" aria-hidden="true">🧩</span>
+                  <span class="label" data-i18n="nav.miniapps">Mini-apps</span>
+                  <span class="submenu-caret" aria-hidden="true">▾</span>
+                </button>
+                <ul id="miniapp-submenu" class="submenu" hidden data-miniapp-menu></ul>
+              </li>
+              <li class="has-submenu">
+                <button
                   id="settings-toggle"
                   class="submenu-toggle"
                   type="button"
@@ -101,10 +115,12 @@
         </aside>
         <main id="panel" class="panel" role="main" tabindex="-1">
           <section class="panel-content">
-            <h2 data-i18n="panel.welcomeTitle">Bem-vindo(a)!</h2>
-            <p data-i18n="panel.welcomeMessage">
-              Selecione uma opção no menu para começar a explorar seu miniaplicativo.
-            </p>
+            <div class="miniapp-panel" data-miniapp-panel>
+              <h2 data-miniapp-title data-i18n="panel.welcomeTitle">Bem-vindo(a)!</h2>
+              <p data-miniapp-message data-i18n="panel.welcomeMessage">
+                Selecione uma opção no menu para começar a explorar seu miniaplicativo.
+              </p>
+            </div>
             <div class="cta-group">
               <a class="cta" href="./auth/login.html" data-i18n="panel.actions.login">Acessar</a>
               <a
