@@ -8,18 +8,18 @@
       "active": true
     },
     {
-      "id": "miniapp.one",
+      "id": "mini-app-1",
       "labelKey": "nav.miniapps.miniappOne",
-      "route": "/miniapps/one/",
+      "route": "/miniapps/mini_app_1/",
       "order": 2,
       "active": true
     },
     {
-      "id": "miniapp.two",
+      "id": "mini-app-2",
       "labelKey": "nav.miniapps.miniappTwo",
-      "route": "/miniapps/two/",
+      "route": "/miniapps/mini_app_2/",
       "order": 3,
-      "active": false
+      "active": true
     }
   ]
 }
