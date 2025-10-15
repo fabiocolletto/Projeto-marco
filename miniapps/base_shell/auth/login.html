@@ -16,14 +16,6 @@
         <img id="logo" class="brand" src="../../../assets/brand/logo-light.svg" alt="MiniApp Base" />
         <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
         <div class="toolbar" role="group" aria-label="Global actions">
-          <button id="btnLang" class="ghost icon-only" type="button">
-            <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
-            <span aria-hidden="true" data-lang-icon>🇧🇷</span>
-          </button>
-          <button id="btnTheme" class="ghost icon-only" type="button" aria-pressed="false">
-            <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
-            <span aria-hidden="true" data-theme-icon>☀️</span>
-          </button>
           <div class="user-menu" role="group" aria-label="User menu">
             <button id="btnUser" class="ghost" aria-haspopup="true" aria-expanded="false">
               <span id="current-user">--</span>
@@ -58,11 +50,33 @@
                   <span class="label" data-i18n="nav.analytics">Análises</span>
                 </a>
               </li>
-              <li>
-                <a href="#" title="Configurações">
+              <li class="has-submenu">
+                <button
+                  id="settings-toggle"
+                  class="submenu-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="settings-submenu"
+                >
                   <span class="icon" aria-hidden="true">⚙️</span>
                   <span class="label" data-i18n="nav.settings">Configurações</span>
-                </a>
+                </button>
+                <ul id="settings-submenu" class="submenu" hidden>
+                  <li>
+                    <button id="btnLang" class="submenu-action" type="button">
+                      <span class="submenu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
+                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.language">Idioma</span>
+                      <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+                    </button>
+                  </li>
+                  <li>
+                    <button id="btnTheme" class="submenu-action" type="button" aria-pressed="false">
+                      <span class="submenu-icon" aria-hidden="true" data-theme-icon>☀️</span>
+                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.theme">Tema</span>
+                      <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
+                    </button>
+                  </li>
+                </ul>
               </li>
             </ul>
           </nav>
