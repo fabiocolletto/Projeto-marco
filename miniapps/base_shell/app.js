@@ -469,6 +469,8 @@ function setupAuthForms() {
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     const feedback = document.getElementById('login-feedback');
+    const emailField = loginForm.querySelector('#login-email');
+    const passwordField = loginForm.querySelector('#login-password');
     loginForm.addEventListener('submit', event => {
       event.preventDefault();
       const data = new FormData(loginForm);
@@ -485,6 +487,95 @@ function setupAuthForms() {
         announceTo(feedback, message);
       }
     });
+
+    const switchUserButton = document.getElementById('switch-user');
+    if (switchUserButton) {
+      const hintRow = switchUserButton.closest('.form-hint');
+      const switchUserContainer = document.createElement('div');
+      switchUserContainer.id = 'switch-user-options';
+      switchUserContainer.className = 'switch-user-options';
+      switchUserContainer.hidden = true;
+      (hintRow || switchUserButton).insertAdjacentElement('afterend', switchUserContainer);
+
+      const hideSwitchUserOptions = () => {
+        switchUserContainer.hidden = true;
+        switchUserContainer.innerHTML = '';
+      };
+
+      const renderSwitchUserOptions = () => {
+        const users = listUsers();
+        switchUserContainer.innerHTML = '';
+        if (!users || users.length === 0) {
+          return false;
+        }
+        const title = document.createElement('p');
+        title.className = 'switch-user-title';
+        title.textContent = t('actions.switchUser');
+        switchUserContainer.appendChild(title);
+        const list = document.createElement('ul');
+        list.className = 'switch-user-list';
+        users.forEach(user => {
+          const item = document.createElement('li');
+          const option = document.createElement('button');
+          option.type = 'button';
+          option.className = 'ghost switch-user-option';
+          option.textContent = user.name || user.email;
+          option.dataset.email = user.email;
+          option.addEventListener('click', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            try {
+              const selected = switchUser(user.email);
+              announceTo(feedback, t('auth.feedback.switched', { name: selected.name }));
+              if (emailField) {
+                emailField.value = selected.email;
+              }
+              if (passwordField) {
+                passwordField.value = '';
+                passwordField.focus();
+              }
+              hideSwitchUserOptions();
+            } catch (error) {
+              announceTo(feedback, t('auth.feedback.userNotFound'));
+            }
+          });
+          item.appendChild(option);
+          list.appendChild(item);
+        });
+        switchUserContainer.appendChild(list);
+        return true;
+      };
+
+      switchUserButton.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const hasUsers = renderSwitchUserOptions();
+        if (!hasUsers) {
+          announceTo(feedback, t('auth.feedback.userNotFound'));
+          return;
+        }
+        switchUserContainer.hidden = !switchUserContainer.hidden;
+        if (!switchUserContainer.hidden) {
+          const firstOption = switchUserContainer.querySelector('button');
+          if (firstOption) {
+            firstOption.focus();
+          }
+        }
+      });
+
+      document.addEventListener('click', event => {
+        if (switchUserContainer.hidden) return;
+        if (switchUserContainer.contains(event.target)) return;
+        if (switchUserButton.contains(event.target)) return;
+        hideSwitchUserOptions();
+      });
+
+      onAuthChange(() => {
+        if (!switchUserContainer.hidden) {
+          renderSwitchUserOptions();
+        }
+      });
+    }
   }
 
   const registerForm = document.getElementById('register-form');

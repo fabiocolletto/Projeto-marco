@@ -26,6 +26,7 @@
   "footer.copyright": "2024 Organização Exemplo",
   "footer.revision": "{appName} · Revisão {revision} (v{version})",
   "footer.revisionFallback": "{appName} · Revisão indisponível",
+  "footer.revisionLog": "Ver log de revisões",
   "auth.login.title": "Acessar conta",
   "auth.login.submit": "Entrar",
   "auth.login.switch": "Entrar com outro usuário",

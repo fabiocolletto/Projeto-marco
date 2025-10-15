@@ -11,6 +11,15 @@ Este repositório contém ferramentas e módulos compartilhados utilizados pelos
 2. Crie branches de trabalho a partir da `main` e siga as instruções específicas em `AGENTS.md` quando existirem.
 3. Execute os testes listados na seção de testes do widget antes de enviar alterações.
 
+## Testes automatizados
+Para garantir que `npm test` seja executado com sucesso no ambiente local ou na sandbox do repositório, siga os passos abaixo na primeira vez que configurar o projeto (ou sempre que atualizar a versão do Playwright):
+
+1. Instale as dependências do projeto: `npm install`.
+2. Baixe os navegadores utilizados pelo Playwright (inclui as dependências do sistema operacional): `npx playwright install --with-deps`.
+3. Execute a suíte de testes: `npm test`.
+
+Caso algum passo falhe, ajuste o ambiente de acordo com a mensagem de erro e repita os comandos até que o teste finalize com sucesso.
+
 ## Publicação
 - O GitHub Pages do projeto aponta para `index.html`, que redireciona automaticamente para `miniapps/base_shell/`.
 - Em caso de problemas no redirecionamento automático, acesse manualmente `https://<org>.github.io/Projeto-marco/miniapps/base_shell/`.
