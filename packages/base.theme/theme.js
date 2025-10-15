@@ -46,12 +46,37 @@ function applyTheme(theme) {
   listeners.forEach(listener => listener({ mode: theme, resolved }));
 }
 
+const DEFAULT_BRAND_LOGOS = {
+  light: '../../assets/brand/logo-light.svg',
+  dark: '../../assets/brand/logo-dark.svg'
+};
+
 function swapBrand(resolved) {
   if (typeof document === 'undefined') return;
-  const logo = document.getElementById('logo');
-  if (!logo) return;
-  const path = resolved === 'dark' ? '../../assets/brand/logo-dark.svg' : '../../assets/brand/logo-light.svg';
-  logo.setAttribute('src', path);
+
+  const brandTargets = Array.from(
+    document.querySelectorAll('img[data-brand-light], img[data-brand-dark]')
+  );
+
+  const primaryLogo = document.getElementById('logo');
+  if (primaryLogo instanceof HTMLImageElement && !brandTargets.includes(primaryLogo)) {
+    brandTargets.push(primaryLogo);
+  }
+
+  if (!brandTargets.length) return;
+
+  const datasetKey = resolved === 'dark' ? 'brandDark' : 'brandLight';
+  const fallbackDatasetKey = resolved === 'dark' ? 'brandLight' : 'brandDark';
+  const defaultSource = DEFAULT_BRAND_LOGOS[resolved];
+
+  for (const image of brandTargets) {
+    if (!(image instanceof HTMLImageElement)) continue;
+    const nextSource =
+      image.dataset?.[datasetKey] || image.dataset?.[fallbackDatasetKey] || defaultSource;
+    if (nextSource) {
+      image.setAttribute('src', nextSource);
+    }
+  }
 }
 
 export function initTheme(defaultTheme = preferredMode) {
