@@ -49,6 +49,7 @@ const HOME_REDIRECT_DELAY = 500;
 const FEEDBACK_CLEAR_DELAY = 3000;
 const feedbackTimers = new WeakMap();
 
+let revisionInfo = null;
 let activeMenu = null;
 let settingsMenuControls = null;
 let isRedirectingHome = false;
@@ -59,6 +60,8 @@ async function bootstrap() {
   await loadDictionaries();
   const initialLang = initI18n('pt-BR');
   document.documentElement.lang = initialLang;
+  revisionInfo = await loadRevisionInfo();
+  updateRevisionMetadata();
   applyTranslations();
   initTheme(getTheme().mode);
   setupLanguageToggle();
@@ -77,6 +80,7 @@ async function bootstrap() {
   document.addEventListener('keydown', handleKeydown);
   onLanguageChange(lang => {
     document.documentElement.lang = lang;
+    updateRevisionMetadata();
     applyTranslations();
     updateLanguageToggle();
     updateThemeToggle();
@@ -103,6 +107,35 @@ async function loadDictionaries() {
   );
 }
 
+async function loadRevisionInfo() {
+  const manifestUrl = new URL('./manifest.json', import.meta.url);
+  try {
+    const response = await fetch(manifestUrl);
+    if (!response.ok) {
+      throw new Error(`manifest: ${response.status} ${response.statusText}`);
+    }
+    const manifest = await response.json();
+    return extractRevisionInfo(manifest);
+  } catch (error) {
+    try {
+      const module = await import(/* @vite-ignore */ manifestUrl.href, { assert: { type: 'json' } });
+      const manifest = module?.default ?? module;
+      return extractRevisionInfo(manifest);
+    } catch (fallbackError) {
+      console.warn('shell: unable to read manifest', error, fallbackError);
+      return null;
+    }
+  }
+}
+
+function extractRevisionInfo(manifest) {
+  if (!manifest || typeof manifest !== 'object') return null;
+  const version = manifest.version ? String(manifest.version) : null;
+  const revision = manifest.revision ? String(manifest.revision) : null;
+  const name = manifest.name ? String(manifest.name) : null;
+  return { version, revision, name };
+}
+
 async function readDictionary(resource) {
   const url = new URL(`./i18n/${resource.file}`, import.meta.url);
   try {
@@ -125,7 +158,8 @@ async function readDictionary(resource) {
 function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(node => {
     const key = node.dataset.i18n;
-    const message = t(key);
+    const params = parseI18nParams(node.dataset.i18nParams);
+    const message = t(key, params);
     if (node.tagName === 'TITLE') {
       document.title = message;
     } else if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
@@ -136,6 +170,38 @@ function applyTranslations() {
       node.textContent = message;
     }
   });
+}
+
+function parseI18nParams(rawParams) {
+  if (!rawParams) return undefined;
+  try {
+    return JSON.parse(rawParams);
+  } catch (error) {
+    console.warn('i18n: invalid params payload', rawParams, error);
+    return undefined;
+  }
+}
+
+function updateRevisionMetadata() {
+  const node = document.querySelector('[data-revision]');
+  if (!node) return;
+  let appName = t('app.title');
+  if (!appName || appName === 'app.title') {
+    appName = (revisionInfo && revisionInfo.name) || 'MiniApp Base';
+  }
+  if (revisionInfo && (revisionInfo.revision || revisionInfo.version)) {
+    const revisionLabel = String(revisionInfo.revision || revisionInfo.version || '—');
+    const versionLabel = String(revisionInfo.version || revisionInfo.revision || '—');
+    node.dataset.i18n = 'footer.revision';
+    node.dataset.i18nParams = JSON.stringify({
+      appName,
+      revision: revisionLabel,
+      version: versionLabel
+    });
+  } else {
+    node.dataset.i18n = 'footer.revisionFallback';
+    node.dataset.i18nParams = JSON.stringify({ appName });
+  }
 }
 
 function setupSidebar() {

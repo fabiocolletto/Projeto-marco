@@ -62,5 +62,7 @@
   "theme.system": "Automático",
   "lang.pt": "Portugués",
   "lang.en": "Inglés",
-  "lang.es": "Español"
+  "lang.es": "Español",
+  "footer.revision": "{appName} · Revisión {revision} (v{version})",
+  "footer.revisionFallback": "{appName} · Revisión no disponible"
 }
