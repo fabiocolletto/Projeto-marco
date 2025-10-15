@@ -303,7 +303,13 @@ function setupThemeToggle() {
 function setupUserPanelShortcut() {
   const button = document.getElementById('btnUserPanel');
   if (!button) return;
-  button.addEventListener('click', () => {
+  if (button instanceof HTMLAnchorElement) {
+    button.href = USER_PANEL_URL.href;
+  }
+  button.addEventListener('click', event => {
+    if (button instanceof HTMLAnchorElement) {
+      event.preventDefault();
+    }
     handleUserAction('profile');
     closeSettingsMenu();
   });
