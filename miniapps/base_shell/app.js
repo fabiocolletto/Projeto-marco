@@ -39,6 +39,8 @@ const LANG_ICON_MAP = {
   'es-419': '🇪🇸'
 };
 
+const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
+
 let activeMenu = null;
 let settingsMenuControls = null;
 
@@ -54,6 +56,8 @@ async function bootstrap() {
   updateLanguageToggle();
   setupThemeToggle();
   updateThemeToggle();
+  setupUserPanelShortcut();
+  updateUserPanelShortcut();
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
   setupSidebar();
@@ -67,6 +71,7 @@ async function bootstrap() {
     applyTranslations();
     updateLanguageToggle();
     updateThemeToggle();
+    updateUserPanelShortcut();
     refreshUserMenu();
   });
   onThemeChange(() => {
@@ -75,6 +80,7 @@ async function bootstrap() {
   onAuthChange(user => {
     updateUserDisplay(user);
     updateProfileView(user);
+    updateUserPanelShortcut();
     refreshUserMenu();
   });
 }
@@ -209,6 +215,34 @@ function setupThemeToggle() {
   });
 }
 
+function setupUserPanelShortcut() {
+  const button = document.getElementById('btnUserPanel');
+  if (!button) return;
+  button.addEventListener('click', () => {
+    handleUserAction('profile');
+    closeSettingsMenu();
+  });
+}
+
+function updateUserPanelShortcut() {
+  const button = document.getElementById('btnUserPanel');
+  if (!button) return;
+  const srOnly = button.querySelector('.sr-only');
+  const user = currentUser();
+  const baseLabel = t('actions.openUserPanel');
+  let label = baseLabel;
+  if (user && user.name) {
+    const contextKey = 'actions.openUserPanelWithName';
+    const contextual = t(contextKey, { name: user.name });
+    label = contextual === contextKey ? `${baseLabel} (${user.name})` : contextual;
+  }
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  if (srOnly) {
+    srOnly.textContent = label;
+  }
+}
+
 function setupUserMenu() {
   const button = document.getElementById('btnUser');
   const menu = document.getElementById('user-menu');
@@ -271,7 +305,7 @@ function createMenuAction(action, label) {
 
 function handleUserAction(action) {
   if (action === 'profile') {
-    window.location.href = new URL('../auth/profile.html', window.location.href);
+    window.location.href = USER_PANEL_URL.href;
   }
   if (action === 'logout') {
     logout();
