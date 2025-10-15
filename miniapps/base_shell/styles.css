@@ -23,7 +23,7 @@ body:focus-within .app-shell:focus {
 
 .app-shell {
   display: grid;
-  grid-template-rows: var(--header-height) 1fr var(--footer-height);
+  grid-template-rows: var(--header-height) 1fr auto;
   min-height: 100vh;
 }
 
@@ -319,11 +319,42 @@ button:focus-visible,
 }
 
 .app-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
   background: var(--color-surface-raised);
   border-top: 1px solid var(--color-border);
+  padding: 0 1.5rem;
+}
+
+.app-footer .footer-content {
+  width: min(100%, 1200px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0;
+}
+
+.app-footer .footer-copy {
+  color: var(--color-text-muted);
+}
+
+.app-footer .footer-revision {
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .app-footer .footer-content {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .app-footer .footer-revision {
+    width: 100%;
+  }
 }
 
 .sr-only {

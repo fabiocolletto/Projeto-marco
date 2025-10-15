@@ -1,1 +1,8 @@
-{ "id":"base.shell","name":"MiniApp Base","version":"1.0.0","route":"/","dependsOn":["base.theme","base.i18n","base.security"] }
+{
+  "id": "base.shell",
+  "name": "MiniApp Base",
+  "version": "1.0.0",
+  "revision": "R1",
+  "route": "/",
+  "dependsOn": ["base.theme", "base.i18n", "base.security"]
+}
