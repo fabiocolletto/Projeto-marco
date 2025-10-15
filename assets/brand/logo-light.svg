@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 32" role="img" aria-labelledby="title desc">
+  <title id="title">MiniApp Base</title>
+  <desc id="desc">Marca em modo claro</desc>
+  <rect width="120" height="32" rx="6" fill="#1d4ed8" />
+  <text x="60" y="21" font-family="Inter, sans-serif" font-size="16" text-anchor="middle" fill="#ffffff">MiniApp</text>
+</svg>

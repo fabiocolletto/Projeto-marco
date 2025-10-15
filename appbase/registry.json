@@ -1,0 +1,1 @@
+{ "apps": [ { "id":"base.shell","labelKey":"app.title","route":"/","order":1 } ] }

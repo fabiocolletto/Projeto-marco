@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MiniApp Base</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="../../packages/base.theme/theme.css" />
+  </head>
+  <body>
+    <div class="app-shell" data-state="ready">
+      <header class="app-header" role="banner">
+        <button id="btnMenu" class="ghost" aria-label="Menu" aria-expanded="true">
+          <span aria-hidden="true">☰</span>
+        </button>
+        <img id="logo" class="brand" src="../../assets/brand/logo-light.svg" alt="MiniApp Base" />
+        <h1 id="page-title" data-i18n="app.title">MiniApp Base</h1>
+        <div class="toolbar" role="group" aria-label="Global actions">
+          <button id="btnLang" class="ghost" aria-haspopup="true" aria-expanded="false">
+            <span data-i18n="actions.language">Idioma</span>
+          </button>
+          <button id="btnTheme" class="ghost" aria-haspopup="true" aria-expanded="false">
+            <span data-i18n="actions.theme">Tema</span>
+          </button>
+          <div class="user-menu" role="group" aria-label="User menu">
+            <button id="btnUser" class="ghost" aria-haspopup="true" aria-expanded="false">
+              <span id="current-user">--</span>
+            </button>
+            <ul id="user-menu" class="menu" hidden>
+              <li><button data-action="profile" data-i18n="actions.profile">Perfil</button></li>
+              <li><button data-action="switch" data-i18n="actions.switchUser">Trocar usuário</button></li>
+              <li><button data-action="logout" data-i18n="actions.logout">Sair</button></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="layout">
+        <aside id="sidebar" class="sidebar" aria-label="Navegação principal">
+          <nav>
+            <ul>
+              <li>
+                <a href="#" aria-current="page" title="Dashboard">
+                  <span class="icon" aria-hidden="true">🏠</span>
+                  <span class="label" data-i18n="nav.dashboard">Início</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Atividades">
+                  <span class="icon" aria-hidden="true">🗂</span>
+                  <span class="label" data-i18n="nav.activity">Atividades</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Análises">
+                  <span class="icon" aria-hidden="true">📊</span>
+                  <span class="label" data-i18n="nav.analytics">Análises</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Configurações">
+                  <span class="icon" aria-hidden="true">⚙️</span>
+                  <span class="label" data-i18n="nav.settings">Configurações</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <button id="btnCollapse" class="ghost" aria-expanded="true" aria-controls="sidebar">
+            <span aria-hidden="true">⟨⟩</span>
+            <span class="sr-only" data-i18n="actions.toggleSidebar">Alternar barra lateral</span>
+          </button>
+        </aside>
+        <main id="panel" class="panel" role="main" tabindex="-1">
+          <section class="panel-content">
+            <h2 data-i18n="panel.welcomeTitle">Bem-vindo(a)!</h2>
+            <p data-i18n="panel.welcomeMessage">
+              Selecione uma opção no menu para começar a explorar seu miniaplicativo.
+            </p>
+            <div class="cta-group">
+              <a class="cta" href="./auth/login.html" data-i18n="panel.actions.login">Acessar</a>
+              <a class="cta secondary" href="./auth/register.html" data-i18n="panel.actions.register">Criar conta</a>
+            </div>
+          </section>
+        </main>
+      </div>
+      <footer class="app-footer" role="contentinfo">
+        <small>&copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span></small>
+      </footer>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

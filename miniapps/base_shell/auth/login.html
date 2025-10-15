@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="auth.login.title">Acessar conta</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="../../../packages/base.theme/theme.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header" role="banner">
+        <button id="btnMenu" class="ghost" aria-label="Menu" aria-expanded="true">
+          <span aria-hidden="true">☰</span>
+        </button>
+        <img id="logo" class="brand" src="../../../assets/brand/logo-light.svg" alt="MiniApp Base" />
+        <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
+        <div class="toolbar" role="group" aria-label="Global actions">
+          <button id="btnLang" class="ghost" aria-haspopup="true" aria-expanded="false">
+            <span data-i18n="actions.language">Idioma</span>
+          </button>
+          <button id="btnTheme" class="ghost" aria-haspopup="true" aria-expanded="false">
+            <span data-i18n="actions.theme">Tema</span>
+          </button>
+          <div class="user-menu" role="group" aria-label="User menu">
+            <button id="btnUser" class="ghost" aria-haspopup="true" aria-expanded="false">
+              <span id="current-user">--</span>
+            </button>
+            <ul id="user-menu" class="menu" hidden>
+              <li><button data-action="profile" data-i18n="actions.profile">Perfil</button></li>
+              <li><button data-action="switch" data-i18n="actions.switchUser">Trocar usuário</button></li>
+              <li><button data-action="logout" data-i18n="actions.logout">Sair</button></li>
+            </ul>
+          </div>
+        </div>
+      </header>
+      <div class="layout">
+        <aside id="sidebar" class="sidebar" aria-label="Navegação principal">
+          <nav>
+            <ul>
+              <li>
+                <a href="../index.html" title="Dashboard">
+                  <span class="icon" aria-hidden="true">🏠</span>
+                  <span class="label" data-i18n="nav.dashboard">Início</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Atividades">
+                  <span class="icon" aria-hidden="true">🗂</span>
+                  <span class="label" data-i18n="nav.activity">Atividades</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Análises">
+                  <span class="icon" aria-hidden="true">📊</span>
+                  <span class="label" data-i18n="nav.analytics">Análises</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Configurações">
+                  <span class="icon" aria-hidden="true">⚙️</span>
+                  <span class="label" data-i18n="nav.settings">Configurações</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <button id="btnCollapse" class="ghost" aria-expanded="true" aria-controls="sidebar">
+            <span aria-hidden="true">⟨⟩</span>
+            <span class="sr-only" data-i18n="actions.toggleSidebar">Alternar barra lateral</span>
+          </button>
+        </aside>
+        <main id="panel" class="panel" role="main" tabindex="-1">
+          <section class="panel-content">
+            <form id="login-form" class="card" novalidate>
+              <h2 data-i18n="auth.login.title">Acessar conta</h2>
+              <div class="field">
+                <label for="login-email" data-i18n="auth.form.email">E-mail</label>
+                <input id="login-email" name="email" type="email" required autocomplete="email" />
+              </div>
+              <div class="field">
+                <label for="login-password" data-i18n="auth.form.password">Senha</label>
+                <input id="login-password" name="password" type="password" required autocomplete="current-password" />
+              </div>
+              <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
+              <p class="form-hint">
+                <a href="./register.html" data-i18n="panel.actions.register">Criar conta</a>
+              </p>
+              <p class="form-hint">
+                <button type="button" id="switch-user" class="ghost" data-i18n="auth.login.switch">Entrar com outro usuário</button>
+              </p>
+              <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
+            </form>
+          </section>
+        </main>
+      </div>
+      <footer class="app-footer" role="contentinfo">
+        <small>&copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span></small>
+      </footer>
+    </div>
+    <script type="module" src="../app.js"></script>
+  </body>
+</html>
