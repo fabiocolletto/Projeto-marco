@@ -37,6 +37,8 @@
   "auth.profile.userManagementTitle": "Gestão de usuários",
   "auth.profile.userAdd": "Adicionar usuário",
   "auth.profile.userManagementDescription": "Visualize e administre todas as contas cadastradas neste dispositivo.",
+  "auth.profile.userPanelLoginRequired": "Faça login para acessar seu painel.",
+  "auth.profile.userPanelOwnerOnly": "Somente proprietários podem gerenciar usuários.",
   "auth.profile.userTable.name": "Nome",
   "auth.profile.userTable.email": "E-mail",
   "auth.profile.userTable.role": "Perfil",

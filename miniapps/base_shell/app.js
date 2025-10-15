@@ -47,7 +47,9 @@ const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
 
 const FEEDBACK_CLEAR_DELAY = 3000;
+const PANEL_HIGHLIGHT_DURATION = 1600;
 const feedbackTimers = new WeakMap();
+const highlightTimers = new WeakMap();
 
 let revisionInfo = null;
 let activeMenu = null;
@@ -304,9 +306,55 @@ function setupUserPanelShortcut() {
   const button = document.getElementById('btnUserPanel');
   if (!button) return;
   button.addEventListener('click', () => {
-    handleUserAction('profile');
+    const handled = handleUserPanelShortcutClick();
+    if (!handled) {
+      handleUserAction('profile');
+    }
     closeSettingsMenu();
   });
+}
+
+function handleUserPanelShortcutClick() {
+  if (!isOnUserPanelRoute()) {
+    return false;
+  }
+  const user = currentUser();
+  const managementSection = userManagementControls?.section || document.getElementById('user-management');
+  if (managementSection && !managementSection.hidden && user && user.role === 'owner') {
+    highlightElement(managementSection);
+    return true;
+  }
+  const profileCard = document.getElementById('profile-card');
+  if (profileCard) {
+    highlightElement(profileCard);
+    if (managementSection && (!user || user.role !== 'owner')) {
+      managementSection.hidden = true;
+    }
+    const feedback = document.getElementById('profile-feedback');
+    if (feedback) {
+      let message = '';
+      if (!user) {
+        message = t('auth.profile.userPanelLoginRequired');
+      } else if (!managementSection || managementSection.hidden || user.role !== 'owner') {
+        message = t('auth.profile.userPanelOwnerOnly');
+      }
+      if (message) {
+        announceTo(feedback, message);
+        scheduleFeedbackClear(feedback);
+      }
+    }
+  }
+  return true;
+}
+
+function isOnUserPanelRoute() {
+  try {
+    const current = new URL(window.location.href);
+    const target = new URL(USER_PANEL_URL.href);
+    return current.pathname === target.pathname;
+  } catch (error) {
+    return Boolean(document.getElementById('profile-card'));
+  }
 }
 
 function updateUserPanelShortcut() {
@@ -492,7 +540,7 @@ function setupAuthForms() {
     const roleField = registerForm.querySelector('#register-role');
     if (roleField) {
       roleField.value = 'owner';
-      roleField.disabled = true;
+      roleField.disabled = false;
     }
     registerForm.addEventListener('submit', event => {
       event.preventDefault();
@@ -1012,4 +1060,19 @@ function scheduleFeedbackClear(element, delay = FEEDBACK_CLEAR_DELAY) {
 function announceTo(element, message) {
   if (!element) return;
   element.textContent = message;
+}
+
+function highlightElement(element) {
+  if (!element) return;
+  element.classList.add('is-highlighted');
+  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const existingTimeout = highlightTimers.get(element);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+  }
+  const timeout = window.setTimeout(() => {
+    element.classList.remove('is-highlighted');
+    highlightTimers.delete(element);
+  }, PANEL_HIGHLIGHT_DURATION);
+  highlightTimers.set(element, timeout);
 }
