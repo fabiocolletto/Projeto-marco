@@ -2491,3 +2491,241 @@ select {
 /* SINGLE_MODE_START */
 html.no-catalog [data-ui="catalog"], html.no-catalog nav[data-ui="catalog"] { display:none !important; }
 /* SINGLE_MODE_END */
+
+/* CLEAN_HIDE_CATALOG_START */
+html.no-catalog [data-ui="catalog"],
+html.no-catalog nav[data-ui="catalog"],
+html.no-catalog .ac-app {
+  display: none !important;
+}
+/* CLEAN_HIDE_CATALOG_END */
+
+/* CLEAN shell • mobile-first grid */
+.ac-clean {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  padding: 16px;
+  background: var(--ac-shell-gradient);
+  color: var(--ac-text);
+}
+
+@supports (min-height: 100svh) {
+  .ac-clean {
+    min-height: 100svh;
+  }
+}
+
+@supports (min-height: 100dvh) {
+  .ac-clean {
+    min-height: 100dvh;
+  }
+}
+
+.ac-clean__wrap {
+  width: min(420px, 100%);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  background: transparent;
+  transition: filter 0.3s ease;
+}
+
+.ac-clean__wrap.is-blurred {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
+
+.ac-clean__header,
+.ac-clean__footer {
+  padding: 18px;
+}
+
+.ac-clean__header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ac-clean__brand {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.2px;
+}
+
+.ac-clean__version {
+  font-size: 0.9rem;
+  color: var(--ac-muted);
+}
+
+.ac-clean__main.ac-grid {
+  padding: 18px;
+  gap: 16px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+@media (max-width: 960px) {
+  .ac-clean__main.ac-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .ac-clean__main.ac-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .ac-clean__main.ac-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 380px) {
+  .ac-clean__main.ac-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ac-clean__card {
+  align-content: start;
+  grid-column: 1 / -1;
+}
+
+.ac-clean__card-head {
+  display: grid;
+  gap: 6px;
+}
+
+.ac-clean__card-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ac-primary);
+}
+
+.ac-clean__muted {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ac-muted);
+}
+
+.ac-clean__field {
+  display: grid;
+  gap: 6px;
+}
+
+.ac-clean__field--full input {
+  width: 100%;
+}
+
+.ac-clean__label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ac-muted);
+}
+
+.ac-clean__row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 520px) {
+  .ac-clean__row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ac-clean__button {
+  width: 100%;
+  border-radius: 12px;
+  border: var(--ac-border-width) solid var(--ac-border);
+  background: var(--ac-primary);
+  color: var(--ac-on-primary);
+  padding: 12px 14px;
+  font-weight: 600;
+  text-align: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ac-clean__button:focus-visible {
+  outline: 3px solid var(--ac-accent);
+  outline-offset: 2px;
+}
+
+.ac-clean__button--muted {
+  background: var(--ac-bg);
+  color: var(--ac-primary);
+}
+
+.ac-clean__button--ghost {
+  background: transparent;
+  color: var(--ac-primary);
+}
+
+.ac-clean__button--muted,
+.ac-clean__button--ghost {
+  border-color: var(--ac-border);
+}
+
+.ac-clean__alert {
+  background: #fffbe6;
+  border: 1px solid #f7e08d;
+  border-radius: 14px;
+  padding: 12px;
+  font-size: 0.92rem;
+  color: #6b4e00;
+}
+
+.ac-clean__mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SFMono-Regular', Menlo,
+    Consolas, monospace;
+  background: #0b0b0b;
+  color: #f2f2f2;
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 120px;
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
+.ac-clean__desktop-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #ffffff;
+  text-align: center;
+  z-index: 20;
+}
+
+.ac-clean__desktop-overlay.is-visible {
+  display: flex;
+}
+
+.ac-clean__desktop-overlay-content {
+  display: grid;
+  gap: 12px;
+  max-width: 420px;
+}
+
+.ac-clean__overlay-title {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.ac-clean__overlay-text {
+  margin: 0;
+  font-size: 1rem;
+}

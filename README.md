@@ -1,5 +1,14 @@
 # Sistema Operacional Marco
 
+<!-- CLEAN_EXEC_SUMMARY_START -->
+## AppBase v3.0 • Clean (mobile-only)
+- **Sem miniapps** (catálogo oculto). Pronto para receber o primeiro produto.
+- **Mobile-only**: bloqueio em desktop e layout em grid.
+- **Cadastro/Login local** por e-mail.
+- **Cobrança**: botões para Assinar (POST /subscribe) e Validar licença (GET /license/validate).
+- **Versão visível**: AppBase v3.0 • Clean.
+<!-- CLEAN_EXEC_SUMMARY_END -->
+
 Protótipo navegável do **AppBase Marco** pronto para ser aberto diretamente em um
 navegador moderno sem build. A versão R1.4 mantém o shell completo com AppBar,
 rail lateral, palco central e miniapps ativos escritos em HTML, CSS e JavaScript
