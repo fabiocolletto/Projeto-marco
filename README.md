@@ -52,5 +52,19 @@ servidor escolhido).
 
 ## Testes
 
-No momento não há suíte automatizada. Recomenda-se validar manualmente em uma
-viewport mobile (largura ≤ 800 px) para conferir os fluxos de login e billing.
+Uma suíte Playwright garante os fluxos principais em viewport mobile. Antes de
+rodar os testes, instale as dependências e os navegadores necessários:
+
+```bash
+npm install
+npx playwright install --with-deps
+```
+
+Em seguida execute:
+
+```bash
+npm run test:e2e
+```
+
+Os testes utilizam os atributos `data-testid` do shell e fazem mock das
+requisições de validação de licença para evitar chamadas externas.
