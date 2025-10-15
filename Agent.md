@@ -8,6 +8,7 @@ Este documento fornece um rápido resumo para quem automatiza tarefas neste repo
 - Prefira funções puras e reutilizáveis; evite acoplamento com o DOM dentro de utilitários compartilhados.
 - Atualize os arquivos `shared/LOG.md` e `shared/README.md` sempre que criar novos utilitários que possam ser reutilizados por outros módulos.
 - Antes de abrir um PR, execute testes ou validações manuais relevantes e documente-os na seção de testes.
+- Sempre realize um teste visual em navegador antes de concluir a tarefa. Caso o teste falhe, investigue a causa, corrija o problema e repita o teste até que a implantação esteja funcionando corretamente.
 
 ## Convenções de Estilo
 - Mantenha indentação de dois espaços em arquivos JavaScript e Markdown.
