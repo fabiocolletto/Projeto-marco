@@ -1,30 +1,23 @@
-function resolveWorkerUrl(input) {
-  if (typeof input === "string") return input;
-  if (input && typeof input.worker_url === "string") return input.worker_url;
-  throw new Error("worker_url não definido");
-}
-
-export async function validateLicense(cfgOrUrl, userRef) {
-  const workerUrl = resolveWorkerUrl(cfgOrUrl).replace(/\/$/, "");
-  const url = `${workerUrl}/license/validate?user=${encodeURIComponent(userRef)}`;
+export async function validateLicense(workerUrl, userRef) {
+  const url = `${workerUrl.replace(/\/$/, '')}/license/validate?user=${encodeURIComponent(userRef)}`;
   try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(String(r.status));
-    return await r.json();
-  } catch {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(String(response.status));
+    return await response.json();
+  } catch (error) {
     return { user: userRef, license: { status: "offline" } };
   }
 }
 
-export async function subscribe(cfgOrUrl, email, plan = "pro", userId) {
-  const workerUrl = resolveWorkerUrl(cfgOrUrl).replace(/\/$/, "");
-  const body = { email, plan };
-  if (userId) body.user_id = userId;
-  const r = await fetch(`${workerUrl}/subscribe`, {
+export async function subscribe(workerUrl, email, plan = "pro") {
+  const url = `${workerUrl.replace(/\/$/, '')}/subscribe`;
+  const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify({ email, plan })
   });
-  if (!r.ok) throw new Error("subscribe HTTP " + r.status);
-  return r.json();
+  if (!response.ok) {
+    throw new Error(`subscribe HTTP ${response.status}`);
+  }
+  return response.json();
 }

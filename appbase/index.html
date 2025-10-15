@@ -16,32 +16,6 @@
     <script defer src="./settings/settings.js"></script>
   </head>
   <body>
-<!-- CLEAN_MOUNT_START -->
-    <div data-clean-shell></div>
-    <script>
-      (async () => {
-        const mount = document.querySelector('[data-clean-shell]');
-        const res = await fetch('./components/clean-mobile.html');
-        const html = await res.text();
-        const tpl = document.createElement('template');
-        tpl.innerHTML = html.trim();
-        const fragment = tpl.content.cloneNode(true);
-        const scripts = Array.from(fragment.querySelectorAll('script'));
-        scripts.forEach((script) => script.remove());
-        mount.replaceChildren(fragment);
-        for (const script of scripts) {
-          const node = document.createElement('script');
-          if (script.type) node.type = script.type;
-          if (script.src) node.src = script.src;
-          if (script.textContent) node.textContent = script.textContent;
-          mount.appendChild(node);
-        }
-        document.documentElement.classList.add('no-catalog');
-        const legacyApp = document.querySelector('.ac-app');
-        if (legacyApp) legacyApp.setAttribute('hidden', '');
-      })();
-    </script>
-    <!-- CLEAN_MOUNT_END -->
     <div class="ac-app">
       <header class="ac-appbar">
         <div class="ac-brand">
@@ -554,7 +528,7 @@
           </span>
         </span>
         <span class="ac-footer__meta" data-i18n="app.footer.meta">
-          Desenvolvido por 5Horas • Projeto Marco — AppBase v3.0 • Clean
+          Desenvolvido por 5Horas • Projeto Marco — AppBase v3.0
         </span>
       </footer>
 
@@ -603,13 +577,29 @@
     <script type="module">
       import { bootSingleApp } from "./modules/single-app.js";
       import cfg from "./config/app.config.json" assert { type:"json" };
-      // Adaptação leve aos objetos já existentes do AppBase:
-      const ui = window.AppBase?.ui || {};
-      const users = window.AppBase?.users || { getCurrent: ()=>null, ensureAnonymous: ()=>({ ref:"guest" }) };
-      const miniapps = window.AppBase?.miniapps || { load: async (id)=>{ location.hash = "#/miniapps/"+id; } };
-      bootSingleApp({ config: cfg, ui, users, miniapps });
+      if (cfg.mode !== "clean") {
+        const ui = window.AppBase?.ui || {};
+        const users = window.AppBase?.users || { getCurrent: ()=>null, ensureAnonymous: ()=>({ ref:"guest" }) };
+        const miniapps = window.AppBase?.miniapps || { load: async (id)=>{ location.hash = "#/miniapps/"+id; } };
+        bootSingleApp({ config: cfg, ui, users, miniapps });
+      }
     </script>
     <!-- SINGLE_BOOT_END -->
+
+    <!-- CLEAN_MOUNT_START -->
+    <div data-clean-shell></div>
+    <script type="module">
+      import cfg from "./config/app.config.json" assert { type: "json" };
+      if (cfg.mode === "clean") {
+        const mount = document.querySelector('[data-clean-shell]');
+        if (mount) {
+          const res = await fetch('./components/clean-mobile.html');
+          mount.innerHTML = await res.text();
+        }
+        document.documentElement.classList.add('no-catalog');
+      }
+    </script>
+    <!-- CLEAN_MOUNT_END -->
 
     <!-- OP_PANEL_MOUNT_START -->
     <div data-operator-panel></div>

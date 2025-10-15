@@ -1,95 +1,94 @@
-<div class="ac-clean" data-clean-shell-root>
-  <div class="ac-clean__wrap">
-    <header class="ac-clean__header">
-      <div class="ac-clean__header-inner">
-        <span class="ac-clean__brand">Projeto Marco</span>
-        <span class="ac-clean__version">AppBase v3.0 • Clean</span>
+<style>
+  :root{ --sp:14px; --radius:16px; --muted:#777; --line:#e6e6e6; }
+  body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#fafafa; color:#111; }
+  .wrap{ display:grid; grid-template-rows:auto 1fr auto; min-height:100dvh; max-width:420px; margin:0 auto; }
+  header, footer{ padding: var(--sp); }
+  header{ display:flex; align-items:center; justify-content:space-between; }
+  .brand{ font-weight:700; letter-spacing:.2px; }
+  .vtag{ font-size:.85rem; color: var(--muted); }
+  main{ padding: var(--sp); display:grid; gap: var(--sp); }
+  .card{ background:#fff; border:1px solid var(--line); border-radius: var(--radius); padding: var(--sp); box-shadow:0 1px 8px rgba(0,0,0,.06); }
+  .row{ display:flex; gap:8px; }
+  input,button,select{ padding:12px; border-radius:12px; border:1px solid #ccc; width:100%; }
+  button{ cursor:pointer; }
+  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space:pre-wrap; background:#0b0b0b; color:#f2f2f2; border-radius:12px; padding:10px; max-height:240px; overflow:auto }
+  .muted{ color: var(--muted); font-size:.9rem }
+  .alert{ background:#fffbe6; border:1px solid #f7e08d; padding:10px; border-radius:12px; }
+  @media (min-width: 801px){
+    .desktop-overlay{ position:fixed; inset:0; background:rgba(0,0,0,.75); color:#fff; display:flex; align-items:center; justify-content:center; text-align:center; padding:24px; }
+    .wrap{ filter: blur(3px); pointer-events:none; user-select:none; }
+  }
+</style>
+<div class="wrap">
+  <header>
+    <div class="brand">Projeto Marco</div>
+    <div class="vtag">AppBase v3.0 • Clean</div>
+  </header>
+
+  <main>
+    <section class="card" id="sec-login">
+      <h3>Conta</h3>
+      <p class="muted">Entre com seu e-mail para liberar as ações.</p>
+      <div class="row">
+        <input id="email" type="email" placeholder="seu@email.com">
       </div>
-    </header>
+      <div class="row">
+        <button id="btnLogin">Entrar</button>
+        <button id="btnLogout">Sair</button>
+      </div>
+      <div class="muted" id="who"></div>
+    </section>
 
-    <main class="ac-clean__main ac-grid">
-      <section class="ac-clean__card ac-tile ac-tile--span-12" id="sec-login">
-        <div class="ac-clean__card-head">
-          <h3 class="ac-clean__card-title">Conta</h3>
-          <p class="ac-clean__muted">Entre com seu e-mail para liberar as ações.</p>
-        </div>
-        <div class="ac-clean__field ac-clean__field--full">
-          <label class="ac-clean__label" for="email">E-mail</label>
-          <input id="email" type="email" placeholder="seu@email.com" />
-        </div>
-        <div class="ac-clean__row">
-          <button class="ac-clean__button" id="btnLogin">Entrar</button>
-          <button class="ac-clean__button ac-clean__button--muted" id="btnLogout">Sair</button>
-        </div>
-        <div class="ac-clean__muted" id="who" role="status" aria-live="polite"></div>
-      </section>
+    <section class="card" id="sec-billing">
+      <h3>Assinatura</h3>
+      <p class="muted">Assinar o plano PRO via Mercado Pago.</p>
+      <div class="row">
+        <button id="btnSubscribe">Assinar PRO</button>
+        <button id="btnPlans">Ver planos (API)</button>
+      </div>
+      <div class="alert">Após autorização do pagamento, sua licença será validada automaticamente.</div>
+    </section>
 
-      <section class="ac-clean__card ac-tile ac-tile--span-6" id="sec-billing">
-        <div class="ac-clean__card-head">
-          <h3 class="ac-clean__card-title">Assinatura</h3>
-          <p class="ac-clean__muted">Assinar o plano PRO via Mercado Pago.</p>
-        </div>
-        <div class="ac-clean__row">
-          <button class="ac-clean__button" id="btnSubscribe">Assinar PRO</button>
-          <button class="ac-clean__button ac-clean__button--ghost" id="btnPlans">Ver planos (API)</button>
-        </div>
-        <div class="ac-clean__alert">Após autorização do pagamento, sua licença será validada automaticamente.</div>
-      </section>
+    <section class="card" id="sec-status">
+      <h3>Status da licença</h3>
+      <div class="row">
+        <button id="btnValidate">Validar agora</button>
+      </div>
+      <div id="out" class="mono"></div>
+    </section>
+  </main>
 
-      <section class="ac-clean__card ac-tile ac-tile--span-6" id="sec-status">
-        <div class="ac-clean__card-head">
-          <h3 class="ac-clean__card-title">Status da licença</h3>
-        </div>
-        <div class="ac-clean__row">
-          <button class="ac-clean__button" id="btnValidate">Validar agora</button>
-        </div>
-        <pre id="out" class="ac-clean__mono" aria-live="polite"></pre>
-      </section>
-    </main>
+  <footer>
+    <span class="muted">© 5Horas • Base pronta para receber MiniApp</span>
+  </footer>
+</div>
 
-    <footer class="ac-clean__footer">
-      <span class="ac-clean__muted">© 5Horas • Base pronta para receber MiniApp</span>
-    </footer>
-  </div>
-
-  <div class="ac-clean__desktop-overlay" aria-hidden="true">
-    <div class="ac-clean__desktop-overlay-content">
-      <h2 class="ac-clean__overlay-title">Modo somente mobile</h2>
-      <p class="ac-clean__overlay-text">
-        Abra em um smartphone para continuar. Largura de tela detectada como desktop.
-      </p>
-    </div>
+<div class="desktop-overlay" style="display:none">
+  <div>
+    <h2>Modo somente mobile</h2>
+    <p>Abra em um smartphone para continuar. Largura de tela detectada como desktop.</p>
   </div>
 </div>
 
 <script type="module">
-  import cfg from "../config/app.config.json" assert { type: "json" };
+  import cfg from "../config/app.config.json" assert { type:"json" };
   import { users } from "../modules/users-lite.js";
   import { subscribe, validateLicense } from "../modules/licensing.js";
 
-  const root = document.querySelector('[data-clean-shell-root]');
-  if (!root) {
-    console.warn('[clean-shell] elemento raiz não encontrado.');
-    return;
-  }
-  const $ = (selector) => root.querySelector(selector);
+  const $ = (selector) => document.querySelector(selector);
   const out = $("#out");
   const log = (value) => {
     const text = typeof value === "string" ? value : JSON.stringify(value, null, 2);
-    out.textContent = `${text}\n${out.textContent}`.trim();
+    out.textContent = `${text}\n${out.textContent}`;
   };
 
-  const overlay = root.querySelector(".ac-clean__desktop-overlay");
-  const wrap = root.querySelector(".ac-clean__wrap");
-  const toggleDesktopState = () => {
+  const overlay = document.querySelector(".desktop-overlay");
+  const enforce = () => {
     const desktop = window.innerWidth > 800 || window.matchMedia("(pointer: fine)").matches;
-    const showOverlay = desktop && cfg.mobile_only;
-    overlay.classList.toggle("is-visible", showOverlay);
-    wrap.classList.toggle("is-blurred", showOverlay);
-    overlay.setAttribute("aria-hidden", String(!showOverlay));
+    overlay.style.display = desktop && cfg.mobile_only ? "flex" : "none";
   };
-  addEventListener("resize", toggleDesktopState);
-  toggleDesktopState();
+  addEventListener("resize", enforce);
+  enforce();
 
   const who = $("#who");
   const refreshWho = () => {
