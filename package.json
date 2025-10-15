@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "node tools/serve-miniapp.mjs",
     "test": "playwright test"
   },
   "devDependencies": {

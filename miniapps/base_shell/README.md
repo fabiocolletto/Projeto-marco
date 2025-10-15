@@ -9,11 +9,23 @@ Shell responsivo com cabeçalho, barra lateral recolhível e painel central expa
 - **styles.css** – layout geral, cartões de autenticação e responsividade.
 
 ## Uso
-1. Abra `index.html` em um servidor estático.
+1. No diretório raiz do repositório execute `npm run dev` para iniciar um servidor estático apontando para este miniapp.
+   - Por padrão o servidor sobe em `http://localhost:4173` e garante acesso aos pacotes compartilhados em `packages/`.
+   - Você também pode indicar outro miniapp com `npm run dev -- nome_da_pasta`.
 2. Registre ou faça login; a sessão fica em `localStorage` (`miniapp.base.session`).
 3. Use o menu de idioma para alternar entre Português, Inglês e Espanhol. A escolha é persistida.
 4. Troque tema claro/escuro ou siga o sistema. Logos são atualizados automaticamente.
 5. Use o menu de usuário para acessar o perfil ou alternar entre contas registradas.
+
+### Verificação visual rápida
+Após subir o servidor de desenvolvimento, abra `http://localhost:4173/` em um navegador.
+Você deve visualizar:
+
+- **Cabeçalho fixo** com logotipo, selector de idioma, alternador de tema e menu de usuário.
+- **Barra lateral recolhível** contendo os atalhos “Dashboard”, “Autenticação” e “Configurações”.
+- **Painel principal** com cartões de entrada para login/registro e, após autenticação, o conteúdo da área logada.
+
+Se algum desses elementos não aparecer, confirme se os assets estão sendo servidos a partir do diretório raiz do repositório (especialmente os pacotes em `packages/`).
 
 ## Pacotes base
 - `packages/base.i18n`: resolve textos (`t`) e persiste o idioma.
