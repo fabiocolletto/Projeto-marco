@@ -306,6 +306,7 @@ function createMenuAction(action, label) {
 function handleUserAction(action) {
   if (action === 'profile') {
     window.location.href = USER_PANEL_URL.href;
+    return;
   }
   if (action === 'logout') {
     logout();
