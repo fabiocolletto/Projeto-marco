@@ -43,12 +43,15 @@ const LANG_ICON_MAP = {
 };
 
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
+const HOME_URL = new URL('./index.html', import.meta.url);
+const HOME_REDIRECT_DELAY = 500;
 
 const FEEDBACK_CLEAR_DELAY = 3000;
 const feedbackTimers = new WeakMap();
 
 let activeMenu = null;
 let settingsMenuControls = null;
+let isRedirectingHome = false;
 
 bootstrap();
 
@@ -315,10 +318,18 @@ function handleUserAction(action) {
     return;
   }
   if (action === 'logout') {
-    logout();
-    announce(t('actions.logout'));
     closeActiveMenu();
+    announce(t('actions.logout'));
+    performLogout();
   }
+}
+
+function performLogout() {
+  isRedirectingHome = true;
+  logout();
+  window.setTimeout(() => {
+    window.location.href = HOME_URL.href;
+  }, HOME_REDIRECT_DELAY);
 }
 
 function updateThemeToggle() {
@@ -439,8 +450,10 @@ function setupAuthForms() {
   if (logoutButton) {
     const feedback = document.getElementById('profile-feedback');
     logoutButton.addEventListener('click', () => {
-      logout();
-      announceTo(feedback, t('actions.logout'));
+      if (feedback) {
+        announceTo(feedback, t('actions.logout'));
+      }
+      performLogout();
     });
   }
 
@@ -621,7 +634,7 @@ function updateProfileView(user) {
     deleteButton.disabled = !user;
   }
 
-  if (!user) {
+  if (!user && !isRedirectingHome) {
     const generalFeedback = document.getElementById('profile-feedback');
     if (generalFeedback) {
       announceTo(generalFeedback, '');
