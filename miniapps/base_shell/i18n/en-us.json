@@ -12,6 +12,8 @@
   "nav.activity": "Activity",
   "nav.analytics": "Analytics",
   "nav.settings": "Settings",
+  "settings.language": "Language",
+  "settings.theme": "Theme",
   "panel.welcomeTitle": "Welcome!",
   "panel.welcomeMessage": "Pick an option from the menu to start exploring your mini app.",
   "panel.actions.login": "Sign in",
