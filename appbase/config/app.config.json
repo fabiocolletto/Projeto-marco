@@ -1,7 +1,9 @@
 {
-  "mode": "single-miniapp",
-  "miniapp_id": "pb-consignado",
+  "version_label": "AppBase v3.0 • Clean",
+  "mode": "clean",
+  "mobile_only": true,
   "worker_url": "https://SEU-WORKER.workers.dev",
-  "licensing": { "plan_required": "pro", "grace_days": 3 },
-  "features": { "themes": true, "multiuser": true, "fullscreen": true }
+  "licensing": {
+    "plan_required": "pro"
+  }
 }
