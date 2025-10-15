@@ -1,1 +1,25 @@
-{ "apps": [ { "id":"base.shell","labelKey":"app.title","route":"/","order":1 } ] }
+{
+  "apps": [
+    {
+      "id": "base.shell",
+      "labelKey": "app.title",
+      "route": "/",
+      "order": 1,
+      "active": true
+    },
+    {
+      "id": "miniapp.one",
+      "labelKey": "nav.miniapps.miniappOne",
+      "route": "/miniapps/one/",
+      "order": 2,
+      "active": true
+    },
+    {
+      "id": "miniapp.two",
+      "labelKey": "nav.miniapps.miniappTwo",
+      "route": "/miniapps/two/",
+      "order": 3,
+      "active": false
+    }
+  ]
+}

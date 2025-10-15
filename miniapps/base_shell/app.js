@@ -45,14 +45,14 @@ const LANG_ICON_MAP = {
 const MINI_APP_CATALOG = [
   {
     id: 'mini-app-1',
-    labelKey: 'nav.miniapps.item1',
+    labelKey: 'nav.miniapps.miniappOne',
     welcomeTitleKey: 'panel.miniapps.item1.title',
     welcomeMessageKey: 'panel.miniapps.item1.message',
     icon: '🧩'
   },
   {
     id: 'mini-app-2',
-    labelKey: 'nav.miniapps.item2',
+    labelKey: 'nav.miniapps.miniappTwo',
     welcomeTitleKey: 'panel.miniapps.item2.title',
     welcomeMessageKey: 'panel.miniapps.item2.message',
     icon: '🧩'
@@ -175,8 +175,66 @@ async function loadRevisionInfo() {
 }
 
 async function loadActiveMiniApps() {
-  // Placeholder implementation until webhook integration is available.
-  return MINI_APP_CATALOG.map(item => ({ ...item }));
+  try {
+    const registryUrl = new URL('../../appbase/registry.json', import.meta.url);
+    const registry = await readJsonResource(registryUrl);
+    const catalog = normalizeMiniAppEntries(registry && registry.apps);
+    if (catalog.length) {
+      return catalog;
+    }
+  } catch (error) {
+    console.warn('mini-app registry: using fallback catalog', error);
+  }
+  return normalizeMiniAppEntries(MINI_APP_CATALOG);
+}
+
+async function readJsonResource(url) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`mini-app registry: ${response.status} ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    try {
+      const module = await import(/* @vite-ignore */ url.href, { assert: { type: 'json' } });
+      return module.default;
+    } catch (fallbackError) {
+      throw new AggregateError([error, fallbackError], 'mini-app registry: unable to read resource');
+    }
+  }
+}
+
+function normalizeMiniAppEntries(entries) {
+  const items = Array.isArray(entries) ? entries : [];
+  return items
+    .map((entry, index) => {
+      if (!entry || typeof entry !== 'object') return null;
+      if (entry.active === false) return null;
+      if (!entry.id || !entry.labelKey) return null;
+      const order = typeof entry.order === 'number' ? entry.order : Number.POSITIVE_INFINITY;
+      return {
+        id: String(entry.id),
+        labelKey: String(entry.labelKey),
+        icon: entry.icon || '🧩',
+        route: entry.route ? String(entry.route) : undefined,
+        welcomeTitleKey: entry.welcomeTitleKey || DEFAULT_MINI_APP_CONTENT.titleKey,
+        welcomeMessageKey: entry.welcomeMessageKey || DEFAULT_MINI_APP_CONTENT.messageKey,
+        order,
+        index
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (a.order === b.order) {
+        return a.index - b.index;
+      }
+      return a.order - b.order;
+    })
+    .map(item => {
+      const { order, index, ...rest } = item;
+      return rest;
+    });
 }
 
 function extractRevisionInfo(manifest) {
