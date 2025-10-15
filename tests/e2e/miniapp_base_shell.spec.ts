@@ -63,6 +63,23 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('#panel')).toBeVisible();
     await expect(page.locator('.app-footer')).toBeVisible();
 
+    const miniAppToggle = page.locator('#miniapp-toggle');
+    const miniAppSubmenu = page.locator('#miniapp-submenu');
+    const miniAppTitle = page.locator('[data-miniapp-title]');
+    const miniAppMessage = page.locator('[data-miniapp-message]');
+    const selectMiniApp = async (id: string) => {
+      await miniAppToggle.click();
+      await expect(miniAppSubmenu).toBeVisible();
+      await page.click(`[data-miniapp-id="${id}"]`);
+    };
+
+    await selectMiniApp('mini-app-1');
+    await expect(miniAppTitle).toHaveText('Bem-vindo ao Mini-app 1');
+    await expect(miniAppMessage).toHaveText('Você está visualizando o conteúdo do Mini-app 1.');
+    await selectMiniApp('mini-app-2');
+    await expect(miniAppTitle).toHaveText('Bem-vindo ao Mini-app 2');
+    await expect(miniAppMessage).toHaveText('Você está visualizando o conteúdo do Mini-app 2.');
+
     const shell = page.locator('.app-shell');
     const settingsSubmenu = page.locator('#settings-submenu');
 
@@ -90,9 +107,25 @@ test.describe('MiniApp Base shell', () => {
 
     await page.click('#btnLang');
     await expect(page.locator('a.cta').first()).toHaveText('Sign in');
+    await expect(miniAppTitle).toHaveText('Welcome to Mini-app 2');
+    await expect(miniAppMessage).toHaveText("You're now exploring Mini-app 2.");
+    await selectMiniApp('mini-app-1');
+    await expect(miniAppTitle).toHaveText('Welcome to Mini-app 1');
+    await expect(miniAppMessage).toHaveText("You're now exploring Mini-app 1.");
+    await selectMiniApp('mini-app-2');
+    await expect(miniAppTitle).toHaveText('Welcome to Mini-app 2');
+    await expect(miniAppMessage).toHaveText("You're now exploring Mini-app 2.");
 
     await page.click('#btnLang');
     await expect(page.locator('a.cta').first()).toHaveText('Ingresar');
+    await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 2');
+    await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 2.');
+    await selectMiniApp('mini-app-1');
+    await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 1');
+    await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 1.');
+    await selectMiniApp('mini-app-2');
+    await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 2');
+    await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 2.');
 
     await expect(page.locator('#btnUserPanel')).toHaveAttribute('aria-label', 'Abrir panel de usuario');
 

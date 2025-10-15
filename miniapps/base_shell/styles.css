@@ -200,6 +200,12 @@ body:focus-within .app-shell:focus {
   color: var(--color-text);
 }
 
+.sidebar .submenu-action.is-active {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
 .submenu-icon {
   font-size: 1.25rem;
   display: inline-flex;
