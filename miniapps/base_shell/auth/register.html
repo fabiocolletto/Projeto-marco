@@ -29,7 +29,6 @@
             </button>
             <ul id="user-menu" class="menu" hidden>
               <li><button data-action="profile" data-i18n="actions.profile">Perfil</button></li>
-              <li><button data-action="switch" data-i18n="actions.switchUser">Trocar usuário</button></li>
               <li><button data-action="logout" data-i18n="actions.logout">Sair</button></li>
             </ul>
           </div>
@@ -118,7 +117,7 @@
               </div>
               <div class="field">
                 <label for="register-role" data-i18n="auth.form.role">Perfil de acesso</label>
-                <select id="register-role" name="role">
+                <select id="register-role" name="role" disabled>
                   <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
                   <option value="member" data-i18n="auth.form.member">Membro</option>
                 </select>

@@ -25,6 +25,14 @@ body:focus-within .app-shell:focus {
   display: grid;
   grid-template-rows: var(--header-height) 1fr auto;
   min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+@supports (height: 100dvh) {
+  .app-shell {
+    height: 100dvh;
+  }
 }
 
 .app-header {
@@ -60,16 +68,29 @@ body:focus-within .app-shell:focus {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
   transition: grid-template-columns 0.3s ease;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .sidebar {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 1rem 0.5rem;
+  align-items: stretch;
+  padding: 1rem 0.75rem;
   background: var(--color-surface-muted);
   border-right: 1px solid var(--color-border);
   transition: width 0.3s ease;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.sidebar nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+  overscroll-behavior: contain;
 }
 
 .sidebar nav ul {
@@ -278,18 +299,25 @@ button:focus-visible,
 
 .panel {
   background: var(--color-surface);
-  padding: clamp(2rem, 4vw, 3.5rem);
+  padding: clamp(1.25rem, 2.5vw, 2.25rem);
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 .panel-content {
-  width: min(100%, 1040px);
-  margin: clamp(1.5rem, 4vw, 3rem) auto;
+  width: min(100%, 1180px);
+  margin: 0 auto;
+  padding: clamp(1.5rem, 3vw, 2.5rem) clamp(0.75rem, 2vw, 1.75rem);
   display: grid;
-  gap: 2rem;
-  justify-items: center;
+  gap: clamp(1.5rem, 3vw, 2.5rem);
+  justify-items: stretch;
+  align-content: start;
 }
 
 .cta-group {
@@ -577,6 +605,159 @@ button:focus-visible,
   text-align: right;
 }
 
+#user-management {
+  width: min(100%, 960px);
+  padding: clamp(1.75rem, 4vw, 2.75rem);
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+#user-management .card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+#user-management .card-header h2 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
+}
+
+#user-management .card-description {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-surface);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+}
+
+.user-management-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.user-management-table th,
+.user-management-table td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  word-break: break-word;
+}
+
+.user-management-table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.user-management-table td {
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.user-management-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.user-management-table tbody tr:hover {
+  background: var(--color-accent-soft);
+}
+
+.user-management-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.user-management-actions .ghost {
+  padding-inline: 0.75rem;
+}
+
+#user-management-feedback {
+  margin: 0;
+}
+
+#user-management-form {
+  display: grid;
+  gap: clamp(1.25rem, 2vw, 1.75rem);
+  padding: clamp(1.25rem, 2.5vw, 1.75rem);
+  border-radius: 20px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06);
+}
+
+#user-management-form fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: grid;
+  gap: 1.25rem;
+}
+
+#user-management-form legend {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+#user-management-form .form-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+#user-management-form label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+#user-management-form input,
+#user-management-form select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#user-management-form input:focus,
+#user-management-form select:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+  outline: none;
+}
+
+#user-management-form .form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+#user-management-form .form-actions .cta,
+#user-management-form .form-actions .ghost {
+  min-width: 160px;
+}
+
 .field {
   display: grid;
   gap: 0.5rem;
@@ -608,37 +789,7 @@ button:focus-visible,
   color: inherit;
 }
 
-.switch-user-options {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  background: var(--color-surface);
-  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
-  display: grid;
-  gap: 0.5rem;
-}
-
-.switch-user-title {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
-.switch-user-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 0.5rem;
-}
-
-.switch-user-option {
-  width: 100%;
-  justify-content: flex-start;
-  text-align: left;
-}
+/* legacy switch-user styles intentionally removed */
 
 .feedback {
   min-height: 1.5rem;
@@ -677,6 +828,14 @@ button:focus-visible,
   #profile-card legend {
     grid-column: 1 / -1;
   }
+
+  #user-management-form fieldset {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  #user-management-form legend {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 960px) {
@@ -697,6 +856,15 @@ button:focus-visible,
 
   #profile-card .form-actions .cta,
   #profile-card .form-actions .ghost {
+    flex: 1 1 auto;
+  }
+
+  #user-management-form .form-actions {
+    justify-content: stretch;
+  }
+
+  #user-management-form .form-actions .cta,
+  #user-management-form .form-actions .ghost {
     flex: 1 1 auto;
   }
 }

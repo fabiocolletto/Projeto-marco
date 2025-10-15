@@ -29,7 +29,6 @@
             </button>
             <ul id="user-menu" class="menu" hidden>
               <li><button data-action="profile" data-i18n="actions.profile">Perfil</button></li>
-              <li><button data-action="switch" data-i18n="actions.switchUser">Trocar usuário</button></li>
               <li><button data-action="logout" data-i18n="actions.logout">Sair</button></li>
             </ul>
           </div>
@@ -113,11 +112,8 @@
                 <input id="login-password" name="password" type="password" required autocomplete="current-password" />
               </div>
               <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
-              <p class="form-hint">
+              <p class="form-hint" id="login-register-hint" data-register-guard>
                 <a href="./register.html" data-i18n="panel.actions.register">Criar conta</a>
-              </p>
-              <p class="form-hint">
-                <button type="button" id="switch-user" class="ghost" data-i18n="auth.login.switch">Entrar com outro usuário</button>
               </p>
               <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
             </form>
