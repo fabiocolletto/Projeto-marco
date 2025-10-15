@@ -3,7 +3,7 @@
 <!-- CLEAN_EXEC_SUMMARY_START -->
 ## AppBase v3.0 • Clean (mobile-only)
 - **Sem miniapps** (catálogo oculto). Pronto para receber o primeiro produto.
-- **Mobile-only**: bloqueio em desktop e layout em grid.
+- **Mobile-only**: bloqueio em desktop e layout responsivo em grid de 12 colunas.
 - **Cadastro/Login local** por e-mail.
 - **Cobrança**: botões para Assinar (POST /subscribe) e Validar licença (GET /license/validate).
 - **Versão visível**: AppBase v3.0 • Clean.

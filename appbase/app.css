@@ -2524,7 +2524,8 @@ html.no-catalog .ac-app {
 }
 
 .ac-clean__wrap {
-  width: min(420px, 100%);
+  width: min(720px, 100%);
+  margin: 0 auto;
   display: grid;
   grid-template-rows: auto 1fr auto;
   background: transparent;
@@ -2563,12 +2564,19 @@ html.no-catalog .ac-app {
 .ac-clean__main.ac-grid {
   padding: 18px;
   gap: 16px;
+  align-content: start;
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1200px) {
   .ac-clean__main.ac-grid {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .ac-clean__main.ac-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 }
 
@@ -2591,8 +2599,23 @@ html.no-catalog .ac-app {
 }
 
 .ac-clean__card {
+  display: grid;
+  gap: 16px;
   align-content: start;
-  grid-column: 1 / -1;
+}
+
+.ac-clean__card--full {
+  grid-column: span 12;
+}
+
+.ac-clean__card--half {
+  grid-column: span 12;
+}
+
+@media (min-width: 721px) {
+  .ac-clean__card--half {
+    grid-column: span 6;
+  }
 }
 
 .ac-clean__card-head {
@@ -2631,10 +2654,10 @@ html.no-catalog .ac-app {
 .ac-clean__row {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
-@media (max-width: 520px) {
+@media (max-width: 420px) {
   .ac-clean__row {
     grid-template-columns: 1fr;
   }
