@@ -44,6 +44,9 @@ const LANG_ICON_MAP = {
 
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
 
+const FEEDBACK_CLEAR_DELAY = 3000;
+const feedbackTimers = new WeakMap();
+
 let activeMenu = null;
 let settingsMenuControls = null;
 
@@ -462,6 +465,7 @@ function setupAuthForms() {
       try {
         const updated = updateUserProfile(user.id, { name, email, role });
         announceTo(feedback, t('auth.feedback.profileUpdated', { name: updated.name }));
+        scheduleFeedbackClear(feedback);
       } catch (error) {
         if (error.message === 'auth:user-exists') {
           announceTo(feedback, t('auth.feedback.exists'));
@@ -472,11 +476,10 @@ function setupAuthForms() {
         }
       }
     });
-    profileForm.addEventListener('reset', () => {
-      setTimeout(() => {
-        updateProfileView(currentUser());
-        announceTo(feedback, '');
-      }, 0);
+    profileForm.addEventListener('reset', event => {
+      setTimeout(() => updateProfileView(currentUser()), 0);
+      const delay = event.isTrusted ? 0 : FEEDBACK_CLEAR_DELAY;
+      scheduleFeedbackClear(feedback, delay);
     });
   }
 
@@ -506,6 +509,7 @@ function setupAuthForms() {
         changePassword(user.id, { currentPassword, newPassword });
         passwordForm.reset();
         announceTo(feedback, t('auth.feedback.passwordChanged'));
+        scheduleFeedbackClear(feedback);
       } catch (error) {
         if (error.message === 'auth:invalid-password') {
           announceTo(feedback, t('auth.feedback.invalidCurrentPassword'));
@@ -516,8 +520,9 @@ function setupAuthForms() {
         }
       }
     });
-    passwordForm.addEventListener('reset', () => {
-      setTimeout(() => announceTo(feedback, ''), 0);
+    passwordForm.addEventListener('reset', event => {
+      const delay = event.isTrusted ? 0 : FEEDBACK_CLEAR_DELAY;
+      scheduleFeedbackClear(feedback, delay);
     });
   }
 
@@ -627,6 +632,19 @@ function updateProfileView(user) {
 function announce(message) {
   const feedback = document.querySelector('.feedback');
   announceTo(feedback, message);
+}
+
+function scheduleFeedbackClear(element, delay = FEEDBACK_CLEAR_DELAY) {
+  if (!element) return;
+  const existingTimeout = feedbackTimers.get(element);
+  if (existingTimeout) {
+    clearTimeout(existingTimeout);
+  }
+  const timeout = setTimeout(() => {
+    feedbackTimers.delete(element);
+    announceTo(element, '');
+  }, delay);
+  feedbackTimers.set(element, timeout);
 }
 
 function announceTo(element, message) {
