@@ -1,0 +1,35 @@
+.
+├── appbase
+│   └── registry.json
+├── assets
+│   └── brand
+│       ├── logo-dark.svg
+│       └── logo-light.svg
+├── miniapps
+│   └── base_shell
+│       ├── auth
+│       │   ├── login.html
+│       │   ├── profile.html
+│       │   └── register.html
+│       ├── i18n
+│       │   ├── en-us.json
+│       │   ├── es-419.json
+│       │   └── pt-br.json
+│       ├── app.js
+│       ├── index.html
+│       ├── manifest.json
+│       ├── README.md
+│       └── styles.css
+├── packages
+│   ├── base.i18n
+│   │   └── i18n.js
+│   ├── base.security
+│   │   └── auth.js
+│   └── base.theme
+│       ├── theme.css
+│       └── theme.js
+├── tests
+│   └── e2e
+│       └── miniapp_base_shell.spec.ts
+├── package-lock.json
+├── package.json
