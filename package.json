@@ -1,7 +1,0 @@
-{
-  "name": "projeto-marco",
-  "version": "1.0.0",
-  "private": true,
-  "devDependencies": { "@playwright/test": "1.47.1" },
-  "scripts": { "test:e2e": "playwright test" }
-}

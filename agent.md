@@ -1,61 +1,12 @@
 # Agent.md
 
-> **Consultar o repositório (`branch Projeto-Marco`) e seguir os modelos em [`manuals/`](manuals/index_R3.0.md) antes de propor mudanças.**
-> **Em caso de divergência entre código e manuais N1, prevalece `manuals/`; abrir PCM.**
+Este repositório está em modo **Clean v3.0**. Toda evolução deve se concentrar
+na pasta `appbase/`, mantendo HTML, CSS e JavaScript simples, sem frameworks.
 
-## Propósito
-Este documento orienta futuras automações a evoluir o AppBase Marco mantendo-o
-navegável em navegadores modernos, com HTML, CSS e JavaScript vanilla
-organizados em arquivos dedicados. A versão atual foca exclusivamente no fluxo
-de cadastro local, etiqueta do rail e painel principal.
-
-## Diretrizes
-- Trabalhe dentro do diretório `appbase/`, que concentra `index.html`,
-  `app.css`, `app.js` e os módulos de runtime/persistência. A raiz mantém o
-  redirecionamento (`index.html`), governança (`manuals/`, `.github/workflows/`),
-  miniapps ativos e o histórico em `archive/`.
-- Preserve a estrutura shell + rail + palco + rodapé conforme especificação
-  R1.0, reaproveitando classes prefixadas `ac-` para novos elementos.
-- Estilos permanecem centralizados em `app.css`, usando os tokens `--ac-*`
-  existentes. Evite bibliotecas externas e mantenha compatibilidade com o tema
-  atual e com GitHub Pages.
-- Interações em `app.js` devem seguir JavaScript vanilla, sem dependências
-  externas, utilizando seletores por `data-*`, classes `js-*` ou IDs já
-  definidos. Foque em login, persistência via `localStorage`, etiqueta e painel.
-- Atualize o `README.md` sempre que o fluxo de cadastro ou a arquitetura
-  simplificada mudarem. Registre o ponto de entrada (`appbase/index.html`), o
-  processo de limpeza e qualquer ajuste em `scripts/` ou nos workflows.
-- Mantenha a suíte Playwright em `tests/` alinhada ao comportamento visível.
-  Atualize ou adicione cenários quando alterar a interação da etiqueta, painel
-  ou overlay de login. O teste `tests/tools/trace-deps.spec.ts` precisa refletir
-  todo asset carregado em runtime.
-- Atualize `scripts/used-static-deps.json`, `scripts/used-runtime-deps.txt` e
-  `scripts/used-deps.txt` ao introduzir novos assets. Utilize
-  `scripts/build-used-deps.sh` para reconstruir o manifesto e arquive legados em
-  `archive/<data>/`.
-- Antes de iniciar qualquer fluxo operacional consulte o índice N1
-  [`manuals/index_R3.0.md`](manuals/index_R3.0.md) e siga integralmente o
-  procedimento indicado pelos modelos obrigatórios:
-  - [`manuals/modelo_miniapp_R3.0.md`](manuals/modelo_miniapp_R3.0.md) para
-    criação e evolução de MiniApps.
-  - [`manuals/modelo_pcm_R1.0.md`](manuals/modelo_pcm_R1.0.md) para processos de
-    mudança (PCM) e governança.
-  - [`manuals/modelo_release_notes_R1.0.md`](manuals/modelo_release_notes_R1.0.md)
-    para publicar notas de versão.
-  - [`manuals/modelo_testes_R1.0.md`](manuals/modelo_testes_R1.0.md) para planejar
-    e registrar a estratégia de testes.
-- `miniapps/` mantém apenas a versão ativa de cada MiniApp. Variantes
-  anteriores e experimentos devem ser movidos para `archive/` com um diretório
-  nomeado (`miniapps/<nome>/vYYYYMMDD/`, por exemplo) e referenciados no
-  changelog local.
-- O protótipo modular legado vive em `archive/src-r0/` somente para consulta.
-  Não copie arquivos diretamente dessa pasta; use-a como referência histórica.
-
-## Checklist rápido
-1. Abrir `appbase/index.html` após alterações para garantir que o layout 100vh,
-   o rail e o painel funcionam corretamente.
-2. Validar acessibilidade básica do overlay de login (foco, `aria-*`, fechamento
-   por Esc/backdrop) e o comportamento de abertura/fechamento da etiqueta.
-3. Executar `npm test` para rodar a suíte Playwright e confirmar que cadastro,
-   persistência e toggles continuam estáveis.
-4. Verificar que nenhum asset ou dependência supérflua foi adicionado.
+- `appbase/index.html` carrega o shell Clean e referencia `app.css` e `app.js`.
+- O CSS deve permanecer em `appbase/app.css`, reutilizando o prefixo `ac-`.
+- A lógica do shell (login local, overlay desktop, billing) fica em
+  `appbase/app.js` e módulos em `appbase/modules/`.
+- Atualize o `README.md` para qualquer mudança de fluxo.
+- Para testar, sirva o diretório estático (`npx serve .`) e abra `appbase/` em
+  viewport mobile (≤ 800 px).

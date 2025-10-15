@@ -1,9 +1,3 @@
 node_modules/
-.turbo/
-apps/web/.turbo/
-apps/web/dist/
-packages/*/.turbo/
-packages/*/*/.turbo/
-playwright-report/
-test-results/
-tests/visual/screenshots/
+.DS_Store
+*.log
