@@ -12,6 +12,8 @@
   "nav.activity": "Atividades",
   "nav.analytics": "Análises",
   "nav.settings": "Configurações",
+  "settings.language": "Idioma",
+  "settings.theme": "Tema",
   "panel.welcomeTitle": "Bem-vindo(a)!",
   "panel.welcomeMessage": "Selecione uma opção no menu para começar a explorar seu miniaplicativo.",
   "panel.actions.login": "Acessar",

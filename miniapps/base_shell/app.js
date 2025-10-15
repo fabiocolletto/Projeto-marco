@@ -40,6 +40,7 @@ const LANG_ICON_MAP = {
 };
 
 let activeMenu = null;
+let settingsMenuControls = null;
 
 bootstrap();
 
@@ -56,6 +57,7 @@ async function bootstrap() {
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
   setupSidebar();
+  setupSettingsMenu();
   setupUserMenu();
   setupAuthForms();
   document.addEventListener('click', handleDocumentClick);
@@ -132,8 +134,38 @@ function setupSidebar() {
     button.addEventListener('click', () => {
       const collapsed = shell.classList.toggle('is-collapsed');
       toggleButtons.forEach(control => control.setAttribute('aria-expanded', String(!collapsed)));
+      if (collapsed) {
+        closeSettingsMenu();
+      }
     });
   });
+}
+
+function setupSettingsMenu() {
+  const toggle = document.getElementById('settings-toggle');
+  const submenu = document.getElementById('settings-submenu');
+  if (!toggle || !submenu) return;
+  const container = toggle.closest('.has-submenu');
+  settingsMenuControls = { toggle, submenu, container };
+  toggle.setAttribute('aria-expanded', 'false');
+  submenu.hidden = true;
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    const next = !expanded;
+    toggle.setAttribute('aria-expanded', String(next));
+    submenu.hidden = !next;
+    if (next) {
+      closeActiveMenu();
+    }
+  });
+}
+
+function closeSettingsMenu() {
+  if (!settingsMenuControls) return;
+  const { toggle, submenu } = settingsMenuControls;
+  if (!toggle || !submenu) return;
+  toggle.setAttribute('aria-expanded', 'false');
+  submenu.hidden = true;
 }
 
 function setupLanguageToggle() {
@@ -296,6 +328,12 @@ function closeActiveMenu() {
 }
 
 function handleDocumentClick(event) {
+  if (settingsMenuControls && settingsMenuControls.container) {
+    const { container } = settingsMenuControls;
+    if (!container.contains(event.target)) {
+      closeSettingsMenu();
+    }
+  }
   if (!activeMenu) return;
   const { button, menu } = activeMenu;
   if (button.contains(event.target) || menu.contains(event.target)) return;
@@ -304,6 +342,7 @@ function handleDocumentClick(event) {
 
 function handleKeydown(event) {
   if (event.key === 'Escape') {
+    closeSettingsMenu();
     closeActiveMenu();
   }
 }
