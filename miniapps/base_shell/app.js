@@ -18,11 +18,11 @@ import {
   logout,
   currentUser,
   listUsers,
-  switchUser,
   onAuthChange,
   updateUserProfile,
   changePassword,
-  deleteUser
+  deleteUser,
+  setUserPassword
 } from '../../packages/base.security/auth.js';
 
 const LANG_RESOURCES = [
@@ -43,7 +43,7 @@ const LANG_ICON_MAP = {
 };
 
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
-const HOME_URL = new URL('./index.html', import.meta.url);
+const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
 
 const FEEDBACK_CLEAR_DELAY = 3000;
@@ -53,6 +53,12 @@ let revisionInfo = null;
 let activeMenu = null;
 let settingsMenuControls = null;
 let isRedirectingHome = false;
+let userManagementControls = null;
+
+const userManagementState = {
+  mode: null,
+  targetId: null
+};
 
 bootstrap();
 
@@ -76,6 +82,8 @@ async function bootstrap() {
   setupSettingsMenu();
   setupUserMenu();
   setupAuthForms();
+  setupUserManagement();
+  updateRegistrationAccess();
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleKeydown);
   onLanguageChange(lang => {
@@ -95,6 +103,8 @@ async function bootstrap() {
     updateProfileView(user);
     updateUserPanelShortcut();
     refreshUserMenu();
+    refreshUserManagement();
+    updateRegistrationAccess();
   });
 }
 
@@ -332,31 +342,6 @@ function setupUserMenu() {
 function renderUserMenu(menu) {
   menu.innerHTML = '';
   menu.appendChild(createMenuAction('profile', t('actions.profile')));
-  const users = listUsers();
-  if (users.length > 0) {
-    const label = document.createElement('li');
-    label.className = 'menu-label';
-    label.textContent = t('actions.switchUser');
-    menu.appendChild(label);
-    const active = currentUser();
-    users.forEach(user => {
-      const item = document.createElement('li');
-      const option = document.createElement('button');
-      option.type = 'button';
-      option.textContent = user.name;
-      option.dataset.email = user.email;
-      if (active && active.id === user.id) {
-        option.setAttribute('aria-current', 'true');
-      }
-      option.addEventListener('click', () => {
-        switchUser(user.email);
-        announce(t('auth.feedback.switched', { name: user.name }));
-        closeActiveMenu();
-      });
-      item.appendChild(option);
-      menu.appendChild(item);
-    });
-  }
   menu.appendChild(createMenuAction('logout', t('actions.logout')));
 }
 
@@ -394,7 +379,7 @@ function performLogout() {
   isRedirectingHome = true;
   logout();
   window.setTimeout(() => {
-    window.location.href = HOME_URL.href;
+    window.location.href = LOGIN_URL.href;
   }, HOME_REDIRECT_DELAY);
 }
 
@@ -469,8 +454,6 @@ function setupAuthForms() {
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     const feedback = document.getElementById('login-feedback');
-    const emailField = loginForm.querySelector('#login-email');
-    const passwordField = loginForm.querySelector('#login-password');
     loginForm.addEventListener('submit', event => {
       event.preventDefault();
       const data = new FormData(loginForm);
@@ -487,113 +470,56 @@ function setupAuthForms() {
         announceTo(feedback, message);
       }
     });
-
-    const switchUserButton = document.getElementById('switch-user');
-    if (switchUserButton) {
-      const hintRow = switchUserButton.closest('.form-hint');
-      const switchUserContainer = document.createElement('div');
-      switchUserContainer.id = 'switch-user-options';
-      switchUserContainer.className = 'switch-user-options';
-      switchUserContainer.hidden = true;
-      (hintRow || switchUserButton).insertAdjacentElement('afterend', switchUserContainer);
-
-      const hideSwitchUserOptions = () => {
-        switchUserContainer.hidden = true;
-        switchUserContainer.innerHTML = '';
-      };
-
-      const renderSwitchUserOptions = () => {
-        const users = listUsers();
-        switchUserContainer.innerHTML = '';
-        if (!users || users.length === 0) {
-          return false;
-        }
-        const title = document.createElement('p');
-        title.className = 'switch-user-title';
-        title.textContent = t('actions.switchUser');
-        switchUserContainer.appendChild(title);
-        const list = document.createElement('ul');
-        list.className = 'switch-user-list';
-        users.forEach(user => {
-          const item = document.createElement('li');
-          const option = document.createElement('button');
-          option.type = 'button';
-          option.className = 'ghost switch-user-option';
-          option.textContent = user.name || user.email;
-          option.dataset.email = user.email;
-          option.addEventListener('click', event => {
-            event.preventDefault();
-            event.stopPropagation();
-            try {
-              const selected = switchUser(user.email);
-              announceTo(feedback, t('auth.feedback.switched', { name: selected.name }));
-              if (emailField) {
-                emailField.value = selected.email;
-              }
-              if (passwordField) {
-                passwordField.value = '';
-                passwordField.focus();
-              }
-              hideSwitchUserOptions();
-            } catch (error) {
-              announceTo(feedback, t('auth.feedback.userNotFound'));
-            }
-          });
-          item.appendChild(option);
-          list.appendChild(item);
-        });
-        switchUserContainer.appendChild(list);
-        return true;
-      };
-
-      switchUserButton.addEventListener('click', event => {
-        event.preventDefault();
-        event.stopPropagation();
-        const hasUsers = renderSwitchUserOptions();
-        if (!hasUsers) {
-          announceTo(feedback, t('auth.feedback.userNotFound'));
-          return;
-        }
-        switchUserContainer.hidden = !switchUserContainer.hidden;
-        if (!switchUserContainer.hidden) {
-          const firstOption = switchUserContainer.querySelector('button');
-          if (firstOption) {
-            firstOption.focus();
-          }
-        }
-      });
-
-      document.addEventListener('click', event => {
-        if (switchUserContainer.hidden) return;
-        if (switchUserContainer.contains(event.target)) return;
-        if (switchUserButton.contains(event.target)) return;
-        hideSwitchUserOptions();
-      });
-
-      onAuthChange(() => {
-        if (!switchUserContainer.hidden) {
-          renderSwitchUserOptions();
-        }
-      });
+    const registerHint = document.getElementById('login-register-hint');
+    if (registerHint) {
+      registerHint.hidden = !shouldAllowPublicRegistration();
     }
   }
 
   const registerForm = document.getElementById('register-form');
   if (registerForm) {
     const feedback = document.getElementById('register-feedback');
+    const allowRegistration = shouldAllowPublicRegistration();
+    if (!allowRegistration) {
+      const owner = currentUser();
+      if (owner && owner.role === 'owner') {
+        window.location.replace(USER_PANEL_URL.href);
+      } else {
+        window.location.replace(LOGIN_URL.href);
+      }
+      return;
+    }
+    const roleField = registerForm.querySelector('#register-role');
+    if (roleField) {
+      roleField.value = 'owner';
+      roleField.disabled = true;
+    }
     registerForm.addEventListener('submit', event => {
       event.preventDefault();
       const data = new FormData(registerForm);
       try {
+        const name = String(data.get('name') || '').trim();
+        const email = String(data.get('email') || '').trim();
+        const password = String(data.get('password') || '');
+        if (!name || !email || !password) {
+          announceTo(feedback, t('auth.feedback.required'));
+          return;
+        }
         const user = register({
-          name: data.get('name'),
-          email: data.get('email'),
-          password: data.get('password'),
-          role: data.get('role')
+          name,
+          email,
+          password,
+          role: 'owner'
         });
         announceTo(feedback, t('auth.feedback.registered'));
         updateUserDisplay(user);
         registerForm.reset();
+        if (roleField) {
+          roleField.value = 'owner';
+        }
+        window.setTimeout(() => {
+          window.location.replace(USER_PANEL_URL.href);
+        }, 300);
       } catch (error) {
         const message = error.message === 'auth:user-exists'
           ? t('auth.feedback.exists')
@@ -699,7 +625,6 @@ function setupAuthForms() {
   const deleteButton = document.getElementById('delete-account');
   if (deleteButton) {
     const feedback = document.getElementById('profile-feedback');
-    const loginUrl = new URL('./auth/login.html', import.meta.url);
     deleteButton.addEventListener('click', () => {
       const user = currentUser();
       if (!user) {
@@ -712,7 +637,7 @@ function setupAuthForms() {
         deleteUser(user.id);
         announceTo(feedback, t('auth.feedback.userDeleted'));
         window.setTimeout(() => {
-          window.location.href = loginUrl.href;
+          window.location.href = LOGIN_URL.href;
         }, 300);
       } catch (error) {
         if (error.message === 'auth:user-not-found') {
@@ -797,11 +722,278 @@ function updateProfileView(user) {
       announceTo(generalFeedback, '');
     }
   }
+
+  refreshUserManagement();
 }
 
 function announce(message) {
   const feedback = document.querySelector('.feedback');
   announceTo(feedback, message);
+}
+
+function setupUserManagement() {
+  const section = document.getElementById('user-management');
+  if (!section) return;
+  const list = document.getElementById('user-management-list');
+  const createButton = document.getElementById('user-management-create');
+  const form = document.getElementById('user-management-form');
+  const feedback = document.getElementById('user-management-feedback');
+  const title = document.getElementById('user-management-form-title');
+  const submitButton = document.getElementById('user-management-submit');
+  const cancelButton = document.getElementById('user-management-cancel');
+  const nameField = document.getElementById('manage-name');
+  const emailField = document.getElementById('manage-email');
+  const passwordField = document.getElementById('manage-password');
+  const roleField = document.getElementById('manage-role');
+  if (!list || !createButton || !form || !feedback || !title || !submitButton || !cancelButton || !nameField || !emailField || !passwordField || !roleField) {
+    return;
+  }
+  userManagementControls = {
+    section,
+    list,
+    createButton,
+    form,
+    feedback,
+    title,
+    submitButton,
+    cancelButton,
+    nameField,
+    emailField,
+    passwordField,
+    roleField
+  };
+  createButton.addEventListener('click', () => openUserManagementForm('create'));
+  cancelButton.addEventListener('click', event => {
+    event.preventDefault();
+    announceTo(feedback, '');
+    closeUserManagementForm();
+  });
+  form.addEventListener('submit', handleUserManagementSubmit);
+  refreshUserManagement();
+}
+
+function refreshUserManagement() {
+  if (!userManagementControls) return;
+  const owner = currentUser();
+  if (!owner || owner.role !== 'owner') {
+    userManagementControls.section.hidden = true;
+    announceTo(userManagementControls.feedback, '');
+    closeUserManagementForm();
+    return;
+  }
+  userManagementControls.section.hidden = false;
+  renderUserManagementTable();
+}
+
+function renderUserManagementTable() {
+  if (!userManagementControls) return;
+  const { list } = userManagementControls;
+  const users = listUsers();
+  list.innerHTML = '';
+  if (!users || users.length === 0) {
+    const row = document.createElement('tr');
+    const cell = document.createElement('td');
+    cell.colSpan = 5;
+    cell.textContent = t('auth.profile.userEmpty');
+    row.appendChild(cell);
+    list.appendChild(row);
+    return;
+  }
+  users.forEach(user => {
+    const row = document.createElement('tr');
+    row.dataset.userId = user.id;
+    const nameCell = document.createElement('td');
+    nameCell.textContent = user.name || '—';
+    row.appendChild(nameCell);
+    const emailCell = document.createElement('td');
+    emailCell.textContent = user.email;
+    row.appendChild(emailCell);
+    const roleCell = document.createElement('td');
+    roleCell.textContent = user.role === 'owner' ? t('auth.form.owner') : t('auth.form.member');
+    row.appendChild(roleCell);
+    const createdCell = document.createElement('td');
+    createdCell.textContent = formatUserDate(user.createdAt);
+    row.appendChild(createdCell);
+    const actionsCell = document.createElement('td');
+    actionsCell.className = 'user-management-actions';
+    actionsCell.appendChild(createUserManagementActionButton('edit', t('auth.profile.userEdit'), () => {
+      openUserManagementForm('edit', user);
+    }));
+    actionsCell.appendChild(createUserManagementActionButton('duplicate', t('auth.profile.userDuplicate'), () => {
+      openUserManagementForm('duplicate', user);
+    }));
+    actionsCell.appendChild(createUserManagementActionButton('delete', t('auth.profile.userDelete'), () => {
+      handleUserDelete(user);
+    }));
+    row.appendChild(actionsCell);
+    list.appendChild(row);
+  });
+}
+
+function createUserManagementActionButton(action, label, handler) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'ghost';
+  button.dataset.action = action;
+  button.textContent = label;
+  button.addEventListener('click', handler);
+  return button;
+}
+
+function openUserManagementForm(mode, user) {
+  if (!userManagementControls) return;
+  userManagementState.mode = mode;
+  userManagementState.targetId = user?.id || null;
+  const {
+    form,
+    feedback,
+    title,
+    submitButton,
+    nameField,
+    emailField,
+    passwordField,
+    roleField
+  } = userManagementControls;
+  const titleKey = mode === 'edit'
+    ? 'auth.profile.userForm.title.edit'
+    : mode === 'duplicate'
+      ? 'auth.profile.userForm.title.duplicate'
+      : 'auth.profile.userForm.title.create';
+  const submitKey = mode === 'edit'
+    ? 'auth.profile.userForm.submit.edit'
+    : mode === 'duplicate'
+      ? 'auth.profile.userForm.submit.duplicate'
+      : 'auth.profile.userForm.submit.create';
+  title.textContent = t(titleKey);
+  submitButton.textContent = t(submitKey);
+  nameField.value = user?.name || '';
+  emailField.value = mode === 'duplicate' ? '' : user?.email || '';
+  emailField.placeholder = mode === 'duplicate' ? t('auth.profile.userForm.emailPlaceholderDuplicate', { email: user?.email || '' }) : '';
+  passwordField.value = '';
+  roleField.value = user?.role || 'member';
+  passwordField.required = mode !== 'edit';
+  passwordField.placeholder = mode === 'edit'
+    ? t('auth.profile.userForm.passwordOptional')
+    : '';
+  announceTo(feedback, '');
+  form.hidden = false;
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  nameField.focus();
+}
+
+function closeUserManagementForm() {
+  if (!userManagementControls) return;
+  const {
+    form,
+    nameField,
+    emailField,
+    passwordField,
+    roleField
+  } = userManagementControls;
+  form.hidden = true;
+  nameField.value = '';
+  emailField.value = '';
+  emailField.placeholder = '';
+  passwordField.value = '';
+  passwordField.placeholder = '';
+  passwordField.required = true;
+  roleField.value = 'member';
+  userManagementState.mode = null;
+  userManagementState.targetId = null;
+}
+
+function handleUserManagementSubmit(event) {
+  event.preventDefault();
+  if (!userManagementControls) return;
+  const { feedback, nameField, emailField, passwordField, roleField } = userManagementControls;
+  const mode = userManagementState.mode || 'create';
+  const name = nameField.value.trim();
+  const email = emailField.value.trim();
+  const role = roleField.value || 'member';
+  const password = passwordField.value;
+  if (!name || !email || (mode !== 'edit' && !password)) {
+    announceTo(feedback, t('auth.feedback.required'));
+    return;
+  }
+  try {
+    if (mode === 'edit') {
+      const targetId = userManagementState.targetId;
+      if (!targetId) {
+        announceTo(feedback, t('auth.feedback.userNotFound'));
+        return;
+      }
+      const updated = updateUserProfile(targetId, { name, email, role });
+      if (password) {
+        setUserPassword(targetId, password);
+      }
+      announceTo(feedback, t('auth.profile.userUpdated', { name: updated.name }));
+    } else {
+      register({ name, email, password, role }, { autoLogin: false });
+      const key = mode === 'duplicate'
+        ? 'auth.profile.userDuplicated'
+        : 'auth.profile.userCreated';
+      announceTo(feedback, t(key, { name }));
+    }
+    scheduleFeedbackClear(feedback);
+    closeUserManagementForm();
+    renderUserManagementTable();
+  } catch (error) {
+    if (error.message === 'auth:user-exists') {
+      announceTo(feedback, t('auth.feedback.exists'));
+    } else if (error.message === 'auth:user-not-found') {
+      announceTo(feedback, t('auth.feedback.userNotFound'));
+    } else if (error.message === 'auth:missing-password') {
+      announceTo(feedback, t('auth.feedback.required'));
+    } else {
+      announceTo(feedback, t('auth.feedback.generic'));
+    }
+  }
+}
+
+function handleUserDelete(user) {
+  if (!userManagementControls) return;
+  const { feedback } = userManagementControls;
+  const confirmation = window.confirm(t('auth.profile.userDeleteConfirm', { name: user.name }));
+  if (!confirmation) return;
+  try {
+    deleteUser(user.id);
+    announceTo(feedback, t('auth.profile.userDeleted', { name: user.name }));
+    scheduleFeedbackClear(feedback);
+    renderUserManagementTable();
+  } catch (error) {
+    if (error.message === 'auth:user-not-found') {
+      announceTo(feedback, t('auth.feedback.userNotFound'));
+    } else {
+      announceTo(feedback, t('auth.feedback.generic'));
+    }
+  }
+}
+
+function shouldAllowPublicRegistration() {
+  return listUsers().length === 0;
+}
+
+function updateRegistrationAccess() {
+  const allowRegistration = shouldAllowPublicRegistration();
+  document.querySelectorAll('[data-register-guard]').forEach(node => {
+    node.hidden = !allowRegistration;
+  });
+}
+
+function formatUserDate(timestamp) {
+  if (!timestamp) return '—';
+  try {
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return '—';
+    }
+    return new Intl.DateTimeFormat(getLang() || document.documentElement.lang || 'pt-BR', {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(date);
+  } catch (error) {
+    return '—';
+  }
 }
 
 function scheduleFeedbackClear(element, delay = FEEDBACK_CLEAR_DELAY) {

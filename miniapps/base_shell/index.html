@@ -29,7 +29,6 @@
             </button>
             <ul id="user-menu" class="menu" hidden>
               <li><button data-action="profile" data-i18n="actions.profile">Perfil</button></li>
-              <li><button data-action="switch" data-i18n="actions.switchUser">Trocar usuário</button></li>
               <li><button data-action="logout" data-i18n="actions.logout">Sair</button></li>
             </ul>
           </div>
@@ -108,7 +107,14 @@
             </p>
             <div class="cta-group">
               <a class="cta" href="./auth/login.html" data-i18n="panel.actions.login">Acessar</a>
-              <a class="cta secondary" href="./auth/register.html" data-i18n="panel.actions.register">Criar conta</a>
+              <a
+                class="cta secondary"
+                href="./auth/register.html"
+                data-register-guard
+                data-i18n="panel.actions.register"
+              >
+                Criar conta
+              </a>
             </div>
           </section>
         </main>

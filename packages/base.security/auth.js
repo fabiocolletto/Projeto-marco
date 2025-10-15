@@ -62,7 +62,8 @@ export function currentUser() {
   return listUsers().find(user => user.id === sessionId) || null;
 }
 
-export function register({ name, email, password, role = 'member' }) {
+export function register({ name, email, password, role = 'member' }, options = {}) {
+  const { autoLogin = true } = options;
   const users = listUsers();
   if (users.some(user => user.email === email)) {
     throw new Error('auth:user-exists');
@@ -77,7 +78,11 @@ export function register({ name, email, password, role = 'member' }) {
   };
   users.push(newUser);
   persistUsers(users);
-  setSession(newUser.id);
+  if (autoLogin) {
+    setSession(newUser.id);
+  } else {
+    notify();
+  }
   return newUser;
 }
 
@@ -150,14 +155,19 @@ export function deleteUser(id) {
   return removed;
 }
 
-export function switchUser(email) {
+export function setUserPassword(id, newPassword) {
+  if (!newPassword) {
+    throw new Error('auth:missing-password');
+  }
   const users = listUsers();
-  const target = users.find(user => user.email === email);
-  if (!target) {
+  const index = users.findIndex(user => user.id === id);
+  if (index === -1) {
     throw new Error('auth:user-not-found');
   }
-  setSession(target.id);
-  return target;
+  users[index] = { ...users[index], password: newPassword };
+  persistUsers(users);
+  notify();
+  return users[index];
 }
 
 export function onAuthChange(listener) {
