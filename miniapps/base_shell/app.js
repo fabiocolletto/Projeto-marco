@@ -19,7 +19,10 @@ import {
   currentUser,
   listUsers,
   switchUser,
-  onAuthChange
+  onAuthChange,
+  updateUserProfile,
+  changePassword,
+  deleteUser
 } from '../../packages/base.security/auth.js';
 
 const LANG_RESOURCES = [
@@ -437,6 +440,114 @@ function setupAuthForms() {
       announceTo(feedback, t('actions.logout'));
     });
   }
+
+  const profileForm = document.getElementById('profile-form');
+  if (profileForm) {
+    const feedback = document.getElementById('profile-form-feedback');
+    profileForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const user = currentUser();
+      if (!user) {
+        announceTo(feedback, t('auth.feedback.userNotFound'));
+        return;
+      }
+      const data = new FormData(profileForm);
+      const name = String(data.get('name') || '').trim();
+      const email = String(data.get('email') || '').trim();
+      const role = String(data.get('role') || '');
+      if (!name || !email || !role) {
+        announceTo(feedback, t('auth.feedback.required'));
+        return;
+      }
+      try {
+        const updated = updateUserProfile(user.id, { name, email, role });
+        announceTo(feedback, t('auth.feedback.profileUpdated', { name: updated.name }));
+      } catch (error) {
+        if (error.message === 'auth:user-exists') {
+          announceTo(feedback, t('auth.feedback.exists'));
+        } else if (error.message === 'auth:user-not-found') {
+          announceTo(feedback, t('auth.feedback.userNotFound'));
+        } else {
+          announceTo(feedback, t('auth.feedback.generic'));
+        }
+      }
+    });
+    profileForm.addEventListener('reset', () => {
+      setTimeout(() => {
+        updateProfileView(currentUser());
+        announceTo(feedback, '');
+      }, 0);
+    });
+  }
+
+  const passwordForm = document.getElementById('password-form');
+  if (passwordForm) {
+    const feedback = document.getElementById('password-form-feedback');
+    passwordForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const user = currentUser();
+      if (!user) {
+        announceTo(feedback, t('auth.feedback.userNotFound'));
+        return;
+      }
+      const data = new FormData(passwordForm);
+      const currentPassword = String(data.get('currentPassword') || '');
+      const newPassword = String(data.get('newPassword') || '');
+      const confirmPassword = String(data.get('confirmPassword') || '');
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        announceTo(feedback, t('auth.feedback.required'));
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        announceTo(feedback, t('auth.feedback.passwordMismatch'));
+        return;
+      }
+      try {
+        changePassword(user.id, { currentPassword, newPassword });
+        passwordForm.reset();
+        announceTo(feedback, t('auth.feedback.passwordChanged'));
+      } catch (error) {
+        if (error.message === 'auth:invalid-password') {
+          announceTo(feedback, t('auth.feedback.invalidCurrentPassword'));
+        } else if (error.message === 'auth:user-not-found') {
+          announceTo(feedback, t('auth.feedback.userNotFound'));
+        } else {
+          announceTo(feedback, t('auth.feedback.generic'));
+        }
+      }
+    });
+    passwordForm.addEventListener('reset', () => {
+      setTimeout(() => announceTo(feedback, ''), 0);
+    });
+  }
+
+  const deleteButton = document.getElementById('delete-account');
+  if (deleteButton) {
+    const feedback = document.getElementById('profile-feedback');
+    const loginUrl = new URL('./auth/login.html', import.meta.url);
+    deleteButton.addEventListener('click', () => {
+      const user = currentUser();
+      if (!user) {
+        announceTo(feedback, t('auth.feedback.userNotFound'));
+        return;
+      }
+      const confirmation = window.confirm(t('auth.profile.deleteConfirm', { name: user.name }));
+      if (!confirmation) return;
+      try {
+        deleteUser(user.id);
+        announceTo(feedback, t('auth.feedback.userDeleted'));
+        window.setTimeout(() => {
+          window.location.href = loginUrl.href;
+        }, 300);
+      } catch (error) {
+        if (error.message === 'auth:user-not-found') {
+          announceTo(feedback, t('auth.feedback.userNotFound'));
+        } else {
+          announceTo(feedback, t('auth.feedback.generic'));
+        }
+      }
+    });
+  }
 }
 
 function updateUserDisplay(user) {
@@ -447,18 +558,69 @@ function updateUserDisplay(user) {
 }
 
 function updateProfileView(user) {
-  const name = document.getElementById('profile-name');
-  const email = document.getElementById('profile-email');
-  const role = document.getElementById('profile-role');
-  if (!name || !email || !role) return;
-  if (user) {
-    name.textContent = user.name;
-    email.textContent = user.email;
-    role.textContent = user.role === 'owner' ? t('auth.form.owner') : t('auth.form.member');
-  } else {
-    name.textContent = '--';
-    email.textContent = '--';
-    role.textContent = '--';
+  const profileForm = document.getElementById('profile-form');
+  const passwordForm = document.getElementById('password-form');
+  const logoutButton = document.getElementById('profile-logout');
+  const deleteButton = document.getElementById('delete-account');
+  const profileFeedback = document.getElementById('profile-form-feedback');
+  const passwordFeedback = document.getElementById('password-form-feedback');
+
+  if (profileForm) {
+    const nameField = profileForm.querySelector('#profile-name');
+    const emailField = profileForm.querySelector('#profile-email');
+    const roleField = profileForm.querySelector('#profile-role');
+    const profileButtons = profileForm.querySelectorAll('button');
+    const enabled = Boolean(user);
+    if (nameField) {
+      nameField.disabled = !enabled;
+      nameField.value = enabled ? user.name : '';
+      nameField.defaultValue = enabled ? user.name : '';
+    }
+    if (emailField) {
+      emailField.disabled = !enabled;
+      emailField.value = enabled ? user.email : '';
+      emailField.defaultValue = enabled ? user.email : '';
+    }
+    if (roleField) {
+      roleField.disabled = !enabled;
+      roleField.value = enabled ? user.role : '';
+      roleField.defaultValue = enabled ? user.role : '';
+    }
+    profileButtons.forEach(button => {
+      button.disabled = !enabled;
+    });
+    if (!enabled && profileFeedback) {
+      announceTo(profileFeedback, '');
+    }
+  }
+
+  if (passwordForm) {
+    const passwordFields = passwordForm.querySelectorAll('input, button');
+    const enabled = Boolean(user);
+    passwordFields.forEach(field => {
+      field.disabled = !enabled;
+    });
+    if (!enabled) {
+      passwordForm.reset();
+      if (passwordFeedback) {
+        announceTo(passwordFeedback, '');
+      }
+    }
+  }
+
+  if (logoutButton) {
+    logoutButton.disabled = !user;
+  }
+
+  if (deleteButton) {
+    deleteButton.disabled = !user;
+  }
+
+  if (!user) {
+    const generalFeedback = document.getElementById('profile-feedback');
+    if (generalFeedback) {
+      announceTo(generalFeedback, '');
+    }
   }
 }
 

@@ -140,5 +140,61 @@ test.describe('MiniApp Base shell', () => {
     );
     await page.click('#btnUserPanel');
     await expect(page).toHaveURL(/auth\/profile\.html$/);
+
+    const profileName = page.locator('#profile-name');
+    const profileEmail = page.locator('#profile-email');
+    const profileRole = page.locator('#profile-role');
+    const profileFeedback = page.locator('#profile-form-feedback');
+    await expect(profileName).toHaveValue('Alice Owner');
+    await expect(profileEmail).toHaveValue('alice@example.com');
+    await expect(profileRole).toHaveValue('owner');
+
+    await profileName.fill('Alicia Admin');
+    await profileEmail.fill('alicia.admin@example.com');
+    await profileRole.selectOption('member');
+    await page.click('#profile-form button[type="submit"]');
+    await expect(profileFeedback).toHaveText('Perfil actualizado correctamente.');
+    await expect(page.locator('#current-user')).toHaveText('Alicia Admin');
+
+    await profileEmail.fill('bruno@example.com');
+    await page.click('#profile-form button[type="submit"]');
+    await expect(profileFeedback).toHaveText('Correo ya registrado.');
+    await page.click('#profile-form button[type="reset"]');
+    await expect(profileEmail).toHaveValue('alicia.admin@example.com');
+
+    const passwordFeedback = page.locator('#password-form-feedback');
+    await page.fill('#password-current', 'secret1');
+    await page.fill('#password-new', 'newSecret1');
+    await page.fill('#password-confirm', 'newSecret1');
+    await page.click('#password-form button[type="submit"]');
+    await expect(passwordFeedback).toHaveText('Contraseña actualizada correctamente.');
+    await expect(page.locator('#password-current')).toHaveValue('');
+
+    await page.click('#profile-logout');
+    await expect(page.locator('#profile-feedback')).toHaveText('Cerrar sesión');
+    await expect(profileName).toBeDisabled();
+    await expect(profileEmail).toBeDisabled();
+
+    await page.goto(`${baseURL}/miniapps/base_shell/auth/login.html`);
+    await page.fill('#login-email', 'alicia.admin@example.com');
+    await page.fill('#login-password', 'newSecret1');
+    await page.click('#login-form .cta');
+    await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Alicia Admin.');
+
+    await page.goto(`${baseURL}/miniapps/base_shell/auth/profile.html`);
+    await expect(page.locator('#profile-name')).toHaveValue('Alicia Admin');
+
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('¿Desea eliminar la cuenta de Alicia Admin?');
+      await dialog.accept();
+    });
+    await page.click('#delete-account');
+    await expect(page).toHaveURL(/auth\/login\.html$/);
+    await expect.poll(async () => {
+      const raw = await page.evaluate(() => window.localStorage.getItem('miniapp.base.users'));
+      if (!raw) return [] as string[];
+      return JSON.parse(raw).map((user: { email: string }) => user.email).sort();
+    }).toEqual(['bruno@example.com']);
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
   });
 });
