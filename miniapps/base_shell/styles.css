@@ -99,6 +99,17 @@ body:focus-within .app-shell:focus {
   color: var(--color-text-muted);
   font: inherit;
   cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar .has-submenu > .submenu-toggle .submenu-caret {
+  margin-left: auto;
+  font-size: 0.75rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  transition: transform 0.2s ease;
 }
 
 .sidebar .has-submenu > .submenu-toggle:hover,
@@ -106,6 +117,16 @@ body:focus-within .app-shell:focus {
   background: var(--color-surface);
   border-color: var(--color-border);
   color: var(--color-text);
+}
+
+.sidebar .has-submenu > .submenu-toggle[aria-expanded='true'] {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+  color: var(--color-accent-contrast);
+}
+
+.sidebar .has-submenu > .submenu-toggle[aria-expanded='true'] .submenu-caret {
+  transform: rotate(180deg);
 }
 
 .sidebar a {
@@ -337,6 +358,10 @@ button:focus-visible,
 }
 
 .app-shell.is-collapsed .sidebar .has-submenu > .submenu-toggle .label {
+  display: none;
+}
+
+.app-shell.is-collapsed .sidebar .has-submenu > .submenu-toggle .submenu-caret {
   display: none;
 }
 
