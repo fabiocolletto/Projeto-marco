@@ -21,6 +21,16 @@ import {
   switchUser,
   onAuthChange
 } from '../../packages/base.security/auth.js';
+import {
+  isAvailable as isStoreAvailable,
+  init as initProjectStore,
+  listProjects,
+  backupAll,
+  restoreBackup,
+  wipeAll,
+  ensurePersistence as ensureStorePersistence,
+  ping as pingStore
+} from '../../shared/projectStore.js';
 
 const LANG_RESOURCES = [
   { lang: 'pt-BR', file: 'pt-br.json', labelKey: 'lang.pt' },
@@ -43,6 +53,20 @@ const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
 
 let activeMenu = null;
 let settingsMenuControls = null;
+const storageCardState = {
+  initialized: false,
+  available: false,
+  busy: false,
+  status: 'checking',
+  statusParams: null,
+  projects: [],
+  feedbackKey: null,
+  feedbackParams: null,
+  errorMessage: null,
+  persisted: null,
+  persistenceSupported: null
+};
+let storageCardElements = null;
 
 bootstrap();
 
@@ -64,6 +88,7 @@ async function bootstrap() {
   setupSettingsMenu();
   setupUserMenu();
   setupAuthForms();
+  await setupStorageCard();
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleKeydown);
   onLanguageChange(lang => {
@@ -73,6 +98,7 @@ async function bootstrap() {
     updateThemeToggle();
     updateUserPanelShortcut();
     refreshUserMenu();
+    refreshStorageCard();
   });
   onThemeChange(() => {
     updateThemeToggle();
@@ -82,6 +108,7 @@ async function bootstrap() {
     updateProfileView(user);
     updateUserPanelShortcut();
     refreshUserMenu();
+    refreshStorageCard();
   });
 }
 
@@ -116,7 +143,8 @@ async function readDictionary(resource) {
 function applyTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(node => {
     const key = node.dataset.i18n;
-    const message = t(key);
+    const params = readParams(node.dataset.i18nParams);
+    const message = t(key, params);
     if (node.tagName === 'TITLE') {
       document.title = message;
     } else if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
@@ -127,6 +155,16 @@ function applyTranslations() {
       node.textContent = message;
     }
   });
+}
+
+function readParams(raw) {
+  if (!raw) return undefined;
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn('i18n params parse error', error);
+    return undefined;
+  }
 }
 
 function setupSidebar() {
@@ -470,4 +508,445 @@ function announce(message) {
 function announceTo(element, message) {
   if (!element) return;
   element.textContent = message;
+}
+
+async function setupStorageCard() {
+  const elements = getStorageCardElements();
+  if (!elements) return;
+  storageCardElements = elements;
+  storageCardState.initialized = true;
+  elements.spinner.textContent = t('storage.spinner.label');
+  elements.spinner.dataset.i18n = 'storage.spinner.label';
+  bindStorageEvents(elements);
+  updateStorageCardUI();
+
+  if (!isStoreAvailable()) {
+    storageCardState.available = false;
+    storageCardState.status = 'unsupported';
+    setStorageFeedback('storage.feedback.unavailable');
+    updateStorageCardUI();
+    return;
+  }
+
+  setStorageBusy(true);
+  try {
+    await initProjectStore();
+    const ok = await safePing();
+    storageCardState.available = ok;
+    storageCardState.status = ok ? 'ready' : 'error';
+    if (!ok) {
+      const reason = { key: 'storage.errors.ping' };
+      setStorageError(reason.key, reason.params);
+      setStorageFeedback('storage.feedback.pingFailed', {
+        reasonKey: reason.key,
+        reasonParams: reason.params
+      });
+    } else {
+      clearStorageError();
+      clearStorageFeedback();
+    }
+    storageCardState.projects = listProjects();
+  } catch (error) {
+    const resolved = resolveStorageError(error);
+    storageCardState.available = false;
+    storageCardState.status = 'error';
+    setStorageError(resolved.key, resolved.params);
+    setStorageFeedback('storage.feedback.initError', {
+      reasonKey: resolved.key,
+      reasonParams: resolved.params
+    });
+  } finally {
+    setStorageBusy(false);
+    updateStorageCardUI();
+  }
+}
+
+function refreshStorageCard() {
+  if (!storageCardElements || !storageCardState.initialized) return;
+  updateStorageCardUI();
+}
+
+function getStorageCardElements() {
+  const card = document.getElementById('storage-card');
+  if (!card) return null;
+  return {
+    card,
+    statusText: document.getElementById('storage-status-text'),
+    count: document.getElementById('storage-count'),
+    list: document.getElementById('storage-projects'),
+    exportBtn: document.getElementById('storage-export'),
+    importBtn: document.getElementById('storage-import'),
+    wipeBtn: document.getElementById('storage-wipe'),
+    persistLink: document.getElementById('storage-persist'),
+    fileInput: document.getElementById('storage-import-file'),
+    feedback: document.getElementById('storage-feedback'),
+    spinner: document.getElementById('storage-spinner'),
+    controls: card.querySelector('[data-controls]')
+  };
+}
+
+function bindStorageEvents(elements) {
+  if (elements.exportBtn) {
+    elements.exportBtn.addEventListener('click', handleStorageExport);
+  }
+  if (elements.importBtn) {
+    elements.importBtn.addEventListener('click', handleStorageImport);
+  }
+  if (elements.fileInput) {
+    elements.fileInput.addEventListener('change', handleStorageFileImport);
+  }
+  if (elements.wipeBtn) {
+    elements.wipeBtn.addEventListener('click', handleStorageWipe);
+  }
+  if (elements.persistLink) {
+    elements.persistLink.addEventListener('click', handleStoragePersistence);
+  }
+}
+
+function updateStorageCardUI() {
+  if (!storageCardElements) return;
+  const { card, statusText, count, list, exportBtn, importBtn, wipeBtn, persistLink, feedback, spinner } =
+    storageCardElements;
+  if (card) {
+    card.dataset.status = storageCardState.status;
+    card.classList.toggle('is-busy', storageCardState.busy);
+  }
+  if (spinner) {
+    spinner.hidden = !storageCardState.busy;
+  }
+  if (statusText) {
+    const message = renderStorageStatus();
+    statusText.textContent = message;
+  }
+  if (count) {
+    count.textContent = String(storageCardState.projects.length);
+  }
+  if (list) {
+    list.innerHTML = '';
+    if (storageCardState.projects.length === 0) {
+      const empty = document.createElement('li');
+      empty.textContent = t('storage.summary.empty');
+      list.appendChild(empty);
+    } else {
+      storageCardState.projects.forEach(project => {
+        const item = document.createElement('li');
+        item.textContent = renderProjectEntry(project);
+        list.appendChild(item);
+      });
+    }
+  }
+  if (feedback) {
+    const message = renderStorageFeedback();
+    feedback.textContent = message;
+  }
+  const disableControls = !storageCardState.available || storageCardState.busy;
+  if (exportBtn) {
+    exportBtn.disabled = disableControls;
+  }
+  if (importBtn) {
+    importBtn.disabled = disableControls;
+  }
+  if (wipeBtn) {
+    wipeBtn.disabled = disableControls;
+  }
+  if (persistLink) {
+    if (disableControls) {
+      persistLink.setAttribute('aria-disabled', 'true');
+      persistLink.classList.add('is-disabled');
+    } else {
+      persistLink.removeAttribute('aria-disabled');
+      persistLink.classList.remove('is-disabled');
+    }
+  }
+}
+
+async function handleStorageExport() {
+  if (!canUseStorage()) return;
+  clearStorageFeedback();
+  setStorageBusy(true);
+  try {
+    const payload = await backupAll();
+    const name = getBackupFilename();
+    downloadJSON(name, payload);
+    markStorageReady();
+    setStorageFeedback('storage.feedback.exportSuccess', {
+      count: storageCardState.projects.length
+    });
+  } catch (error) {
+    const resolved = resolveStorageError(error);
+    markStorageError(resolved);
+    setStorageFeedback('storage.feedback.exportError', {
+      reasonKey: resolved.key,
+      reasonParams: resolved.params
+    });
+  } finally {
+    setStorageBusy(false);
+  }
+}
+
+function handleStorageImport(event) {
+  event.preventDefault();
+  if (!canUseStorage()) return;
+  if (storageCardElements?.fileInput) {
+    storageCardElements.fileInput.value = '';
+    storageCardElements.fileInput.click();
+  }
+}
+
+async function handleStorageFileImport(event) {
+  const input = event.currentTarget;
+  if (!input || !input.files || input.files.length === 0) {
+    return;
+  }
+  if (!canUseStorage()) {
+    input.value = '';
+    return;
+  }
+  const file = input.files[0];
+  clearStorageFeedback();
+  setStorageBusy(true);
+  try {
+    const text = await readFileAsText(file);
+    await restoreBackup(text);
+    refreshStorageProjects();
+    setStorageFeedback('storage.feedback.importSuccess', {
+      count: storageCardState.projects.length
+    });
+  } catch (error) {
+    const resolved = resolveStorageError(error);
+    markStorageError(resolved);
+    setStorageFeedback('storage.feedback.importError', {
+      reasonKey: resolved.key,
+      reasonParams: resolved.params
+    });
+  } finally {
+    setStorageBusy(false);
+    input.value = '';
+  }
+}
+
+async function handleStorageWipe() {
+  if (!canUseStorage()) return;
+  clearStorageFeedback();
+  setStorageBusy(true);
+  try {
+    await wipeAll();
+    refreshStorageProjects();
+    setStorageFeedback('storage.feedback.wipeSuccess');
+  } catch (error) {
+    const resolved = resolveStorageError(error);
+    markStorageError(resolved);
+    setStorageFeedback('storage.feedback.wipeError', {
+      reasonKey: resolved.key,
+      reasonParams: resolved.params
+    });
+  } finally {
+    setStorageBusy(false);
+  }
+}
+
+async function handleStoragePersistence(event) {
+  event.preventDefault();
+  if (!isStoreAvailable()) {
+    setStorageFeedback('storage.feedback.unavailable');
+    return;
+  }
+  clearStorageFeedback();
+  setStorageBusy(true);
+  try {
+    const result = await ensureStorePersistence();
+    storageCardState.persistenceSupported = !!result.supported;
+    storageCardState.persisted = !!result.persisted;
+    if (!result.supported) {
+      setStorageFeedback('storage.feedback.persistenceUnsupported');
+    } else if (result.persisted) {
+      markStorageReady();
+      setStorageFeedback('storage.feedback.persistenceSuccess');
+    } else {
+      setStorageFeedback('storage.feedback.persistenceDenied');
+    }
+  } catch (error) {
+    const resolved = resolveStorageError(error);
+    markStorageError(resolved);
+    setStorageFeedback('storage.feedback.persistenceError', {
+      reasonKey: resolved.key,
+      reasonParams: resolved.params
+    });
+  } finally {
+    setStorageBusy(false);
+  }
+}
+
+function canUseStorage() {
+  if (!storageCardState.available) {
+    setStorageFeedback('storage.feedback.unavailable');
+    return false;
+  }
+  if (storageCardState.busy) {
+    return false;
+  }
+  return true;
+}
+
+function setStorageBusy(value) {
+  storageCardState.busy = value;
+  updateStorageCardUI();
+}
+
+function clearStorageFeedback() {
+  storageCardState.feedbackKey = null;
+  storageCardState.feedbackParams = null;
+}
+
+function setStorageFeedback(key, params) {
+  storageCardState.feedbackKey = key;
+  storageCardState.feedbackParams = params || null;
+  updateStorageCardUI();
+}
+
+function setStorageError(key, params) {
+  storageCardState.errorKey = key;
+  storageCardState.errorParams = params || null;
+}
+
+function clearStorageError() {
+  storageCardState.errorKey = null;
+  storageCardState.errorParams = null;
+}
+
+function markStorageReady() {
+  storageCardState.status = 'ready';
+  storageCardState.available = true;
+  clearStorageError();
+}
+
+function markStorageError(resolved) {
+  storageCardState.status = 'error';
+  setStorageError(resolved.key, resolved.params);
+}
+
+function renderStorageStatus() {
+  const map = {
+    checking: 'storage.status.checking',
+    ready: 'storage.status.ready',
+    unsupported: 'storage.status.unsupported',
+    error: 'storage.status.error'
+  };
+  const key = map[storageCardState.status] || map.error;
+  let params = storageCardState.statusParams || {};
+  if (storageCardState.status === 'error') {
+    const reason = storageCardState.errorKey
+      ? t(storageCardState.errorKey, storageCardState.errorParams || {})
+      : '';
+    params = { message: reason };
+  }
+  return t(key, params);
+}
+
+function renderStorageFeedback() {
+  if (!storageCardState.feedbackKey) return '';
+  const params = { ...(storageCardState.feedbackParams || {}) };
+  if (params.reasonKey) {
+    params.reason = t(params.reasonKey, params.reasonParams || {});
+    delete params.reasonKey;
+    delete params.reasonParams;
+  }
+  return t(storageCardState.feedbackKey, params);
+}
+
+function renderProjectEntry(project) {
+  const name = project.nome || '—';
+  const updatedAt = project.updatedAt ? formatDate(project.updatedAt) : '';
+  return t('storage.list.item', { name, date: updatedAt });
+}
+
+function formatDate(timestamp) {
+  try {
+    const date = new Date(timestamp);
+    return new Intl.DateTimeFormat(getLang(), {
+      dateStyle: 'short',
+      timeStyle: 'short'
+    }).format(date);
+  } catch (error) {
+    return new Date(timestamp).toLocaleString();
+  }
+}
+
+function refreshStorageProjects() {
+  try {
+    storageCardState.projects = listProjects();
+    markStorageReady();
+    storageCardState.available = true;
+    updateStorageCardUI();
+  } catch (error) {
+    const resolved = resolveStorageError(error);
+    markStorageError(resolved);
+    setStorageFeedback('storage.feedback.refreshError', {
+      reasonKey: resolved.key,
+      reasonParams: resolved.params
+    });
+  }
+}
+
+function resolveStorageError(error) {
+  if (!error) {
+    return { key: 'storage.errors.unknown' };
+  }
+  const name = error.name || '';
+  if (name === 'QuotaExceededError') {
+    return { key: 'storage.errors.quota' };
+  }
+  if (name === 'NotAllowedError') {
+    return { key: 'storage.errors.notAllowed' };
+  }
+  if (name === 'AbortError') {
+    return { key: 'storage.errors.aborted' };
+  }
+  if (error instanceof SyntaxError) {
+    return { key: 'storage.errors.invalidJson' };
+  }
+  return {
+    key: 'storage.errors.generic',
+    params: { message: error.message || String(error) }
+  };
+}
+
+function downloadJSON(filename, text) {
+  try {
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.rel = 'noopener';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  } catch (error) {
+    console.error('storage: unable to trigger download', error);
+  }
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(reader.error || new Error('File read error'));
+    reader.readAsText(file);
+  });
+}
+
+function getBackupFilename() {
+  const iso = new Date().toISOString().replace(/[:.]/g, '-');
+  return `miniapp-backup-${iso}.json`;
+}
+
+async function safePing() {
+  try {
+    return await pingStore();
+  } catch (error) {
+    console.warn('storage: ping failed', error);
+    return false;
+  }
 }

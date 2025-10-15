@@ -1,8 +1,9 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, Download } from '@playwright/test';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Readable } from 'stream';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -140,5 +141,95 @@ test.describe('MiniApp Base shell', () => {
     );
     await page.click('#btnUserPanel');
     await expect(page).toHaveURL(/auth\/profile\.html$/);
+
+    const storageCard = page.locator('#storage-card');
+    await expect(storageCard).toBeVisible();
+    await expect(storageCard).toHaveAttribute('data-status', 'ready');
+    await expect(page.locator('#storage-count')).toHaveText('0');
+    await expect(page.locator('#storage-projects li')).toHaveText('No se encontraron proyectos.');
+
+    const backupPayload = {
+      version: 2,
+      exportedAt: Date.now(),
+      items: [
+        {
+          cerimonialista: { nomeCompleto: 'Coordinadora Uno', telefone: '', redeSocial: '' },
+          evento: { nome: 'Proyecto Importado Uno' },
+          lista: [],
+          tipos: [],
+          modelos: {},
+          vars: {}
+        },
+        {
+          cerimonialista: { nomeCompleto: 'Coordinadora Dos', telefone: '', redeSocial: '' },
+          evento: { nome: 'Proyecto Importado Dos' },
+          lista: [],
+          tipos: [],
+          modelos: {},
+          vars: {}
+        }
+      ]
+    };
+
+    await page.setInputFiles('#storage-import-file', {
+      name: 'backup.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(JSON.stringify(backupPayload, null, 2), 'utf-8')
+    });
+
+    await expect(page.locator('#storage-count')).toHaveText('2');
+    await expect(page.locator('#storage-projects li').first()).toContainText('Proyecto Importado');
+    await expect(page.locator('#storage-feedback')).toHaveText('Copia de seguridad importada (2 proyectos restaurados).');
+
+    const downloadPromise = page.waitForEvent('download');
+    await page.click('#storage-export');
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/^miniapp-backup-/);
+    const exported = await readDownloadFile(download);
+    const parsed = JSON.parse(exported);
+    expect(Array.isArray(parsed.items)).toBeTruthy();
+    expect(parsed.items).toHaveLength(2);
+    await expect(page.locator('#storage-feedback')).toHaveText('Copia de seguridad exportada (2 proyectos).');
+
+    await page.click('#storage-wipe');
+    await expect(page.locator('#storage-count')).toHaveText('0');
+    await expect(page.locator('#storage-projects li')).toHaveText('No se encontraron proyectos.');
+    await expect(page.locator('#storage-feedback')).toHaveText('Todos los proyectos fueron eliminados.');
+  });
+
+  test('cartão de armazenamento quando IndexedDB não está disponível', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, 'indexedDB', { value: undefined, configurable: true });
+    });
+    await page.goto(`${baseURL}/miniapps/base_shell/auth/profile.html`);
+    const storageCard = page.locator('#storage-card');
+    await expect(storageCard).toBeVisible();
+    await expect(storageCard).toHaveAttribute('data-status', 'unsupported');
+    await expect(page.locator('#storage-feedback')).toHaveText('Armazenamento local indisponível.');
+    await expect(page.locator('#storage-export')).toBeDisabled();
+    await expect(page.locator('#storage-import')).toBeDisabled();
+    await expect(page.locator('#storage-wipe')).toBeDisabled();
+    await expect(page.locator('#storage-persist')).toHaveAttribute('aria-disabled', 'true');
   });
 });
+
+async function readDownloadFile(download: Download): Promise<string> {
+  const filePath = await download.path();
+  if (filePath) {
+    return await fs.promises.readFile(filePath, 'utf-8');
+  }
+  const stream = await download.createReadStream();
+  if (!stream) {
+    throw new Error('Download stream unavailable');
+  }
+  return await streamToString(stream);
+}
+
+async function streamToString(stream: Readable): Promise<string> {
+  const chunks: Buffer[] = [];
+  return await new Promise((resolve, reject) => {
+    stream.on('data', chunk => chunks.push(Buffer.from(chunk)));
+    stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    stream.on('error', reject);
+  });
+}

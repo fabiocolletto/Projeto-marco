@@ -114,6 +114,40 @@
               <button id="profile-logout" class="cta secondary" data-i18n="auth.profile.logout">Encerrar sessão</button>
               <p id="profile-feedback" class="feedback" role="status" aria-live="polite"></p>
             </article>
+            <article class="card" id="storage-card" data-status="checking">
+              <h2 data-i18n="storage.card.title">Armazenamento local</h2>
+              <p class="storage-status" role="status" aria-live="polite">
+                <span data-i18n="storage.status.label">Estado:</span>
+                <span id="storage-status-text" data-status-text>--</span>
+              </p>
+              <p class="storage-summary">
+                <span data-i18n="storage.summary.label">Projetos salvos:</span>
+                <span id="storage-count" data-count>0</span>
+              </p>
+              <ul id="storage-projects" class="storage-projects" aria-live="polite"></ul>
+              <div class="actions" data-controls>
+                <button id="storage-export" class="cta secondary" type="button" data-i18n="storage.actions.export">
+                  Exportar backup
+                </button>
+                <button id="storage-import" class="cta secondary" type="button" data-i18n="storage.actions.import">
+                  Importar backup
+                </button>
+                <button id="storage-wipe" class="cta danger" type="button" data-i18n="storage.actions.wipe">
+                  Limpar tudo
+                </button>
+                <a
+                  id="storage-persist"
+                  class="link"
+                  href="#"
+                  data-i18n="storage.actions.ensure"
+                  rel="noopener"
+                  >Solicitar armazenamento persistente</a
+                >
+                <input id="storage-import-file" type="file" accept="application/json" hidden />
+              </div>
+              <p id="storage-feedback" class="feedback" role="status" aria-live="polite"></p>
+              <span id="storage-spinner" class="spinner" hidden aria-hidden="true"></span>
+            </article>
           </section>
         </main>
       </div>
