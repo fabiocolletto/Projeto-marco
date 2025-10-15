@@ -71,9 +71,15 @@ function swapBrand(resolved) {
 
   for (const image of brandTargets) {
     if (!(image instanceof HTMLImageElement)) continue;
+
+    const currentSource = image.getAttribute('src');
     const nextSource =
-      image.dataset?.[datasetKey] || image.dataset?.[fallbackDatasetKey] || defaultSource;
-    if (nextSource) {
+      image.dataset?.[datasetKey] ??
+      image.dataset?.[fallbackDatasetKey] ??
+      currentSource ??
+      defaultSource;
+
+    if (nextSource && currentSource !== nextSource) {
       image.setAttribute('src', nextSource);
     }
   }
