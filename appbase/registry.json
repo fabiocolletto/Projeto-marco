@@ -3,21 +3,27 @@
     {
       "id": "base.shell",
       "labelKey": "app.title",
-      "route": "/",
+      "route": "/miniapps/base_shell/index.html",
       "order": 1,
       "active": true
     },
     {
       "id": "mini-app-1",
       "labelKey": "nav.miniapps.miniappOne",
-      "route": "/miniapps/mini_app_1/",
+      "route": "/miniapps/mini_app_1/index.html",
+      "welcomeTitleKey": "panel.miniapps.item1.title",
+      "welcomeMessageKey": "panel.miniapps.item1.message",
+      "icon": "🧩",
       "order": 2,
       "active": true
     },
     {
       "id": "mini-app-2",
       "labelKey": "nav.miniapps.miniappTwo",
-      "route": "/miniapps/mini_app_2/",
+      "route": "/miniapps/mini_app_2/index.html",
+      "welcomeTitleKey": "panel.miniapps.item2.title",
+      "welcomeMessageKey": "panel.miniapps.item2.message",
+      "icon": "🧩",
       "order": 3,
       "active": true
     }

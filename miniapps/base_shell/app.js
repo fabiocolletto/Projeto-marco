@@ -48,14 +48,16 @@ const MINI_APP_CATALOG = [
     labelKey: 'nav.miniapps.miniappOne',
     welcomeTitleKey: 'panel.miniapps.item1.title',
     welcomeMessageKey: 'panel.miniapps.item1.message',
-    icon: '🧩'
+    icon: '🧩',
+    route: '../mini_app_1/index.html'
   },
   {
     id: 'mini-app-2',
     labelKey: 'nav.miniapps.miniappTwo',
     welcomeTitleKey: 'panel.miniapps.item2.title',
     welcomeMessageKey: 'panel.miniapps.item2.message',
-    icon: '🧩'
+    icon: '🧩',
+    route: '../mini_app_2/index.html'
   }
 ];
 
@@ -240,7 +242,11 @@ function normalizeMiniAppEntries(entries) {
         id: String(entry.id),
         labelKey: String(entry.labelKey),
         icon: entry.icon || fallback?.icon || '🧩',
-        route: entry.route ? String(entry.route) : undefined,
+        route: entry.route
+          ? String(entry.route)
+          : fallback?.route
+          ? String(fallback.route)
+          : undefined,
         welcomeTitleKey:
           entry.welcomeTitleKey || fallback?.welcomeTitleKey || DEFAULT_MINI_APP_CONTENT.titleKey,
         welcomeMessageKey:
@@ -753,6 +759,7 @@ function setupSettingsMenu() {
     if (next) {
       closeActiveMenu();
       closeMiniAppMenu();
+      setSidebarCollapsed(true, { closeSettingsMenu: false });
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
