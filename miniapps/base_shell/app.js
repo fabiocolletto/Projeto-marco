@@ -59,6 +59,8 @@ const MINI_APP_CATALOG = [
   }
 ];
 
+const MINI_APP_CATALOG_MAP = new Map(MINI_APP_CATALOG.map(item => [item.id, item]));
+
 const DEFAULT_MINI_APP_CONTENT = {
   titleKey: 'panel.welcomeTitle',
   messageKey: 'panel.welcomeMessage'
@@ -92,6 +94,13 @@ const miniAppState = {
   activeId: null
 };
 
+const stageControls = {
+  host: null,
+  fallback: null
+};
+
+let stageRenderToken = 0;
+
 bootstrap();
 
 async function bootstrap() {
@@ -112,7 +121,14 @@ async function bootstrap() {
   updateProfileView(currentUser());
   setupSidebar();
   const miniApps = await loadActiveMiniApps();
+  const initialMiniAppId = getInitialMiniAppId(miniApps);
+  if (initialMiniAppId) {
+    miniAppState.activeId = initialMiniAppId;
+  }
   setupMiniAppMenu(miniApps);
+  if (initialMiniAppId) {
+    updateMiniAppHistory(initialMiniAppId, { replace: true });
+  }
   setupSettingsMenu();
   setupUserMenu();
   setupAuthForms();
@@ -120,6 +136,7 @@ async function bootstrap() {
   updateRegistrationAccess();
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleKeydown);
+  window.addEventListener('popstate', handleHistoryNavigation);
   onLanguageChange(lang => {
     document.documentElement.lang = lang;
     updateRevisionMetadata();
@@ -213,13 +230,16 @@ function normalizeMiniAppEntries(entries) {
       if (entry.active === false) return null;
       if (!entry.id || !entry.labelKey) return null;
       const order = typeof entry.order === 'number' ? entry.order : Number.POSITIVE_INFINITY;
+      const fallback = MINI_APP_CATALOG_MAP.get(entry.id) || null;
       return {
         id: String(entry.id),
         labelKey: String(entry.labelKey),
-        icon: entry.icon || '🧩',
+        icon: entry.icon || fallback?.icon || '🧩',
         route: entry.route ? String(entry.route) : undefined,
-        welcomeTitleKey: entry.welcomeTitleKey || DEFAULT_MINI_APP_CONTENT.titleKey,
-        welcomeMessageKey: entry.welcomeMessageKey || DEFAULT_MINI_APP_CONTENT.messageKey,
+        welcomeTitleKey:
+          entry.welcomeTitleKey || fallback?.welcomeTitleKey || DEFAULT_MINI_APP_CONTENT.titleKey,
+        welcomeMessageKey:
+          entry.welcomeMessageKey || fallback?.welcomeMessageKey || DEFAULT_MINI_APP_CONTENT.messageKey,
         order,
         index
       };
@@ -359,7 +379,7 @@ function setupMiniAppMenu(items) {
   const submenu = document.getElementById('miniapp-submenu');
   if (!toggle || !submenu) return;
   const container = toggle.closest('.has-submenu');
-  miniAppMenuControls = { toggle, submenu, container };
+  miniAppMenuControls = { toggle, submenu, container, shouldRestoreSettings: false };
   toggle.setAttribute('aria-expanded', 'false');
   submenu.hidden = true;
   miniAppState.items = Array.isArray(items) ? [...items] : [];
@@ -367,13 +387,25 @@ function setupMiniAppMenu(items) {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     const next = !expanded;
     if (next) {
-      closeSettingsMenu();
+      const wasOpen =
+        settingsMenuControls &&
+        settingsMenuControls.toggle &&
+        settingsMenuControls.toggle.getAttribute('aria-expanded') === 'true';
+      if (miniAppMenuControls) {
+        miniAppMenuControls.shouldRestoreSettings = Boolean(wasOpen);
+      }
+      if (wasOpen) {
+        closeSettingsMenu();
+      }
       closeActiveMenu();
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
     if (next) {
       renderMiniAppMenu();
+    } else if (miniAppMenuControls && miniAppMenuControls.shouldRestoreSettings) {
+      openSettingsMenu();
+      miniAppMenuControls.shouldRestoreSettings = false;
     }
   });
   renderMiniAppMenu();
@@ -439,7 +471,7 @@ function renderMiniAppMenu() {
   updateMiniAppToggleLabel();
 }
 
-function setActiveMiniApp(id) {
+function setActiveMiniApp(id, options = {}) {
   const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
   const next = items.some(item => item.id === id) ? id : null;
   if (miniAppState.activeId === next) {
@@ -447,6 +479,9 @@ function setActiveMiniApp(id) {
     return;
   }
   miniAppState.activeId = next;
+  if (!options.skipHistory) {
+    updateMiniAppHistory(next);
+  }
   renderMiniAppMenu();
   updateMiniAppPanel();
 }
@@ -457,21 +492,39 @@ function closeMiniAppMenu() {
   if (!toggle || !submenu) return;
   toggle.setAttribute('aria-expanded', 'false');
   submenu.hidden = true;
+  if (miniAppMenuControls.shouldRestoreSettings) {
+    const restore = () => {
+      openSettingsMenu();
+    };
+    miniAppMenuControls.shouldRestoreSettings = false;
+    setTimeout(restore, 0);
+  }
 }
 
 function updateMiniAppPanel() {
-  const titleNode = document.querySelector('[data-miniapp-title]');
-  const messageNode = document.querySelector('[data-miniapp-message]');
-  if (!titleNode || !messageNode) return;
+  const controls = getStageHost();
+  if (!controls) return;
+  const { fallback } = controls;
+  const titleNode = fallback ? fallback.querySelector('[data-miniapp-title]') : null;
+  const messageNode = fallback ? fallback.querySelector('[data-miniapp-message]') : null;
   const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
   const active = items.find(item => item.id === miniAppState.activeId);
   const titleKey = active ? active.welcomeTitleKey : DEFAULT_MINI_APP_CONTENT.titleKey;
   const messageKey = active ? active.welcomeMessageKey : DEFAULT_MINI_APP_CONTENT.messageKey;
-  titleNode.dataset.i18n = titleKey;
-  delete titleNode.dataset.i18nParams;
-  messageNode.dataset.i18n = messageKey;
-  delete messageNode.dataset.i18nParams;
+  if (titleNode) {
+    titleNode.dataset.i18n = titleKey;
+    delete titleNode.dataset.i18nParams;
+    const titleLabel = t(titleKey);
+    titleNode.textContent = titleLabel === titleKey ? t(DEFAULT_MINI_APP_CONTENT.titleKey) : titleLabel;
+  }
+  if (messageNode) {
+    messageNode.dataset.i18n = messageKey;
+    delete messageNode.dataset.i18nParams;
+    const messageLabel = t(messageKey);
+    messageNode.textContent = messageLabel === messageKey ? t(DEFAULT_MINI_APP_CONTENT.messageKey) : messageLabel;
+  }
   applyTranslations();
+  renderMiniAppStage(active ? active.id : null);
 }
 
 function updateMiniAppToggleLabel() {
@@ -483,6 +536,158 @@ function updateMiniAppToggleLabel() {
   const text = labelText || t('nav.miniapps');
   toggle.setAttribute('aria-label', text);
   toggle.title = text;
+}
+
+function getStageHost() {
+  if (stageControls.host && document.body.contains(stageControls.host)) {
+    return stageControls;
+  }
+  const host = document.querySelector('[data-stage-host]');
+  if (!host) {
+    stageControls.host = null;
+    stageControls.fallback = null;
+    return null;
+  }
+  stageControls.host = host;
+  stageControls.fallback = document.querySelector('[data-stage-fallback]');
+  return stageControls;
+}
+
+function clearStage() {
+  const controls = getStageHost();
+  if (!controls) return;
+  const { host, fallback } = controls;
+  if (host) {
+    host.replaceChildren();
+    host.dataset.state = 'idle';
+    host.setAttribute('aria-busy', 'false');
+  }
+  if (fallback) {
+    fallback.hidden = false;
+    fallback.removeAttribute('aria-hidden');
+    fallback.classList.remove('is-loading');
+  }
+}
+
+function renderMiniAppStage(id) {
+  const controls = getStageHost();
+  if (!controls || !controls.host) return;
+  const { host, fallback } = controls;
+  stageRenderToken += 1;
+  const token = stageRenderToken;
+  if (!id) {
+    clearStage();
+    return;
+  }
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  const active = items.find(item => item.id === id);
+  if (!active) {
+    clearStage();
+    return;
+  }
+  const url = resolveMiniAppStageUrl(active);
+  if (!url) {
+    console.warn('mini-app stage: unable to resolve URL', active);
+    clearStage();
+    return;
+  }
+  host.replaceChildren();
+  host.dataset.state = 'loading';
+  host.setAttribute('aria-busy', 'true');
+  if (fallback) {
+    fallback.hidden = false;
+    fallback.removeAttribute('aria-hidden');
+    fallback.classList.add('is-loading');
+  }
+  const iframe = document.createElement('iframe');
+  iframe.src = url;
+  iframe.dataset.miniappId = active.id;
+  iframe.loading = 'lazy';
+  iframe.referrerPolicy = 'same-origin';
+  iframe.setAttribute('title', t(active.labelKey) || active.labelKey);
+  iframe.setAttribute('role', 'presentation');
+  iframe.addEventListener('load', () => {
+    if (stageRenderToken !== token) return;
+    host.dataset.state = 'ready';
+    host.setAttribute('aria-busy', 'false');
+    if (fallback) {
+      fallback.hidden = true;
+      fallback.setAttribute('aria-hidden', 'true');
+      fallback.classList.remove('is-loading');
+    }
+  });
+  iframe.addEventListener('error', () => {
+    if (stageRenderToken !== token) return;
+    host.replaceChildren();
+    host.dataset.state = 'error';
+    host.setAttribute('aria-busy', 'false');
+    if (fallback) {
+      fallback.hidden = false;
+      fallback.removeAttribute('aria-hidden');
+      fallback.classList.remove('is-loading');
+    }
+  });
+  host.appendChild(iframe);
+}
+
+function resolveMiniAppStageUrl(item) {
+  if (!item) return null;
+  if (item.route) {
+    try {
+      return new URL(item.route, document.baseURI).href;
+    } catch (error) {
+      console.warn('mini-app stage: invalid route', item.route, error);
+    }
+  }
+  try {
+    return new URL(`../${item.id}/index.html`, import.meta.url).href;
+  } catch (error) {
+    try {
+      const normalized = String(item.id).replace(/-/g, '_');
+      return new URL(`../${normalized}/index.html`, import.meta.url).href;
+    } catch (fallbackError) {
+      console.warn('mini-app stage: unable to infer URL', item, error, fallbackError);
+      return null;
+    }
+  }
+}
+
+function getInitialMiniAppId(items) {
+  const list = Array.isArray(items) ? items : [];
+  const stateId = typeof history?.state?.miniapp === 'string' ? history.state.miniapp : null;
+  if (stateId && list.some(item => item.id === stateId)) {
+    return stateId;
+  }
+  try {
+    const url = new URL(window.location.href);
+    const paramId = url.searchParams.get('miniapp');
+    if (paramId && list.some(item => item.id === paramId)) {
+      return paramId;
+    }
+  } catch (error) {
+    console.warn('mini-app stage: unable to read location', error);
+  }
+  return null;
+}
+
+function updateMiniAppHistory(id, options = {}) {
+  try {
+    const url = new URL(window.location.href);
+    if (id) {
+      url.searchParams.set('miniapp', id);
+    } else {
+      url.searchParams.delete('miniapp');
+    }
+    const method = options.replace ? 'replaceState' : 'pushState';
+    window.history[method]({ miniapp: id }, '', url);
+  } catch (error) {
+    console.warn('mini-app stage: unable to update history', error);
+  }
+}
+
+function handleHistoryNavigation() {
+  const next = getInitialMiniAppId(miniAppState.items);
+  setActiveMiniApp(next, { skipHistory: true });
 }
 
 function setupSettingsMenu() {
@@ -499,6 +704,7 @@ function setupSettingsMenu() {
     if (next) {
       closeActiveMenu();
       closeMiniAppMenu();
+      setSidebarCollapsed(true, { closeSettingsMenu: false });
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
@@ -511,6 +717,15 @@ function closeSettingsMenu() {
   if (!toggle || !submenu) return;
   toggle.setAttribute('aria-expanded', 'false');
   submenu.hidden = true;
+}
+
+function openSettingsMenu() {
+  if (!settingsMenuControls) return;
+  const { toggle, submenu } = settingsMenuControls;
+  if (!toggle || !submenu) return;
+  toggle.setAttribute('aria-expanded', 'true');
+  submenu.hidden = false;
+  setSidebarCollapsed(true, { closeSettingsMenu: false });
 }
 
 function setupLanguageToggle() {
@@ -734,7 +949,9 @@ function closeActiveMenu() {
 function handleDocumentClick(event) {
   if (settingsMenuControls && settingsMenuControls.container) {
     const { container } = settingsMenuControls;
-    if (!container.contains(event.target)) {
+    const sidebar = document.getElementById('sidebar');
+    const insideSidebar = sidebar ? sidebar.contains(event.target) : false;
+    if (!container.contains(event.target) && !insideSidebar) {
       closeSettingsMenu();
     }
   }

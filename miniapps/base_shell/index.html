@@ -115,12 +115,13 @@
         </aside>
         <main id="panel" class="panel" role="main" tabindex="-1">
           <section class="panel-content">
-            <div class="miniapp-panel" data-miniapp-panel>
+            <div class="stage-fallback" data-stage-fallback>
               <h2 data-miniapp-title data-i18n="panel.welcomeTitle">Bem-vindo(a)!</h2>
               <p data-miniapp-message data-i18n="panel.welcomeMessage">
                 Selecione uma opção no menu para começar a explorar seu miniaplicativo.
               </p>
             </div>
+            <div class="stage-host" data-stage-host aria-live="polite" aria-busy="false"></div>
             <div class="cta-group">
               <a class="cta" href="./auth/login.html" data-i18n="panel.actions.login">Acessar</a>
               <a
