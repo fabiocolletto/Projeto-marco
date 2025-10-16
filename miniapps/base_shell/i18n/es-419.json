@@ -38,6 +38,8 @@
   "auth.register.title": "Crear cuenta",
   "auth.register.submit": "Registrar",
   "auth.profile.title": "Perfil",
+  "auth.profile.panelTitle": "Panel del usuario",
+  "auth.profile.panelMessage": "Administra tu cuenta sin salir del panel principal.",
   "auth.profile.logout": "Cerrar sesión",
   "auth.profile.delete": "Eliminar cuenta",
   "auth.profile.deleteConfirm": "¿Desea eliminar la cuenta de {name}? Esta acción no se puede deshacer.",
