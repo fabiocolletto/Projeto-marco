@@ -41,19 +41,19 @@
               <li>
                 <a href="#" data-nav-action="home" title="Dashboard">
                   <span class="icon" aria-hidden="true">🏠</span>
-                  <span class="label" data-i18n="nav.dashboard">Início</span>
+                  <span class="label" data-sidebar-label data-i18n="nav.dashboard">Início</span>
                 </a>
               </li>
               <li>
                 <a href="#" title="Atividades">
                   <span class="icon" aria-hidden="true">🗂</span>
-                  <span class="label" data-i18n="nav.activity">Atividades</span>
+                  <span class="label" data-sidebar-label data-i18n="nav.activity">Atividades</span>
                 </a>
               </li>
               <li>
                 <a href="#" title="Análises">
                   <span class="icon" aria-hidden="true">📊</span>
-                  <span class="label" data-i18n="nav.analytics">Análises</span>
+                  <span class="label" data-sidebar-label data-i18n="nav.analytics">Análises</span>
                 </a>
               </li>
               <li class="has-submenu">
@@ -65,7 +65,7 @@
                   aria-controls="miniapp-submenu"
                 >
                   <span class="icon" aria-hidden="true">🧩</span>
-                  <span class="label" data-i18n="nav.miniapps">Mini-apps</span>
+                  <span class="label" data-sidebar-label data-i18n="nav.miniapps">Mini-apps</span>
                   <span class="submenu-caret" aria-hidden="true">▾</span>
                 </button>
                 <ul id="miniapp-submenu" class="submenu" hidden data-miniapp-menu></ul>
@@ -79,28 +79,49 @@
                   aria-controls="settings-submenu"
                 >
                   <span class="icon" aria-hidden="true">⚙️</span>
-                  <span class="label" data-i18n="nav.settings">Configurações</span>
+                  <span class="label" data-sidebar-label data-i18n="nav.settings">Configurações</span>
                   <span class="submenu-caret" aria-hidden="true">▾</span>
                 </button>
                 <ul id="settings-submenu" class="submenu" hidden>
                   <li>
                     <button id="btnLang" class="submenu-action" type="button">
                       <span class="submenu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
-                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.language">Idioma</span>
+                      <span
+                        class="submenu-label"
+                        aria-hidden="true"
+                        data-sidebar-label
+                        data-i18n="settings.language"
+                      >
+                        Idioma
+                      </span>
                       <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
                     </button>
                   </li>
                   <li>
                     <button id="btnTheme" class="submenu-action" type="button" aria-pressed="false">
                       <span class="submenu-icon" aria-hidden="true" data-theme-icon>☀️</span>
-                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.theme">Tema</span>
+                      <span
+                        class="submenu-label"
+                        aria-hidden="true"
+                        data-sidebar-label
+                        data-i18n="settings.theme"
+                      >
+                        Tema
+                      </span>
                       <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
                     </button>
                   </li>
                   <li>
                     <button id="btnUserPanel" class="submenu-action" type="button">
                       <span class="submenu-icon" aria-hidden="true">👤</span>
-                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.userPanel">Painel do usuário</span>
+                      <span
+                        class="submenu-label"
+                        aria-hidden="true"
+                        data-sidebar-label
+                        data-i18n="settings.userPanel"
+                      >
+                        Painel do usuário
+                      </span>
                       <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
                     </button>
                   </li>
