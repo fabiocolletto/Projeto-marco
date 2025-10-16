@@ -330,6 +330,63 @@ button:focus-visible,
   align-content: start;
 }
 
+.stage-fallback {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+}
+
+.stage-fallback.is-loading {
+  position: relative;
+}
+
+.stage-fallback.is-loading::after {
+  content: '';
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--color-accent), transparent);
+  background-size: 200% 100%;
+  animation: stage-loading 1.2s ease-in-out infinite;
+}
+
+.stage-host {
+  display: none;
+  width: 100%;
+  min-height: clamp(18rem, 40vh, 28rem);
+  border-radius: 1rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+  overflow: hidden;
+  transition: opacity 0.3s ease;
+}
+
+.stage-host[data-state='loading'],
+.stage-host[data-state='ready'],
+.stage-host[data-state='error'] {
+  display: block;
+}
+
+.stage-host[data-state='loading'] {
+  opacity: 0.6;
+}
+
+.stage-host iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: var(--color-surface);
+}
+
+@keyframes stage-loading {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 .cta-group {
   display: flex;
   flex-wrap: wrap;

@@ -1,5 +1,8 @@
 # MiniApp Base Shell – Log de Revisões
 
+## R4 · 2025-10-16 10:31 UTC
+- Ajustada a desmontagem do stage de mini-apps para encerrar iframes anteriores antes de carregar novos conteúdos, evitando que carregamentos residuais continuem após a troca de experiência.
+
 ## R3 · 2025-10-15
 - Adicionados o menu de mini-apps e skeletons para preparar a navegação entre experiências.
 
