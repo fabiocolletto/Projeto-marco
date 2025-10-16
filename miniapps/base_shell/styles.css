@@ -367,8 +367,24 @@ button:focus-visible,
   color: var(--color-accent-contrast);
 }
 
-.language-option__icon {
-  font-size: 1.35rem;
+.language-option__icon,
+[data-lang-icon] {
+  width: 1.75rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.language-option__icon img,
+[data-lang-icon] img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px var(--color-border);
 }
 
 .language-option__label {

@@ -36,10 +36,10 @@ const THEME_ICON_MAP = {
   dark: '🌙'
 };
 
-const LANG_ICON_MAP = {
-  'pt-BR': '🇧🇷',
-  'en-US': '🇺🇸',
-  'es-419': '🇪🇸'
+const LANG_ICON_SOURCE_MAP = {
+  'pt-BR': new URL('./assets/flags/pt-BR.svg', import.meta.url).href,
+  'en-US': new URL('./assets/flags/en-US.svg', import.meta.url).href,
+  'es-419': new URL('./assets/flags/es-419.svg', import.meta.url).href
 };
 
 const MINI_APP_CATALOG = [
@@ -99,6 +99,32 @@ let settingsMenuControls = null;
 let languageDialogControls = null;
 let isRedirectingHome = false;
 let userManagementControls = null;
+
+function renderLanguageIcon(target, lang) {
+  if (!target) return;
+  const source = LANG_ICON_SOURCE_MAP[lang];
+  if (!source) {
+    const existingImage = target.querySelector('img[data-lang-flag]');
+    if (existingImage) {
+      existingImage.remove();
+    }
+    target.textContent = '🌐';
+    return;
+  }
+  let image = target.querySelector('img[data-lang-flag]');
+  if (!image) {
+    target.textContent = '';
+    image = document.createElement('img');
+    image.alt = '';
+    image.decoding = 'async';
+    image.loading = 'lazy';
+    image.draggable = false;
+    image.setAttribute('aria-hidden', 'true');
+    image.dataset.langFlag = 'true';
+    target.append(image);
+  }
+  image.src = source;
+}
 
 let sidebarControls = null;
 let miniAppMenuControls = null;
@@ -1078,7 +1104,7 @@ function renderLanguageOptions() {
     const icon = document.createElement('span');
     icon.className = 'language-option__icon';
     icon.setAttribute('aria-hidden', 'true');
-    icon.textContent = LANG_ICON_MAP[resource.lang] || '🌐';
+    renderLanguageIcon(icon, resource.lang);
     const text = document.createElement('span');
     text.textContent = t(resource.labelKey);
     label.append(icon, text);
@@ -1160,7 +1186,7 @@ function updateLanguageToggle() {
     srOnly.textContent = withContext;
   }
   if (icon) {
-    icon.textContent = LANG_ICON_MAP[current] || '🌐';
+    renderLanguageIcon(icon, current);
   }
 }
 
