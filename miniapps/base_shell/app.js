@@ -181,6 +181,7 @@ async function bootstrap() {
   setupAuthForms();
   setupUserManagement();
   updateRegistrationAccess();
+  updateOnboardingState();
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleKeydown);
   window.addEventListener('popstate', handleHistoryNavigation);
@@ -207,6 +208,7 @@ async function bootstrap() {
     refreshUserMenu();
     refreshUserManagement();
     updateRegistrationAccess();
+    updateOnboardingState();
   });
 }
 
@@ -1020,6 +1022,9 @@ function setupSettingsMenu() {
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
+    if (next) {
+      setSidebarCollapsed(true, { persist: false, closeSettingsMenu: false });
+    }
   });
 }
 
@@ -1062,7 +1067,11 @@ function setupLanguageToggle() {
   renderLanguageOptions();
   button.addEventListener('click', event => {
     event.preventDefault();
-    openLanguageDialog(button);
+    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      openLanguageDialog(button);
+      return;
+    }
+    cycleLanguage();
   });
   if (cancelButton) {
     cancelButton.addEventListener('click', event => {
@@ -1156,7 +1165,8 @@ function closeLanguageDialog(options = {}) {
   return true;
 }
 
-function handleLanguageSelection(lang) {
+function handleLanguageSelection(lang, options = {}) {
+  const { closeMenu = true, focusPanelAfter = true } = options;
   const current = getLang();
   if (current !== lang) {
     try {
@@ -1166,8 +1176,25 @@ function handleLanguageSelection(lang) {
     }
   }
   closeLanguageDialog();
-  closeSettingsMenu();
-  focusPanel();
+  if (closeMenu) {
+    closeSettingsMenu();
+  }
+  if (focusPanelAfter) {
+    focusPanel();
+  }
+}
+
+function cycleLanguage() {
+  if (!Array.isArray(LANG_RESOURCES) || !LANG_RESOURCES.length) {
+    return;
+  }
+  const current = getLang();
+  const currentIndex = LANG_RESOURCES.findIndex(resource => resource.lang === current);
+  const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % LANG_RESOURCES.length : 0;
+  const next = LANG_RESOURCES[nextIndex];
+  if (next) {
+    handleLanguageSelection(next.lang, { closeMenu: false, focusPanelAfter: false });
+  }
 }
 
 function updateLanguageToggle() {
@@ -1953,6 +1980,21 @@ function updateRegistrationAccess() {
   const allowRegistration = shouldAllowPublicRegistration();
   document.querySelectorAll('[data-register-guard]').forEach(node => {
     node.hidden = !allowRegistration;
+  });
+}
+
+function updateOnboardingState() {
+  const container = document.querySelector('[data-onboarding]');
+  if (!container) return;
+  const user = currentUser();
+  const hasUsers = listUsers().length > 0;
+  container.hidden = Boolean(user);
+  container.setAttribute('aria-hidden', user ? 'true' : 'false');
+  container.querySelectorAll('[data-onboarding-empty]').forEach(node => {
+    node.hidden = hasUsers;
+  });
+  container.querySelectorAll('[data-onboarding-existing]').forEach(node => {
+    node.hidden = !hasUsers;
   });
 }
 
