@@ -753,7 +753,6 @@ function setupSettingsMenu() {
     if (next) {
       closeActiveMenu();
       closeMiniAppMenu();
-      setSidebarCollapsed(true, { closeSettingsMenu: false });
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
@@ -774,7 +773,6 @@ function openSettingsMenu() {
   if (!toggle || !submenu) return;
   toggle.setAttribute('aria-expanded', 'true');
   submenu.hidden = false;
-  setSidebarCollapsed(true, { closeSettingsMenu: false });
 }
 
 function setupLanguageToggle() {
