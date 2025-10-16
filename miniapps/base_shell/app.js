@@ -85,6 +85,7 @@ const preferenceStorage = createPreferenceStorage(() => window.localStorage);
 let revisionInfo = null;
 let activeMenu = null;
 let settingsMenuControls = null;
+let languageDialogControls = null;
 let isRedirectingHome = false;
 let userManagementControls = null;
 
@@ -151,6 +152,7 @@ async function bootstrap() {
     updateRevisionMetadata();
     applyTranslations();
     updateLanguageToggle();
+    renderLanguageOptions();
     updateThemeToggle();
     updateUserPanelShortcut();
     refreshUserMenu();
@@ -956,13 +958,133 @@ function openSettingsMenu() {
 
 function setupLanguageToggle() {
   const button = document.getElementById('btnLang');
-  if (!button) return;
-  button.addEventListener('click', () => {
-    const current = getLang();
-    const index = LANG_RESOURCES.findIndex(resource => resource.lang === current);
-    const next = LANG_RESOURCES[(index + 1) % LANG_RESOURCES.length];
-    setLang(next.lang);
+  const dialog = document.getElementById('language-dialog');
+  if (!button || !dialog) return;
+  const optionsContainer = dialog.querySelector('[data-language-options]');
+  const cancelButton = dialog.querySelector('[data-language-cancel]');
+  if (!optionsContainer) return;
+  languageDialogControls = {
+    trigger: button,
+    dialog,
+    optionsContainer,
+    cancelButton,
+    optionButtons: [],
+    lastTrigger: null,
+    suppressDocumentClose: false
+  };
+  dialog.setAttribute('aria-hidden', 'true');
+  button.setAttribute('aria-haspopup', 'dialog');
+  button.setAttribute('aria-expanded', 'false');
+  button.setAttribute('aria-controls', 'language-dialog');
+  renderLanguageOptions();
+  button.addEventListener('click', event => {
+    event.preventDefault();
+    openLanguageDialog(button);
   });
+  if (cancelButton) {
+    cancelButton.addEventListener('click', event => {
+      event.preventDefault();
+      closeLanguageDialog({ suppressDocumentClose: true });
+    });
+  }
+  dialog.addEventListener('click', event => {
+    if (dialog.hidden) return;
+    if (event.target === dialog) {
+      event.preventDefault();
+      event.stopPropagation();
+      closeLanguageDialog({ suppressDocumentClose: true });
+    }
+  });
+  dialog.addEventListener('keydown', event => {
+    if (dialog.hidden) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeLanguageDialog();
+    }
+  });
+}
+
+function renderLanguageOptions() {
+  if (!languageDialogControls) return;
+  const { optionsContainer } = languageDialogControls;
+  if (!optionsContainer) return;
+  optionsContainer.innerHTML = '';
+  const current = getLang();
+  const buttons = LANG_RESOURCES.map(resource => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'language-option';
+    button.dataset.languageOption = resource.lang;
+    button.setAttribute('aria-pressed', String(resource.lang === current));
+    const label = document.createElement('span');
+    label.className = 'language-option__label';
+    const icon = document.createElement('span');
+    icon.className = 'language-option__icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = LANG_ICON_MAP[resource.lang] || '🌐';
+    const text = document.createElement('span');
+    text.textContent = t(resource.labelKey);
+    label.append(icon, text);
+    button.append(label);
+    button.addEventListener('click', () => handleLanguageSelection(resource.lang));
+    optionsContainer.append(button);
+    return button;
+  });
+  languageDialogControls.optionButtons = buttons;
+}
+
+function openLanguageDialog(trigger) {
+  if (!languageDialogControls) return;
+  const { dialog } = languageDialogControls;
+  if (!dialog || !dialog.hidden) return;
+  languageDialogControls.lastTrigger = trigger || languageDialogControls.trigger;
+  languageDialogControls.suppressDocumentClose = false;
+  renderLanguageOptions();
+  dialog.hidden = false;
+  dialog.setAttribute('aria-hidden', 'false');
+  const triggerButton = languageDialogControls.trigger;
+  if (triggerButton) {
+    triggerButton.setAttribute('aria-expanded', 'true');
+  }
+  const { optionButtons = [] } = languageDialogControls;
+  const active = optionButtons.find(button => button.getAttribute('aria-pressed') === 'true');
+  const focusTarget = active || optionButtons[0];
+  if (focusTarget && typeof focusTarget.focus === 'function') {
+    window.requestAnimationFrame(() => focusTarget.focus());
+  }
+}
+
+function closeLanguageDialog(options = {}) {
+  const { suppressDocumentClose = false } = options;
+  if (!languageDialogControls) return false;
+  const { dialog, lastTrigger } = languageDialogControls;
+  if (!dialog || dialog.hidden) return false;
+  dialog.hidden = true;
+  dialog.setAttribute('aria-hidden', 'true');
+  const triggerButton = languageDialogControls.trigger;
+  if (triggerButton) {
+    triggerButton.setAttribute('aria-expanded', 'false');
+  }
+  if (lastTrigger && typeof lastTrigger.focus === 'function') {
+    window.requestAnimationFrame(() => lastTrigger.focus());
+  }
+  languageDialogControls.lastTrigger = null;
+  languageDialogControls.suppressDocumentClose = suppressDocumentClose;
+  return true;
+}
+
+function handleLanguageSelection(lang) {
+  const current = getLang();
+  if (current !== lang) {
+    try {
+      setLang(lang);
+    } catch (error) {
+      console.warn('shell: unable to switch language', error);
+    }
+  }
+  closeLanguageDialog();
+  closeSettingsMenu();
+  focusPanel();
 }
 
 function updateLanguageToggle() {
@@ -1186,13 +1308,22 @@ function closeActiveMenu() {
 }
 
 function handleDocumentClick(event) {
+  const suppressSettingsClose = languageDialogControls?.suppressDocumentClose === true;
+  let shouldResetSuppression = false;
   if (settingsMenuControls && settingsMenuControls.container) {
     const { container } = settingsMenuControls;
     const sidebar = document.getElementById('sidebar');
     const insideSidebar = sidebar ? sidebar.contains(event.target) : false;
-    if (!container.contains(event.target) && !insideSidebar) {
+    if (suppressSettingsClose) {
+      shouldResetSuppression = true;
+    } else if (!container.contains(event.target) && !insideSidebar) {
       closeSettingsMenu();
     }
+  } else if (suppressSettingsClose) {
+    shouldResetSuppression = true;
+  }
+  if (shouldResetSuppression && languageDialogControls) {
+    languageDialogControls.suppressDocumentClose = false;
   }
   if (miniAppMenuControls && miniAppMenuControls.container) {
     const { container } = miniAppMenuControls;
@@ -1208,6 +1339,9 @@ function handleDocumentClick(event) {
 
 function handleKeydown(event) {
   if (event.key === 'Escape') {
+    if (closeLanguageDialog()) {
+      return;
+    }
     closeSettingsMenu();
     closeActiveMenu();
     closeMiniAppMenu();

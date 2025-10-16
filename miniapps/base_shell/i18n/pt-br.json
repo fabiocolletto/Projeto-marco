@@ -23,6 +23,8 @@
   "settings.language": "Idioma",
   "settings.theme": "Tema",
   "settings.userPanel": "Painel do usuário",
+  "language.dialog.title": "Preferências de idioma",
+  "language.dialog.description": "Escolha o idioma da interface. As alterações são aplicadas imediatamente.",
   "panel.welcomeTitle": "Bem-vindo(a)!",
   "panel.welcomeMessage": "Selecione uma opção no menu para começar a explorar seu miniaplicativo.",
   "panel.miniapps.item1.title": "Bem-vindo ao Mini-app 1",
