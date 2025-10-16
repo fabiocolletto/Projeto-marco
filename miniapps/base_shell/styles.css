@@ -202,6 +202,10 @@ body:focus-within .app-shell:focus {
   gap: 0.5rem;
 }
 
+.sidebar .submenu[hidden] {
+  display: none;
+}
+
 .sidebar .submenu-action {
   display: inline-flex;
   align-items: center;
