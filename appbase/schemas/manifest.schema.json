@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://miniapp-base.local/schemas/manifest.schema.json",
+  "title": "Miniapp manifest",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+    "name": { "type": "string" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "permissions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "intents": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "required": ["id", "name", "version"],
+  "additionalProperties": false
+}

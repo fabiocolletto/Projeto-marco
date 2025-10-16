@@ -1,0 +1,15 @@
+{
+  "miniapps": [
+    {
+      "id": "sample-dashboard",
+      "name": "Sample Dashboard",
+      "description": "Exemplo de miniapp para validação de contrato",
+      "entry": "https://miniapp-base.local/miniapps/sample-dashboard/index.html",
+      "icon": "assets/brand/sample-dashboard.svg",
+      "intents": [
+        { "type": "handshake" },
+        { "type": "navigate", "description": "Abre rota principal" }
+      ]
+    }
+  ]
+}

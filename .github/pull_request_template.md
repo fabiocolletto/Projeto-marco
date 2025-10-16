@@ -1,9 +1,21 @@
-### Escopo
-- [ ] Ajuste para receber MiniApps opcionais (sem novas funções)
+## Objetivo
+Descreva o que muda e por quê.
 
-### Teste manual rápido (evidências)
-- [ ] Validei localmente as telas impactadas (layout básico)
-- [ ] Não há mudanças fora do escopo declarado
+## Escopo
+- [ ] Código
+- [ ] Schemas
+- [ ] Docs/Checklists
+- [ ] CI/Workflows
 
-### Observações
-<!-- prints, links, notas curtas -->
+## Testes/CI
+- [ ] Lint
+- [ ] Schema-check
+- [ ] E2E
+- [ ] Lighthouse
+
+## Backwards compatibility
+- [ ] Sem quebra
+- [ ] Tem breaking change (descrever migração)
+
+## Screenshots/Logs
+(Anexe quando aplicável)

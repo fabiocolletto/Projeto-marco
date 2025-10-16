@@ -1,0 +1,34 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "language": "en,pt,pt-BR",
+  "import": ["@cspell/dict-pt-br/cspell-ext.json"],
+  "allowCompoundWords": true,
+  "version": "0.2",
+  "ignorePaths": [
+    "node_modules",
+    "package-lock.json",
+    "coverage",
+    "dist"
+  ],
+  "words": [
+    "miniapps",
+    "miniapp",
+    "playwright",
+    "runbook",
+    "Codex",
+    "roadmap",
+    "AJV",
+    "SemVer",
+    "Lighthouse",
+    "codebase",
+    "tooling",
+    "handshake",
+    "registry",
+    "docs",
+    "CI",
+    "QA",
+    "España",
+    "indexeddb",
+    "uiext"
+  ]
+}
