@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://miniapp-base.local/schemas/records.schema.json",
+  "title": "Data records",
+  "type": "object",
+  "properties": {
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "type": "string" },
+          "payload": { "type": "object" }
+        },
+        "required": ["id", "type"],
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["records"],
+  "additionalProperties": false
+}

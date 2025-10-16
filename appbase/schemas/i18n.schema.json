@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://miniapp-base.local/schemas/i18n.schema.json",
+  "title": "I18n catalog",
+  "type": "object",
+  "patternProperties": {
+    "^[A-Za-z0-9_.\\-]+$": {
+      "oneOf": [
+        { "type": "string" },
+        { "$ref": "#/definitions/nested" }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "minProperties": 1,
+  "definitions": {
+    "nested": {
+      "type": "object",
+      "patternProperties": {
+        "^[A-Za-z0-9_.\\-]+$": {
+          "oneOf": [
+            { "type": "string" },
+            { "$ref": "#/definitions/nested" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

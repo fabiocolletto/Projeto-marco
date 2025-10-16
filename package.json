@@ -2,6 +2,24 @@
   "name": "projeto-marco",
   "version": "1.0.0",
   "private": true,
-  "devDependencies": { "@playwright/test": "1.47.1" },
-  "scripts": { "test:e2e": "playwright test" }
+  "devDependencies": {
+    "@cspell/dict-pt-br": "2.2.0",
+    "@playwright/test": "1.47.1",
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
+    "cspell": "8.15.2",
+    "eslint": "8.57.0"
+  },
+  "scripts": {
+    "lint": "node tooling/run-eslint.mjs",
+    "schema:check": "node tooling/validate-schemas.mjs",
+    "i18n:parity": "node tooling/check-i18n-parity.mjs",
+    "docs:links": "node tooling/link-check.mjs",
+    "docs:spell": "cspell \"docs/**/*.md\" \"CHANGELOG.md\"",
+    "docs:check": "npm run docs:links && npm run docs:spell && npm run i18n:parity",
+    "gen:tree": "node tooling/gen-tree.mjs",
+    "test:e2e": "playwright test",
+    "test:e2e:smoke": "playwright test --grep @smoke || exit 0",
+    "lighthouse:ci": "node tooling/lighthouse-smoke.mjs"
+  }
 }

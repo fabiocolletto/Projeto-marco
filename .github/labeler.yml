@@ -1,0 +1,15 @@
+i18n:
+  - 'appbase/i18n/**'
+  - 'docs/**/i18n*'
+registry:
+  - 'appbase/registry/**'
+  - 'docs/**/registry*'
+schemas:
+  - 'appbase/schemas/**'
+  - 'tooling/validate-schemas.mjs'
+docs:
+  - 'docs/**'
+  - 'CHANGELOG.md'
+ci:
+  - '.github/workflows/**'
+  - 'tooling/**'

@@ -1,0 +1,24 @@
+name: Stale issues
+
+on:
+  schedule:
+    - cron: '0 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: 'Esta issue está parada há 14 dias. Atualize o status ou será encerrada.'
+          stale-pr-message: 'Este PR está parado há 14 dias. Atualize o status ou será fechado.'
+          days-before-stale: 14
+          days-before-close: 7
+          exempt-issue-labels: 'keep-open,roadmap'
+          exempt-pr-labels: 'keep-open,release'
+          labels-to-add-when-stale: 'stale'

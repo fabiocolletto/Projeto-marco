@@ -1,0 +1,4 @@
+/appbase/**         @fabiocolletto @code-owner-appbase
+/docs/**            @doc-owner
+/appbase/schemas/** @schema-owner
+/tests/**           @qa-owner

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://miniapp-base.local/schemas/miniapps.schema.json",
+  "title": "Miniapp registry",
+  "type": "object",
+  "properties": {
+    "miniapps": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/miniapp" },
+      "minItems": 1
+    }
+  },
+  "required": ["miniapps"],
+  "additionalProperties": false,
+  "definitions": {
+    "intent": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "miniapp": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "entry": { "type": "string", "format": "uri" },
+        "icon": { "type": "string" },
+        "intents": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/intent" }
+        }
+      },
+      "required": ["id", "name", "entry"],
+      "additionalProperties": false
+    }
+  }
+}
