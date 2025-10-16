@@ -353,14 +353,11 @@ function getSidebarControls() {
     return sidebarControls;
   }
   const shell = document.querySelector('.app-shell');
-  const buttons = [
-    document.getElementById('btnMenu'),
-    document.getElementById('btnCollapse')
-  ].filter(Boolean);
-  if (!shell || buttons.length === 0) {
+  const menuButton = document.getElementById('btnMenu');
+  if (!shell || !menuButton) {
     return null;
   }
-  sidebarControls = { shell, buttons };
+  sidebarControls = { shell, buttons: [menuButton] };
   return sidebarControls;
 }
 

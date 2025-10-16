@@ -266,14 +266,6 @@ button:focus-visible,
   outline-offset: 2px;
 }
 
-#btnCollapse {
-  margin-top: auto;
-  padding: 0.5rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .ghost {
   background: none;
   border: 1px solid transparent;
