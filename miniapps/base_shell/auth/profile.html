@@ -58,6 +58,20 @@
               </li>
               <li class="has-submenu">
                 <button
+                  id="miniapp-toggle"
+                  class="submenu-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="miniapp-submenu"
+                >
+                  <span class="icon" aria-hidden="true">🧩</span>
+                  <span class="label" data-i18n="nav.miniapps">Mini-apps</span>
+                  <span class="submenu-caret" aria-hidden="true">▾</span>
+                </button>
+                <ul id="miniapp-submenu" class="submenu" hidden data-miniapp-menu></ul>
+              </li>
+              <li class="has-submenu">
+                <button
                   id="settings-toggle"
                   class="submenu-toggle"
                   type="button"
