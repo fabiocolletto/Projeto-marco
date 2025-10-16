@@ -87,6 +87,7 @@ body:focus-within .app-shell:focus {
   transition: width 0.3s ease;
   min-height: 0;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges;
 }
 
 .sidebar nav {
@@ -95,6 +96,21 @@ body:focus-within .app-shell:focus {
   overflow-x: hidden;
   padding-right: 0.25rem;
   overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.sidebar nav::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+.sidebar nav::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 999px;
+}
+
+.sidebar nav::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .sidebar nav ul {
@@ -162,11 +178,20 @@ body:focus-within .app-shell:focus {
   width: 100%;
   height: 48px;
   padding: 0 1rem;
+  border: 1px solid transparent;
   border-radius: 12px;
   background: transparent;
   color: var(--color-text-muted);
   text-decoration: none;
   font-size: 1rem;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar a:hover,
+.sidebar a:focus-visible {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
 }
 
 .sidebar .submenu {
@@ -222,6 +247,7 @@ body:focus-within .app-shell:focus {
 
 .sidebar a .label {
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .sidebar a[aria-current='page'] {
@@ -539,6 +565,7 @@ button:focus-visible,
   box-shadow: 0 12px 20px rgba(15, 23, 42, 0.15);
   display: grid;
   gap: 0.5rem;
+  z-index: 2;
 }
 
 .app-shell.is-collapsed .sidebar .submenu[hidden] {

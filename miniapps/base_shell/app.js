@@ -76,8 +76,11 @@ const HOME_REDIRECT_DELAY = 500;
 
 const FEEDBACK_CLEAR_DELAY = 3000;
 const PANEL_HIGHLIGHT_DURATION = 1600;
+const SIDEBAR_STORAGE_KEY = `${SHELL_APP_ID}:sidebar.collapsed`;
+const SIDEBAR_RESPONSIVE_QUERY = '(max-width: 900px)';
 const feedbackTimers = new WeakMap();
 const highlightTimers = new WeakMap();
+const preferenceStorage = createPreferenceStorage(() => window.localStorage);
 
 let revisionInfo = null;
 let activeMenu = null;
@@ -153,6 +156,7 @@ async function bootstrap() {
     refreshUserMenu();
     renderMiniAppMenu();
     updateMiniAppPanel();
+    refreshSidebarNavigationLabels();
   });
   onThemeChange(() => {
     updateThemeToggle();
@@ -366,7 +370,12 @@ function setSidebarCollapsed(collapsed, options = {}) {
   const { shell, buttons } = controls;
   const shouldCollapse = Boolean(collapsed);
   shell.classList.toggle('is-collapsed', shouldCollapse);
+  shell.dataset.sidebarCollapsed = String(shouldCollapse);
   buttons.forEach(button => button.setAttribute('aria-expanded', String(!shouldCollapse)));
+  updateSidebarNavigationLabels(shouldCollapse);
+  if (options.persist !== false) {
+    persistSidebarPreference(shouldCollapse);
+  }
   if (shouldCollapse && options.closeSettingsMenu !== false) {
     closeSettingsMenu();
     closeMiniAppMenu();
@@ -377,13 +386,178 @@ function setupSidebar() {
   const controls = getSidebarControls();
   if (!controls) return;
   const { shell, buttons } = controls;
+  const initialCollapsed = getPreferredSidebarCollapsed();
+  setSidebarCollapsed(initialCollapsed, { persist: false, skipFocus: true });
   buttons.forEach(button => {
     button.addEventListener('click', () => {
       const next = !shell.classList.contains('is-collapsed');
       setSidebarCollapsed(next);
     });
   });
+  setupResponsiveSidebarObserver();
+  setupSidebarKeyboardNavigation();
+  refreshSidebarNavigationLabels();
   setupHomeNavigation();
+}
+
+function getPreferredSidebarCollapsed() {
+  if (shouldCollapseForViewport()) {
+    return true;
+  }
+  const stored = getStoredSidebarPreference();
+  if (stored !== null) {
+    return stored;
+  }
+  return false;
+}
+
+function shouldCollapseForViewport() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return false;
+  }
+  try {
+    const mediaQuery = window.matchMedia(SIDEBAR_RESPONSIVE_QUERY);
+    return Boolean(mediaQuery && mediaQuery.matches);
+  } catch (error) {
+    console.warn('shell: unable to evaluate responsive sidebar media query', error);
+    return false;
+  }
+}
+
+function setupResponsiveSidebarObserver() {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return;
+  }
+  try {
+    const mediaQuery = window.matchMedia(SIDEBAR_RESPONSIVE_QUERY);
+    const handler = event => {
+      const storedPreference = getStoredSidebarPreference();
+      if (event.matches) {
+        setSidebarCollapsed(true, { persist: false, skipFocus: true });
+        return;
+      }
+      if (storedPreference !== null) {
+        setSidebarCollapsed(storedPreference, { persist: false, skipFocus: true });
+      } else {
+        setSidebarCollapsed(false, { persist: false, skipFocus: true });
+      }
+    };
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', handler);
+    } else if (typeof mediaQuery.addListener === 'function') {
+      mediaQuery.addListener(handler);
+    }
+  } catch (error) {
+    console.warn('shell: unable to setup responsive sidebar observer', error);
+  }
+}
+
+function refreshSidebarNavigationLabels() {
+  const controls = getSidebarControls();
+  if (!controls) return;
+  const { shell } = controls;
+  const isCollapsed = shell.classList.contains('is-collapsed');
+  updateSidebarNavigationLabels(isCollapsed);
+}
+
+function updateSidebarNavigationLabels(collapsed) {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const interactive = sidebar.querySelectorAll(
+    'nav > ul > li > a, nav > ul > li > button.submenu-toggle'
+  );
+  interactive.forEach(control => {
+    const label = getSidebarItemLabel(control);
+    if (!label) {
+      return;
+    }
+    if (collapsed) {
+      control.setAttribute('aria-label', label);
+      control.title = label;
+      control.dataset.sidebarAutoLabel = 'true';
+    } else if (control.dataset.sidebarAutoLabel === 'true') {
+      control.removeAttribute('aria-label');
+      control.removeAttribute('title');
+      delete control.dataset.sidebarAutoLabel;
+    }
+  });
+}
+
+function getSidebarItemLabel(control) {
+  if (!control) return '';
+  const labelNode = control.querySelector('[data-sidebar-label]');
+  if (labelNode && labelNode.textContent) {
+    return labelNode.textContent.trim();
+  }
+  const srOnly = control.querySelector('.sr-only');
+  if (srOnly && srOnly.textContent) {
+    return srOnly.textContent.trim();
+  }
+  if (typeof control.getAttribute === 'function') {
+    const existing = control.getAttribute('aria-label');
+    if (existing) {
+      return existing.trim();
+    }
+    const title = control.getAttribute('title');
+    if (title) {
+      return title.trim();
+    }
+  }
+  return control.textContent ? control.textContent.trim() : '';
+}
+
+function setupSidebarKeyboardNavigation() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar || sidebar.dataset.sidebarKeyboard === 'true') {
+    return;
+  }
+  const handleKeydown = event => {
+    const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
+    if (!keys.includes(event.key)) {
+      return;
+    }
+    const focusable = getSidebarFocusableItems();
+    if (!focusable.length) return;
+    const currentIndex = focusable.indexOf(document.activeElement);
+    if (currentIndex === -1) return;
+    event.preventDefault();
+    let nextIndex = currentIndex;
+    switch (event.key) {
+      case 'ArrowDown':
+        nextIndex = (currentIndex + 1) % focusable.length;
+        break;
+      case 'ArrowUp':
+        nextIndex = (currentIndex - 1 + focusable.length) % focusable.length;
+        break;
+      case 'Home':
+        nextIndex = 0;
+        break;
+      case 'End':
+        nextIndex = focusable.length - 1;
+        break;
+      default:
+        break;
+    }
+    const nextItem = focusable[nextIndex];
+    if (nextItem && typeof nextItem.focus === 'function') {
+      nextItem.focus();
+    }
+  };
+  sidebar.addEventListener('keydown', handleKeydown);
+  sidebar.dataset.sidebarKeyboard = 'true';
+}
+
+function getSidebarFocusableItems() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return [];
+  const selector = 'a[href], button:not([disabled])';
+  return Array.from(sidebar.querySelectorAll(selector)).filter(element => {
+    if (element.hasAttribute('hidden')) {
+      return false;
+    }
+    const isHidden = element.closest('[hidden]');
+    return !isHidden;
+  });
 }
 
 function setupHomeNavigation() {
@@ -492,6 +666,7 @@ function renderMiniAppMenu() {
     label.className = 'submenu-label';
     label.setAttribute('aria-hidden', 'true');
     label.dataset.i18n = item.labelKey;
+    label.dataset.sidebarLabel = 'true';
     label.textContent = item.labelKey;
     const srOnly = document.createElement('span');
     srOnly.className = 'sr-only';
@@ -514,6 +689,7 @@ function renderMiniAppMenu() {
       button.title = label;
     }
   });
+  refreshSidebarNavigationLabels();
   updateMiniAppToggleLabel();
 }
 
@@ -836,6 +1012,19 @@ function setupUserPanelShortcut() {
   });
 }
 
+function showUserPanelShortcut(options = {}) {
+  if (!settingsMenuControls) return;
+  const { toggle, submenu } = settingsMenuControls;
+  if (!toggle || !submenu) return;
+  const button = document.getElementById('btnUserPanel');
+  if (!button) return;
+  toggle.setAttribute('aria-expanded', 'true');
+  submenu.hidden = false;
+  if (options.focus !== false && typeof button.focus === 'function') {
+    window.requestAnimationFrame(() => button.focus());
+  }
+}
+
 function handleUserPanelShortcutClick() {
   if (!isOnUserPanelRoute()) {
     return false;
@@ -1029,6 +1218,31 @@ function handleKeydown(event) {
   }
 }
 
+function getStoredSidebarPreference() {
+  try {
+    const stored = preferenceStorage.get(SIDEBAR_STORAGE_KEY);
+    if (stored === 'collapsed') {
+      return true;
+    }
+    if (stored === 'expanded') {
+      return false;
+    }
+    return null;
+  } catch (error) {
+    console.warn('shell: unable to read sidebar preference', error);
+    return null;
+  }
+}
+
+function persistSidebarPreference(collapsed) {
+  const value = collapsed ? 'collapsed' : 'expanded';
+  try {
+    preferenceStorage.set(SIDEBAR_STORAGE_KEY, value);
+  } catch (error) {
+    console.warn('shell: unable to persist sidebar preference', error);
+  }
+}
+
 function setupAuthForms() {
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
@@ -1042,6 +1256,7 @@ function setupAuthForms() {
           password: data.get('password')
         });
         announceTo(feedback, t('auth.feedback.loggedIn', { name: user.name }));
+        showUserPanelShortcut({ focus: true });
       } catch (error) {
         const message = error.message === 'auth:invalid-credentials'
           ? t('auth.feedback.invalid')
@@ -1573,6 +1788,43 @@ function formatUserDate(timestamp) {
   } catch (error) {
     return '—';
   }
+}
+
+function createPreferenceStorage(getStorage) {
+  const resolveStorage = () => {
+    if (typeof getStorage === 'function') {
+      try {
+        return getStorage() || null;
+      } catch (error) {
+        console.warn('shell: preference storage unavailable', error);
+        return null;
+      }
+    }
+    return getStorage || null;
+  };
+  return {
+    get(key) {
+      const storage = resolveStorage();
+      if (!storage || typeof storage.getItem !== 'function') {
+        return null;
+      }
+      return storage.getItem(key);
+    },
+    set(key, value) {
+      const storage = resolveStorage();
+      if (!storage || typeof storage.setItem !== 'function') {
+        return;
+      }
+      storage.setItem(key, value);
+    },
+    remove(key) {
+      const storage = resolveStorage();
+      if (!storage || typeof storage.removeItem !== 'function') {
+        return;
+      }
+      storage.removeItem(key);
+    }
+  };
 }
 
 function scheduleFeedbackClear(element, delay = FEEDBACK_CLEAR_DELAY) {
