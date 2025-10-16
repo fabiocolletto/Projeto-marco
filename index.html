@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Projeto Marco</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="refresh" content="0; url=./miniapps/base_shell/index.html" />
+    <meta http-equiv="refresh" content="0; url=./miniapps/base_shell/" />
     <style>
       :root {
         color-scheme: light dark;
@@ -62,7 +62,7 @@
         Caso nada aconteça, utilize o link abaixo.
       </p>
       <p>
-        <a id="shell-link" href="./miniapps/base_shell/index.html">Abrir shell base</a>
+        <a id="shell-link" href="./miniapps/base_shell/">Abrir shell base</a>
       </p>
       <noscript>
         <p>
@@ -73,19 +73,20 @@
     </main>
     <script>
       (function redirectToShell() {
-        const target = './miniapps/base_shell/index.html';
         const anchor = document.getElementById('shell-link');
+        const targetUrl = new URL('./miniapps/base_shell/', window.location.href);
+
         if (anchor) {
-          anchor.href = target;
+          anchor.href = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;
         }
+
         try {
-          const url = new URL(target, window.location.href);
-          if (url.href !== window.location.href) {
-            window.location.replace(url.href);
+          if (targetUrl.href !== window.location.href) {
+            window.location.replace(targetUrl.href);
           }
         } catch (error) {
           console.warn('fallback redirect failed', error);
-          window.location.href = target;
+          window.location.href = targetUrl.href;
         }
       })();
     </script>
