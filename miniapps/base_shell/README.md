@@ -17,14 +17,15 @@ Shell responsivo com cabeçalho, barra lateral recolhível e painel central expa
 3. Use o menu de idioma para alternar entre Português, Inglês e Espanhol. A escolha é persistida.
 4. Troque tema claro/escuro ou siga o sistema. Logos são atualizados automaticamente.
 5. Use o menu de usuário para acessar o perfil ou alternar entre contas registradas.
+6. Acesse o item “Mini-apps” na barra lateral para abrir o catálogo, selecione “Mini-app 1” ou “Mini-app 2” e visualize o skeleton correspondente enquanto o conteúdo é carregado.
 
 ### Verificação visual rápida
 Após subir o servidor de desenvolvimento, abra `http://localhost:4173/` em um navegador.
 Você deve visualizar:
 
 - **Cabeçalho fixo** com logotipo, selector de idioma, alternador de tema e menu de usuário.
-- **Barra lateral recolhível** contendo os atalhos “Dashboard”, “Autenticação” e “Configurações”.
-- **Painel principal** com cartões de entrada para login/registro e, após autenticação, o conteúdo da área logada.
+- **Barra lateral recolhível** contendo os atalhos “Dashboard”, “Autenticação”, “Mini-apps” (catálogo) e “Configurações”.
+- **Painel principal** com cartões de entrada para login/registro, skeleton do catálogo de mini-apps e, após autenticação, o conteúdo da área logada.
 
 Se algum desses elementos não aparecer, confirme se os assets estão sendo servidos a partir do diretório raiz do repositório (especialmente os pacotes em `packages/`).
 
@@ -40,3 +41,5 @@ Execute `npx playwright test` para rodar o smoke test em `tests/e2e/miniapp_base
 - Suba o servidor com `npm run dev` e abra `http://localhost:4173/` em tela cheia.
 - Confirme que o rodapé exibe a revisão atual e o link para `REVISION_LOG.md`.
 - Garanta que o menu do usuário, o alternador de idioma e o alternador de tema respondem a interações com mouse e teclado.
+- Abra o item “Mini-apps” e valide que o painel exibe skeletons nomeados “Mini-app 1” e “Mini-app 2” antes de carregar o conteúdo remoto.
+- Clique em “Mini-app 1” e “Mini-app 2” para confirmar que o painel central alterna entre os placeholders corretos e mantém a navegação disponível pelo menu lateral.

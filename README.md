@@ -11,6 +11,11 @@ Este repositório contém ferramentas e módulos compartilhados utilizados pelos
 2. Crie branches de trabalho a partir da `main` e siga as instruções específicas em `AGENTS.md` quando existirem.
 3. Execute os testes listados na seção de testes do widget antes de enviar alterações.
 
+## Nova etapa do shell base
+- **Menu de mini-apps**: o shell exibe um catálogo lateral com entrada dedicada para cada mini-app priorizado, permitindo navegação entre os módulos embarcados.
+- **Skeletons carregáveis**: cada item carrega um skeleton específico enquanto o conteúdo remoto é obtido, garantindo feedback imediato.
+- **Integração via webhook**: o catálogo será sincronizado com o backend através de um webhook; ao implementar, mantenha alinhados loader, traduções e testes end-to-end.
+
 ## Testes automatizados
 Para garantir que `npm test` seja executado com sucesso no ambiente local ou na sandbox do repositório, siga os passos abaixo na primeira vez que configurar o projeto (ou sempre que atualizar a versão do Playwright):
 
