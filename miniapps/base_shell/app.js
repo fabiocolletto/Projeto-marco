@@ -66,6 +66,8 @@ const DEFAULT_MINI_APP_CONTENT = {
   messageKey: 'panel.welcomeMessage'
 };
 
+const SHELL_APP_ID = 'base.shell';
+
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
 const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
@@ -83,6 +85,7 @@ let userManagementControls = null;
 
 let sidebarControls = null;
 let miniAppMenuControls = null;
+let homeNavigationControls = null;
 
 const userManagementState = {
   mode: null,
@@ -125,6 +128,7 @@ async function bootstrap() {
   if (initialMiniAppId) {
     miniAppState.activeId = initialMiniAppId;
   }
+  updateNavigationState();
   setupMiniAppMenu(miniApps);
   if (initialMiniAppId) {
     updateMiniAppHistory(initialMiniAppId, { replace: true });
@@ -229,6 +233,7 @@ function normalizeMiniAppEntries(entries) {
       if (!entry || typeof entry !== 'object') return null;
       if (entry.active === false) return null;
       if (!entry.id || !entry.labelKey) return null;
+      if (entry.id === SHELL_APP_ID) return null;
       const order = typeof entry.order === 'number' ? entry.order : Number.POSITIVE_INFINITY;
       const fallback = MINI_APP_CATALOG_MAP.get(entry.id) || null;
       return {
@@ -372,6 +377,41 @@ function setupSidebar() {
       setSidebarCollapsed(next);
     });
   });
+  setupHomeNavigation();
+}
+
+function setupHomeNavigation() {
+  const shell = document.querySelector('.app-shell');
+  if (!shell) return;
+  const homeLinks = Array.from(shell.querySelectorAll('[data-nav-action="home"]'));
+  if (!homeLinks.length) return;
+  homeNavigationControls = { homeLinks };
+  homeLinks.forEach(link => {
+    link.addEventListener('click', event => {
+      event.preventDefault();
+      const wasActive = Boolean(miniAppState.activeId);
+      setActiveMiniApp(null);
+      closeMiniAppMenu();
+      if (wasActive) {
+        focusPanel();
+      }
+    });
+  });
+  updateNavigationState();
+}
+
+function updateNavigationState() {
+  if (!homeNavigationControls || !Array.isArray(homeNavigationControls.homeLinks)) {
+    return;
+  }
+  const isHomeActive = !miniAppState.activeId;
+  homeNavigationControls.homeLinks.forEach(link => {
+    if (isHomeActive) {
+      link.setAttribute('aria-current', 'page');
+    } else {
+      link.removeAttribute('aria-current');
+    }
+  });
 }
 
 function setupMiniAppMenu(items) {
@@ -475,6 +515,7 @@ function setActiveMiniApp(id, options = {}) {
   const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
   const next = items.some(item => item.id === id) ? id : null;
   if (miniAppState.activeId === next) {
+    updateNavigationState();
     updateMiniAppPanel();
     return;
   }
@@ -484,6 +525,7 @@ function setActiveMiniApp(id, options = {}) {
   }
   renderMiniAppMenu();
   updateMiniAppPanel();
+  updateNavigationState();
 }
 
 function closeMiniAppMenu() {
@@ -688,6 +730,13 @@ function updateMiniAppHistory(id, options = {}) {
 function handleHistoryNavigation() {
   const next = getInitialMiniAppId(miniAppState.items);
   setActiveMiniApp(next, { skipHistory: true });
+}
+
+function focusPanel() {
+  const panel = document.getElementById('panel');
+  if (panel && typeof panel.focus === 'function') {
+    panel.focus();
+  }
 }
 
 function setupSettingsMenu() {
