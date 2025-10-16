@@ -1973,7 +1973,7 @@ function handleUserDelete(user) {
 }
 
 function shouldAllowPublicRegistration() {
-  return listUsers().length === 0;
+  return true;
 }
 
 function updateRegistrationAccess() {
