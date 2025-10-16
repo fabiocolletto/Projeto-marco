@@ -13,3 +13,4 @@
 
 ## 2025-10-15
 - Preparação do shell para suportar mini-apps assinados, incluindo menu dedicado e skeletons de carregamento.
+- Removido o botão redundante de colapso da sidebar e validado visualmente a interação apenas pelo controle do header.

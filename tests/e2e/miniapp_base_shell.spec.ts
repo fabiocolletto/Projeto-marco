@@ -96,7 +96,7 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#btnMenu');
     await expect(shell).not.toHaveClass(/is-collapsed/);
 
-    await page.click('#btnCollapse');
+    await page.click('#btnMenu');
     await expect(shell).toHaveClass(/is-collapsed/);
 
     await page.click('#settings-toggle');
