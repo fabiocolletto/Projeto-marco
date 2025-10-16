@@ -223,7 +223,25 @@
         </main>
       </div>
       <footer class="app-footer" role="contentinfo">
-        <small>&copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span></small>
+        <div class="footer-content">
+          <small class="footer-copy">
+            &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+          </small>
+          <small class="footer-revision">
+            <span data-revision data-i18n="footer.revisionFallback">
+              MiniApp Base · Revisão indisponível
+            </span>
+            <a
+              class="footer-revision-log"
+              href="../REVISION_LOG.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-i18n="footer.revisionLog"
+            >
+              Log de revisões
+            </a>
+          </small>
+        </div>
       </footer>
     </div>
     <script type="module" src="../app.js"></script>
