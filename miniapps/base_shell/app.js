@@ -71,6 +71,17 @@ const DEFAULT_MINI_APP_CONTENT = {
 const SHELL_APP_ID = 'base.shell';
 
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
+const USER_PANEL_EMBED_ROUTE = './auth/profile-panel.html';
+const USER_PANEL_MINI_APP_ID = 'base.shell.user-panel';
+const USER_PANEL_MINI_APP = {
+  id: USER_PANEL_MINI_APP_ID,
+  labelKey: 'auth.profile.panelTitle',
+  welcomeTitleKey: 'auth.profile.panelTitle',
+  welcomeMessageKey: 'auth.profile.panelMessage',
+  icon: '👤',
+  route: USER_PANEL_EMBED_ROUTE,
+  hidden: true
+};
 const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
 
@@ -129,7 +140,7 @@ async function bootstrap() {
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
   setupSidebar();
-  const miniApps = await loadActiveMiniApps();
+  const miniApps = withUserPanelMiniApp(await loadActiveMiniApps());
   const initialMiniAppId = getInitialMiniAppId(miniApps);
   if (initialMiniAppId) {
     miniAppState.activeId = initialMiniAppId;
@@ -244,6 +255,13 @@ function normalizeMiniAppEntries(entries) {
       if (entry.id === SHELL_APP_ID) return null;
       const order = typeof entry.order === 'number' ? entry.order : Number.POSITIVE_INFINITY;
       const fallback = MINI_APP_CATALOG_MAP.get(entry.id) || null;
+      const fallbackHidden = fallback?.hidden === true;
+      let hidden = fallbackHidden;
+      if (entry.hidden === true) {
+        hidden = true;
+      } else if (entry.hidden === false) {
+        hidden = false;
+      }
       return {
         id: String(entry.id),
         labelKey: String(entry.labelKey),
@@ -257,6 +275,7 @@ function normalizeMiniAppEntries(entries) {
           entry.welcomeTitleKey || fallback?.welcomeTitleKey || DEFAULT_MINI_APP_CONTENT.titleKey,
         welcomeMessageKey:
           entry.welcomeMessageKey || fallback?.welcomeMessageKey || DEFAULT_MINI_APP_CONTENT.messageKey,
+        hidden,
         order,
         index
       };
@@ -272,6 +291,29 @@ function normalizeMiniAppEntries(entries) {
       const { order, index, ...rest } = item;
       return rest;
     });
+}
+
+function withUserPanelMiniApp(items) {
+  const list = Array.isArray(items) ? [...items] : [];
+  const existingIndex = list.findIndex(item => item && item.id === USER_PANEL_MINI_APP_ID);
+  if (existingIndex >= 0) {
+    const existing = list[existingIndex] || {};
+    const merged = {
+      ...USER_PANEL_MINI_APP,
+      ...existing
+    };
+    merged.labelKey = existing.labelKey || USER_PANEL_MINI_APP.labelKey;
+    merged.route = existing.route || USER_PANEL_MINI_APP.route;
+    merged.icon = existing.icon || USER_PANEL_MINI_APP.icon;
+    merged.welcomeTitleKey = existing.welcomeTitleKey || USER_PANEL_MINI_APP.welcomeTitleKey;
+    merged.welcomeMessageKey = existing.welcomeMessageKey || USER_PANEL_MINI_APP.welcomeMessageKey;
+    if (typeof existing.hidden === 'boolean') {
+      merged.hidden = existing.hidden;
+    }
+    list[existingIndex] = merged;
+    return list;
+  }
+  return [...list, { ...USER_PANEL_MINI_APP }];
 }
 
 function extractRevisionInfo(manifest) {
@@ -601,7 +643,7 @@ function setupMiniAppMenu(items) {
   miniAppMenuControls = { toggle, submenu, container, shouldRestoreSettings: false };
   toggle.setAttribute('aria-expanded', 'false');
   submenu.hidden = true;
-  miniAppState.items = Array.isArray(items) ? [...items] : [];
+  miniAppState.items = withUserPanelMiniApp(items);
   toggle.addEventListener('click', () => {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     const next = !expanded;
@@ -635,16 +677,17 @@ function renderMiniAppMenu() {
   if (!miniAppMenuControls) return;
   const { toggle, submenu } = miniAppMenuControls;
   const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  const visibleItems = items.filter(item => !item?.hidden);
   submenu.innerHTML = '';
-  toggle.disabled = items.length === 0;
-  toggle.setAttribute('aria-disabled', items.length === 0 ? 'true' : 'false');
-  if (!items.length) {
+  toggle.disabled = visibleItems.length === 0;
+  toggle.setAttribute('aria-disabled', visibleItems.length === 0 ? 'true' : 'false');
+  if (!visibleItems.length) {
     toggle.setAttribute('aria-expanded', 'false');
     submenu.hidden = true;
     updateMiniAppToggleLabel();
     return;
   }
-  items.forEach(item => {
+  visibleItems.forEach(item => {
     const listItem = document.createElement('li');
     const button = document.createElement('button');
     button.type = 'button';
@@ -707,6 +750,20 @@ function setActiveMiniApp(id, options = {}) {
   renderMiniAppMenu();
   updateMiniAppPanel();
   updateNavigationState();
+}
+
+function activateUserPanelMiniApp(options = {}) {
+  const controls = getStageHost();
+  if (!controls || !controls.host) {
+    return false;
+  }
+  miniAppState.items = withUserPanelMiniApp(miniAppState.items);
+  const historyOptions = options.skipHistory ? { skipHistory: true } : {};
+  setActiveMiniApp(USER_PANEL_MINI_APP_ID, historyOptions);
+  if (options.focus !== false) {
+    focusPanel();
+  }
+  return true;
 }
 
 function closeMiniAppMenu() {
@@ -1144,46 +1201,11 @@ function showUserPanelShortcut(options = {}) {
 }
 
 function handleUserPanelShortcutClick() {
-  if (!isOnUserPanelRoute()) {
-    return false;
-  }
-  const user = currentUser();
-  const managementSection = userManagementControls?.section || document.getElementById('user-management');
-  if (managementSection && !managementSection.hidden && user && user.role === 'owner') {
-    highlightElement(managementSection);
+  if (miniAppState.activeId === USER_PANEL_MINI_APP_ID) {
+    focusPanel();
     return true;
   }
-  const profileCard = document.getElementById('profile-card');
-  if (profileCard) {
-    highlightElement(profileCard);
-    if (managementSection && (!user || user.role !== 'owner')) {
-      managementSection.hidden = true;
-    }
-    const feedback = document.getElementById('profile-feedback');
-    if (feedback) {
-      let message = '';
-      if (!user) {
-        message = t('auth.profile.userPanelLoginRequired');
-      } else if (!managementSection || managementSection.hidden || user.role !== 'owner') {
-        message = t('auth.profile.userPanelOwnerOnly');
-      }
-      if (message) {
-        announceTo(feedback, message);
-        scheduleFeedbackClear(feedback);
-      }
-    }
-  }
-  return true;
-}
-
-function isOnUserPanelRoute() {
-  try {
-    const current = new URL(window.location.href);
-    const target = new URL(USER_PANEL_URL.href);
-    return current.pathname === target.pathname;
-  } catch (error) {
-    return Boolean(document.getElementById('profile-card'));
-  }
+  return activateUserPanelMiniApp();
 }
 
 function updateUserPanelShortcut() {
@@ -1242,7 +1264,11 @@ function createMenuAction(action, label) {
 
 function handleUserAction(action) {
   if (action === 'profile') {
-    window.location.href = USER_PANEL_URL.href;
+    const opened = activateUserPanelMiniApp();
+    closeActiveMenu();
+    if (!opened) {
+      window.location.href = USER_PANEL_URL.href;
+    }
     return;
   }
   if (action === 'logout') {

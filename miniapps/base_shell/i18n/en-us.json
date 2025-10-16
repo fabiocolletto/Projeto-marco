@@ -38,6 +38,8 @@
   "auth.register.title": "Create account",
   "auth.register.submit": "Register",
   "auth.profile.title": "Profile",
+  "auth.profile.panelTitle": "User panel",
+  "auth.profile.panelMessage": "Manage your account without leaving the main dashboard.",
   "auth.profile.logout": "Log out",
   "auth.profile.delete": "Delete account",
   "auth.profile.deleteConfirm": "Are you sure you want to delete {name}'s account? This action cannot be undone.",

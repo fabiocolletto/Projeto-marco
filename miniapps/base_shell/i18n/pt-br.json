@@ -42,6 +42,8 @@
   "auth.register.title": "Criar conta",
   "auth.register.submit": "Registrar",
   "auth.profile.title": "Perfil",
+  "auth.profile.panelTitle": "Painel do usuário",
+  "auth.profile.panelMessage": "Gerencie sua conta sem sair do painel principal.",
   "auth.profile.logout": "Encerrar sessão",
   "auth.profile.delete": "Excluir conta",
   "auth.profile.deleteConfirm": "Tem certeza de que deseja excluir a conta de {name}? Esta ação não pode ser desfeita.",
