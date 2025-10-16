@@ -935,7 +935,6 @@ function setupSettingsMenu() {
     if (next) {
       closeActiveMenu();
       closeMiniAppMenu();
-      setSidebarCollapsed(true, { closeSettingsMenu: false });
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
