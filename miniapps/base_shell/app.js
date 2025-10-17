@@ -2193,6 +2193,8 @@ function setupAuthForms() {
     });
   }
 
+  const EMAIL_VALIDATION_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
+
   const registerForm = document.getElementById('register-form');
   if (registerForm) {
     const feedback = document.getElementById('register-feedback');
@@ -2240,6 +2242,11 @@ function setupAuthForms() {
         const acceptedTerms = data.get('terms') === 'on';
         if (!name || !email || !phone || !password || !acceptedTerms) {
           announceTo(feedback, t('auth.feedback.required'));
+          return;
+        }
+        if (!EMAIL_VALIDATION_REGEX.test(email)) {
+          announceTo(feedback, t('auth.feedback.invalidEmail'));
+          registerForm.querySelector('#register-email')?.focus();
           return;
         }
         const nameParts = name.split(/\s+/).filter(Boolean);
