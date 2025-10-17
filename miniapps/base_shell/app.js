@@ -1217,16 +1217,50 @@ function setupUserMenu() {
   const menu = document.getElementById('user-menu');
   if (!button || !menu) return;
   menu.hidden = true;
+  menu.setAttribute('aria-hidden', 'true');
+  if (!button.hasAttribute('aria-controls')) {
+    button.setAttribute('aria-controls', menu.id);
+  }
+  button.setAttribute('aria-haspopup', 'dialog');
+
+  const closeButton = menu.querySelector('[data-user-menu-close]');
+  if (closeButton) {
+    closeButton.addEventListener('click', () => {
+      closeMenu(button, menu, { restoreFocus: true });
+    });
+  }
+
+  menu.addEventListener('click', event => {
+    if (event.target === menu) {
+      closeMenu(button, menu, { restoreFocus: true });
+    }
+  });
+
   button.addEventListener('click', event => {
     event.stopPropagation();
-    toggleMenu(button, menu);
+    toggleMenu(button, menu, () => focusFirstUserMenuItem(menu));
   });
+
   menu.querySelectorAll('button[data-action]').forEach(actionButton => {
     const action = actionButton.dataset.action;
     if (!action) return;
     actionButton.addEventListener('click', () => handleUserAction(action));
   });
+
   refreshUserMenu();
+}
+
+function focusFirstUserMenuItem(menu) {
+  if (!menu) return;
+  const items = Array.from(menu.querySelectorAll('.menu .menu-item')).filter(item => {
+    const parent = item.closest('li');
+    const hiddenParent = parent && parent.hidden;
+    return !hiddenParent && !item.hasAttribute('disabled');
+  });
+  const target = items[0];
+  if (target && typeof target.focus === 'function') {
+    window.requestAnimationFrame(() => target.focus());
+  }
 }
 
 function refreshUserMenu() {
@@ -1338,19 +1372,28 @@ function toggleMenu(button, menu, renderer) {
 
 function openMenu(button, menu, renderer) {
   if (!button || !menu) return;
+  menu.hidden = false;
+  menu.setAttribute('aria-hidden', 'false');
+  button.setAttribute('aria-expanded', 'true');
+  activeMenu = { button, menu };
   if (typeof renderer === 'function') {
     renderer(menu);
   }
-  menu.hidden = false;
-  button.setAttribute('aria-expanded', 'true');
-  activeMenu = { button, menu };
 }
 
-function closeMenu(button, menu) {
+function closeMenu(button, menu, options = {}) {
+  if (!menu) return;
   menu.hidden = true;
-  button.setAttribute('aria-expanded', 'false');
+  menu.setAttribute('aria-hidden', 'true');
+  if (button) {
+    button.setAttribute('aria-expanded', 'false');
+  }
   if (activeMenu && activeMenu.menu === menu) {
     activeMenu = null;
+  }
+  const shouldRestoreFocus = options.restoreFocus ?? menu.getAttribute('role') === 'dialog';
+  if (shouldRestoreFocus && button && typeof button.focus === 'function') {
+    window.requestAnimationFrame(() => button.focus());
   }
 }
 

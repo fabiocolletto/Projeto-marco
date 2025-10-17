@@ -14,65 +14,17 @@
           <div id="nav-overlay-root"></div>
           <div class="auth-login__actions" role="group" aria-label="User menu">
             <div class="user-menu">
-              <button id="btnUser" class="ghost icon-only" aria-haspopup="true" aria-expanded="false">
+              <button
+                id="btnUser"
+                class="ghost icon-only"
+                type="button"
+                aria-haspopup="dialog"
+                aria-expanded="false"
+                aria-controls="user-menu"
+              >
                 <span class="user-avatar" aria-hidden="true">☰</span>
                 <span id="current-user" class="sr-only">--</span>
               </button>
-              <ul id="user-menu" class="menu" hidden>
-                <li>
-                  <button id="btnLang" class="menu-item" type="button">
-                    <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
-                    <span class="menu-text" data-i18n="settings.language">Idioma</span>
-                    <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
-                  </button>
-                </li>
-                <li>
-                  <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
-                    <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
-                    <span class="menu-text" data-i18n="settings.theme">Tema</span>
-                    <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
-                  </button>
-                </li>
-                <li>
-                  <button id="btnUserPanel" class="menu-item" type="button">
-                    <span class="menu-icon" aria-hidden="true">👤</span>
-                    <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
-                    <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
-                  </button>
-                </li>
-                <li class="menu-divider" role="separator" aria-hidden="true"></li>
-                <li>
-                  <button class="menu-item" type="button" data-action="forgot-password">
-                    <span class="menu-icon" aria-hidden="true">❓</span>
-                    <span class="menu-text" data-i18n="auth.login.forgot">Esqueci minha senha</span>
-                  </button>
-                </li>
-                <li data-register-guard>
-                  <a class="menu-item" href="./register.html">
-                    <span class="menu-icon" aria-hidden="true">🆕</span>
-                    <span class="menu-text" data-i18n="panel.actions.register">Criar conta</span>
-                  </a>
-                </li>
-                <li>
-                  <button class="menu-item" type="button" data-action="switch-user">
-                    <span class="menu-icon" aria-hidden="true">🔄</span>
-                    <span class="menu-text" data-i18n="auth.login.switchUser">Trocar usuário</span>
-                  </button>
-                </li>
-                <li class="menu-divider" role="separator" aria-hidden="true"></li>
-                <li>
-                  <button class="menu-item" type="button" data-action="profile">
-                    <span class="menu-icon" aria-hidden="true">🔐</span>
-                    <span class="menu-text" data-i18n="actions.profile">Perfil</span>
-                  </button>
-                </li>
-                <li>
-                  <button class="menu-item" type="button" data-action="logout">
-                    <span class="menu-icon" aria-hidden="true">🚪</span>
-                    <span class="menu-text" data-i18n="actions.logout">Sair</span>
-                  </button>
-                </li>
-              </ul>
             </div>
           </div>
           <form id="login-form" class="auth-login__form" novalidate>
@@ -137,6 +89,81 @@
         </div>
       </section>
     </main>
+    <div
+      id="user-menu"
+      class="menu-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-menu-title"
+      hidden
+    >
+      <div class="menu-overlay__panel" role="document" data-user-menu-panel>
+        <header class="menu-overlay__header">
+          <h2 id="user-menu-title" class="menu-overlay__title" data-i18n="settings.userMenuTitle">
+            Menu do usuário
+          </h2>
+          <button type="button" class="ghost icon-only menu-overlay__close" data-user-menu-close>
+            <span class="sr-only" data-i18n="actions.close">Fechar</span>
+            <span aria-hidden="true">✕</span>
+          </button>
+        </header>
+        <ul class="menu">
+          <li>
+            <button id="btnLang" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
+              <span class="menu-text" data-i18n="settings.language">Idioma</span>
+              <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
+              <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
+              <span class="menu-text" data-i18n="settings.theme">Tema</span>
+              <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnUserPanel" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true">👤</span>
+              <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
+              <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
+            </button>
+          </li>
+          <li class="menu-divider" role="separator" aria-hidden="true"></li>
+          <li>
+            <button class="menu-item" type="button" data-action="forgot-password">
+              <span class="menu-icon" aria-hidden="true">❓</span>
+              <span class="menu-text" data-i18n="auth.login.forgot">Esqueci minha senha</span>
+            </button>
+          </li>
+          <li data-register-guard>
+            <a class="menu-item" href="./register.html">
+              <span class="menu-icon" aria-hidden="true">🆕</span>
+              <span class="menu-text" data-i18n="panel.actions.register">Criar conta</span>
+            </a>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="switch-user">
+              <span class="menu-icon" aria-hidden="true">🔄</span>
+              <span class="menu-text" data-i18n="auth.login.switchUser">Trocar usuário</span>
+            </button>
+          </li>
+          <li class="menu-divider" role="separator" aria-hidden="true"></li>
+          <li>
+            <button class="menu-item" type="button" data-action="profile">
+              <span class="menu-icon" aria-hidden="true">🔐</span>
+              <span class="menu-text" data-i18n="actions.profile">Perfil</span>
+            </button>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="logout">
+              <span class="menu-icon" aria-hidden="true">🚪</span>
+              <span class="menu-text" data-i18n="actions.logout">Sair</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
     <script type="module" src="../app.js"></script>
   </body>
 </html>
