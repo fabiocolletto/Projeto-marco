@@ -23,7 +23,8 @@ import {
   changePassword,
   deleteUser,
   setUserPassword,
-  resetAuth
+  resetAuth,
+  transferOwnership
 } from '../../packages/base.security/auth.js';
 
 const LANG_RESOURCES = [
@@ -2006,6 +2007,23 @@ function formatNumber(value) {
   }
 }
 
+function getInitials(name = '') {
+  const safeName = String(name ?? '').trim();
+  if (!safeName) {
+    return '—';
+  }
+  const parts = safeName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2);
+  if (!parts.length) {
+    return safeName.slice(0, 1).toUpperCase();
+  }
+  return parts
+    .map(part => part.slice(0, 1).toUpperCase())
+    .join('');
+}
+
 function formatDecimal(value, fractionDigits = 1) {
   const lang = document.documentElement.lang || 'pt-BR';
   const number = Number(value ?? 0);
@@ -2341,6 +2359,8 @@ function setupAuthForms() {
       } catch (error) {
         if (error.message === 'auth:user-not-found') {
           announceTo(feedback, t('auth.feedback.userNotFound'));
+        } else if (error.message === 'auth:owner-delete-forbidden') {
+          announceTo(feedback, t('auth.feedback.ownerDeleteSelf'));
         } else {
           announceTo(feedback, t('auth.feedback.generic'));
         }
@@ -2394,6 +2414,13 @@ function updateProfileView(user) {
   const deleteButton = document.getElementById('delete-account');
   const profileFeedback = document.getElementById('profile-form-feedback');
   const passwordFeedback = document.getElementById('password-form-feedback');
+  const identityName = document.querySelector('[data-profile-identity-name]');
+  const identityEmail = document.querySelector('[data-profile-identity-email]');
+  const identityRole = document.querySelector('[data-profile-identity-role]');
+  const identityAvatar = document.querySelector('[data-profile-avatar]');
+  const statsTotal = document.querySelector('[data-profile-total-users]');
+  const statsDependents = document.querySelector('[data-profile-dependent-users]');
+  const statsOwnerSince = document.querySelector('[data-profile-owner-since]');
 
   if (profileForm) {
     const nameField = profileForm.querySelector('#profile-name');
@@ -2446,6 +2473,32 @@ function updateProfileView(user) {
     deleteButton.disabled = !user;
   }
 
+  const users = listUsers();
+  const totalUsers = users.length;
+  const dependentCount = Math.max(totalUsers - 1, 0);
+  if (identityName) {
+    identityName.textContent = user ? user.name : '—';
+  }
+  if (identityEmail) {
+    identityEmail.textContent = user ? user.email : '—';
+  }
+  if (identityRole) {
+    identityRole.textContent = user ? t(user.role === 'owner' ? 'auth.form.owner' : 'auth.form.member') : '—';
+    identityRole.dataset.role = user ? user.role : 'none';
+  }
+  if (identityAvatar) {
+    identityAvatar.textContent = user ? getInitials(user.name) : '—';
+  }
+  if (statsTotal) {
+    statsTotal.textContent = String(totalUsers);
+  }
+  if (statsDependents) {
+    statsDependents.textContent = String(dependentCount);
+  }
+  if (statsOwnerSince) {
+    statsOwnerSince.textContent = user && user.createdAt ? formatUserDate(user.createdAt) : '—';
+  }
+
   if (!user && !isRedirectingHome) {
     const generalFeedback = document.getElementById('profile-feedback');
     if (generalFeedback) {
@@ -2492,6 +2545,12 @@ function setupUserManagement() {
     passwordField,
     roleField
   };
+  roleField.value = 'member';
+  const ownerOption = roleField.querySelector('option[value="owner"]');
+  if (ownerOption) {
+    ownerOption.disabled = true;
+    ownerOption.hidden = true;
+  }
   createButton.addEventListener('click', () => openUserManagementForm('create'));
   cancelButton.addEventListener('click', event => {
     event.preventDefault();
@@ -2532,6 +2591,9 @@ function renderUserManagementTable() {
   users.forEach(user => {
     const row = document.createElement('tr');
     row.dataset.userId = user.id;
+    if (user.role === 'owner') {
+      row.classList.add('is-owner');
+    }
     const nameCell = document.createElement('td');
     nameCell.textContent = user.name || '—';
     row.appendChild(nameCell);
@@ -2552,18 +2614,23 @@ function renderUserManagementTable() {
     actionsCell.appendChild(createUserManagementActionButton('duplicate', t('auth.profile.userDuplicate'), () => {
       openUserManagementForm('duplicate', user);
     }));
-    actionsCell.appendChild(createUserManagementActionButton('delete', t('auth.profile.userDelete'), () => {
-      handleUserDelete(user);
-    }));
+    if (user.role !== 'owner') {
+      actionsCell.appendChild(createUserManagementActionButton('transfer', t('auth.profile.userTransfer'), () => {
+        handleOwnershipTransfer(user);
+      }));
+      actionsCell.appendChild(createUserManagementActionButton('delete', t('auth.profile.userDelete'), () => {
+        handleUserDelete(user);
+      }, 'danger'));
+    }
     row.appendChild(actionsCell);
     list.appendChild(row);
   });
 }
 
-function createUserManagementActionButton(action, label, handler) {
+function createUserManagementActionButton(action, label, handler, variant) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'ghost';
+  button.className = `ghost${variant ? ` ${variant}` : ''}`;
   button.dataset.action = action;
   button.textContent = label;
   button.addEventListener('click', handler);
@@ -2600,7 +2667,14 @@ function openUserManagementForm(mode, user) {
   emailField.value = mode === 'duplicate' ? '' : user?.email || '';
   emailField.placeholder = mode === 'duplicate' ? t('auth.profile.userForm.emailPlaceholderDuplicate', { email: user?.email || '' }) : '';
   passwordField.value = '';
-  roleField.value = user?.role || 'member';
+  const isOwner = user?.role === 'owner';
+  const ownerOption = roleField.querySelector('option[value="owner"]');
+  if (ownerOption) {
+    ownerOption.disabled = !isOwner;
+    ownerOption.hidden = !isOwner;
+  }
+  roleField.value = isOwner ? 'owner' : 'member';
+  roleField.disabled = mode !== 'edit' || isOwner;
   passwordField.required = mode !== 'edit';
   passwordField.placeholder = mode === 'edit'
     ? t('auth.profile.userForm.passwordOptional')
@@ -2628,6 +2702,12 @@ function closeUserManagementForm() {
   passwordField.placeholder = '';
   passwordField.required = true;
   roleField.value = 'member';
+  roleField.disabled = false;
+  const ownerOption = roleField.querySelector('option[value="owner"]');
+  if (ownerOption) {
+    ownerOption.disabled = true;
+    ownerOption.hidden = true;
+  }
   userManagementState.mode = null;
   userManagementState.targetId = null;
 }
@@ -2639,7 +2719,7 @@ function handleUserManagementSubmit(event) {
   const mode = userManagementState.mode || 'create';
   const name = nameField.value.trim();
   const email = emailField.value.trim();
-  const role = roleField.value || 'member';
+  const role = mode === 'edit' ? roleField.value || 'member' : 'member';
   const password = passwordField.value;
   if (!name || !email || (mode !== 'edit' && !password)) {
     announceTo(feedback, t('auth.feedback.required'));
@@ -2672,8 +2752,33 @@ function handleUserManagementSubmit(event) {
       announceTo(feedback, t('auth.feedback.exists'));
     } else if (error.message === 'auth:user-not-found') {
       announceTo(feedback, t('auth.feedback.userNotFound'));
+    } else if (error.message === 'auth:owner-exists') {
+      announceTo(feedback, t('auth.feedback.ownerExists'));
+    } else if (error.message === 'auth:owner-required') {
+      announceTo(feedback, t('auth.feedback.ownerRequired'));
     } else if (error.message === 'auth:missing-password') {
       announceTo(feedback, t('auth.feedback.required'));
+    } else {
+      announceTo(feedback, t('auth.feedback.generic'));
+    }
+  }
+}
+
+function handleOwnershipTransfer(user) {
+  if (!userManagementControls) return;
+  const { feedback } = userManagementControls;
+  const confirmation = window.confirm(t('auth.profile.transferConfirm', { name: user.name }));
+  if (!confirmation) return;
+  try {
+    transferOwnership(user.id);
+    announceTo(feedback, t('auth.profile.transferSuccess', { name: user.name }));
+    scheduleFeedbackClear(feedback);
+    renderUserManagementTable();
+  } catch (error) {
+    if (error.message === 'auth:user-not-found') {
+      announceTo(feedback, t('auth.feedback.userNotFound'));
+    } else if (error.message === 'auth:owner-required') {
+      announceTo(feedback, t('auth.feedback.ownerRequired'));
     } else {
       announceTo(feedback, t('auth.feedback.generic'));
     }
@@ -2693,6 +2798,8 @@ function handleUserDelete(user) {
   } catch (error) {
     if (error.message === 'auth:user-not-found') {
       announceTo(feedback, t('auth.feedback.userNotFound'));
+    } else if (error.message === 'auth:owner-delete-forbidden') {
+      announceTo(feedback, t('auth.profile.ownerDeleteBlocked'));
     } else {
       announceTo(feedback, t('auth.feedback.generic'));
     }

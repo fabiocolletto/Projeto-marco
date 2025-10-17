@@ -79,124 +79,183 @@
         </aside>
         <main id="panel" class="panel" role="main" tabindex="-1">
           <section class="panel-content">
-            <article class="card" id="profile-card">
-              <h2 data-i18n="auth.profile.title">Perfil</h2>
-              <form id="profile-form" class="form" novalidate>
-                <fieldset>
-                  <legend data-i18n="auth.profile.form.profileLegend">Dados pessoais</legend>
-                  <div class="form-field">
-                    <label for="profile-name" data-i18n="auth.form.name">Nome</label>
-                    <input id="profile-name" name="name" type="text" autocomplete="name" required />
+            <div class="profile-layout">
+              <div class="profile-main">
+                <article class="card profile-overview" aria-labelledby="profile-overview-title">
+                  <header class="profile-identity">
+                    <div class="profile-identity__avatar" aria-hidden="true">
+                      <span data-profile-avatar>—</span>
+                    </div>
+                    <div class="profile-identity__summary">
+                      <p class="profile-identity__kicker" data-i18n="auth.profile.overviewKicker">Perfil principal</p>
+                      <h2 id="profile-overview-title" data-profile-identity-name>—</h2>
+                      <p class="profile-identity__email">
+                        <span data-profile-identity-email>—</span>
+                      </p>
+                      <span class="badge badge-role" data-profile-identity-role data-role="none">—</span>
+                    </div>
+                  </header>
+                  <p class="profile-overview__description" data-i18n="auth.profile.overviewDescription">
+                    Mantenha os dados atualizados para garantir acesso rápido e seguro.
+                  </p>
+                  <dl class="profile-stats">
+                    <div>
+                      <dt data-i18n="auth.profile.stats.totalUsers">Usuários na conta</dt>
+                      <dd data-profile-total-users>0</dd>
+                    </div>
+                    <div>
+                      <dt data-i18n="auth.profile.stats.dependents">Usuários dependentes</dt>
+                      <dd data-profile-dependent-users>0</dd>
+                    </div>
+                    <div>
+                      <dt data-i18n="auth.profile.stats.ownerSince">Proprietário desde</dt>
+                      <dd data-profile-owner-since>—</dd>
+                    </div>
+                  </dl>
+                </article>
+                <article class="card profile-card" id="profile-card">
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.detailsTitle">Dados da conta</h2>
+                    <p class="card-description" data-i18n="auth.profile.detailsDescription">
+                      Edite as informações compartilhadas com toda a equipe.
+                    </p>
+                  </header>
+                  <form id="profile-form" class="form" novalidate>
+                    <fieldset>
+                      <legend data-i18n="auth.profile.form.profileLegend">Dados pessoais</legend>
+                      <div class="form-field">
+                        <label for="profile-name" data-i18n="auth.form.name">Nome</label>
+                        <input id="profile-name" name="name" type="text" autocomplete="name" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="profile-email" data-i18n="auth.form.email">E-mail</label>
+                        <input id="profile-email" name="email" type="email" autocomplete="email" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="profile-role" data-i18n="auth.form.role">Perfil de acesso</label>
+                        <select id="profile-role" name="role" required>
+                          <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
+                          <option value="member" data-i18n="auth.form.member">Membro</option>
+                        </select>
+                      </div>
+                    </fieldset>
+                    <div class="form-actions">
+                      <button type="submit" class="cta" data-i18n="actions.save">Salvar</button>
+                      <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
+                    </div>
+                    <p id="profile-form-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  </form>
+                </article>
+                <article class="card" id="user-management" hidden>
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.userManagementTitle">Gerenciar usuários</h2>
+                    <button id="user-management-create" class="cta" type="button" data-i18n="auth.profile.userAdd">
+                      Adicionar usuário
+                    </button>
+                  </header>
+                  <p class="card-description" data-i18n="auth.profile.userManagementDescription">
+                    Convide dependentes para a conta, atualize dados compartilhados e transfira a propriedade quando necessário.
+                  </p>
+                  <div class="table-wrapper">
+                    <table class="user-management-table">
+                      <thead>
+                        <tr>
+                          <th scope="col" data-i18n="auth.profile.userTable.name">Nome</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.email">E-mail</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.role">Perfil</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.createdAt">Criado em</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.actions">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody id="user-management-list">
+                        <tr>
+                          <td colspan="5" data-i18n="auth.profile.userEmpty">Nenhum usuário cadastrado.</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                  <div class="form-field">
-                    <label for="profile-email" data-i18n="auth.form.email">E-mail</label>
-                    <input id="profile-email" name="email" type="email" autocomplete="email" required />
-                  </div>
-                  <div class="form-field">
-                    <label for="profile-role" data-i18n="auth.form.role">Perfil de acesso</label>
-                    <select id="profile-role" name="role" required>
-                      <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
-                      <option value="member" data-i18n="auth.form.member">Membro</option>
-                    </select>
-                  </div>
-                </fieldset>
-                <div class="form-actions">
-                  <button type="submit" class="cta" data-i18n="actions.save">Salvar</button>
-                  <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
-                </div>
-                <p id="profile-form-feedback" class="feedback" role="status" aria-live="polite"></p>
-              </form>
-              <form id="password-form" class="form" novalidate>
-                <fieldset>
-                  <legend data-i18n="auth.profile.form.passwordLegend">Segurança</legend>
-                  <div class="form-field">
-                    <label for="password-current" data-i18n="auth.form.currentPassword">Senha atual</label>
-                    <input id="password-current" name="currentPassword" type="password" autocomplete="current-password" required />
-                  </div>
-                  <div class="form-field">
-                    <label for="password-new" data-i18n="auth.form.newPassword">Nova senha</label>
-                    <input id="password-new" name="newPassword" type="password" autocomplete="new-password" required />
-                  </div>
-                  <div class="form-field">
-                    <label for="password-confirm" data-i18n="auth.form.confirmPassword">Confirmar nova senha</label>
-                    <input id="password-confirm" name="confirmPassword" type="password" autocomplete="new-password" required />
-                  </div>
-                </fieldset>
-                <div class="form-actions">
-                  <button type="submit" class="cta" data-i18n="auth.profile.form.updatePassword">Atualizar senha</button>
-                  <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
-                </div>
-                <p id="password-form-feedback" class="feedback" role="status" aria-live="polite"></p>
-              </form>
-              <div class="profile-actions">
-                <button id="profile-logout" class="cta secondary" type="button" data-i18n="auth.profile.logout">Encerrar sessão</button>
-                <button id="delete-account" class="cta danger" type="button" data-i18n="auth.profile.delete">Excluir conta</button>
-                <p id="profile-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  <p id="user-management-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  <form id="user-management-form" class="form" hidden novalidate>
+                    <fieldset>
+                      <legend id="user-management-form-title" data-i18n="auth.profile.userForm.title.create">Adicionar usuário</legend>
+                      <div class="form-field">
+                        <label for="manage-name" data-i18n="auth.form.name">Nome</label>
+                        <input id="manage-name" name="name" type="text" autocomplete="name" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-email" data-i18n="auth.form.email">E-mail</label>
+                        <input id="manage-email" name="email" type="email" autocomplete="email" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-password" data-i18n="auth.form.password">Senha</label>
+                        <input id="manage-password" name="password" type="password" autocomplete="new-password" required />
+                        <small class="form-hint" data-i18n="auth.profile.userForm.passwordHint">
+                          Defina uma senha temporária e compartilhe com o novo usuário.
+                        </small>
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-role" data-i18n="auth.form.role">Perfil de acesso</label>
+                        <select id="manage-role" name="role">
+                          <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
+                          <option value="member" data-i18n="auth.form.member">Membro</option>
+                        </select>
+                      </div>
+                    </fieldset>
+                    <div class="form-actions">
+                      <button id="user-management-submit" class="cta" type="submit" data-i18n="auth.profile.userForm.submit.create">
+                        Adicionar
+                      </button>
+                      <button id="user-management-cancel" class="ghost" type="button" data-i18n="actions.cancel">Cancelar</button>
+                    </div>
+                  </form>
+                </article>
               </div>
-            </article>
-            <article class="card" id="user-management" hidden>
-              <header class="card-header">
-                <h2 data-i18n="auth.profile.userManagementTitle">Gerenciar usuários</h2>
-                <button id="user-management-create" class="cta" type="button" data-i18n="auth.profile.userAdd">
-                  Adicionar usuário
-                </button>
-              </header>
-              <p class="card-description" data-i18n="auth.profile.userManagementDescription">
-                Controle quem pode acessar o aplicativo. Adicione novos usuários, edite informações ou duplique perfis existentes.
-              </p>
-              <div class="table-wrapper">
-                <table class="user-management-table">
-                  <thead>
-                    <tr>
-                      <th scope="col" data-i18n="auth.profile.userTable.name">Nome</th>
-                      <th scope="col" data-i18n="auth.profile.userTable.email">E-mail</th>
-                      <th scope="col" data-i18n="auth.profile.userTable.role">Perfil</th>
-                      <th scope="col" data-i18n="auth.profile.userTable.createdAt">Criado em</th>
-                      <th scope="col" data-i18n="auth.profile.userTable.actions">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="user-management-list">
-                    <tr>
-                      <td colspan="5" data-i18n="auth.profile.userEmpty">Nenhum usuário cadastrado.</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <p id="user-management-feedback" class="feedback" role="status" aria-live="polite"></p>
-              <form id="user-management-form" class="form" hidden novalidate>
-                <fieldset>
-                  <legend id="user-management-form-title" data-i18n="auth.profile.userForm.title.create">Adicionar usuário</legend>
-                  <div class="form-field">
-                    <label for="manage-name" data-i18n="auth.form.name">Nome</label>
-                    <input id="manage-name" name="name" type="text" autocomplete="name" required />
+              <aside class="profile-sidebar">
+                <article class="card profile-security">
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.securityTitle">Segurança</h2>
+                    <p class="card-description" data-i18n="auth.profile.securityDescription">
+                      Atualize a senha periodicamente e mantenha a conta protegida.
+                    </p>
+                  </header>
+                  <form id="password-form" class="form" novalidate>
+                    <fieldset>
+                      <legend class="sr-only" data-i18n="auth.profile.form.passwordLegend">Segurança</legend>
+                      <div class="form-field">
+                        <label for="password-current" data-i18n="auth.form.currentPassword">Senha atual</label>
+                        <input id="password-current" name="currentPassword" type="password" autocomplete="current-password" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="password-new" data-i18n="auth.form.newPassword">Nova senha</label>
+                        <input id="password-new" name="newPassword" type="password" autocomplete="new-password" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="password-confirm" data-i18n="auth.form.confirmPassword">Confirmar nova senha</label>
+                        <input id="password-confirm" name="confirmPassword" type="password" autocomplete="new-password" required />
+                      </div>
+                    </fieldset>
+                    <div class="form-actions">
+                      <button type="submit" class="cta" data-i18n="auth.profile.form.updatePassword">Atualizar senha</button>
+                      <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
+                    </div>
+                    <p id="password-form-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  </form>
+                </article>
+                <article class="card profile-quick-actions">
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.quickActionsTitle">Ações rápidas</h2>
+                    <p class="card-description" data-i18n="auth.profile.quickActionsDescription">
+                      Finalize a sessão atual ou remova este acesso do dispositivo.
+                    </p>
+                  </header>
+                  <div class="profile-actions">
+                    <button id="profile-logout" class="cta secondary" type="button" data-i18n="auth.profile.logout">Encerrar sessão</button>
+                    <button id="delete-account" class="cta danger" type="button" data-i18n="auth.profile.delete">Excluir conta</button>
+                    <p id="profile-feedback" class="feedback" role="status" aria-live="polite"></p>
                   </div>
-                  <div class="form-field">
-                    <label for="manage-email" data-i18n="auth.form.email">E-mail</label>
-                    <input id="manage-email" name="email" type="email" autocomplete="email" required />
-                  </div>
-                  <div class="form-field">
-                    <label for="manage-password" data-i18n="auth.form.password">Senha</label>
-                    <input id="manage-password" name="password" type="password" autocomplete="new-password" required />
-                    <small class="form-hint" data-i18n="auth.profile.userForm.passwordHint">
-                      Defina uma senha temporária e compartilhe com o novo usuário.
-                    </small>
-                  </div>
-                  <div class="form-field">
-                    <label for="manage-role" data-i18n="auth.form.role">Perfil de acesso</label>
-                    <select id="manage-role" name="role">
-                      <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
-                      <option value="member" data-i18n="auth.form.member">Membro</option>
-                    </select>
-                  </div>
-                </fieldset>
-                <div class="form-actions">
-                  <button id="user-management-submit" class="cta" type="submit" data-i18n="auth.profile.userForm.submit.create">
-                    Adicionar
-                  </button>
-                  <button id="user-management-cancel" class="ghost" type="button" data-i18n="actions.cancel">Cancelar</button>
-                </div>
-              </form>
-            </article>
+                </article>
+              </aside>
+            </div>
           </section>
         </main>
       </div>
