@@ -1343,8 +1343,10 @@ function handleDocumentClick(event) {
     languageDialogControls.suppressDocumentClose = false;
   }
   if (navigationOverlayControls && navigationOverlayControls.overlay && !navigationOverlayControls.overlay.hidden) {
-    const { overlay, panel, trigger } = navigationOverlayControls;
-    if (panel && !panel.contains(event.target) && !trigger.contains(event.target)) {
+    const { panel, trigger } = navigationOverlayControls;
+    const isOutsidePanel = panel && !panel.contains(event.target);
+    const isOutsideTrigger = !trigger || !trigger.contains(event.target);
+    if (isOutsidePanel && isOutsideTrigger) {
       closeNavigationOverlay({ restoreFocus: false });
     }
   }

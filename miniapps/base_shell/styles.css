@@ -20,6 +20,60 @@ body {
   min-height: 100vh;
 }
 
+body.auth-login {
+  display: grid;
+  place-items: center;
+  padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.5rem);
+  background: var(--color-surface);
+  background-image: radial-gradient(
+      circle at top,
+      color-mix(in srgb, var(--color-accent) 18%, transparent) 0%,
+      transparent 60%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-surface-raised) 45%, var(--color-surface) 55%) 0%,
+      var(--color-surface) 100%
+    );
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+body.auth-login .panel {
+  width: min(100%, 520px);
+  background: transparent;
+  padding: 0;
+  justify-content: center;
+}
+
+body.auth-login .panel-content {
+  width: 100%;
+  padding: 0;
+  gap: clamp(1.5rem, 4vw, 2.5rem);
+  justify-items: center;
+}
+
+.auth-login__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 240px);
+}
+
+.auth-login__brand-image {
+  width: 100%;
+  height: auto;
+}
+
+body.auth-login .card.auth-login__form {
+  width: 100%;
+}
+
+body.auth-login .card.auth-login__form > h1 {
+  margin: 0;
+  text-align: center;
+}
+
 body:focus-within .app-shell:focus {
   outline: 2px solid var(--color-accent);
 }
