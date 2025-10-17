@@ -165,6 +165,7 @@ async function bootstrap() {
   updateUserPanelShortcut();
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
+  updateSidebarVisibility(currentUser());
   setupSidebar();
   const miniApps = withUserPanelMiniApp(await loadActiveMiniApps());
   const initialMiniAppId = getInitialMiniAppId(miniApps);
@@ -209,6 +210,7 @@ async function bootstrap() {
     refreshUserManagement();
     updateRegistrationAccess();
     updateOnboardingState();
+    updateSidebarVisibility(user);
   });
 }
 
@@ -1657,6 +1659,35 @@ function updateUserDisplay(user) {
   const display = document.getElementById('current-user');
   if (display) {
     display.textContent = user ? user.name : '--';
+  }
+}
+
+function updateSidebarVisibility(user) {
+  const isAuthenticated = Boolean(user);
+  const controls = getSidebarControls();
+  const shell = controls?.shell || document.querySelector('.app-shell');
+  const sidebar = document.getElementById('sidebar');
+  if (shell) {
+    shell.dataset.sidebarHidden = String(!isAuthenticated);
+  }
+  if (sidebar) {
+    sidebar.hidden = !isAuthenticated;
+    sidebar.setAttribute('aria-hidden', isAuthenticated ? 'false' : 'true');
+  }
+  if (controls && Array.isArray(controls.buttons)) {
+    controls.buttons.forEach(button => {
+      if (!button) return;
+      button.hidden = !isAuthenticated;
+      if (!isAuthenticated) {
+        button.setAttribute('aria-hidden', 'true');
+      } else {
+        button.removeAttribute('aria-hidden');
+      }
+    });
+  }
+  if (!isAuthenticated) {
+    closeSettingsMenu();
+    closeMiniAppMenu();
   }
 }
 

@@ -77,6 +77,10 @@ body:focus-within .app-shell:focus {
   overflow: hidden;
 }
 
+.app-shell[data-sidebar-hidden='true'] .layout {
+  grid-template-columns: 1fr;
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
@@ -88,6 +92,14 @@ body:focus-within .app-shell:focus {
   min-height: 0;
   overscroll-behavior: contain;
   scrollbar-gutter: stable both-edges;
+}
+
+.app-shell[data-sidebar-hidden='true'] .sidebar {
+  display: none;
+}
+
+.app-shell[data-sidebar-hidden='true'] #btnMenu {
+  display: none;
 }
 
 .sidebar nav {
