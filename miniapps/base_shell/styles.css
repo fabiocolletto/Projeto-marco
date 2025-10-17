@@ -151,6 +151,16 @@ body.auth-login .panel-content {
   cursor: pointer;
 }
 
+.auth-register__terms {
+  align-items: flex-start;
+  line-height: 1.4;
+}
+
+.auth-register__terms a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
 .auth-login__links {
   margin-top: 0.25rem;
   display: flex;

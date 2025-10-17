@@ -145,7 +145,7 @@ export function currentUser() {
   return listUsers().find(user => user.id === sessionId) || null;
 }
 
-export function register({ name, email, password, role = 'member' }, options = {}) {
+export function register({ name, email, password, role = 'member', phone = '' }, options = {}) {
   const { autoLogin = true } = options;
   const users = listUsers();
   if (users.some(user => user.email === email)) {
@@ -161,6 +161,7 @@ export function register({ name, email, password, role = 'member' }, options = {
     email,
     password,
     role: normalizedRole,
+    phone,
     createdAt: new Date().toISOString()
   };
   users.push(newUser);

@@ -137,8 +137,9 @@ test.describe('MiniApp Base shell', () => {
 
     await page.fill('#register-name', 'Alice Owner');
     await page.fill('#register-email', 'alice@example.com');
+    await page.fill('#register-phone', '+55 11 99999-9999');
     await page.fill('#register-password', 'secret1');
-    await page.selectOption('#register-role', 'owner');
+    await page.check('#register-terms');
     await page.click('#register-form .cta');
     await expect(page.locator('#register-feedback')).toHaveText('Registro completado con éxito.');
     await expect(page).toHaveURL(/auth\/profile\.html$/);

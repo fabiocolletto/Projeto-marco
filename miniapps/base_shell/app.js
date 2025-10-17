@@ -2206,34 +2206,29 @@ function setupAuthForms() {
       }
       return;
     }
-    const roleField = registerForm.querySelector('#register-role');
-    if (roleField) {
-      roleField.value = 'owner';
-      roleField.disabled = false;
-    }
     registerForm.addEventListener('submit', event => {
       event.preventDefault();
       const data = new FormData(registerForm);
       try {
         const name = String(data.get('name') || '').trim();
         const email = String(data.get('email') || '').trim();
+        const phone = String(data.get('phone') || '').trim();
         const password = String(data.get('password') || '');
-        if (!name || !email || !password) {
+        const acceptedTerms = data.get('terms') === 'on';
+        if (!name || !email || !phone || !password || !acceptedTerms) {
           announceTo(feedback, t('auth.feedback.required'));
           return;
         }
         const user = register({
           name,
           email,
+          phone,
           password,
           role: 'owner'
         });
         announceTo(feedback, t('auth.feedback.registered'));
         updateUserDisplay(user);
         registerForm.reset();
-        if (roleField) {
-          roleField.value = 'owner';
-        }
         window.setTimeout(() => {
           window.location.replace(USER_PANEL_URL.href);
         }, 300);
