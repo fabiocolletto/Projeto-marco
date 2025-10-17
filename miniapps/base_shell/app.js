@@ -95,7 +95,6 @@ const preferenceStorage = createPreferenceStorage(() => window.localStorage);
 
 let revisionInfo = null;
 let activeMenu = null;
-let settingsMenuControls = null;
 let languageDialogControls = null;
 let isRedirectingHome = false;
 let userManagementControls = null;
@@ -177,7 +176,6 @@ async function bootstrap() {
   if (initialMiniAppId) {
     updateMiniAppHistory(initialMiniAppId, { replace: true });
   }
-  setupSettingsMenu();
   setupUserMenu();
   setupAuthForms();
   setupUserManagement();
@@ -448,7 +446,7 @@ function setSidebarCollapsed(collapsed, options = {}) {
     persistSidebarPreference(shouldCollapse);
   }
   if (shouldCollapse && options.closeSettingsMenu !== false) {
-    closeSettingsMenu();
+    closeActiveMenu();
     closeMiniAppMenu();
   }
 }
@@ -670,7 +668,7 @@ function setupMiniAppMenu(items) {
   const submenu = document.getElementById('miniapp-submenu');
   if (!toggle || !submenu) return;
   const container = toggle.closest('.has-submenu');
-  miniAppMenuControls = { toggle, submenu, container, shouldRestoreSettings: false };
+  miniAppMenuControls = { toggle, submenu, container };
   toggle.setAttribute('aria-expanded', 'false');
   submenu.hidden = true;
   miniAppState.items = withUserPanelMiniApp(items);
@@ -678,25 +676,12 @@ function setupMiniAppMenu(items) {
     const expanded = toggle.getAttribute('aria-expanded') === 'true';
     const next = !expanded;
     if (next) {
-      const wasOpen =
-        settingsMenuControls &&
-        settingsMenuControls.toggle &&
-        settingsMenuControls.toggle.getAttribute('aria-expanded') === 'true';
-      if (miniAppMenuControls) {
-        miniAppMenuControls.shouldRestoreSettings = Boolean(wasOpen);
-      }
-      if (wasOpen) {
-        closeSettingsMenu();
-      }
       closeActiveMenu();
     }
     toggle.setAttribute('aria-expanded', String(next));
     submenu.hidden = !next;
     if (next) {
       renderMiniAppMenu();
-    } else if (miniAppMenuControls && miniAppMenuControls.shouldRestoreSettings) {
-      openSettingsMenu();
-      miniAppMenuControls.shouldRestoreSettings = false;
     }
   });
   renderMiniAppMenu();
@@ -1007,45 +992,6 @@ function focusPanel() {
   }
 }
 
-function setupSettingsMenu() {
-  const toggle = document.getElementById('settings-toggle');
-  const submenu = document.getElementById('settings-submenu');
-  if (!toggle || !submenu) return;
-  const container = toggle.closest('.has-submenu');
-  settingsMenuControls = { toggle, submenu, container };
-  toggle.setAttribute('aria-expanded', 'false');
-  submenu.hidden = true;
-  toggle.addEventListener('click', () => {
-    const expanded = toggle.getAttribute('aria-expanded') === 'true';
-    const next = !expanded;
-    if (next) {
-      closeActiveMenu();
-      closeMiniAppMenu();
-    }
-    toggle.setAttribute('aria-expanded', String(next));
-    submenu.hidden = !next;
-    if (next) {
-      setSidebarCollapsed(true, { persist: false, closeSettingsMenu: false });
-    }
-  });
-}
-
-function closeSettingsMenu() {
-  if (!settingsMenuControls) return;
-  const { toggle, submenu } = settingsMenuControls;
-  if (!toggle || !submenu) return;
-  toggle.setAttribute('aria-expanded', 'false');
-  submenu.hidden = true;
-}
-
-function openSettingsMenu() {
-  if (!settingsMenuControls) return;
-  const { toggle, submenu } = settingsMenuControls;
-  if (!toggle || !submenu) return;
-  toggle.setAttribute('aria-expanded', 'true');
-  submenu.hidden = false;
-}
-
 function setupLanguageToggle() {
   const button = document.getElementById('btnLang');
   const dialog = document.getElementById('language-dialog');
@@ -1179,7 +1125,7 @@ function handleLanguageSelection(lang, options = {}) {
   }
   closeLanguageDialog();
   if (closeMenu) {
-    closeSettingsMenu();
+    closeActiveMenu();
   }
   if (focusPanelAfter) {
     focusPanel();
@@ -1237,19 +1183,17 @@ function setupUserPanelShortcut() {
     if (!handled) {
       handleUserAction('profile');
     }
-    closeSettingsMenu();
+    closeActiveMenu();
     closeMiniAppMenu();
   });
 }
 
 function showUserPanelShortcut(options = {}) {
-  if (!settingsMenuControls) return;
-  const { toggle, submenu } = settingsMenuControls;
-  if (!toggle || !submenu) return;
   const button = document.getElementById('btnUserPanel');
-  if (!button) return;
-  toggle.setAttribute('aria-expanded', 'true');
-  submenu.hidden = false;
+  const trigger = document.getElementById('btnUser');
+  const menu = document.getElementById('user-menu');
+  if (!button || !trigger || !menu) return;
+  openMenu(trigger, menu);
   if (options.focus !== false && typeof button.focus === 'function') {
     window.requestAnimationFrame(() => button.focus());
   }
@@ -1289,32 +1233,46 @@ function setupUserMenu() {
   menu.hidden = true;
   button.addEventListener('click', event => {
     event.stopPropagation();
-    toggleMenu(button, menu, renderUserMenu);
+    toggleMenu(button, menu);
   });
-}
-
-function renderUserMenu(menu) {
-  menu.innerHTML = '';
-  menu.appendChild(createMenuAction('profile', t('actions.profile')));
-  menu.appendChild(createMenuAction('logout', t('actions.logout')));
+  menu.querySelectorAll('button[data-action]').forEach(actionButton => {
+    const action = actionButton.dataset.action;
+    if (!action) return;
+    actionButton.addEventListener('click', () => handleUserAction(action));
+  });
+  refreshUserMenu();
 }
 
 function refreshUserMenu() {
   const menu = document.getElementById('user-menu');
-  if (menu) {
-    renderUserMenu(menu);
+  if (!menu) return;
+  const user = currentUser();
+  const isAuthenticated = Boolean(user);
+  const userPanelButton = document.getElementById('btnUserPanel');
+  const profileButton = menu.querySelector('button[data-action="profile"]');
+  const logoutButton = menu.querySelector('button[data-action="logout"]');
+  const divider = menu.querySelector('.menu-divider');
+  setMenuItemVisibility(userPanelButton, isAuthenticated);
+  setMenuItemVisibility(profileButton, isAuthenticated);
+  setMenuItemVisibility(logoutButton, isAuthenticated);
+  if (divider) {
+    divider.hidden = !isAuthenticated;
+    divider.setAttribute('aria-hidden', isAuthenticated ? 'false' : 'true');
   }
 }
 
-function createMenuAction(action, label) {
-  const item = document.createElement('li');
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.dataset.action = action;
-  button.textContent = label;
-  button.addEventListener('click', () => handleUserAction(action));
-  item.appendChild(button);
-  return item;
+function setMenuItemVisibility(button, visible) {
+  if (!button) return;
+  const item = button.closest('li');
+  const showItem = Boolean(visible);
+  if (item) {
+    item.hidden = !showItem;
+  }
+  if (showItem) {
+    button.removeAttribute('aria-hidden');
+  } else {
+    button.setAttribute('aria-hidden', 'true');
+  }
 }
 
 function handleUserAction(action) {
@@ -1369,7 +1327,14 @@ function toggleMenu(button, menu, renderer) {
     closeMenu(button, menu);
     return;
   }
-  renderer(menu);
+  openMenu(button, menu, renderer);
+}
+
+function openMenu(button, menu, renderer) {
+  if (!button || !menu) return;
+  if (typeof renderer === 'function') {
+    renderer(menu);
+  }
   menu.hidden = false;
   button.setAttribute('aria-expanded', 'true');
   activeMenu = { button, menu };
@@ -1389,21 +1354,8 @@ function closeActiveMenu() {
 }
 
 function handleDocumentClick(event) {
-  const suppressSettingsClose = languageDialogControls?.suppressDocumentClose === true;
-  let shouldResetSuppression = false;
-  if (settingsMenuControls && settingsMenuControls.container) {
-    const { container } = settingsMenuControls;
-    const sidebar = document.getElementById('sidebar');
-    const insideSidebar = sidebar ? sidebar.contains(event.target) : false;
-    if (suppressSettingsClose) {
-      shouldResetSuppression = true;
-    } else if (!container.contains(event.target) && !insideSidebar) {
-      closeSettingsMenu();
-    }
-  } else if (suppressSettingsClose) {
-    shouldResetSuppression = true;
-  }
-  if (shouldResetSuppression && languageDialogControls) {
+  const shouldResetDialogSuppression = languageDialogControls?.suppressDocumentClose === true;
+  if (shouldResetDialogSuppression && languageDialogControls) {
     languageDialogControls.suppressDocumentClose = false;
   }
   if (miniAppMenuControls && miniAppMenuControls.container) {
@@ -1423,7 +1375,6 @@ function handleKeydown(event) {
     if (closeLanguageDialog()) {
       return;
     }
-    closeSettingsMenu();
     closeActiveMenu();
     closeMiniAppMenu();
   }
@@ -1699,8 +1650,8 @@ function updateSidebarVisibility(user) {
     });
   }
   if (!isAuthenticated) {
-    closeSettingsMenu();
     closeMiniAppMenu();
+    closeActiveMenu();
   }
 }
 
