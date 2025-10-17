@@ -45,16 +45,31 @@
               <label for="register-email" data-i18n="auth.form.email">E-mail</label>
               <input id="register-email" name="email" type="email" required autocomplete="email" />
             </div>
-            <div class="field">
+            <div class="field auth-register__phone-field" data-phone-field>
               <label for="register-phone" data-i18n="auth.form.phone">Celular</label>
-              <input
-                id="register-phone"
-                name="phone"
-                type="tel"
-                required
-                autocomplete="tel"
-                inputmode="tel"
-              />
+              <div class="auth-register__phone-controls" data-phone-controls>
+                <select
+                  id="register-phone-region"
+                  name="phoneRegion"
+                  data-phone-region
+                  autocomplete="tel-country-code"
+                >
+                  <option value="BR" selected data-i18n="auth.form.phone.region.br">Brasil (+55)</option>
+                  <option value="INTL" data-i18n="auth.form.phone.region.intl">Número internacional</option>
+                </select>
+                <input
+                  id="register-phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  autocomplete="tel"
+                  inputmode="tel"
+                  data-phone-input
+                />
+              </div>
+              <p class="form-hint" data-i18n="auth.form.phone.hint">
+                Selecione Brasil (+55) para formatar automaticamente ou informe o código do país em números internacionais.
+              </p>
             </div>
             <div class="field">
               <label for="register-password" data-i18n="auth.form.password">Senha</label>
