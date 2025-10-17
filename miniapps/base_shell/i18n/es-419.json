@@ -137,6 +137,7 @@
   "auth.feedback.invalid": "Credenciales inválidas. Intenta de nuevo.",
   "auth.feedback.exists": "Correo ya registrado.",
   "auth.feedback.required": "Complete todos los campos obligatorios.",
+  "auth.feedback.invalidEmail": "Ingresa un correo electrónico válido.",
   "auth.feedback.fullNameRequired": "Ingresa nombre y apellido.",
   "auth.feedback.invalidBrazilianPhone": "Ingresa un celular brasileño válido con código de área y noveno dígito.",
   "auth.feedback.invalidInternationalPhone": "Incluye el código de país con el prefijo + para números internacionales.",

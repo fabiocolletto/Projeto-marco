@@ -137,6 +137,7 @@
   "auth.feedback.invalid": "Invalid credentials. Try again.",
   "auth.feedback.exists": "Email already registered.",
   "auth.feedback.required": "Please fill in all required fields.",
+  "auth.feedback.invalidEmail": "Enter a valid email address.",
   "auth.feedback.fullNameRequired": "Enter first and last name.",
   "auth.feedback.invalidBrazilianPhone": "Enter a valid Brazilian mobile number with area code and ninth digit.",
   "auth.feedback.invalidInternationalPhone": "Include the country code with the + prefix for international numbers.",

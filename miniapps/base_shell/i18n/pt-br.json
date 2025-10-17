@@ -141,6 +141,7 @@
   "auth.feedback.invalid": "Credenciais inválidas. Tente novamente.",
   "auth.feedback.exists": "E-mail já cadastrado.",
   "auth.feedback.required": "Preencha todos os campos obrigatórios.",
+  "auth.feedback.invalidEmail": "Informe um e-mail válido.",
   "auth.feedback.fullNameRequired": "Informe nome e sobrenome.",
   "auth.feedback.invalidBrazilianPhone": "Informe um celular brasileiro válido com DDD e nono dígito.",
   "auth.feedback.invalidInternationalPhone": "Inclua o código do país com o prefixo + para números internacionais.",
