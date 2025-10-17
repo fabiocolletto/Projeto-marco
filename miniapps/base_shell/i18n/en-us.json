@@ -6,6 +6,8 @@
   "actions.toggleLanguage": "Switch language",
   "actions.profile": "Profile",
   "actions.logout": "Sign out",
+  "actions.openUserMenu": "Open user menu",
+  "actions.openUserMenuWithName": "Open user menu for {name}",
   "actions.openUserPanel": "Open user panel",
   "actions.openUserPanelWithName": "Open user panel for {name}",
   "actions.toggleSidebar": "Toggle sidebar",
