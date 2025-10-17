@@ -58,7 +58,7 @@ test.describe('MiniApp Base shell', () => {
   test('layout, theme, i18n e autenticação local', async ({ page }) => {
     await page.goto(`${baseURL}/miniapps/base_shell/index.html`);
 
-    await expect(page).toHaveURL(/auth\/login\.html$/);
+    await expect(page).toHaveURL(/auth\/register\.html$/);
 
     const navigationTrigger = page.locator('#btnMenu');
     const navigationOverlay = page.locator('#navigation-overlay');
@@ -66,6 +66,7 @@ test.describe('MiniApp Base shell', () => {
     const miniAppMessage = page.locator('[data-miniapp-message]');
     const userMenuToggle = page.locator('#btnUser');
     const userMenu = page.locator('#user-menu');
+    const registerButton = page.locator('#register-form .cta');
     const openNavigation = async () => {
       if (await navigationOverlay.isHidden()) {
         await navigationTrigger.click();
@@ -119,21 +120,22 @@ test.describe('MiniApp Base shell', () => {
 
     await openUserMenu();
     await page.click('#btnLang');
-    await expect(page.locator('#page-title')).toHaveText('Sign in');
-    await expect(page.locator('#login-form .cta')).toHaveText('Sign in');
+    await expect(page.locator('#page-title')).toHaveText('Create account');
+    await expect(registerButton).toHaveText('Register');
 
     await openUserMenu();
     await page.click('#btnLang');
-    await expect(page.locator('#page-title')).toHaveText('Iniciar sesión');
-    await expect(page.locator('#login-form .cta')).toHaveText('Ingresar');
+    await expect(page.locator('#page-title')).toHaveText('Crear cuenta');
+    await expect(registerButton).toHaveText('Registrar');
 
     await expect(page.locator('#btnUserPanel')).toBeHidden();
     await expect(page.locator('#btnUserPanel')).toHaveAttribute('aria-label', 'Abrir panel de usuario');
     await closeUserMenu();
 
-    await openUserMenu();
-    await page.click('#user-menu a[href$="register.html"]');
-    await expect(page).toHaveURL(/register\.html$/);
+    await page.goto(`${baseURL}/miniapps/base_shell/auth/login.html`);
+    await expect(page).toHaveURL(/auth\/register\.html$/);
+    await expect(page.locator('#page-title')).toHaveText('Crear cuenta');
+    await expect(registerButton).toHaveText('Registrar');
 
     await page.fill('#register-name', 'Alice Owner');
     await page.fill('#register-email', 'alice@example.com');
@@ -414,7 +416,7 @@ test.describe('MiniApp Base shell', () => {
     await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
 
     await openUserMenu();
-    const navigationPromise = page.waitForNavigation({ url: /auth\/login\.html$/ });
+    const navigationPromise = page.waitForNavigation({ url: /auth\/register\.html$/ });
     const resetDialogPromise = new Promise(resolve => {
       page.once('dialog', async dialog => {
         resolve(dialog);
@@ -426,8 +428,9 @@ test.describe('MiniApp Base shell', () => {
     expect(resetDialog.message()).toContain('¿Seguro que deseas eliminar todos los datos registrados en este dispositivo?');
     await navigationPromise;
 
-    await expect(page.locator('#login-feedback')).toHaveText(
-      'Todos los datos fueron eliminados. Redirigiendo a la pantalla de inicio de sesión.'
+    await expect(page).toHaveURL(/auth\/register\.html$/);
+    await expect(page.locator('#register-feedback')).toHaveText(
+      'Todos los datos fueron eliminados. Redirigiendo a la pantalla de registro.'
     );
 
     await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.users'))).toBeNull();

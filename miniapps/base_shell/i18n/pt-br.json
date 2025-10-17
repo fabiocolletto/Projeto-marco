@@ -124,7 +124,7 @@
   "auth.feedback.passwordChanged": "Senha atualizada com sucesso.",
   "auth.feedback.invalidCurrentPassword": "A senha atual está incorreta.",
   "auth.feedback.userDeleted": "Conta removida. Você será redirecionado.",
-  "auth.feedback.dataReset": "Dados removidos com sucesso. Redirecionando para a tela de login.",
+  "auth.feedback.dataReset": "Dados removidos com sucesso. Redirecionando para a tela de cadastro.",
   "theme.light": "Claro",
   "theme.dark": "Escuro",
   "theme.system": "Automático",

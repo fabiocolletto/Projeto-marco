@@ -120,7 +120,7 @@
   "auth.feedback.passwordChanged": "Password updated successfully.",
   "auth.feedback.invalidCurrentPassword": "Current password is incorrect.",
   "auth.feedback.userDeleted": "Account removed. You'll be redirected.",
-  "auth.feedback.dataReset": "All data has been removed. Redirecting to the sign-in screen.",
+  "auth.feedback.dataReset": "All data has been removed. Redirecting to the registration screen.",
   "theme.light": "Light",
   "theme.dark": "Dark",
   "theme.system": "System",

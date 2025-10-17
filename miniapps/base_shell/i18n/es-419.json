@@ -120,7 +120,7 @@
   "auth.feedback.passwordChanged": "Contraseña actualizada correctamente.",
   "auth.feedback.invalidCurrentPassword": "La contraseña actual es incorrecta.",
   "auth.feedback.userDeleted": "Cuenta eliminada. Será redirigido.",
-  "auth.feedback.dataReset": "Todos los datos fueron eliminados. Redirigiendo a la pantalla de inicio de sesión.",
+  "auth.feedback.dataReset": "Todos los datos fueron eliminados. Redirigiendo a la pantalla de registro.",
   "theme.light": "Claro",
   "theme.dark": "Oscuro",
   "theme.system": "Automático",

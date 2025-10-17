@@ -83,6 +83,7 @@ const ADMIN_UPTIME_PERCENT = 99.97;
 const SHELL_APP_ID = 'base.shell';
 
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
+const REGISTER_URL = new URL('./auth/register.html', import.meta.url);
 const USER_PANEL_EMBED_ROUTE = './auth/profile-panel.html';
 const USER_PANEL_MINI_APP_ID = 'base.shell.user-panel';
 const USER_PANEL_MINI_APP = {
@@ -139,6 +140,7 @@ let revisionInfo = null;
 let activeMenu = null;
 let languageDialogControls = null;
 let isRedirectingHome = false;
+let shouldSkipDeferredFeedback = false;
 let userManagementControls = null;
 
 function renderLanguageIcon(target, lang) {
@@ -1550,6 +1552,10 @@ function handleUserPanelShortcutClick() {
 }
 
 function displayDeferredFeedback() {
+  if (shouldSkipDeferredFeedback) {
+    shouldSkipDeferredFeedback = false;
+    return;
+  }
   const message = consumeDeferredFeedback();
   if (!message) return;
   announce(message);
@@ -2091,6 +2097,11 @@ function handleKeydown(event) {
 function setupAuthForms() {
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
+    if (shouldAllowPublicRegistration()) {
+      shouldSkipDeferredFeedback = true;
+      window.location.replace(REGISTER_URL.href);
+      return;
+    }
     const feedback = document.getElementById('login-feedback');
     const passwordInput = loginForm.querySelector('#login-password');
     const togglePasswordButton = loginForm.querySelector('[data-action="toggle-password"]');
