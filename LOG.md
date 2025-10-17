@@ -19,3 +19,4 @@
 - Restaurados fallbacks de i18n no shell base para evitar que chaves brutas sobrescrevam textos e placeholders originais.
 - Sincronizados comportamentos dos menus do usuário e de navegação para evitar conflitos de foco e eventos de clique.
 - Validado fluxo de abertura via suíte Playwright (`npm test -- --reporter=line`) para garantir carregamento das telas de autenticação.
+- Registrado passo a passo alternativo para baixar navegadores e dependências do Playwright em ambientes com proxy restritivo.

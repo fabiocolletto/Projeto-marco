@@ -74,6 +74,11 @@ const DEFAULT_MINI_APP_CONTENT = {
   messageKey: 'panel.welcomeMessage'
 };
 
+const ADMIN_ACCESS_CODE = 'adm0000';
+const ADMIN_SATISFACTION_SCORE = 94;
+const ADMIN_SATISFACTION_DELTA = 4;
+const ADMIN_UPTIME_PERCENT = 99.97;
+
 const SHELL_APP_ID = 'base.shell';
 
 const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
@@ -137,6 +142,9 @@ const userMenuElements = {
   skipClose: false
 };
 
+let adminGatewayControls = null;
+let adminDashboardControls = null;
+
 const userManagementState = {
   mode: null,
   targetId: null
@@ -168,6 +176,8 @@ async function bootstrap() {
   updateLanguageToggle();
   setupThemeToggle();
   updateThemeToggle();
+  setupAdminDashboard();
+  setupAdminGateway();
   setupUserPanelShortcut();
   updateUserPanelShortcut();
   updateUserDisplay(currentUser());
@@ -181,6 +191,10 @@ async function bootstrap() {
   }
   updateNavigationState();
   setupMiniAppMenu(miniApps);
+  updateAdminDashboardMetrics();
+  updateAdminDashboardStatus();
+  updateAdminDashboardActivity();
+  updateAdminDashboardHealth();
   if (initialMiniAppId) {
     updateMiniAppHistory(initialMiniAppId, { replace: true });
   }
@@ -204,9 +218,14 @@ async function bootstrap() {
     renderMiniAppMenu();
     updateMiniAppPanel();
     refreshSidebarNavigationLabels();
+    updateAdminDashboardMetrics();
+    updateAdminDashboardStatus();
+    updateAdminDashboardActivity();
+    updateAdminDashboardHealth();
   });
   onThemeChange(() => {
     updateThemeToggle();
+    updateAdminDashboardStatus();
   });
   onAuthChange(user => {
     updateUserDisplay(user);
@@ -218,6 +237,9 @@ async function bootstrap() {
     updateOnboardingState();
     updateNavigationVisibility(user);
     redirectIfAuthenticationRequired(user);
+    updateAdminDashboardMetrics();
+    updateAdminDashboardActivity();
+    updateAdminDashboardHealth();
   });
   redirectIfAuthenticationRequired(currentUser());
 }
@@ -743,6 +765,10 @@ function setupMiniAppMenu(items) {
   miniAppState.items = withUserPanelMiniApp(items);
   renderMiniAppMenu();
   updateMiniAppPanel();
+  updateAdminDashboardMetrics();
+  updateAdminDashboardStatus();
+  updateAdminDashboardActivity();
+  updateAdminDashboardHealth();
 }
 
 function renderMiniAppMenu() {
@@ -817,6 +843,7 @@ function setActiveMiniApp(id, options = {}) {
   renderMiniAppMenu();
   updateMiniAppPanel();
   updateNavigationState();
+  updateAdminDashboardActivity();
 }
 
 function activateUserPanelMiniApp(options = {}) {
@@ -1215,6 +1242,229 @@ function setupThemeToggle() {
   });
 }
 
+function setupAdminGateway() {
+  const trigger = document.querySelector('[data-admin-trigger]');
+  const overlay = document.querySelector('[data-admin-gateway]');
+  const panel = overlay?.querySelector('[data-admin-gateway-panel]');
+  const input = overlay?.querySelector('[data-admin-gateway-input]');
+  if (!trigger || !overlay || !input || !panel) {
+    adminGatewayControls = null;
+    return;
+  }
+  adminGatewayControls = {
+    trigger,
+    overlay,
+    panel,
+    input,
+    previousFocus: null
+  };
+  trigger.addEventListener('click', () => {
+    if (overlay.hidden) {
+      openAdminGateway();
+    } else {
+      closeAdminGateway({ restoreFocus: false });
+    }
+  });
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) {
+      closeAdminGateway({ restoreFocus: true });
+    }
+  });
+  input.addEventListener('input', () => {
+    handleAdminGatewayAttempt(input.value);
+  });
+}
+
+function handleAdminGatewayAttempt(value) {
+  if (!adminGatewayControls) return;
+  const normalized = normalizeAccessCode(value);
+  if (normalized !== ADMIN_ACCESS_CODE) {
+    return;
+  }
+  closeAdminGateway({ restoreFocus: false });
+  openAdminDashboard();
+  if (adminGatewayControls.input) {
+    adminGatewayControls.input.value = '';
+  }
+}
+
+function openAdminGateway() {
+  if (!adminGatewayControls) return false;
+  const { overlay, trigger, input } = adminGatewayControls;
+  if (!overlay || !overlay.hidden) {
+    return false;
+  }
+  adminGatewayControls.previousFocus =
+    document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  overlay.hidden = false;
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+  if (input) {
+    input.value = '';
+    window.requestAnimationFrame(() => input.focus());
+  }
+  return true;
+}
+
+function closeAdminGateway(options = {}) {
+  if (!adminGatewayControls) return false;
+  const { overlay, trigger, input } = adminGatewayControls;
+  if (!overlay || overlay.hidden) {
+    return false;
+  }
+  overlay.hidden = true;
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+  if (input) {
+    input.value = '';
+  }
+  const { restoreFocus = true } = options;
+  const previous = adminGatewayControls.previousFocus;
+  adminGatewayControls.previousFocus = null;
+  if (restoreFocus) {
+    const fallback = trigger && typeof trigger.focus === 'function' ? trigger : null;
+    const target = previous && typeof previous.focus === 'function' ? previous : fallback;
+    if (target) {
+      window.requestAnimationFrame(() => target.focus());
+    }
+  }
+  return true;
+}
+
+function setupAdminDashboard() {
+  const overlay = document.querySelector('[data-admin-dashboard]');
+  const panel = overlay?.querySelector('[data-admin-dashboard-panel]');
+  if (!overlay || !panel) {
+    adminDashboardControls = null;
+    return;
+  }
+  const closeButton = overlay.querySelector('[data-admin-dashboard-close]');
+  const status = {
+    language: overlay.querySelector('[data-admin-status="language"]'),
+    theme: overlay.querySelector('[data-admin-status="theme"]'),
+    miniapps: overlay.querySelector('[data-admin-status="miniapps"]')
+  };
+  const metrics = new Map();
+  overlay.querySelectorAll('[data-admin-metric]').forEach(card => {
+    const key = card?.dataset?.adminMetric;
+    if (!key || metrics.has(key)) return;
+    metrics.set(key, {
+      value: card.querySelector('[data-admin-value]'),
+      trend: card.querySelector('[data-admin-trend]')
+    });
+  });
+  const activityList = overlay.querySelector('[data-admin-activity]');
+  const capacityBar = overlay.querySelector('[data-admin-capacity-bar]');
+  const capacityLabel = overlay.querySelector('[data-admin-capacity-label]');
+  const capacityAria = overlay.querySelector('[data-admin-capacity-aria]');
+  adminDashboardControls = {
+    overlay,
+    panel,
+    closeButton,
+    status,
+    metrics,
+    activityList,
+    capacity: {
+      bar: capacityBar,
+      label: capacityLabel,
+      aria: capacityAria
+    },
+    previousFocus: null
+  };
+  if (closeButton) {
+    closeButton.addEventListener('click', () => closeAdminDashboard({ restoreFocus: true }));
+  }
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) {
+      closeAdminDashboard({ restoreFocus: true });
+    }
+  });
+  overlay.querySelectorAll('[data-admin-action]').forEach(button => {
+    button.addEventListener('click', () => {
+      handleAdminDashboardAction(button.dataset.adminAction, button);
+    });
+  });
+}
+
+function openAdminDashboard() {
+  if (!adminDashboardControls) return false;
+  const { overlay, closeButton, panel } = adminDashboardControls;
+  if (!overlay || !overlay.hidden) {
+    return false;
+  }
+  adminDashboardControls.previousFocus =
+    document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  updateAdminDashboardMetrics();
+  updateAdminDashboardStatus();
+  updateAdminDashboardActivity();
+  updateAdminDashboardHealth();
+  overlay.hidden = false;
+  document.body.classList.add('is-admin-dashboard-open');
+  const focusTarget = closeButton || panel;
+  if (focusTarget && typeof focusTarget.focus === 'function') {
+    window.requestAnimationFrame(() => focusTarget.focus());
+  }
+  return true;
+}
+
+function closeAdminDashboard(options = {}) {
+  if (!adminDashboardControls) return false;
+  const { overlay } = adminDashboardControls;
+  if (!overlay || overlay.hidden) {
+    return false;
+  }
+  overlay.hidden = true;
+  document.body.classList.remove('is-admin-dashboard-open');
+  const { restoreFocus = true } = options;
+  const previous = adminDashboardControls.previousFocus;
+  adminDashboardControls.previousFocus = null;
+  if (restoreFocus) {
+    const fallback = adminGatewayControls?.trigger;
+    const target =
+      previous && typeof previous.focus === 'function'
+        ? previous
+        : fallback && typeof fallback.focus === 'function'
+          ? fallback
+          : null;
+    if (target) {
+      window.requestAnimationFrame(() => target.focus());
+    }
+  }
+  return true;
+}
+
+function handleAdminDashboardAction(action, button) {
+  if (!action) return;
+  if (action === 'refresh') {
+    updateAdminDashboardMetrics();
+    updateAdminDashboardStatus();
+    updateAdminDashboardActivity();
+    updateAdminDashboardHealth();
+    if (button) {
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+      window.setTimeout(() => {
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+      }, 600);
+    }
+    return;
+  }
+  if (action === 'logs') {
+    const logsUrl = new URL('./REVISION_LOG.md', import.meta.url);
+    if (typeof window !== 'undefined') {
+      window.open(logsUrl.href, '_blank', 'noopener');
+    }
+    return;
+  }
+  if (action === 'miniapps') {
+    closeAdminDashboard({ restoreFocus: false });
+    openNavigationOverlay();
+  }
+}
+
 function setupUserPanelShortcut() {
   const button = document.getElementById('btnUserPanel');
   if (!button) return;
@@ -1460,7 +1710,224 @@ function closeActiveMenu() {
   closeMenu(activeMenu.button, activeMenu.menu);
 }
 
+function updateAdminDashboardMetrics() {
+  if (!adminDashboardControls || !(adminDashboardControls.metrics instanceof Map)) {
+    return;
+  }
+  const metrics = adminDashboardControls.metrics;
+  if (!metrics.size) return;
+  const users = listUsers();
+  const owners = users.filter(user => user?.role === 'owner');
+  const visibleMiniApps = getVisibleMiniApps();
+  const userCount = users.length;
+  const ownerCount = owners.length;
+  const ownerShare = userCount ? Math.round((ownerCount / userCount) * 100) : 0;
+  const uptimeFormatted = `${formatDecimal(ADMIN_UPTIME_PERCENT, 2)}%`;
+  const satisfactionScore = `${formatNumber(ADMIN_SATISFACTION_SCORE)}%`;
+  const satisfactionDelta = formatNumber(Math.abs(ADMIN_SATISFACTION_DELTA));
+  const data = {
+    users: {
+      value: formatNumber(userCount),
+      trend: t('admin.dashboard.metric.users.trend', {
+        count: formatNumber(userCount)
+      })
+    },
+    owners: {
+      value: formatNumber(ownerCount),
+      trend: t('admin.dashboard.metric.owners.trend', {
+        percentage: formatNumber(ownerShare)
+      })
+    },
+    miniapps: {
+      value: formatNumber(visibleMiniApps.length),
+      trend: t('admin.dashboard.metric.miniapps.trend', {
+        count: formatNumber(visibleMiniApps.length)
+      })
+    },
+    uptime: {
+      value: uptimeFormatted,
+      trend: t('admin.dashboard.metric.uptime.trend', {
+        value: formatDecimal(ADMIN_UPTIME_PERCENT, 2)
+      })
+    },
+    satisfaction: {
+      value: satisfactionScore,
+      trend: t('admin.dashboard.metric.satisfaction.trend', {
+        points: satisfactionDelta
+      })
+    }
+  };
+  metrics.forEach((refs, key) => {
+    const metric = data[key];
+    if (!metric) return;
+    if (refs.value) {
+      refs.value.textContent = metric.value;
+    }
+    if (refs.trend) {
+      refs.trend.textContent = metric.trend;
+    }
+  });
+}
+
+function updateAdminDashboardStatus() {
+  if (!adminDashboardControls || !adminDashboardControls.status) return;
+  const { status } = adminDashboardControls;
+  const currentLang = getLang();
+  const langResource = LANG_RESOURCES.find(resource => resource.lang === currentLang);
+  const langLabel = langResource ? t(langResource.labelKey) : currentLang;
+  const themeState = getTheme();
+  const themeKey = `theme.${themeState.mode ?? themeState.resolved ?? 'light'}`;
+  let themeLabel = t(themeKey);
+  if (!themeLabel || themeLabel === themeKey) {
+    themeLabel = themeState.mode ?? themeState.resolved ?? 'light';
+  }
+  const miniApps = getVisibleMiniApps();
+  if (status.language) {
+    status.language.textContent = t('admin.dashboard.status.language', {
+      lang: langLabel
+    });
+  }
+  if (status.theme) {
+    status.theme.textContent = t('admin.dashboard.status.theme', {
+      theme: themeLabel
+    });
+  }
+  if (status.miniapps) {
+    status.miniapps.textContent = t('admin.dashboard.status.miniapps', {
+      count: formatNumber(miniApps.length)
+    });
+  }
+}
+
+function updateAdminDashboardActivity() {
+  if (!adminDashboardControls || !adminDashboardControls.activityList) return;
+  const list = adminDashboardControls.activityList;
+  list.innerHTML = '';
+  const items = [];
+  const user = currentUser();
+  if (user) {
+    const displayName = user.name || user.email || t('admin.dashboard.activity.anonymous');
+    items.push({
+      icon: '✅',
+      text: t('admin.dashboard.activity.session', { name: displayName })
+    });
+  }
+  const users = listUsers();
+  if (users.length) {
+    const latest = [...users].sort((a, b) => {
+      const aTime = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    })[0];
+    const latestName = latest?.name || latest?.email;
+    if (latestName) {
+      items.push({
+        icon: '🆕',
+        text: t('admin.dashboard.activity.userCreated', { name: latestName })
+      });
+    }
+  }
+  if (miniAppState.activeId) {
+    const active = (Array.isArray(miniAppState.items) ? miniAppState.items : []).find(
+      item => item?.id === miniAppState.activeId
+    );
+    if (active) {
+      const label = active.labelKey ? t(active.labelKey) : active.id;
+      items.push({
+        icon: '🧭',
+        text: t('admin.dashboard.activity.activeMiniApp', { name: label })
+      });
+    }
+  }
+  items.push({ icon: '🛰', text: t('admin.dashboard.activity.environmentReady') });
+  if (!items.length) {
+    const placeholder = document.createElement('li');
+    placeholder.className = 'admin-dashboard__list-item is-empty';
+    placeholder.textContent = t('admin.dashboard.activity.placeholder');
+    list.appendChild(placeholder);
+    return;
+  }
+  items.forEach(entry => {
+    const item = document.createElement('li');
+    item.className = 'admin-dashboard__list-item';
+    const icon = document.createElement('span');
+    icon.className = 'admin-dashboard__list-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = entry.icon;
+    const text = document.createElement('span');
+    text.className = 'admin-dashboard__list-text';
+    text.textContent = entry.text;
+    item.append(icon, text);
+    list.appendChild(item);
+  });
+}
+
+function updateAdminDashboardHealth() {
+  if (!adminDashboardControls || !adminDashboardControls.capacity) return;
+  const { bar, label, aria } = adminDashboardControls.capacity;
+  if (!bar && !label && !aria) return;
+  const users = listUsers();
+  const miniApps = getVisibleMiniApps();
+  const load = Math.min(92, Math.max(28, 42 + users.length * 9 + miniApps.length * 7));
+  const formattedLoad = formatNumber(Math.round(load));
+  if (bar) {
+    bar.style.setProperty('--progress', `${Math.round(load)}%`);
+  }
+  if (aria) {
+    aria.setAttribute('aria-label', t('admin.dashboard.health.capacity.aria', { value: formattedLoad }));
+  }
+  if (label) {
+    label.textContent = t('admin.dashboard.health.capacity.note', { value: formattedLoad });
+  }
+}
+
+function getVisibleMiniApps() {
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  return items.filter(item => !item?.hidden);
+}
+
+function normalizeAccessCode(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase();
+}
+
+function formatNumber(value) {
+  const lang = document.documentElement.lang || 'pt-BR';
+  const number = Number(value ?? 0);
+  try {
+    return new Intl.NumberFormat(lang).format(number);
+  } catch (error) {
+    return String(number);
+  }
+}
+
+function formatDecimal(value, fractionDigits = 1) {
+  const lang = document.documentElement.lang || 'pt-BR';
+  const number = Number(value ?? 0);
+  try {
+    return new Intl.NumberFormat(lang, {
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits
+    }).format(number);
+  } catch (error) {
+    return number.toFixed(fractionDigits);
+  }
+}
+
 function handleDocumentClick(event) {
+  if (adminGatewayControls && adminGatewayControls.overlay && !adminGatewayControls.overlay.hidden) {
+    const { overlay, panel } = adminGatewayControls;
+    if (overlay.contains(event.target) && panel && panel.contains(event.target)) {
+      return;
+    }
+  }
+  if (adminDashboardControls && adminDashboardControls.overlay && !adminDashboardControls.overlay.hidden) {
+    const { overlay, panel } = adminDashboardControls;
+    if (overlay.contains(event.target) && panel && panel.contains(event.target)) {
+      return;
+    }
+  }
   const shouldResetDialogSuppression = languageDialogControls?.suppressDocumentClose === true;
   if (shouldResetDialogSuppression && languageDialogControls) {
     languageDialogControls.suppressDocumentClose = false;
@@ -1493,6 +1960,14 @@ function handleDocumentClick(event) {
 
 function handleKeydown(event) {
   if (event.key === 'Escape') {
+    if (closeAdminDashboard({ restoreFocus: true })) {
+      event.stopPropagation();
+      return;
+    }
+    if (closeAdminGateway({ restoreFocus: true })) {
+      event.stopPropagation();
+      return;
+    }
     if (closeLanguageDialog()) {
       return;
     }
