@@ -14,14 +14,24 @@
           <span aria-hidden="true">☰</span>
         </button>
         <div id="nav-overlay-root"></div>
-        <img
-          id="logo"
-          class="brand"
-          src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-          alt="5Horas"
-          data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-          data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
-        />
+        <button
+          class="brand-button"
+          type="button"
+          data-admin-trigger
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          <span class="sr-only" data-i18n="app.title">MiniApp Base</span>
+          <img
+            id="logo"
+            class="brand"
+            src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+            alt=""
+            aria-hidden="true"
+            data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+            data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
+          />
+        </button>
         <h1 id="page-title" data-i18n="app.title">MiniApp Base</h1>
         <div class="toolbar" role="group" aria-label="Global actions">
           <div class="user-menu" role="group" aria-label="User menu">
@@ -201,6 +211,193 @@
             Cancelar
           </button>
         </div>
+      </div>
+    </div>
+    <div
+      class="admin-gateway"
+      data-admin-gateway
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-gateway-label"
+      hidden
+    >
+      <div class="admin-gateway__panel" data-admin-gateway-panel>
+        <label
+          id="admin-gateway-label"
+          class="sr-only"
+          for="admin-gateway-input"
+          data-i18n="admin.gateway.inputLabel"
+        >
+          Código administrativo
+        </label>
+        <input
+          id="admin-gateway-input"
+          class="admin-gateway__input"
+          type="password"
+          inputmode="text"
+          autocomplete="off"
+          spellcheck="false"
+          data-admin-gateway-input
+        />
+      </div>
+    </div>
+    <div
+      class="admin-dashboard"
+      data-admin-dashboard
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-dashboard-title"
+      hidden
+    >
+      <div class="admin-dashboard__panel" data-admin-dashboard-panel role="document">
+        <header class="admin-dashboard__header">
+          <div>
+            <p class="admin-dashboard__kicker" data-i18n="admin.dashboard.kicker">Modo manutenção</p>
+            <h2
+              id="admin-dashboard-title"
+              class="admin-dashboard__title"
+              data-i18n="admin.dashboard.title"
+            >
+              Central de comando
+            </h2>
+            <p class="admin-dashboard__subtitle" data-i18n="admin.dashboard.subtitle">
+              Visão consolidada para manter o shell saudável e previsível.
+            </p>
+          </div>
+          <button type="button" class="ghost icon-only" data-admin-dashboard-close>
+            <span class="sr-only" data-i18n="actions.close">Fechar</span>
+            <span aria-hidden="true">✕</span>
+          </button>
+        </header>
+        <div class="admin-dashboard__badges">
+          <span class="admin-dashboard__badge" data-admin-status="language"></span>
+          <span class="admin-dashboard__badge" data-admin-status="theme"></span>
+          <span class="admin-dashboard__badge" data-admin-status="miniapps"></span>
+        </div>
+        <section class="admin-dashboard__section">
+          <h3 class="admin-dashboard__section-title" data-i18n="admin.dashboard.section.overview">
+            Visão geral
+          </h3>
+          <div class="admin-dashboard__grid">
+            <article class="admin-dashboard__card" data-admin-metric="users">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">👥</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.users">
+                  Usuários cadastrados
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="owners">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">🛡️</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.owners">
+                  Administradores
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="miniapps">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">🧭</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.miniapps">
+                  Mini-apps ativos
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="uptime">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">📶</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.uptime">
+                  Disponibilidade
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="satisfaction">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">💬</span>
+                <h4
+                  class="admin-dashboard__card-title"
+                  data-i18n="admin.dashboard.metric.satisfaction"
+                >
+                  Satisfação
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+          </div>
+        </section>
+        <section class="admin-dashboard__section admin-dashboard__section--split">
+          <div class="admin-dashboard__stack">
+            <h3 class="admin-dashboard__section-title" data-i18n="admin.dashboard.section.health">
+              Saúde operacional
+            </h3>
+            <div class="admin-dashboard__surface">
+              <h4 class="admin-dashboard__surface-title" data-i18n="admin.dashboard.health.incidents">
+                Incidentes
+              </h4>
+              <p
+                class="admin-dashboard__surface-text"
+                data-i18n="admin.dashboard.health.incidents.none"
+              >
+                Nenhum incidente registrado nas últimas 48 horas.
+              </p>
+            </div>
+            <div class="admin-dashboard__surface" data-admin-health="capacity">
+              <h4 class="admin-dashboard__surface-title" data-i18n="admin.dashboard.health.capacity">
+                Capacidade
+              </h4>
+              <div
+                class="admin-dashboard__progress"
+                role="img"
+                aria-live="polite"
+                data-admin-capacity-aria
+              >
+                <span class="admin-dashboard__progress-bar" data-admin-capacity-bar></span>
+              </div>
+              <p class="admin-dashboard__surface-text" data-admin-capacity-label></p>
+            </div>
+          </div>
+          <div class="admin-dashboard__stack">
+            <h3 class="admin-dashboard__section-title" data-i18n="admin.dashboard.section.activity">
+              Atividades recentes
+            </h3>
+            <ul class="admin-dashboard__list" data-admin-activity></ul>
+            <div class="admin-dashboard__actions">
+              <button
+                type="button"
+                class="admin-dashboard__action"
+                data-admin-action="refresh"
+                data-i18n="admin.dashboard.action.refresh"
+              >
+                Atualizar métricas
+              </button>
+              <button
+                type="button"
+                class="admin-dashboard__action"
+                data-admin-action="logs"
+                data-i18n="admin.dashboard.action.openLogs"
+              >
+                Abrir logs
+              </button>
+              <button
+                type="button"
+                class="admin-dashboard__action"
+                data-admin-action="miniapps"
+                data-i18n="admin.dashboard.action.manageApps"
+              >
+                Gerenciar mini-apps
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
     </div>
     <script type="module" src="./app.js"></script>

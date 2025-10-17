@@ -21,6 +21,7 @@ Para garantir que `npm test` seja executado com sucesso no ambiente local ou na 
 
 1. Instale as dependências do projeto: `npm install`.
 2. Baixe os navegadores utilizados pelo Playwright (inclui as dependências do sistema operacional): `npx playwright install --with-deps`.
+   - Caso o ambiente tenha restrições de proxy e o passo acima retorne erro 403, utilize a sequência `npx playwright install chromium` seguido de `npx playwright install-deps chromium` para completar a configuração.
 3. Execute a suíte de testes: `npm test`.
 
 Caso algum passo falhe, ajuste o ambiente de acordo com a mensagem de erro e repita os comandos até que o teste finalize com sucesso.
