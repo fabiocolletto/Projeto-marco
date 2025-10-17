@@ -96,6 +96,7 @@ const USER_PANEL_MINI_APP = {
   hidden: true
 };
 const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
+const REGISTER_URL = new URL('./auth/register.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
 
 const DEFERRED_FEEDBACK_KEY = 'miniapp.base.deferredFeedback';
@@ -1730,7 +1731,8 @@ function handleUserAction(action) {
       announce(successMessage);
     }
     window.setTimeout(() => {
-      window.location.href = LOGIN_URL.href;
+      const targetUrl = shouldAllowPublicRegistration() ? REGISTER_URL.href : LOGIN_URL.href;
+      window.location.href = targetUrl;
     }, HOME_REDIRECT_DELAY);
     return;
   }
@@ -1783,7 +1785,15 @@ function redirectIfAuthenticationRequired(user) {
     return;
   }
   const registerForm = document.getElementById('register-form');
-  if (registerForm && shouldAllowPublicRegistration()) {
+  const allowRegistration = shouldAllowPublicRegistration();
+  if (registerForm && allowRegistration) {
+    return;
+  }
+  if (allowRegistration && window.location.href === REGISTER_URL.href) {
+    return;
+  }
+  if (allowRegistration) {
+    window.location.replace(REGISTER_URL.href);
     return;
   }
   if (window.location.href === LOGIN_URL.href) {
@@ -2988,9 +2998,18 @@ function handleUserDelete(user) {
   }
 }
 
+function hasOwnerAccount() {
+  try {
+    return listUsers().some(user => user?.role === 'owner');
+  } catch (error) {
+    console.warn('auth: unable to determine owner availability', error);
+    return false;
+  }
+}
+
 function shouldAllowPublicRegistration() {
   try {
-    return listUsers().length === 0;
+    return !hasOwnerAccount();
   } catch (error) {
     console.warn('auth: unable to determine registration availability', error);
     return true;
