@@ -22,6 +22,18 @@ const sessionStorageRef = (() => {
 
 let volatileSessionId = null;
 
+function derivePhoneRegion(phoneRegion, phone) {
+  if (phoneRegion === 'INTL') return 'INTL';
+  if (phoneRegion === 'BR') return 'BR';
+  if (typeof phone === 'string' && phone.trim().startsWith('+55')) {
+    return 'BR';
+  }
+  if (typeof phone === 'string' && phone.trim().startsWith('+')) {
+    return 'INTL';
+  }
+  return 'BR';
+}
+
 function readStore(key, fallback) {
   if (!storage) return fallback;
   try {
@@ -132,7 +144,19 @@ function notify() {
 }
 
 export function listUsers() {
-  return readStore(USERS_KEY, []);
+  const users = readStore(USERS_KEY, []);
+  if (!Array.isArray(users)) return [];
+  return users.map(user => {
+    if (!user || typeof user !== 'object') return user;
+    const normalizedPhoneRegion = derivePhoneRegion(user.phoneRegion, user.phone);
+    if (user.phoneRegion === normalizedPhoneRegion) {
+      return user;
+    }
+    return {
+      ...user,
+      phoneRegion: normalizedPhoneRegion
+    };
+  });
 }
 
 function persistUsers(users) {
@@ -145,7 +169,10 @@ export function currentUser() {
   return listUsers().find(user => user.id === sessionId) || null;
 }
 
-export function register({ name, email, password, role = 'member', phone = '' }, options = {}) {
+export function register(
+  { name, email, password, role = 'member', phone = '', phoneRegion = 'BR' },
+  options = {}
+) {
   const { autoLogin = true } = options;
   const users = listUsers();
   if (users.some(user => user.email === email)) {
@@ -155,6 +182,7 @@ export function register({ name, email, password, role = 'member', phone = '' },
   if (normalizedRole === 'owner' && users.some(user => user.role === 'owner')) {
     throw new Error('auth:owner-exists');
   }
+  const normalizedPhoneRegion = derivePhoneRegion(phoneRegion, phone);
   const newUser = {
     id: generateId(),
     name,
@@ -162,6 +190,7 @@ export function register({ name, email, password, role = 'member', phone = '' },
     password,
     role: normalizedRole,
     phone,
+    phoneRegion: normalizedPhoneRegion,
     createdAt: new Date().toISOString()
   };
   users.push(newUser);
