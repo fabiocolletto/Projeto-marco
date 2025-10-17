@@ -1397,19 +1397,25 @@ function setupAuthForms() {
     const passwordInput = loginForm.querySelector('#login-password');
     const togglePasswordButton = loginForm.querySelector('[data-action="toggle-password"]');
     const rememberCheckbox = loginForm.querySelector('#login-remember');
-    const forgotPasswordButton = loginForm.querySelector('[data-action="forgot-password"]');
-    const switchUserButton = loginForm.querySelector('[data-action="switch-user"]');
+    const forgotPasswordButton = document.querySelector('[data-action="forgot-password"]');
+    const switchUserButton = document.querySelector('[data-action="switch-user"]');
+    const togglePasswordIcon = togglePasswordButton?.querySelector('[data-password-visibility-icon]');
+    const togglePasswordLabel = togglePasswordButton?.querySelector('[data-password-visibility-label]');
     let isPasswordVisible = false;
 
     const applyPasswordVisibility = visible => {
       if (!passwordInput || !togglePasswordButton) return;
       isPasswordVisible = visible;
       passwordInput.type = visible ? 'text' : 'password';
-      togglePasswordButton.dataset.i18n = visible
-        ? 'auth.login.hidePassword'
-        : 'auth.login.showPassword';
+      const labelKey = visible ? 'auth.login.hidePassword' : 'auth.login.showPassword';
       togglePasswordButton.setAttribute('aria-pressed', String(visible));
-      togglePasswordButton.textContent = t(togglePasswordButton.dataset.i18n);
+      if (togglePasswordLabel) {
+        togglePasswordLabel.dataset.i18n = labelKey;
+        togglePasswordLabel.textContent = t(labelKey);
+      }
+      if (togglePasswordIcon) {
+        togglePasswordIcon.textContent = visible ? '🙈' : '👁️';
+      }
     };
 
     if (togglePasswordButton && passwordInput) {
@@ -1421,6 +1427,7 @@ function setupAuthForms() {
 
     if (forgotPasswordButton) {
       forgotPasswordButton.addEventListener('click', () => {
+        closeActiveMenu();
         const emailField = loginForm.querySelector('#login-email');
         const email = String(emailField?.value || '').trim();
         const key = email ? 'auth.login.recoveryMessageWithEmail' : 'auth.login.recoveryMessage';
@@ -1435,6 +1442,7 @@ function setupAuthForms() {
 
     if (switchUserButton) {
       switchUserButton.addEventListener('click', () => {
+        closeActiveMenu();
         logout();
         loginForm.reset();
         applyPasswordVisibility(false);
@@ -1467,10 +1475,6 @@ function setupAuthForms() {
         announceTo(feedback, message);
       }
     });
-    const registerHint = document.getElementById('login-register-hint');
-    if (registerHint) {
-      registerHint.hidden = !shouldAllowPublicRegistration();
-    }
   }
 
   const registerForm = document.getElementById('register-form');
