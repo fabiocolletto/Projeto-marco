@@ -1055,11 +1055,21 @@ function setupLanguageToggle() {
   const dialog = document.getElementById('language-dialog');
   const handleClick = event => {
     event.preventDefault();
-    if (dialog && (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey)) {
-      openLanguageDialog(button);
+    if (!dialog || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
+      cycleLanguage();
       return;
     }
-    cycleLanguage();
+    if (!languageDialogControls) {
+      cycleLanguage();
+      return;
+    }
+    if (dialog.hidden) {
+      userMenuElements.skipClose = true;
+      openLanguageDialog(button);
+    } else {
+      userMenuElements.skipClose = true;
+      closeLanguageDialog({ suppressDocumentClose: true });
+    }
   };
   button.addEventListener('click', handleClick);
   if (!dialog) {
@@ -1088,6 +1098,7 @@ function setupLanguageToggle() {
   if (cancelButton) {
     cancelButton.addEventListener('click', event => {
       event.preventDefault();
+      userMenuElements.skipClose = true;
       closeLanguageDialog({ suppressDocumentClose: true });
     });
   }
@@ -1096,6 +1107,7 @@ function setupLanguageToggle() {
     if (event.target === dialog) {
       event.preventDefault();
       event.stopPropagation();
+      userMenuElements.skipClose = true;
       closeLanguageDialog({ suppressDocumentClose: true });
     }
   });
@@ -1141,6 +1153,8 @@ function openLanguageDialog(trigger) {
   if (!languageDialogControls) return;
   const { dialog } = languageDialogControls;
   if (!dialog || !dialog.hidden) return;
+  setUserMenuPointerInteractivity(false);
+  userMenuElements.skipClose = true;
   languageDialogControls.lastTrigger = trigger || languageDialogControls.trigger;
   languageDialogControls.suppressDocumentClose = false;
   renderLanguageOptions();
@@ -1163,6 +1177,7 @@ function closeLanguageDialog(options = {}) {
   if (!languageDialogControls) return false;
   const { dialog, lastTrigger } = languageDialogControls;
   if (!dialog || dialog.hidden) return false;
+  setUserMenuPointerInteractivity(true);
   dialog.hidden = true;
   dialog.setAttribute('aria-hidden', 'true');
   const triggerButton = languageDialogControls.trigger;
@@ -1178,7 +1193,7 @@ function closeLanguageDialog(options = {}) {
 }
 
 function handleLanguageSelection(lang, options = {}) {
-  const { closeMenu = true, focusPanelAfter = true } = options;
+  const { closeMenu = false, focusPanelAfter = true } = options;
   const current = getLang();
   if (current !== lang) {
     try {
@@ -1187,6 +1202,7 @@ function handleLanguageSelection(lang, options = {}) {
       console.warn('shell: unable to switch language', error);
     }
   }
+  userMenuElements.skipClose = true;
   closeLanguageDialog();
   if (closeMenu) {
     closeActiveMenu();
@@ -1925,6 +1941,12 @@ function handleDocumentClick(event) {
   if (adminDashboardControls && adminDashboardControls.overlay && !adminDashboardControls.overlay.hidden) {
     const { overlay, panel } = adminDashboardControls;
     if (overlay.contains(event.target) && panel && panel.contains(event.target)) {
+      return;
+    }
+  }
+  if (languageDialogControls && languageDialogControls.dialog && !languageDialogControls.dialog.hidden) {
+    const { dialog } = languageDialogControls;
+    if (dialog.contains(event.target)) {
       return;
     }
   }
