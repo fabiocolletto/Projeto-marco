@@ -212,7 +212,9 @@ async function bootstrap() {
     updateRegistrationAccess();
     updateOnboardingState();
     updateNavigationVisibility(user);
+    redirectIfAuthenticationRequired(user);
   });
+  redirectIfAuthenticationRequired(currentUser());
 }
 
 async function loadDictionaries() {
@@ -1281,6 +1283,26 @@ function performLogout() {
   window.setTimeout(() => {
     window.location.href = LOGIN_URL.href;
   }, HOME_REDIRECT_DELAY);
+}
+
+function redirectIfAuthenticationRequired(user) {
+  if (typeof window === 'undefined') return;
+  const activeUser = user ?? currentUser();
+  if (activeUser) {
+    return;
+  }
+  const loginForm = document.getElementById('login-form');
+  if (loginForm) {
+    return;
+  }
+  const registerForm = document.getElementById('register-form');
+  if (registerForm && shouldAllowPublicRegistration()) {
+    return;
+  }
+  if (window.location.href === LOGIN_URL.href) {
+    return;
+  }
+  window.location.replace(LOGIN_URL.href);
 }
 
 function updateThemeToggle() {
