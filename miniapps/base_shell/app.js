@@ -105,6 +105,18 @@ const PANEL_HIGHLIGHT_DURATION = 1600;
 const feedbackTimers = new WeakMap();
 const highlightTimers = new WeakMap();
 
+const PASSWORD_STRENGTH_LEVELS = Object.freeze({
+  WEAK: 'weak',
+  MEDIUM: 'medium',
+  STRONG: 'strong'
+});
+
+const PASSWORD_STRENGTH_PROGRESS = {
+  [PASSWORD_STRENGTH_LEVELS.WEAK]: 33,
+  [PASSWORD_STRENGTH_LEVELS.MEDIUM]: 66,
+  [PASSWORD_STRENGTH_LEVELS.STRONG]: 100
+};
+
 function storeDeferredFeedback(message) {
   if (typeof window === 'undefined') return;
   try {
@@ -198,6 +210,34 @@ const stageControls = {
 let stageRenderToken = 0;
 
 bootstrap();
+
+export function evaluatePasswordStrength(password) {
+  const value = String(password || '');
+  const length = value.length;
+  const hasLower = /[a-z]/.test(value);
+  const hasUpper = /[A-Z]/.test(value);
+  const hasNumber = /\d/.test(value);
+  const hasSymbol = /[^A-Za-z0-9]/.test(value);
+
+  let score = 0;
+  if (length >= 8) score += 1;
+  if (length >= 12) score += 1;
+  if (hasLower && hasUpper) score += 1;
+  if (hasNumber) score += 1;
+  if (hasSymbol) score += 1;
+
+  let level = PASSWORD_STRENGTH_LEVELS.WEAK;
+  if (score >= 4) {
+    level = PASSWORD_STRENGTH_LEVELS.STRONG;
+  } else if (score >= 2) {
+    level = PASSWORD_STRENGTH_LEVELS.MEDIUM;
+  }
+
+  return {
+    level,
+    score
+  };
+}
 
 async function bootstrap() {
   await loadDictionaries();
@@ -2200,7 +2240,87 @@ function setupAuthForms() {
     const feedback = document.getElementById('register-feedback');
     const phoneRegionField = registerForm.querySelector('[data-phone-region]');
     const phoneInput = registerForm.querySelector('[data-phone-input]');
+    const passwordField = registerForm.querySelector('#register-password');
+    const passwordStrengthMeter = registerForm.querySelector('[data-password-meter]');
+    const passwordStrengthBar = passwordStrengthMeter?.querySelector('[data-password-bar]');
+    const passwordStrengthStatus = passwordStrengthMeter?.querySelector('[data-password-status]');
+    const registerSubmitButton = registerForm.querySelector('button[type="submit"]');
+    const registerState = {
+      passwordLevel: PASSWORD_STRENGTH_LEVELS.WEAK,
+      passwordLength: 0
+    };
     const BRAZIL_PHONE_REGEX = /^\(?[1-9]{2}\)?\s?(?:9\d{4}|\d{4})-?\d{4}$/;
+
+    function renderPasswordStrength(level) {
+      if (!passwordStrengthMeter) return;
+      const resolvedLevel = level || PASSWORD_STRENGTH_LEVELS.WEAK;
+      passwordStrengthMeter.dataset.strength = resolvedLevel;
+      const baseProgress = PASSWORD_STRENGTH_PROGRESS[resolvedLevel] ?? 0;
+      const progress = registerState.passwordLength ? baseProgress : 0;
+      if (passwordStrengthBar) {
+        passwordStrengthBar.style.width = `${progress}%`;
+      }
+      if (passwordStrengthStatus) {
+        const statusKey = `auth.passwordStrength.level.${resolvedLevel}`;
+        passwordStrengthStatus.dataset.i18n = statusKey;
+        const statusText = t(statusKey);
+        passwordStrengthStatus.textContent = statusText && statusText !== statusKey ? statusText : statusKey;
+      }
+    }
+
+    function applyPasswordStrength(level) {
+      const resolvedLevel = level || PASSWORD_STRENGTH_LEVELS.WEAK;
+      registerState.passwordLevel = resolvedLevel;
+      renderPasswordStrength(resolvedLevel);
+      if (registerSubmitButton) {
+        registerSubmitButton.disabled = resolvedLevel === PASSWORD_STRENGTH_LEVELS.WEAK;
+      }
+      return resolvedLevel;
+    }
+
+    function setPasswordStrength(value) {
+      const normalized = String(value || '');
+      registerState.passwordLength = normalized.length;
+      const { level } = evaluatePasswordStrength(normalized);
+      return applyPasswordStrength(level);
+    }
+
+    function clearPasswordStrengthFeedback() {
+      if (!feedback) return;
+      if (feedback.dataset.feedbackType === 'passwordStrength') {
+        feedback.textContent = '';
+        delete feedback.dataset.feedbackType;
+      }
+    }
+
+    function announceFeedback(message, type = null) {
+      if (!feedback) return;
+      if (type) {
+        feedback.dataset.feedbackType = type;
+      } else {
+        delete feedback.dataset.feedbackType;
+      }
+      announceTo(feedback, message);
+    }
+
+    applyPasswordStrength(registerState.passwordLevel);
+
+    if (passwordField) {
+      setPasswordStrength(passwordField.value);
+      passwordField.addEventListener('input', () => {
+        const level = setPasswordStrength(passwordField.value);
+        if (level !== PASSWORD_STRENGTH_LEVELS.WEAK) {
+          clearPasswordStrengthFeedback();
+        }
+      });
+    }
+
+    onLanguageChange(() => {
+      renderPasswordStrength(registerState.passwordLevel);
+      if (feedback && feedback.dataset.feedbackType === 'passwordStrength') {
+        announceFeedback(t('auth.feedback.passwordWeak'), 'passwordStrength');
+      }
+    });
 
     function normalizeBrazilianPhone(value) {
       const trimmed = String(value || '').trim();
@@ -2241,17 +2361,23 @@ function setupAuthForms() {
         const password = String(data.get('password') || '');
         const acceptedTerms = data.get('terms') === 'on';
         if (!name || !email || !phone || !password || !acceptedTerms) {
-          announceTo(feedback, t('auth.feedback.required'));
+          announceFeedback(t('auth.feedback.required'));
+          return;
+        }
+        const passwordLevel = setPasswordStrength(password);
+        if (passwordLevel === PASSWORD_STRENGTH_LEVELS.WEAK) {
+          announceFeedback(t('auth.feedback.passwordWeak'), 'passwordStrength');
+          passwordField?.focus();
           return;
         }
         if (!EMAIL_VALIDATION_REGEX.test(email)) {
-          announceTo(feedback, t('auth.feedback.invalidEmail'));
+          announceFeedback(t('auth.feedback.invalidEmail'));
           registerForm.querySelector('#register-email')?.focus();
           return;
         }
         const nameParts = name.split(/\s+/).filter(Boolean);
         if (nameParts.length < 2) {
-          announceTo(feedback, t('auth.feedback.fullNameRequired'));
+          announceFeedback(t('auth.feedback.fullNameRequired'));
           registerForm.querySelector('#register-name')?.focus();
           return;
         }
@@ -2260,7 +2386,7 @@ function setupAuthForms() {
         if (phoneRegionValue === 'BR') {
           const normalized = normalizeBrazilianPhone(phone);
           if (!normalized) {
-            announceTo(feedback, t('auth.feedback.invalidBrazilianPhone'));
+            announceFeedback(t('auth.feedback.invalidBrazilianPhone'));
             phoneInput?.focus();
             return;
           }
@@ -2269,7 +2395,7 @@ function setupAuthForms() {
           const trimmed = phone.trim();
           const digits = trimmed.replace(/[^\d]/g, '');
           if (!trimmed.startsWith('+') || digits.length < 1) {
-            announceTo(feedback, t('auth.feedback.invalidInternationalPhone'));
+            announceFeedback(t('auth.feedback.invalidInternationalPhone'));
             phoneInput?.focus();
             return;
           }
@@ -2283,9 +2409,10 @@ function setupAuthForms() {
           role: 'owner',
           phoneRegion: phoneRegionValue
         });
-        announceTo(feedback, t('auth.feedback.registered'));
+        announceFeedback(t('auth.feedback.registered'));
         updateUserDisplay(user);
         registerForm.reset();
+        setPasswordStrength('');
         if (phoneRegionField) {
           phoneRegionField.value = 'BR';
         }
@@ -2296,7 +2423,7 @@ function setupAuthForms() {
         const message = error.message === 'auth:user-exists'
           ? t('auth.feedback.exists')
           : error.message;
-        announceTo(feedback, message);
+        announceFeedback(message);
       }
     });
   }

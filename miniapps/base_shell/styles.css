@@ -93,6 +93,11 @@ body.auth-login .panel-content {
   gap: 0.5rem;
 }
 
+.auth-register__password-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .auth-login__password-wrapper {
   display: flex;
   align-items: center;
@@ -135,6 +140,58 @@ body.auth-login .panel-content {
 .auth-login__toggle-password-icon {
   display: inline-flex;
   line-height: 1;
+}
+
+.password-strength {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.password-strength__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.password-strength__label {
+  color: var(--color-text-muted);
+}
+
+.password-strength__status {
+  font-weight: 600;
+}
+
+.password-strength__meter {
+  height: 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-border) 60%, transparent);
+  overflow: hidden;
+}
+
+.password-strength__bar {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--color-border) 65%, transparent);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.password-strength[data-strength='weak'] .password-strength__bar {
+  width: 33%;
+  background: color-mix(in srgb, #ef4444 80%, transparent);
+}
+
+.password-strength[data-strength='medium'] .password-strength__bar {
+  width: 66%;
+  background: color-mix(in srgb, #f59e0b 85%, transparent);
+}
+
+.password-strength[data-strength='strong'] .password-strength__bar {
+  width: 100%;
+  background: var(--color-accent);
 }
 
 .auth-login__field-actions {
