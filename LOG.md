@@ -14,3 +14,8 @@
 ## 2025-10-15
 - Preparação do shell para suportar mini-apps assinados, incluindo menu dedicado e skeletons de carregamento.
 - Removido o botão redundante de colapso da sidebar e validado visualmente a interação apenas pelo controle do header.
+
+## 2025-10-17
+- Restaurados fallbacks de i18n no shell base para evitar que chaves brutas sobrescrevam textos e placeholders originais.
+- Sincronizados comportamentos dos menus do usuário e de navegação para evitar conflitos de foco e eventos de clique.
+- Validado fluxo de abertura via suíte Playwright (`npm test -- --reporter=line`) para garantir carregamento das telas de autenticação.
