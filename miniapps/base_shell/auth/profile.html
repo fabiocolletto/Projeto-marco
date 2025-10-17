@@ -25,11 +25,44 @@
         <div class="toolbar" role="group" aria-label="Global actions">
           <div class="user-menu" role="group" aria-label="User menu">
             <button id="btnUser" class="ghost" aria-haspopup="true" aria-expanded="false">
-              <span id="current-user">--</span>
+              <span class="user-avatar" aria-hidden="true">👤</span>
+              <span id="current-user" class="sr-only">--</span>
             </button>
             <ul id="user-menu" class="menu" hidden>
-              <li><button data-action="profile" data-i18n="actions.profile">Perfil</button></li>
-              <li><button data-action="logout" data-i18n="actions.logout">Sair</button></li>
+              <li>
+                <button id="btnLang" class="menu-item" type="button">
+                  <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
+                  <span class="menu-text" data-i18n="settings.language">Idioma</span>
+                  <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+                </button>
+              </li>
+              <li>
+                <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
+                  <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
+                  <span class="menu-text" data-i18n="settings.theme">Tema</span>
+                  <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
+                </button>
+              </li>
+              <li>
+                <button id="btnUserPanel" class="menu-item" type="button">
+                  <span class="menu-icon" aria-hidden="true">👤</span>
+                  <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
+                  <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
+                </button>
+              </li>
+              <li class="menu-divider" role="separator" aria-hidden="true"></li>
+              <li>
+                <button class="menu-item" type="button" data-action="profile">
+                  <span class="menu-icon" aria-hidden="true">🔐</span>
+                  <span class="menu-text" data-i18n="actions.profile">Perfil</span>
+                </button>
+              </li>
+              <li>
+                <button class="menu-item" type="button" data-action="logout">
+                  <span class="menu-icon" aria-hidden="true">🚪</span>
+                  <span class="menu-text" data-i18n="actions.logout">Sair</span>
+                </button>
+              </li>
             </ul>
           </div>
         </div>
@@ -69,42 +102,6 @@
                   <span class="submenu-caret" aria-hidden="true">▾</span>
                 </button>
                 <ul id="miniapp-submenu" class="submenu" hidden data-miniapp-menu></ul>
-              </li>
-              <li class="has-submenu">
-                <button
-                  id="settings-toggle"
-                  class="submenu-toggle"
-                  type="button"
-                  aria-expanded="false"
-                  aria-controls="settings-submenu"
-                >
-                  <span class="icon" aria-hidden="true">⚙️</span>
-                  <span class="label" data-i18n="nav.settings">Configurações</span>
-                  <span class="submenu-caret" aria-hidden="true">▾</span>
-                </button>
-                <ul id="settings-submenu" class="submenu" hidden>
-                  <li>
-                    <button id="btnLang" class="submenu-action" type="button">
-                      <span class="submenu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
-                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.language">Idioma</span>
-                      <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button id="btnTheme" class="submenu-action" type="button" aria-pressed="false">
-                      <span class="submenu-icon" aria-hidden="true" data-theme-icon>☀️</span>
-                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.theme">Tema</span>
-                      <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
-                    </button>
-                  </li>
-                  <li>
-                    <button id="btnUserPanel" class="submenu-action" type="button">
-                      <span class="submenu-icon" aria-hidden="true">👤</span>
-                      <span class="submenu-label" aria-hidden="true" data-i18n="settings.userPanel">Painel do usuário</span>
-                      <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
-                    </button>
-                  </li>
-                </ul>
               </li>
             </ul>
           </nav>

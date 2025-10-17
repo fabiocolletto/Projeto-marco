@@ -67,10 +67,24 @@ test.describe('MiniApp Base shell', () => {
     const miniAppSubmenu = page.locator('#miniapp-submenu');
     const miniAppTitle = page.locator('[data-miniapp-title]');
     const miniAppMessage = page.locator('[data-miniapp-message]');
+    const userMenuToggle = page.locator('#btnUser');
+    const userMenu = page.locator('#user-menu');
     const selectMiniApp = async (id: string) => {
       await miniAppToggle.click();
       await expect(miniAppSubmenu).toBeVisible();
       await page.click(`[data-miniapp-id="${id}"]`);
+    };
+    const openUserMenu = async () => {
+      if (!(await userMenu.isVisible())) {
+        await userMenuToggle.click();
+        await expect(userMenu).toBeVisible();
+      }
+    };
+    const closeUserMenu = async () => {
+      if (await userMenu.isVisible()) {
+        await userMenuToggle.click();
+        await expect(userMenu).toBeHidden();
+      }
     };
 
     await selectMiniApp('mini-app-1');
@@ -81,17 +95,14 @@ test.describe('MiniApp Base shell', () => {
     await expect(miniAppMessage).toHaveText('Você está visualizando o conteúdo do Mini-app 2.');
 
     const shell = page.locator('.app-shell');
-    const settingsSubmenu = page.locator('#settings-submenu');
 
     await expect(shell).not.toHaveClass(/is-collapsed/);
 
-    await page.click('#settings-toggle');
-    await expect(shell).toHaveClass(/is-collapsed/);
-    await expect(settingsSubmenu).toBeVisible();
-
-    await page.click('#settings-toggle');
-    await expect(settingsSubmenu).toBeHidden();
-    await expect(shell).toHaveClass(/is-collapsed/);
+    await expect(userMenu).toBeHidden();
+    await userMenuToggle.click();
+    await expect(userMenu).toBeVisible();
+    await userMenuToggle.click();
+    await expect(userMenu).toBeHidden();
 
     await page.click('#btnMenu');
     await expect(shell).not.toHaveClass(/is-collapsed/);
@@ -99,9 +110,7 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#btnMenu');
     await expect(shell).toHaveClass(/is-collapsed/);
 
-    await page.click('#settings-toggle');
-    await expect(settingsSubmenu).toBeVisible();
-
+    await openUserMenu();
     await page.click('#btnTheme');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
@@ -127,9 +136,9 @@ test.describe('MiniApp Base shell', () => {
     await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 2');
     await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 2.');
 
+    await expect(page.locator('#btnUserPanel')).toBeHidden();
     await expect(page.locator('#btnUserPanel')).toHaveAttribute('aria-label', 'Abrir panel de usuario');
-
-    await page.click('#settings-toggle');
+    await closeUserMenu();
 
     await page.click('a[data-i18n="panel.actions.register"]');
     await expect(page).toHaveURL(/register\.html$/);
@@ -167,6 +176,7 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#login-form .cta');
     await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Bruno Member.');
 
+    await openUserMenu();
     await page.click('#btnUserPanel');
     await expect(page).toHaveURL(/auth\/profile\.html$/);
     await expect(page.locator('#user-management')).toBeHidden();

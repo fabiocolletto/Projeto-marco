@@ -14,17 +14,17 @@ Shell responsivo com cabeçalho, barra lateral recolhível e painel central expa
    - Por padrão o servidor sobe em `http://localhost:4173` e garante acesso aos pacotes compartilhados em `packages/`.
    - Você também pode indicar outro miniapp com `npm run dev -- nome_da_pasta`.
 2. Registre ou faça login; a sessão fica em `localStorage` (`miniapp.base.session`).
-3. Use o menu de idioma para alternar entre Português, Inglês e Espanhol. A escolha é persistida.
-4. Troque tema claro/escuro ou siga o sistema. Logos são atualizados automaticamente.
-5. Use o menu de usuário para acessar o perfil ou alternar entre contas registradas.
+3. Use o menu de idioma no cabeçalho para alternar entre Português, Inglês e Espanhol. A escolha é persistida.
+4. Troque tema claro/escuro pelo mesmo menu e observe a atualização automática das logos.
+5. Use o menu de usuário para acessar o painel e gerenciar contas registradas.
 6. Acesse o item “Mini-apps” na barra lateral para abrir o catálogo, selecione “Mini-app 1” ou “Mini-app 2” e visualize o skeleton correspondente enquanto o conteúdo é carregado.
 
 ### Verificação visual rápida
 Após subir o servidor de desenvolvimento, abra `http://localhost:4173/` em um navegador.
 Você deve visualizar:
 
-- **Cabeçalho fixo** com logotipo, selector de idioma, alternador de tema e menu de usuário.
-- **Barra lateral recolhível** contendo os atalhos “Dashboard”, “Autenticação”, “Mini-apps” (catálogo) e “Configurações”.
+- **Cabeçalho fixo** com logotipo, botão do usuário e dropdown contendo idioma, tema e atalhos da conta.
+- **Barra lateral recolhível** contendo os atalhos “Dashboard”, “Autenticação” e “Mini-apps” (catálogo).
 - **Painel principal** com cartões de entrada para login/registro, skeleton do catálogo de mini-apps e, após autenticação, o conteúdo da área logada.
 
 Se algum desses elementos não aparecer, confirme se os assets estão sendo servidos a partir do diretório raiz do repositório (especialmente os pacotes em `packages/`).
