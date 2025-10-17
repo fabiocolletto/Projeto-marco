@@ -231,7 +231,6 @@ export function initRegisterForm() {
 
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    event.stopImmediatePropagation();
     if (submitting) return;
 
     clearFieldErrors();
@@ -332,6 +331,8 @@ export function initRegisterForm() {
       if (payload && payload.registration) {
         delete payload.registration.user_password;
       }
+
+      const credentialPassword = password;
       password = '';
 
       persistUser({
@@ -342,9 +343,36 @@ export function initRegisterForm() {
         user_role: 'proprietario'
       });
 
+      const phoneRegionField = form?.querySelector('[data-phone-region]');
+      const rawPhoneRegion = phoneRegionField
+        ? String(phoneRegionField.value || '').trim().toUpperCase()
+        : null;
+      const phoneRegion = rawPhoneRegion === 'INTL' ? 'INTL' : 'BR';
+      const registrationDetail = {
+        user: {
+          id: userId,
+          fullName,
+          email,
+          phoneNumber: sanitizedPhone,
+          role: 'proprietario'
+        },
+        credentials: {
+          password: credentialPassword
+        },
+        termsAccepted: Boolean(termsAccepted),
+        phoneRegion,
+        timestamp
+      };
+
       setFeedback(feedbackElement, SUCCESS_MESSAGE, 'success');
-      if (typeof window !== 'undefined' && typeof window.alert === 'function') {
-        window.alert(SUCCESS_MESSAGE);
+      if (form) {
+        form.dispatchEvent(
+          new CustomEvent('register:completed', {
+            bubbles: true,
+            composed: true,
+            detail: registrationDetail
+          })
+        );
       }
       window.dispatchEvent(
         new CustomEvent('user:registered', { detail: { user_id: userId } })

@@ -2243,13 +2243,10 @@ function setupAuthForms() {
     });
   }
 
-  const EMAIL_VALIDATION_REGEX = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
-
   const registerForm = document.getElementById('register-form');
   if (registerForm) {
     const feedback = document.getElementById('register-feedback');
     const phoneRegionField = registerForm.querySelector('[data-phone-region]');
-    const phoneInput = registerForm.querySelector('[data-phone-input]');
     const passwordField = registerForm.querySelector('#register-password');
     const passwordStrengthMeter = registerForm.querySelector('[data-password-meter]');
     const passwordStrengthBar = passwordStrengthMeter?.querySelector('[data-password-bar]');
@@ -2259,8 +2256,6 @@ function setupAuthForms() {
       passwordLevel: PASSWORD_STRENGTH_LEVELS.WEAK,
       passwordLength: 0
     };
-    const BRAZIL_PHONE_REGEX = /^\(?[1-9]{2}\)?\s?(?:9\d{4}|\d{4})-?\d{4}$/;
-
     function renderPasswordStrength(level) {
       if (!passwordStrengthMeter) return;
       const resolvedLevel = level || PASSWORD_STRENGTH_LEVELS.WEAK;
@@ -2332,24 +2327,6 @@ function setupAuthForms() {
       }
     });
 
-    function normalizeBrazilianPhone(value) {
-      const trimmed = String(value || '').trim();
-      if (!trimmed) return null;
-      const withoutCountry = trimmed.replace(/^\+55\s?/, '');
-      const digits = withoutCountry.replace(/\D/g, '');
-      if (digits.length !== 11) {
-        return null;
-      }
-      const ddd = digits.slice(0, 2);
-      const firstPart = digits.slice(2, 7);
-      const lastPart = digits.slice(7);
-      const localFormat = `(${ddd}) ${firstPart}-${lastPart}`;
-      if (!BRAZIL_PHONE_REGEX.test(localFormat)) {
-        return null;
-      }
-      return `+55 ${localFormat}`;
-    }
-
     const allowRegistration = shouldAllowPublicRegistration();
     if (!allowRegistration) {
       const owner = currentUser();
@@ -2360,61 +2337,33 @@ function setupAuthForms() {
       }
       return;
     }
-    registerForm.addEventListener('submit', event => {
-      event.preventDefault();
-      const data = new FormData(registerForm);
+
+    let isProcessingRegistration = false;
+    registerForm.addEventListener('register:completed', event => {
+      if (event.target !== registerForm) {
+        return;
+      }
+      if (isProcessingRegistration) {
+        return;
+      }
+      const detail = event.detail || {};
+      const userDetail = detail.user || {};
+      const credentials = detail.credentials || {};
+      const name = String(userDetail.fullName || userDetail.name || '').trim();
+      const email = String(userDetail.email || '').trim();
+      const phoneNumber = String(userDetail.phoneNumber || userDetail.phone || '').trim();
+      const password = String(credentials.password || '');
+      if (!name || !email || !phoneNumber || !password) {
+        return;
+      }
+
+      isProcessingRegistration = true;
       try {
-        const name = String(data.get('name') || '').trim();
-        const email = String(data.get('email') || '').trim();
-        const phone = String(data.get('phone') || '').trim();
-        const phoneRegion = String(data.get('phoneRegion') || 'BR').toUpperCase();
-        const password = String(data.get('password') || '');
-        const acceptedTerms = data.get('terms') === 'on';
-        if (!name || !email || !phone || !password || !acceptedTerms) {
-          announceFeedback(t('auth.feedback.required'));
-          return;
-        }
-        const passwordLevel = setPasswordStrength(password);
-        if (passwordLevel === PASSWORD_STRENGTH_LEVELS.WEAK) {
-          announceFeedback(t('auth.feedback.passwordWeak'), 'passwordStrength');
-          passwordField?.focus();
-          return;
-        }
-        if (!EMAIL_VALIDATION_REGEX.test(email)) {
-          announceFeedback(t('auth.feedback.invalidEmail'));
-          registerForm.querySelector('#register-email')?.focus();
-          return;
-        }
-        const nameParts = name.split(/\s+/).filter(Boolean);
-        if (nameParts.length < 2) {
-          announceFeedback(t('auth.feedback.fullNameRequired'));
-          registerForm.querySelector('#register-name')?.focus();
-          return;
-        }
-        let formattedPhone = phone;
-        let phoneRegionValue = phoneRegion === 'INTL' ? 'INTL' : 'BR';
-        if (phoneRegionValue === 'BR') {
-          const normalized = normalizeBrazilianPhone(phone);
-          if (!normalized) {
-            announceFeedback(t('auth.feedback.invalidBrazilianPhone'));
-            phoneInput?.focus();
-            return;
-          }
-          formattedPhone = normalized;
-        } else {
-          const trimmed = phone.trim();
-          const digits = trimmed.replace(/[^\d]/g, '');
-          if (!trimmed.startsWith('+') || digits.length < 1) {
-            announceFeedback(t('auth.feedback.invalidInternationalPhone'));
-            phoneInput?.focus();
-            return;
-          }
-          formattedPhone = trimmed;
-        }
+        const phoneRegionValue = detail.phoneRegion === 'INTL' ? 'INTL' : 'BR';
         const user = register({
           name,
           email,
-          phone: formattedPhone,
+          phone: phoneNumber,
           password,
           role: 'owner',
           phoneRegion: phoneRegionValue
@@ -2434,6 +2383,8 @@ function setupAuthForms() {
           ? t('auth.feedback.exists')
           : error.message;
         announceFeedback(message);
+      } finally {
+        isProcessingRegistration = false;
       }
     });
   }
