@@ -131,6 +131,11 @@ function renderLanguageIcon(target, lang) {
 let navigationOverlayControls = null;
 let miniAppMenuControls = null;
 let homeNavigationControls = null;
+const userMenuElements = {
+  menu: null,
+  panel: null,
+  skipClose: false
+};
 
 const userManagementState = {
   mode: null,
@@ -381,15 +386,42 @@ function applyTranslations() {
     const key = node.dataset.i18n;
     const params = parseI18nParams(node.dataset.i18nParams);
     const message = t(key, params);
+    const hasTranslation = typeof message === 'string' && message !== key;
+
     if (node.tagName === 'TITLE') {
-      document.title = message;
-    } else if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
-      node.placeholder = message;
-    } else if (node instanceof HTMLOptionElement) {
-      node.textContent = message;
-    } else {
-      node.textContent = message;
+      if (!node.dataset.i18nOriginalText) {
+        node.dataset.i18nOriginalText = node.textContent || '';
+      }
+      const value = hasTranslation ? message : node.dataset.i18nOriginalText;
+      node.textContent = value;
+      document.title = value;
+      return;
     }
+
+    if (node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement) {
+      if (!node.dataset.i18nOriginalPlaceholder) {
+        node.dataset.i18nOriginalPlaceholder = node.getAttribute('placeholder') || '';
+      }
+      if (hasTranslation) {
+        node.placeholder = message;
+      } else {
+        node.placeholder = node.dataset.i18nOriginalPlaceholder;
+      }
+      return;
+    }
+
+    if (node instanceof HTMLOptionElement) {
+      if (!node.dataset.i18nOriginalText) {
+        node.dataset.i18nOriginalText = node.textContent || '';
+      }
+      node.textContent = hasTranslation ? message : node.dataset.i18nOriginalText;
+      return;
+    }
+
+    if (!node.dataset.i18nOriginalText) {
+      node.dataset.i18nOriginalText = node.textContent || '';
+    }
+    node.textContent = hasTranslation ? message : node.dataset.i18nOriginalText;
   });
 }
 
@@ -599,8 +631,13 @@ function openNavigationOverlay() {
   const { overlay, trigger } = navigationOverlayControls;
   if (!overlay || !overlay.hidden) return;
   navigationOverlayControls.previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  navigationOverlayControls.restoreMenu = activeMenu ? { ...activeMenu } : null;
+  if (activeMenu) {
+    closeActiveMenu();
+  }
   renderNavigationItems();
   renderMiniAppMenu();
+  setUserMenuPointerInteractivity(false);
   overlay.hidden = false;
   overlay.classList.add('is-open');
   if (trigger) {
@@ -621,8 +658,15 @@ function closeNavigationOverlay(options = {}) {
   }
   overlay.hidden = true;
   overlay.classList.remove('is-open');
+  setUserMenuPointerInteractivity(true);
   if (trigger) {
     trigger.setAttribute('aria-expanded', 'false');
+  }
+  const restoreMenu = navigationOverlayControls.restoreMenu;
+  navigationOverlayControls.restoreMenu = null;
+  if (restoreMenu && restoreMenu.button && restoreMenu.menu) {
+    userMenuElements.skipClose = true;
+    openMenu(restoreMenu.button, restoreMenu.menu, () => focusFirstUserMenuItem(restoreMenu.menu));
   }
   const focusTarget = restoreFocus
     ? navigationOverlayControls.previousFocus && typeof navigationOverlayControls.previousFocus.focus === 'function'
@@ -980,8 +1024,23 @@ function focusPanel() {
 
 function setupLanguageToggle() {
   const button = document.getElementById('btnLang');
+  if (!button) return;
   const dialog = document.getElementById('language-dialog');
-  if (!button || !dialog) return;
+  const handleClick = event => {
+    event.preventDefault();
+    if (dialog && (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey)) {
+      openLanguageDialog(button);
+      return;
+    }
+    cycleLanguage();
+  };
+  button.addEventListener('click', handleClick);
+  if (!dialog) {
+    button.removeAttribute('aria-controls');
+    button.setAttribute('aria-haspopup', 'false');
+    button.setAttribute('aria-expanded', 'false');
+    return;
+  }
   const optionsContainer = dialog.querySelector('[data-language-options]');
   const cancelButton = dialog.querySelector('[data-language-cancel]');
   if (!optionsContainer) return;
@@ -999,14 +1058,6 @@ function setupLanguageToggle() {
   button.setAttribute('aria-expanded', 'false');
   button.setAttribute('aria-controls', 'language-dialog');
   renderLanguageOptions();
-  button.addEventListener('click', event => {
-    event.preventDefault();
-    if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
-      openLanguageDialog(button);
-      return;
-    }
-    cycleLanguage();
-  });
   if (cancelButton) {
     cancelButton.addEventListener('click', event => {
       event.preventDefault();
@@ -1118,7 +1169,7 @@ function handleLanguageSelection(lang, options = {}) {
   }
 }
 
-function cycleLanguage() {
+function cycleLanguage(options = {}) {
   if (!Array.isArray(LANG_RESOURCES) || !LANG_RESOURCES.length) {
     return;
   }
@@ -1127,7 +1178,10 @@ function cycleLanguage() {
   const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % LANG_RESOURCES.length : 0;
   const next = LANG_RESOURCES[nextIndex];
   if (next) {
-    handleLanguageSelection(next.lang, { closeMenu: false, focusPanelAfter: false });
+    handleLanguageSelection(next.lang, {
+      closeMenu: options.closeMenu ?? false,
+      focusPanelAfter: options.focusPanelAfter ?? false
+    });
   }
 }
 
@@ -1186,11 +1240,7 @@ function showUserPanelShortcut(options = {}) {
 }
 
 function handleUserPanelShortcutClick() {
-  if (miniAppState.activeId === USER_PANEL_MINI_APP_ID) {
-    focusPanel();
-    return true;
-  }
-  return activateUserPanelMiniApp();
+  return false;
 }
 
 function updateUserPanelShortcut() {
@@ -1199,12 +1249,7 @@ function updateUserPanelShortcut() {
   const srOnly = button.querySelector('.sr-only');
   const user = currentUser();
   const baseLabel = t('actions.openUserPanel');
-  let label = baseLabel;
-  if (user && user.name) {
-    const contextKey = 'actions.openUserPanelWithName';
-    const contextual = t(contextKey, { name: user.name });
-    label = contextual === contextKey ? `${baseLabel} (${user.name})` : contextual;
-  }
+  const label = baseLabel;
   button.setAttribute('aria-label', label);
   button.title = label;
   if (srOnly) {
@@ -1218,6 +1263,10 @@ function setupUserMenu() {
   if (!button || !menu) return;
   menu.hidden = true;
   menu.setAttribute('aria-hidden', 'true');
+  const panel = menu.querySelector('[data-user-menu-panel]');
+  userMenuElements.menu = menu;
+  userMenuElements.panel = panel || null;
+  setUserMenuPointerInteractivity(true);
   if (!button.hasAttribute('aria-controls')) {
     button.setAttribute('aria-controls', menu.id);
   }
@@ -1248,6 +1297,15 @@ function setupUserMenu() {
   });
 
   refreshUserMenu();
+}
+
+function setUserMenuPointerInteractivity(interactive) {
+  const { menu, panel } = userMenuElements;
+  if (!menu || !panel) {
+    return;
+  }
+  menu.style.pointerEvents = 'none';
+  panel.style.pointerEvents = interactive ? 'auto' : 'none';
 }
 
 function focusFirstUserMenuItem(menu) {
@@ -1297,11 +1355,8 @@ function setMenuItemVisibility(button, visible) {
 
 function handleUserAction(action) {
   if (action === 'profile') {
-    const opened = activateUserPanelMiniApp();
     closeActiveMenu();
-    if (!opened) {
-      window.location.href = USER_PANEL_URL.href;
-    }
+    window.location.href = USER_PANEL_URL.href;
     return;
   }
   if (action === 'logout') {
@@ -1323,6 +1378,9 @@ function redirectIfAuthenticationRequired(user) {
   if (typeof window === 'undefined') return;
   const activeUser = user ?? currentUser();
   if (activeUser) {
+    return;
+  }
+  if (isRedirectingHome) {
     return;
   }
   const loginForm = document.getElementById('login-form');
@@ -1415,8 +1473,20 @@ function handleDocumentClick(event) {
       closeNavigationOverlay({ restoreFocus: false });
     }
   }
+  if (userMenuElements.skipClose) {
+    userMenuElements.skipClose = false;
+    return;
+  }
   if (!activeMenu) return;
   const { button, menu } = activeMenu;
+  const navTrigger = document.getElementById('btnMenu');
+  if (navTrigger && navTrigger.contains(event.target)) {
+    return;
+  }
+  const navigationOverlay = document.getElementById('navigation-overlay');
+  if (navigationOverlay && !navigationOverlay.hidden && navigationOverlay.contains(event.target)) {
+    return;
+  }
   if (button.contains(event.target) || menu.contains(event.target)) return;
   closeActiveMenu();
 }
@@ -2106,6 +2176,13 @@ function scheduleFeedbackClear(element, delay = FEEDBACK_CLEAR_DELAY) {
 
 function announceTo(element, message) {
   if (!element) return;
+  if (message) {
+    const existingTimeout = feedbackTimers.get(element);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      feedbackTimers.delete(element);
+    }
+  }
   element.textContent = message;
 }
 
