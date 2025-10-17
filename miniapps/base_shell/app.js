@@ -63,6 +63,12 @@ const MINI_APP_CATALOG = [
 
 const MINI_APP_CATALOG_MAP = new Map(MINI_APP_CATALOG.map(item => [item.id, item]));
 
+const NAVIGATION_ITEMS = [
+  { id: 'nav-home', labelKey: 'nav.dashboard', icon: '🏠', action: 'home' },
+  { id: 'nav-activity', labelKey: 'nav.activity', icon: '🗂', action: 'placeholder' },
+  { id: 'nav-analytics', labelKey: 'nav.analytics', icon: '📊', action: 'placeholder' }
+];
+
 const DEFAULT_MINI_APP_CONTENT = {
   titleKey: 'panel.welcomeTitle',
   messageKey: 'panel.welcomeMessage'
@@ -87,11 +93,8 @@ const HOME_REDIRECT_DELAY = 500;
 
 const FEEDBACK_CLEAR_DELAY = 3000;
 const PANEL_HIGHLIGHT_DURATION = 1600;
-const SIDEBAR_STORAGE_KEY = `${SHELL_APP_ID}:sidebar.collapsed`;
-const SIDEBAR_RESPONSIVE_QUERY = '(max-width: 900px)';
 const feedbackTimers = new WeakMap();
 const highlightTimers = new WeakMap();
-const preferenceStorage = createPreferenceStorage(() => window.localStorage);
 
 let revisionInfo = null;
 let activeMenu = null;
@@ -125,7 +128,7 @@ function renderLanguageIcon(target, lang) {
   image.src = source;
 }
 
-let sidebarControls = null;
+let navigationOverlayControls = null;
 let miniAppMenuControls = null;
 let homeNavigationControls = null;
 
@@ -164,8 +167,8 @@ async function bootstrap() {
   updateUserPanelShortcut();
   updateUserDisplay(currentUser());
   updateProfileView(currentUser());
-  updateSidebarVisibility(currentUser());
-  setupSidebar();
+  setupNavigationOverlay();
+  updateNavigationVisibility(currentUser());
   const miniApps = withUserPanelMiniApp(await loadActiveMiniApps());
   const initialMiniAppId = getInitialMiniAppId(miniApps);
   if (initialMiniAppId) {
@@ -208,7 +211,7 @@ async function bootstrap() {
     refreshUserManagement();
     updateRegistrationAccess();
     updateOnboardingState();
-    updateSidebarVisibility(user);
+    updateNavigationVisibility(user);
   });
 }
 
@@ -420,143 +423,242 @@ function updateRevisionMetadata() {
   }
 }
 
-function getSidebarControls() {
-  if (sidebarControls) {
-    return sidebarControls;
-  }
-  const shell = document.querySelector('.app-shell');
-  const menuButton = document.getElementById('btnMenu');
-  if (!shell || !menuButton) {
-    return null;
-  }
-  sidebarControls = { shell, buttons: [menuButton] };
-  return sidebarControls;
-}
-
-function setSidebarCollapsed(collapsed, options = {}) {
-  const controls = getSidebarControls();
-  if (!controls) return;
-  const { shell, buttons } = controls;
-  const shouldCollapse = Boolean(collapsed);
-  shell.classList.toggle('is-collapsed', shouldCollapse);
-  shell.dataset.sidebarCollapsed = String(shouldCollapse);
-  buttons.forEach(button => button.setAttribute('aria-expanded', String(!shouldCollapse)));
-  updateSidebarNavigationLabels(shouldCollapse);
-  if (options.persist !== false) {
-    persistSidebarPreference(shouldCollapse);
-  }
-  if (shouldCollapse && options.closeSettingsMenu !== false) {
-    closeActiveMenu();
-    closeMiniAppMenu();
-  }
-}
-
-function setupSidebar() {
-  const controls = getSidebarControls();
-  if (!controls) return;
-  const { shell, buttons } = controls;
-  const initialCollapsed = getPreferredSidebarCollapsed();
-  setSidebarCollapsed(initialCollapsed, { persist: false, skipFocus: true });
-  buttons.forEach(button => {
-    button.addEventListener('click', () => {
-      const next = !shell.classList.contains('is-collapsed');
-      setSidebarCollapsed(next);
-    });
-  });
-  setupResponsiveSidebarObserver();
-  setupSidebarKeyboardNavigation();
-  refreshSidebarNavigationLabels();
-  setupHomeNavigation();
-}
-
-function getPreferredSidebarCollapsed() {
-  if (shouldCollapseForViewport()) {
-    return true;
-  }
-  const stored = getStoredSidebarPreference();
-  if (stored !== null) {
-    return stored;
-  }
-  return false;
-}
-
-function shouldCollapseForViewport() {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
-    return false;
-  }
-  try {
-    const mediaQuery = window.matchMedia(SIDEBAR_RESPONSIVE_QUERY);
-    return Boolean(mediaQuery && mediaQuery.matches);
-  } catch (error) {
-    console.warn('shell: unable to evaluate responsive sidebar media query', error);
-    return false;
-  }
-}
-
-function setupResponsiveSidebarObserver() {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+function setupNavigationOverlay() {
+  const trigger = document.getElementById('btnMenu');
+  const host = document.getElementById('nav-overlay-root');
+  if (!trigger || !host) {
+    navigationOverlayControls = null;
     return;
   }
-  try {
-    const mediaQuery = window.matchMedia(SIDEBAR_RESPONSIVE_QUERY);
-    const handler = event => {
-      const storedPreference = getStoredSidebarPreference();
-      if (event.matches) {
-        setSidebarCollapsed(true, { persist: false, skipFocus: true });
-        return;
-      }
-      if (storedPreference !== null) {
-        setSidebarCollapsed(storedPreference, { persist: false, skipFocus: true });
-      } else {
-        setSidebarCollapsed(false, { persist: false, skipFocus: true });
-      }
-    };
-    if (typeof mediaQuery.addEventListener === 'function') {
-      mediaQuery.addEventListener('change', handler);
-    } else if (typeof mediaQuery.addListener === 'function') {
-      mediaQuery.addListener(handler);
-    }
-  } catch (error) {
-    console.warn('shell: unable to setup responsive sidebar observer', error);
+  if (navigationOverlayControls && navigationOverlayControls.overlay && host.contains(navigationOverlayControls.overlay)) {
+    return;
   }
+  const overlay = document.createElement('div');
+  overlay.className = 'navigation-overlay';
+  overlay.id = 'navigation-overlay';
+  overlay.hidden = true;
+  overlay.dataset.navigationOverlay = 'true';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'navigation-overlay-title');
+  overlay.addEventListener('click', event => {
+    if (event.target === overlay) {
+      closeNavigationOverlay({ restoreFocus: false });
+    }
+  });
+
+  const panel = document.createElement('div');
+  panel.className = 'navigation-overlay__panel';
+  panel.dataset.navigationPanel = 'true';
+  panel.setAttribute('role', 'document');
+
+  const header = document.createElement('header');
+  header.className = 'navigation-overlay__header';
+
+  const title = document.createElement('h2');
+  title.id = 'navigation-overlay-title';
+  title.className = 'navigation-overlay__title';
+  title.dataset.i18n = 'nav.overlay.title';
+  title.textContent = 'Navigation';
+
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.className = 'navigation-overlay__close ghost';
+  closeButton.dataset.navigationClose = 'true';
+  closeButton.dataset.i18n = 'actions.close';
+  closeButton.textContent = 'Close';
+  closeButton.addEventListener('click', () => closeNavigationOverlay({ restoreFocus: true }));
+
+  header.append(title, closeButton);
+
+  const primarySection = document.createElement('section');
+  primarySection.className = 'navigation-overlay__section';
+
+  const primaryList = document.createElement('ul');
+  primaryList.className = 'navigation-overlay__list';
+  primaryList.dataset.navigationList = 'true';
+  primarySection.append(primaryList);
+
+  const miniAppSection = document.createElement('section');
+  miniAppSection.className = 'navigation-overlay__section navigation-overlay__section--miniapps';
+  miniAppSection.dataset.navigationMiniapps = 'true';
+
+  const miniAppTitle = document.createElement('h3');
+  miniAppTitle.className = 'navigation-overlay__subtitle';
+  miniAppTitle.dataset.i18n = 'nav.overlay.miniapps';
+  miniAppTitle.textContent = 'Mini-apps';
+
+  const miniAppList = document.createElement('ul');
+  miniAppList.className = 'navigation-overlay__miniapps';
+  miniAppList.dataset.navigationMiniappList = 'true';
+  miniAppSection.append(miniAppTitle, miniAppList);
+
+  panel.append(header, primarySection, miniAppSection);
+  overlay.append(panel);
+  host.append(overlay);
+
+  trigger.setAttribute('aria-haspopup', 'dialog');
+  trigger.setAttribute('aria-controls', overlay.id);
+  trigger.setAttribute('aria-expanded', 'false');
+
+  trigger.addEventListener('click', event => {
+    event.preventDefault();
+    if (overlay.hidden) {
+      openNavigationOverlay();
+    } else {
+      closeNavigationOverlay({ restoreFocus: true });
+    }
+  });
+
+  navigationOverlayControls = {
+    trigger,
+    overlay,
+    panel,
+    navList: primaryList,
+    miniAppSection,
+    miniAppList,
+    closeButton,
+    title,
+    miniAppTitle,
+    previousFocus: null
+  };
+
+  miniAppMenuControls = { list: miniAppList, section: miniAppSection };
+
+  renderNavigationItems();
+  applyTranslations();
+  refreshSidebarNavigationLabels();
+}
+
+function renderNavigationItems() {
+  if (!navigationOverlayControls) return;
+  const { navList } = navigationOverlayControls;
+  if (!navList) return;
+  navList.innerHTML = '';
+  const homeButtons = [];
+  NAVIGATION_ITEMS.forEach((item, index) => {
+    const listItem = document.createElement('li');
+    listItem.className = 'navigation-overlay__item';
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'navigation-overlay__action';
+    button.dataset.navAction = item.action;
+    button.dataset.navigationAction = item.action;
+    button.dataset.navigationLabel = 'true';
+    if (index === 0) {
+      button.dataset.navigationFocus = 'true';
+    }
+    const icon = document.createElement('span');
+    icon.className = 'navigation-overlay__icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = item.icon || '•';
+    const label = document.createElement('span');
+    label.className = 'navigation-overlay__label';
+    label.dataset.i18n = item.labelKey;
+    label.dataset.navigationText = 'true';
+    label.setAttribute('aria-hidden', 'true');
+    label.textContent = item.labelKey;
+    const srOnly = document.createElement('span');
+    srOnly.className = 'sr-only';
+    srOnly.dataset.i18n = item.labelKey;
+    srOnly.textContent = item.labelKey;
+    button.append(icon, label, srOnly);
+    button.addEventListener('click', () => {
+      handleNavigationAction(item.action);
+    });
+    if (item.action === 'home') {
+      homeButtons.push(button);
+    }
+    listItem.appendChild(button);
+    navList.appendChild(listItem);
+  });
+  homeNavigationControls = { homeLinks: homeButtons };
+  applyTranslations();
+  refreshSidebarNavigationLabels();
+  updateNavigationState();
+}
+
+function handleNavigationAction(action) {
+  if (action === 'home') {
+    const wasActive = Boolean(miniAppState.activeId);
+    setActiveMiniApp(null);
+    closeNavigationOverlay({ restoreFocus: false });
+    if (wasActive) {
+      focusPanel();
+    }
+    return;
+  }
+  closeNavigationOverlay({ restoreFocus: false });
+  focusPanel();
+}
+
+function openNavigationOverlay() {
+  if (!navigationOverlayControls) return;
+  const { overlay, trigger } = navigationOverlayControls;
+  if (!overlay || !overlay.hidden) return;
+  navigationOverlayControls.previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  renderNavigationItems();
+  renderMiniAppMenu();
+  overlay.hidden = false;
+  overlay.classList.add('is-open');
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+  const focusTarget = overlay.querySelector('[data-navigation-focus]') || overlay.querySelector('button');
+  if (focusTarget && typeof focusTarget.focus === 'function') {
+    window.requestAnimationFrame(() => focusTarget.focus());
+  }
+}
+
+function closeNavigationOverlay(options = {}) {
+  const { restoreFocus = true } = options;
+  if (!navigationOverlayControls) return false;
+  const { overlay, trigger } = navigationOverlayControls;
+  if (!overlay || overlay.hidden) {
+    return false;
+  }
+  overlay.hidden = true;
+  overlay.classList.remove('is-open');
+  if (trigger) {
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+  const focusTarget = restoreFocus
+    ? navigationOverlayControls.previousFocus && typeof navigationOverlayControls.previousFocus.focus === 'function'
+      ? navigationOverlayControls.previousFocus
+      : trigger
+    : null;
+  navigationOverlayControls.previousFocus = null;
+  if (focusTarget) {
+    window.requestAnimationFrame(() => focusTarget.focus());
+  }
+  return true;
 }
 
 function refreshSidebarNavigationLabels() {
-  const controls = getSidebarControls();
-  if (!controls) return;
-  const { shell } = controls;
-  const isCollapsed = shell.classList.contains('is-collapsed');
-  updateSidebarNavigationLabels(isCollapsed);
-}
-
-function updateSidebarNavigationLabels(collapsed) {
-  const sidebar = document.getElementById('sidebar');
-  if (!sidebar) return;
-  const interactive = sidebar.querySelectorAll(
-    'nav > ul > li > a, nav > ul > li > button.submenu-toggle'
-  );
-  interactive.forEach(control => {
-    const label = getSidebarItemLabel(control);
+  if (!navigationOverlayControls) return;
+  const { navList, miniAppList } = navigationOverlayControls;
+  const controls = [];
+  if (navList) {
+    controls.push(...navList.querySelectorAll('[data-navigation-label]'));
+  }
+  if (miniAppList) {
+    controls.push(...miniAppList.querySelectorAll('[data-navigation-label]'));
+  }
+  controls.forEach(control => {
+    const label = getNavigationControlLabel(control);
     if (!label) {
       return;
     }
-    if (collapsed) {
-      control.setAttribute('aria-label', label);
-      control.title = label;
-      control.dataset.sidebarAutoLabel = 'true';
-    } else if (control.dataset.sidebarAutoLabel === 'true') {
-      control.removeAttribute('aria-label');
-      control.removeAttribute('title');
-      delete control.dataset.sidebarAutoLabel;
-    }
+    control.setAttribute('aria-label', label);
+    control.title = label;
   });
 }
 
-function getSidebarItemLabel(control) {
+function getNavigationControlLabel(control) {
   if (!control) return '';
-  const labelNode = control.querySelector('[data-sidebar-label]');
-  if (labelNode && labelNode.textContent) {
-    return labelNode.textContent.trim();
+  const textNode = control.querySelector('[data-navigation-text]');
+  if (textNode && textNode.textContent) {
+    return textNode.textContent.trim();
   }
   const srOnly = control.querySelector('.sr-only');
   if (srOnly && srOnly.textContent) {
@@ -575,80 +677,6 @@ function getSidebarItemLabel(control) {
   return control.textContent ? control.textContent.trim() : '';
 }
 
-function setupSidebarKeyboardNavigation() {
-  const sidebar = document.getElementById('sidebar');
-  if (!sidebar || sidebar.dataset.sidebarKeyboard === 'true') {
-    return;
-  }
-  const handleKeydown = event => {
-    const keys = ['ArrowDown', 'ArrowUp', 'Home', 'End'];
-    if (!keys.includes(event.key)) {
-      return;
-    }
-    const focusable = getSidebarFocusableItems();
-    if (!focusable.length) return;
-    const currentIndex = focusable.indexOf(document.activeElement);
-    if (currentIndex === -1) return;
-    event.preventDefault();
-    let nextIndex = currentIndex;
-    switch (event.key) {
-      case 'ArrowDown':
-        nextIndex = (currentIndex + 1) % focusable.length;
-        break;
-      case 'ArrowUp':
-        nextIndex = (currentIndex - 1 + focusable.length) % focusable.length;
-        break;
-      case 'Home':
-        nextIndex = 0;
-        break;
-      case 'End':
-        nextIndex = focusable.length - 1;
-        break;
-      default:
-        break;
-    }
-    const nextItem = focusable[nextIndex];
-    if (nextItem && typeof nextItem.focus === 'function') {
-      nextItem.focus();
-    }
-  };
-  sidebar.addEventListener('keydown', handleKeydown);
-  sidebar.dataset.sidebarKeyboard = 'true';
-}
-
-function getSidebarFocusableItems() {
-  const sidebar = document.getElementById('sidebar');
-  if (!sidebar) return [];
-  const selector = 'a[href], button:not([disabled])';
-  return Array.from(sidebar.querySelectorAll(selector)).filter(element => {
-    if (element.hasAttribute('hidden')) {
-      return false;
-    }
-    const isHidden = element.closest('[hidden]');
-    return !isHidden;
-  });
-}
-
-function setupHomeNavigation() {
-  const shell = document.querySelector('.app-shell');
-  if (!shell) return;
-  const homeLinks = Array.from(shell.querySelectorAll('[data-nav-action="home"]'));
-  if (!homeLinks.length) return;
-  homeNavigationControls = { homeLinks };
-  homeLinks.forEach(link => {
-    link.addEventListener('click', event => {
-      event.preventDefault();
-      const wasActive = Boolean(miniAppState.activeId);
-      setActiveMiniApp(null);
-      closeMiniAppMenu();
-      if (wasActive) {
-        focusPanel();
-      }
-    });
-  });
-  updateNavigationState();
-}
-
 function updateNavigationState() {
   if (!homeNavigationControls || !Array.isArray(homeNavigationControls.homeLinks)) {
     return;
@@ -657,73 +685,58 @@ function updateNavigationState() {
   homeNavigationControls.homeLinks.forEach(link => {
     if (isHomeActive) {
       link.setAttribute('aria-current', 'page');
+      link.classList.add('is-active');
     } else {
       link.removeAttribute('aria-current');
+      link.classList.remove('is-active');
     }
   });
 }
 
 function setupMiniAppMenu(items) {
-  const toggle = document.getElementById('miniapp-toggle');
-  const submenu = document.getElementById('miniapp-submenu');
-  if (!toggle || !submenu) return;
-  const container = toggle.closest('.has-submenu');
-  miniAppMenuControls = { toggle, submenu, container };
-  toggle.setAttribute('aria-expanded', 'false');
-  submenu.hidden = true;
   miniAppState.items = withUserPanelMiniApp(items);
-  toggle.addEventListener('click', () => {
-    const expanded = toggle.getAttribute('aria-expanded') === 'true';
-    const next = !expanded;
-    if (next) {
-      closeActiveMenu();
-    }
-    toggle.setAttribute('aria-expanded', String(next));
-    submenu.hidden = !next;
-    if (next) {
-      renderMiniAppMenu();
-    }
-  });
   renderMiniAppMenu();
   updateMiniAppPanel();
 }
 
 function renderMiniAppMenu() {
   if (!miniAppMenuControls) return;
-  const { toggle, submenu } = miniAppMenuControls;
+  const { list, section } = miniAppMenuControls;
+  if (!list || !section) return;
   const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
   const visibleItems = items.filter(item => !item?.hidden);
-  submenu.innerHTML = '';
-  toggle.disabled = visibleItems.length === 0;
-  toggle.setAttribute('aria-disabled', visibleItems.length === 0 ? 'true' : 'false');
+  list.innerHTML = '';
   if (!visibleItems.length) {
-    toggle.setAttribute('aria-expanded', 'false');
-    submenu.hidden = true;
-    updateMiniAppToggleLabel();
+    section.hidden = true;
+    section.setAttribute('aria-hidden', 'true');
+    refreshSidebarNavigationLabels();
     return;
   }
+  section.hidden = false;
+  section.setAttribute('aria-hidden', 'false');
   visibleItems.forEach(item => {
     const listItem = document.createElement('li');
+    listItem.className = 'navigation-overlay__miniapp-item';
     const button = document.createElement('button');
     button.type = 'button';
-    button.classList.add('submenu-action');
+    button.className = 'navigation-overlay__miniapp';
     button.dataset.miniappId = item.id;
-    const isActive = item.id === miniAppState.activeId;
-    if (isActive) {
+    button.dataset.navigationLabel = 'true';
+    if (item.id === miniAppState.activeId) {
       button.classList.add('is-active');
       button.setAttribute('aria-pressed', 'true');
     } else {
       button.setAttribute('aria-pressed', 'false');
     }
     const icon = document.createElement('span');
-    icon.className = 'submenu-icon';
+    icon.className = 'navigation-overlay__miniapp-icon';
     icon.setAttribute('aria-hidden', 'true');
     icon.textContent = item.icon || '🧩';
     const label = document.createElement('span');
-    label.className = 'submenu-label';
-    label.setAttribute('aria-hidden', 'true');
+    label.className = 'navigation-overlay__miniapp-label';
     label.dataset.i18n = item.labelKey;
-    label.dataset.sidebarLabel = 'true';
+    label.dataset.navigationText = 'true';
+    label.setAttribute('aria-hidden', 'true');
     label.textContent = item.labelKey;
     const srOnly = document.createElement('span');
     srOnly.className = 'sr-only';
@@ -732,22 +745,15 @@ function renderMiniAppMenu() {
     button.append(icon, label, srOnly);
     button.addEventListener('click', () => {
       setActiveMiniApp(item.id);
-      closeMiniAppMenu();
+      closeNavigationOverlay({ restoreFocus: false });
+      focusPanel();
     });
     listItem.appendChild(button);
-    submenu.appendChild(listItem);
+    list.appendChild(listItem);
   });
   applyTranslations();
-  submenu.querySelectorAll('.submenu-action').forEach(button => {
-    const srOnly = button.querySelector('.sr-only');
-    if (srOnly) {
-      const label = srOnly.textContent.trim();
-      button.setAttribute('aria-label', label);
-      button.title = label;
-    }
-  });
   refreshSidebarNavigationLabels();
-  updateMiniAppToggleLabel();
+  updateNavigationState();
 }
 
 function setActiveMiniApp(id, options = {}) {
@@ -782,18 +788,7 @@ function activateUserPanelMiniApp(options = {}) {
 }
 
 function closeMiniAppMenu() {
-  if (!miniAppMenuControls) return;
-  const { toggle, submenu } = miniAppMenuControls;
-  if (!toggle || !submenu) return;
-  toggle.setAttribute('aria-expanded', 'false');
-  submenu.hidden = true;
-  if (miniAppMenuControls.shouldRestoreSettings) {
-    const restore = () => {
-      openSettingsMenu();
-    };
-    miniAppMenuControls.shouldRestoreSettings = false;
-    setTimeout(restore, 0);
-  }
+  closeNavigationOverlay({ restoreFocus: false });
 }
 
 function updateMiniAppPanel() {
@@ -820,17 +815,6 @@ function updateMiniAppPanel() {
   }
   applyTranslations();
   renderMiniAppStage(active ? active.id : null);
-}
-
-function updateMiniAppToggleLabel() {
-  if (!miniAppMenuControls) return;
-  const { toggle } = miniAppMenuControls;
-  if (!toggle) return;
-  const labelNode = toggle.querySelector('.label');
-  const labelText = labelNode ? labelNode.textContent.trim() : '';
-  const text = labelText || t('nav.miniapps');
-  toggle.setAttribute('aria-label', text);
-  toggle.title = text;
 }
 
 function getStageHost() {
@@ -1358,10 +1342,10 @@ function handleDocumentClick(event) {
   if (shouldResetDialogSuppression && languageDialogControls) {
     languageDialogControls.suppressDocumentClose = false;
   }
-  if (miniAppMenuControls && miniAppMenuControls.container) {
-    const { container } = miniAppMenuControls;
-    if (!container.contains(event.target)) {
-      closeMiniAppMenu();
+  if (navigationOverlayControls && navigationOverlayControls.overlay && !navigationOverlayControls.overlay.hidden) {
+    const { overlay, panel, trigger } = navigationOverlayControls;
+    if (panel && !panel.contains(event.target) && !trigger.contains(event.target)) {
+      closeNavigationOverlay({ restoreFocus: false });
     }
   }
   if (!activeMenu) return;
@@ -1375,33 +1359,10 @@ function handleKeydown(event) {
     if (closeLanguageDialog()) {
       return;
     }
+    if (closeNavigationOverlay({ restoreFocus: true })) {
+      return;
+    }
     closeActiveMenu();
-    closeMiniAppMenu();
-  }
-}
-
-function getStoredSidebarPreference() {
-  try {
-    const stored = preferenceStorage.get(SIDEBAR_STORAGE_KEY);
-    if (stored === 'collapsed') {
-      return true;
-    }
-    if (stored === 'expanded') {
-      return false;
-    }
-    return null;
-  } catch (error) {
-    console.warn('shell: unable to read sidebar preference', error);
-    return null;
-  }
-}
-
-function persistSidebarPreference(collapsed) {
-  const value = collapsed ? 'collapsed' : 'expanded';
-  try {
-    preferenceStorage.set(SIDEBAR_STORAGE_KEY, value);
-  } catch (error) {
-    console.warn('shell: unable to persist sidebar preference', error);
   }
 }
 
@@ -1626,31 +1587,20 @@ function updateUserDisplay(user) {
   }
 }
 
-function updateSidebarVisibility(user) {
+function updateNavigationVisibility(user) {
   const isAuthenticated = Boolean(user);
-  const controls = getSidebarControls();
-  const shell = controls?.shell || document.querySelector('.app-shell');
-  const sidebar = document.getElementById('sidebar');
-  if (shell) {
-    shell.dataset.sidebarHidden = String(!isAuthenticated);
-  }
-  if (sidebar) {
-    sidebar.hidden = !isAuthenticated;
-    sidebar.setAttribute('aria-hidden', isAuthenticated ? 'false' : 'true');
-  }
-  if (controls && Array.isArray(controls.buttons)) {
-    controls.buttons.forEach(button => {
-      if (!button) return;
-      button.hidden = !isAuthenticated;
-      if (!isAuthenticated) {
-        button.setAttribute('aria-hidden', 'true');
-      } else {
-        button.removeAttribute('aria-hidden');
-      }
-    });
+  const trigger = navigationOverlayControls?.trigger || document.getElementById('btnMenu');
+  if (trigger) {
+    trigger.hidden = !isAuthenticated;
+    if (!isAuthenticated) {
+      trigger.setAttribute('aria-hidden', 'true');
+      trigger.setAttribute('aria-expanded', 'false');
+    } else {
+      trigger.removeAttribute('aria-hidden');
+    }
   }
   if (!isAuthenticated) {
-    closeMiniAppMenu();
+    closeNavigationOverlay({ restoreFocus: false });
     closeActiveMenu();
   }
 }
@@ -1968,7 +1918,12 @@ function handleUserDelete(user) {
 }
 
 function shouldAllowPublicRegistration() {
-  return true;
+  try {
+    return listUsers().length === 0;
+  } catch (error) {
+    console.warn('auth: unable to determine registration availability', error);
+    return true;
+  }
 }
 
 function updateRegistrationAccess() {
@@ -2007,43 +1962,6 @@ function formatUserDate(timestamp) {
   } catch (error) {
     return '—';
   }
-}
-
-function createPreferenceStorage(getStorage) {
-  const resolveStorage = () => {
-    if (typeof getStorage === 'function') {
-      try {
-        return getStorage() || null;
-      } catch (error) {
-        console.warn('shell: preference storage unavailable', error);
-        return null;
-      }
-    }
-    return getStorage || null;
-  };
-  return {
-    get(key) {
-      const storage = resolveStorage();
-      if (!storage || typeof storage.getItem !== 'function') {
-        return null;
-      }
-      return storage.getItem(key);
-    },
-    set(key, value) {
-      const storage = resolveStorage();
-      if (!storage || typeof storage.setItem !== 'function') {
-        return;
-      }
-      storage.setItem(key, value);
-    },
-    remove(key) {
-      const storage = resolveStorage();
-      if (!storage || typeof storage.removeItem !== 'function') {
-        return;
-      }
-      storage.removeItem(key);
-    }
-  };
 }
 
 function scheduleFeedbackClear(element, delay = FEEDBACK_CLEAR_DELAY) {

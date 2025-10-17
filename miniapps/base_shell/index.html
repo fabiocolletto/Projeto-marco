@@ -10,9 +10,10 @@
   <body>
     <div class="app-shell" data-state="ready">
       <header class="app-header" role="banner">
-        <button id="btnMenu" class="ghost" aria-label="Menu" aria-expanded="true">
+        <button id="btnMenu" class="ghost" aria-label="Menu" aria-expanded="false">
           <span aria-hidden="true">☰</span>
         </button>
+        <div id="nav-overlay-root"></div>
         <img
           id="logo"
           class="brand"
@@ -68,44 +69,6 @@
         </div>
       </header>
       <div class="layout">
-        <aside id="sidebar" class="sidebar" aria-label="Navegação principal">
-          <nav>
-            <ul>
-              <li>
-                <a href="#" data-nav-action="home" title="Dashboard">
-                  <span class="icon" aria-hidden="true">🏠</span>
-                  <span class="label" data-sidebar-label data-i18n="nav.dashboard">Início</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" title="Atividades">
-                  <span class="icon" aria-hidden="true">🗂</span>
-                  <span class="label" data-sidebar-label data-i18n="nav.activity">Atividades</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" title="Análises">
-                  <span class="icon" aria-hidden="true">📊</span>
-                  <span class="label" data-sidebar-label data-i18n="nav.analytics">Análises</span>
-                </a>
-              </li>
-              <li class="has-submenu">
-                <button
-                  id="miniapp-toggle"
-                  class="submenu-toggle"
-                  type="button"
-                  aria-expanded="false"
-                  aria-controls="miniapp-submenu"
-                >
-                  <span class="icon" aria-hidden="true">🧩</span>
-                  <span class="label" data-sidebar-label data-i18n="nav.miniapps">Mini-apps</span>
-                  <span class="submenu-caret" aria-hidden="true">▾</span>
-                </button>
-                <ul id="miniapp-submenu" class="submenu" hidden data-miniapp-menu></ul>
-              </li>
-            </ul>
-          </nav>
-        </aside>
         <main id="panel" class="panel" role="main" tabindex="-1">
           <section class="panel-content">
             <div class="stage-fallback" data-stage-fallback>
