@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Dialog } from '@playwright/test';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
@@ -412,5 +412,30 @@ test.describe('MiniApp Base shell', () => {
       return JSON.parse(raw).map((user: { email: string }) => user.email).sort();
     }).toEqual(['bruno.partner@example.com']);
     await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
+
+    await openUserMenu();
+    const navigationPromise = page.waitForNavigation({ url: /auth\/login\.html$/ });
+    const resetDialogPromise = new Promise(resolve => {
+      page.once('dialog', async dialog => {
+        resolve(dialog);
+        await dialog.accept();
+      });
+    });
+    await page.click('#user-menu button[data-action="reset-data"]');
+    const resetDialog = (await resetDialogPromise) as Dialog;
+    expect(resetDialog.message()).toContain('¿Seguro que deseas eliminar todos los datos registrados en este dispositivo?');
+    await navigationPromise;
+
+    await expect(page.locator('#login-feedback')).toHaveText(
+      'Todos los datos fueron eliminados. Redirigiendo a la pantalla de inicio de sesión.'
+    );
+
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.users'))).toBeNull();
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBeNull();
+    await expect.poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session'))).toBeNull();
+    await expect
+      .poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.lang')))
+      .toBe('pt-br');
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.theme'))).toBeNull();
   });
 });

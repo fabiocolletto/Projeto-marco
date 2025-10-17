@@ -22,7 +22,8 @@ import {
   updateUserProfile,
   changePassword,
   deleteUser,
-  setUserPassword
+  setUserPassword,
+  resetAuth
 } from '../../packages/base.security/auth.js';
 
 const LANG_RESOURCES = [
@@ -96,10 +97,43 @@ const USER_PANEL_MINI_APP = {
 const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
 
+const DEFERRED_FEEDBACK_KEY = 'miniapp.base.deferredFeedback';
+
 const FEEDBACK_CLEAR_DELAY = 3000;
 const PANEL_HIGHLIGHT_DURATION = 1600;
 const feedbackTimers = new WeakMap();
 const highlightTimers = new WeakMap();
+
+function storeDeferredFeedback(message) {
+  if (typeof window === 'undefined') return;
+  try {
+    const storage = window.sessionStorage;
+    if (!storage) return;
+    if (!message) {
+      storage.removeItem(DEFERRED_FEEDBACK_KEY);
+    } else {
+      storage.setItem(DEFERRED_FEEDBACK_KEY, message);
+    }
+  } catch (error) {
+    console.warn('app: unable to persist deferred feedback', error);
+  }
+}
+
+function consumeDeferredFeedback() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const storage = window.sessionStorage;
+    if (!storage) return null;
+    const message = storage.getItem(DEFERRED_FEEDBACK_KEY);
+    if (message) {
+      storage.removeItem(DEFERRED_FEEDBACK_KEY);
+      return message;
+    }
+  } catch (error) {
+    console.warn('app: unable to consume deferred feedback', error);
+  }
+  return null;
+}
 
 let revisionInfo = null;
 let activeMenu = null;
@@ -242,6 +276,7 @@ async function bootstrap() {
     updateAdminDashboardHealth();
   });
   redirectIfAuthenticationRequired(currentUser());
+  displayDeferredFeedback();
 }
 
 async function loadDictionaries() {
@@ -1055,11 +1090,16 @@ function setupLanguageToggle() {
   const dialog = document.getElementById('language-dialog');
   const handleClick = event => {
     event.preventDefault();
-    if (!dialog || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) {
-      cycleLanguage();
-      return;
-    }
-    if (!languageDialogControls) {
+    const isPlainActivation = event.detail === 0 || event.detail === 1;
+    if (
+      !dialog ||
+      !languageDialogControls ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.shiftKey ||
+      isPlainActivation
+    ) {
       cycleLanguage();
       return;
     }
@@ -1509,6 +1549,16 @@ function handleUserPanelShortcutClick() {
   return false;
 }
 
+function displayDeferredFeedback() {
+  const message = consumeDeferredFeedback();
+  if (!message) return;
+  announce(message);
+  const feedbackElement = document.querySelector('.feedback');
+  if (feedbackElement) {
+    scheduleFeedbackClear(feedbackElement);
+  }
+}
+
 function updateUserPanelShortcut() {
   const button = document.getElementById('btnUserPanel');
   if (!button) return;
@@ -1620,6 +1670,29 @@ function setMenuItemVisibility(button, visible) {
 }
 
 function handleUserAction(action) {
+  if (action === 'reset-data') {
+    closeActiveMenu();
+    const confirmed = window.confirm(t('actions.resetDataConfirm'));
+    if (!confirmed) {
+      return;
+    }
+    isRedirectingHome = true;
+    const successMessage = t('auth.feedback.dataReset');
+    storeDeferredFeedback(successMessage);
+    closeMiniAppMenu();
+    resetApplicationData();
+    const feedbackElement = document.querySelector('.feedback');
+    if (feedbackElement) {
+      announceTo(feedbackElement, successMessage);
+      scheduleFeedbackClear(feedbackElement);
+    } else {
+      announce(successMessage);
+    }
+    window.setTimeout(() => {
+      window.location.href = LOGIN_URL.href;
+    }, HOME_REDIRECT_DELAY);
+    return;
+  }
   if (action === 'profile') {
     closeActiveMenu();
     window.location.href = USER_PANEL_URL.href;
@@ -1629,6 +1702,21 @@ function handleUserAction(action) {
     closeActiveMenu();
     announce(t('actions.logout'));
     performLogout();
+  }
+}
+
+function resetApplicationData() {
+  resetAuth();
+  if (typeof window === 'undefined') return;
+  try {
+    const { localStorage, sessionStorage } = window;
+    localStorage?.removeItem('miniapp.base.lang');
+    localStorage?.removeItem('miniapp.base.theme');
+    localStorage?.removeItem('miniapp.base.session');
+    localStorage?.removeItem('miniapp.base.users');
+    sessionStorage?.removeItem('miniapp.base.session');
+  } catch (error) {
+    console.warn('app: unable to reset stored data', error);
   }
 }
 
