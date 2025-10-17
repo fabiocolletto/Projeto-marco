@@ -28,6 +28,7 @@
   "settings.language": "Idioma",
   "settings.theme": "Tema",
   "settings.userPanel": "Painel do usuário",
+  "settings.userMenuTitle": "Preferências do usuário",
   "language.dialog.title": "Preferências de idioma",
   "language.dialog.description": "Escolha o idioma da interface. As alterações são aplicadas imediatamente.",
   "panel.welcomeTitle": "Bem-vindo(a)!",
