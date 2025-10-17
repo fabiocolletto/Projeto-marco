@@ -1397,8 +1397,8 @@ function setupAuthForms() {
     const passwordInput = loginForm.querySelector('#login-password');
     const togglePasswordButton = loginForm.querySelector('[data-action="toggle-password"]');
     const rememberCheckbox = loginForm.querySelector('#login-remember');
-    const forgotPasswordButton = loginForm.querySelector('[data-action="forgot-password"]');
-    const switchUserButton = loginForm.querySelector('[data-action="switch-user"]');
+    const forgotPasswordButton = document.querySelector('[data-action="forgot-password"]');
+    const switchUserButton = document.querySelector('[data-action="switch-user"]');
     let isPasswordVisible = false;
 
     const applyPasswordVisibility = visible => {

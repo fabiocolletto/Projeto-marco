@@ -39,24 +39,11 @@ body.auth-login {
   background-attachment: fixed;
 }
 
-body.auth-login .panel { 
+body.auth-login .panel {
   width: min(100%, 520px);
   background: transparent;
   padding: 0;
   justify-content: center;
-}
-
-.auth-login__header {
-  width: min(100%, 520px);
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
-}
-
-.auth-login__header-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 body.auth-login .panel-content {
@@ -66,23 +53,36 @@ body.auth-login .panel-content {
   justify-items: center;
 }
 
-.auth-login__brand {
+.auth-login__card {
+  position: relative;
+  width: min(100%, 420px);
+  padding: clamp(2rem, 5vw, 2.75rem);
+  gap: clamp(1.5rem, 3vw, 2.25rem);
+  justify-items: center;
+}
+
+.auth-login__actions {
+  position: absolute;
+  top: clamp(1rem, 4vw, 1.5rem);
+  right: clamp(1rem, 4vw, 1.5rem);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: min(100%, 240px);
 }
 
-.auth-login__brand-image {
+.auth-login__card-footer {
   width: 100%;
-  height: auto;
+  display: grid;
+  justify-items: center;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
 }
 
-body.auth-login .card.auth-login__form {
+.auth-login__form {
   width: 100%;
+  display: grid;
+  gap: clamp(1rem, 2.5vw, 1.5rem);
 }
 
-body.auth-login .card.auth-login__form > h1 {
+.auth-login__form > h1 {
   margin: 0;
   text-align: center;
 }
@@ -121,8 +121,7 @@ body.auth-login .card.auth-login__form > h1 {
 .auth-login__field-actions {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  justify-content: flex-start;
 }
 
 .auth-login__remember {
@@ -130,11 +129,6 @@ body.auth-login .card.auth-login__form > h1 {
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-}
-
-.auth-login__switch {
-  margin-top: 0.75rem;
-  align-self: flex-start;
 }
 
 body:focus-within .app-shell:focus {
@@ -169,6 +163,11 @@ body:focus-within .app-shell:focus {
 
 .brand {
   height: 36px;
+  width: auto;
+}
+
+.auth-login__card-footer .auth-login__brand-image {
+  height: 18px;
   width: auto;
 }
 
@@ -523,7 +522,8 @@ button:focus-visible,
   margin-top: 0.25rem;
 }
 
-.menu button {
+.menu button,
+.menu a {
   display: inline-flex;
   align-items: center;
   gap: 0.75rem;
@@ -539,8 +539,14 @@ button:focus-visible,
   transition: background-color 0.2s ease;
 }
 
+.menu a {
+  text-decoration: none;
+}
+
 .menu button:hover,
-.menu button:focus-visible {
+.menu button:focus-visible,
+.menu a:hover,
+.menu a:focus-visible {
   background: var(--color-surface-muted);
 }
 

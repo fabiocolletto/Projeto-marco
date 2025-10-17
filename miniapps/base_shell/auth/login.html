@@ -8,121 +8,121 @@
     <link rel="stylesheet" href="../../../packages/base.theme/theme.css" />
   </head>
   <body class="auth-login">
-    <header class="auth-login__header" role="banner">
-      <div id="nav-overlay-root"></div>
-      <div class="auth-login__header-actions">
-        <div class="user-menu" role="group" aria-label="User menu">
-          <button id="btnUser" class="ghost" aria-haspopup="true" aria-expanded="false">
-            <span class="user-avatar" aria-hidden="true">👤</span>
-            <span id="current-user" class="sr-only">--</span>
-          </button>
-          <ul id="user-menu" class="menu" hidden>
-            <li>
-              <button id="btnLang" class="menu-item" type="button">
-                <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
-                <span class="menu-text" data-i18n="settings.language">Idioma</span>
-                <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
-              </button>
-            </li>
-            <li>
-              <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
-                <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
-                <span class="menu-text" data-i18n="settings.theme">Tema</span>
-                <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
-              </button>
-            </li>
-            <li>
-              <button id="btnUserPanel" class="menu-item" type="button">
-                <span class="menu-icon" aria-hidden="true">👤</span>
-                <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
-                <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
-              </button>
-            </li>
-            <li class="menu-divider" role="separator" aria-hidden="true"></li>
-            <li>
-              <button class="menu-item" type="button" data-action="profile">
-                <span class="menu-icon" aria-hidden="true">🔐</span>
-                <span class="menu-text" data-i18n="actions.profile">Perfil</span>
-              </button>
-            </li>
-            <li>
-              <button class="menu-item" type="button" data-action="logout">
-                <span class="menu-icon" aria-hidden="true">🚪</span>
-                <span class="menu-text" data-i18n="actions.logout">Sair</span>
-              </button>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </header>
     <main id="panel" class="panel panel--auth" role="main" tabindex="-1">
       <section class="panel-content auth-login__content">
-        <div class="auth-login__brand">
-          <img
-            id="logo"
-            class="brand auth-login__brand-image"
-            src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-            alt="5Horas"
-            data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-            data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
-          />
-        </div>
-        <form id="login-form" class="card auth-login__form" novalidate>
-          <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
-          <div class="field">
-            <label for="login-email" data-i18n="auth.form.email">E-mail</label>
-            <input id="login-email" name="email" type="email" required autocomplete="email" />
-          </div>
-          <div class="field auth-login__field-password">
-            <label for="login-password" data-i18n="auth.form.password">Senha</label>
-            <div class="auth-login__password-wrapper">
-              <input
-                id="login-password"
-                name="password"
-                type="password"
-                required
-                autocomplete="current-password"
-              />
-              <button
-                type="button"
-                class="link-button auth-login__toggle-password"
-                data-action="toggle-password"
-                aria-controls="login-password"
-                aria-pressed="false"
-                data-i18n="auth.login.showPassword"
-              >
-                Mostrar senha
+        <div class="card auth-login__card">
+          <div id="nav-overlay-root"></div>
+          <div class="auth-login__actions" role="group" aria-label="User menu">
+            <div class="user-menu">
+              <button id="btnUser" class="ghost icon-only" aria-haspopup="true" aria-expanded="false">
+                <span class="user-avatar" aria-hidden="true">👤</span>
+                <span id="current-user" class="sr-only">--</span>
               </button>
+              <ul id="user-menu" class="menu" hidden>
+                <li>
+                  <button id="btnLang" class="menu-item" type="button">
+                    <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
+                    <span class="menu-text" data-i18n="settings.language">Idioma</span>
+                    <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+                  </button>
+                </li>
+                <li>
+                  <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
+                    <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
+                    <span class="menu-text" data-i18n="settings.theme">Tema</span>
+                    <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
+                  </button>
+                </li>
+                <li>
+                  <button id="btnUserPanel" class="menu-item" type="button">
+                    <span class="menu-icon" aria-hidden="true">👤</span>
+                    <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
+                    <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
+                  </button>
+                </li>
+                <li class="menu-divider" role="separator" aria-hidden="true"></li>
+                <li>
+                  <button class="menu-item" type="button" data-action="forgot-password">
+                    <span class="menu-icon" aria-hidden="true">❔</span>
+                    <span class="menu-text" data-i18n="auth.login.forgot">Esqueci minha senha</span>
+                  </button>
+                </li>
+                <li id="login-register-hint" data-register-guard>
+                  <a class="menu-item" href="./register.html">
+                    <span class="menu-icon" aria-hidden="true">🆕</span>
+                    <span class="menu-text" data-i18n="panel.actions.register">Criar conta</span>
+                  </a>
+                </li>
+                <li>
+                  <button class="menu-item" type="button" data-action="switch-user">
+                    <span class="menu-icon" aria-hidden="true">🔄</span>
+                    <span class="menu-text" data-i18n="auth.login.switchUser">Trocar usuário</span>
+                  </button>
+                </li>
+                <li class="menu-divider" role="separator" aria-hidden="true"></li>
+                <li>
+                  <button class="menu-item" type="button" data-action="profile">
+                    <span class="menu-icon" aria-hidden="true">🔐</span>
+                    <span class="menu-text" data-i18n="actions.profile">Perfil</span>
+                  </button>
+                </li>
+                <li>
+                  <button class="menu-item" type="button" data-action="logout">
+                    <span class="menu-icon" aria-hidden="true">🚪</span>
+                    <span class="menu-text" data-i18n="actions.logout">Sair</span>
+                  </button>
+                </li>
+              </ul>
             </div>
           </div>
-          <div class="field auth-login__field-actions">
-            <label class="auth-login__remember" for="login-remember">
-              <input id="login-remember" name="remember" type="checkbox" />
-              <span data-i18n="auth.login.remember">Lembrar-me</span>
-            </label>
-            <button
-              type="button"
-              class="link-button auth-login__forgot"
-              data-action="forgot-password"
-              data-i18n="auth.login.forgot"
-            >
-              Esqueci minha senha
-            </button>
-          </div>
-          <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
-          <p class="form-hint" id="login-register-hint" data-register-guard>
-            <a href="./register.html" data-i18n="panel.actions.register">Criar conta</a>
-          </p>
-          <button
-            type="button"
-            class="link-button auth-login__switch"
-            data-action="switch-user"
-            data-i18n="auth.login.switchUser"
-          >
-            Trocar usuário
-          </button>
-          <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
-        </form>
+          <form id="login-form" class="auth-login__form" novalidate>
+            <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
+            <div class="field">
+              <label for="login-email" data-i18n="auth.form.email">E-mail</label>
+              <input id="login-email" name="email" type="email" required autocomplete="email" />
+            </div>
+            <div class="field auth-login__field-password">
+              <label for="login-password" data-i18n="auth.form.password">Senha</label>
+              <div class="auth-login__password-wrapper">
+                <input
+                  id="login-password"
+                  name="password"
+                  type="password"
+                  required
+                  autocomplete="current-password"
+                />
+                <button
+                  type="button"
+                  class="link-button auth-login__toggle-password"
+                  data-action="toggle-password"
+                  aria-controls="login-password"
+                  aria-pressed="false"
+                  data-i18n="auth.login.showPassword"
+                >
+                  Mostrar senha
+                </button>
+              </div>
+            </div>
+            <div class="field auth-login__field-actions">
+              <label class="auth-login__remember" for="login-remember">
+                <input id="login-remember" name="remember" type="checkbox" />
+                <span data-i18n="auth.login.remember">Lembrar-me</span>
+              </label>
+            </div>
+            <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
+            <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
+          </form>
+          <footer class="auth-login__card-footer" aria-label="5Horas">
+            <img
+              id="logo"
+              class="brand auth-login__brand-image"
+              src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+              alt="5Horas"
+              data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+              data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
+            />
+          </footer>
+        </div>
       </section>
     </main>
     <script type="module" src="../app.js"></script>

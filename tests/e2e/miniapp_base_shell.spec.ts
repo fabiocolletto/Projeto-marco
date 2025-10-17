@@ -165,8 +165,8 @@ test.describe('MiniApp Base shell', () => {
     const loginPassword = page.locator('#login-password');
     const togglePassword = page.locator('[data-action="toggle-password"]');
     const rememberCheckbox = page.locator('#login-remember');
-    const forgotPassword = page.locator('[data-action="forgot-password"]');
-    const switchUser = page.locator('[data-action="switch-user"]');
+    const forgotPassword = userMenu.locator('[data-action="forgot-password"]');
+    const switchUser = userMenu.locator('[data-action="switch-user"]');
 
     await expect(rememberCheckbox).not.toBeChecked();
     await expect(togglePassword).toHaveText('Mostrar contraseña');
@@ -185,11 +185,13 @@ test.describe('MiniApp Base shell', () => {
       expect(dialog.message()).toBe('Enviaremos instrucciones de restablecimiento a bruno@example.com.');
       await dialog.accept();
     });
+    await openUserMenu();
     await forgotPassword.click();
     await expect(page.locator('#login-feedback')).toHaveText(
       'Enviaremos instrucciones de restablecimiento a bruno@example.com.'
     );
 
+    await openUserMenu();
     await switchUser.click();
     await expect(page.locator('#login-email')).toHaveValue('');
     await expect(loginPassword).toHaveValue('');
