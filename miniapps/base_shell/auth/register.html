@@ -30,8 +30,16 @@
           <form id="register-form" class="auth-login__form" novalidate>
             <h1 id="page-title" data-i18n="auth.register.title">Criar conta</h1>
             <div class="field">
-              <label for="register-name" data-i18n="auth.form.name">Nome</label>
-              <input id="register-name" name="name" type="text" required autocomplete="name" />
+              <label for="register-name" data-i18n="auth.form.fullName">Nome completo</label>
+              <input
+                id="register-name"
+                name="name"
+                type="text"
+                required
+                autocomplete="name"
+                placeholder="Ex.: Ana Maria Silva"
+                data-i18n="auth.form.fullName.placeholder"
+              />
             </div>
             <div class="field">
               <label for="register-email" data-i18n="auth.form.email">E-mail</label>

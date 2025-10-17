@@ -2219,6 +2219,12 @@ function setupAuthForms() {
           announceTo(feedback, t('auth.feedback.required'));
           return;
         }
+        const nameParts = name.split(/\s+/).filter(Boolean);
+        if (nameParts.length < 2) {
+          announceTo(feedback, t('auth.feedback.fullNameRequired'));
+          registerForm.querySelector('#register-name')?.focus();
+          return;
+        }
         const user = register({
           name,
           email,
