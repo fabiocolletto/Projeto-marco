@@ -6,6 +6,8 @@
   "actions.toggleLanguage": "Alternar idioma",
   "actions.profile": "Perfil",
   "actions.logout": "Sair",
+  "actions.openUserMenu": "Abrir menu do usuário",
+  "actions.openUserMenuWithName": "Abrir menu do usuário de {name}",
   "actions.openUserPanel": "Abrir painel do usuário",
   "actions.openUserPanelWithName": "Abrir painel do usuário de {name}",
   "actions.toggleSidebar": "Alternar barra lateral",

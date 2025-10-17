@@ -1657,8 +1657,21 @@ function setupAuthForms() {
 
 function updateUserDisplay(user) {
   const display = document.getElementById('current-user');
+  const button = document.getElementById('btnUser');
+  const hasName = Boolean(user && user.name);
+  const baseLabel = t('actions.openUserMenu');
+  let label = baseLabel;
+  if (hasName) {
+    const contextualKey = 'actions.openUserMenuWithName';
+    const contextual = t(contextualKey, { name: user.name });
+    label = contextual === contextualKey ? `${baseLabel} (${user.name})` : contextual;
+  }
   if (display) {
-    display.textContent = user ? user.name : '--';
+    display.textContent = hasName ? user.name : baseLabel;
+  }
+  if (button) {
+    button.setAttribute('aria-label', label);
+    button.title = label;
   }
 }
 
