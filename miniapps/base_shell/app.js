@@ -1372,14 +1372,70 @@ function setupAuthForms() {
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     const feedback = document.getElementById('login-feedback');
+    const passwordInput = loginForm.querySelector('#login-password');
+    const togglePasswordButton = loginForm.querySelector('[data-action="toggle-password"]');
+    const rememberCheckbox = loginForm.querySelector('#login-remember');
+    const forgotPasswordButton = loginForm.querySelector('[data-action="forgot-password"]');
+    const switchUserButton = loginForm.querySelector('[data-action="switch-user"]');
+    let isPasswordVisible = false;
+
+    const applyPasswordVisibility = visible => {
+      if (!passwordInput || !togglePasswordButton) return;
+      isPasswordVisible = visible;
+      passwordInput.type = visible ? 'text' : 'password';
+      togglePasswordButton.dataset.i18n = visible
+        ? 'auth.login.hidePassword'
+        : 'auth.login.showPassword';
+      togglePasswordButton.setAttribute('aria-pressed', String(visible));
+      togglePasswordButton.textContent = t(togglePasswordButton.dataset.i18n);
+    };
+
+    if (togglePasswordButton && passwordInput) {
+      applyPasswordVisibility(false);
+      togglePasswordButton.addEventListener('click', () => {
+        applyPasswordVisibility(!isPasswordVisible);
+      });
+    }
+
+    if (forgotPasswordButton) {
+      forgotPasswordButton.addEventListener('click', () => {
+        const emailField = loginForm.querySelector('#login-email');
+        const email = String(emailField?.value || '').trim();
+        const key = email ? 'auth.login.recoveryMessageWithEmail' : 'auth.login.recoveryMessage';
+        const message = email ? t(key, { email }) : t(key);
+        announceTo(feedback, message);
+        scheduleFeedbackClear(feedback);
+        if (typeof window !== 'undefined' && typeof window.alert === 'function') {
+          window.alert(message);
+        }
+      });
+    }
+
+    if (switchUserButton) {
+      switchUserButton.addEventListener('click', () => {
+        logout();
+        loginForm.reset();
+        applyPasswordVisibility(false);
+        const emailField = loginForm.querySelector('#login-email');
+        emailField?.focus();
+        const message = t('auth.login.switchUserSuccess');
+        announceTo(feedback, message);
+        scheduleFeedbackClear(feedback);
+      });
+    }
+
     loginForm.addEventListener('submit', event => {
       event.preventDefault();
       const data = new FormData(loginForm);
       try {
-        const user = login({
-          email: data.get('email'),
-          password: data.get('password')
-        });
+        const remember = rememberCheckbox ? rememberCheckbox.checked : true;
+        const user = login(
+          {
+            email: data.get('email'),
+            password: data.get('password')
+          },
+          { remember }
+        );
         announceTo(feedback, t('auth.feedback.loggedIn', { name: user.name }));
         showUserPanelShortcut({ focus: true });
       } catch (error) {
@@ -1998,3 +2054,4 @@ function highlightElement(element) {
   }, PANEL_HIGHLIGHT_DURATION);
   highlightTimers.set(element, timeout);
 }
+

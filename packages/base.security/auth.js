@@ -11,6 +11,17 @@ const storage = (() => {
   }
 })();
 
+const sessionStorageRef = (() => {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage;
+  } catch (error) {
+    return null;
+  }
+})();
+
+let volatileSessionId = null;
+
 function readStore(key, fallback) {
   if (!storage) return fallback;
   try {
@@ -31,6 +42,49 @@ function writeStore(key, value) {
   }
 }
 
+function readSessionStore(key, fallback) {
+  if (!sessionStorageRef) return fallback ?? volatileSessionId;
+  try {
+    const raw = sessionStorageRef.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch (error) {
+    console.warn('auth: unable to parse session storage', error);
+    return fallback ?? volatileSessionId;
+  }
+}
+
+function writeSessionStore(key, value) {
+  if (!sessionStorageRef) {
+    volatileSessionId = value ?? null;
+    return;
+  }
+  try {
+    if (value === undefined) {
+      sessionStorageRef.removeItem(key);
+    } else {
+      sessionStorageRef.setItem(key, JSON.stringify(value));
+    }
+  } catch (error) {
+    console.warn('auth: unable to persist session data', error);
+  }
+}
+
+function clearSessionStore() {
+  writeSessionStore(SESSION_KEY, null);
+}
+
+function getSessionId() {
+  const persisted = readStore(SESSION_KEY, null);
+  if (persisted) {
+    return persisted;
+  }
+  const sessionValue = readSessionStore(SESSION_KEY, null);
+  if (sessionValue) {
+    return sessionValue;
+  }
+  return volatileSessionId;
+}
+
 function normalizeRole(role) {
   return role === 'owner' ? 'owner' : 'member';
 }
@@ -39,8 +93,16 @@ function generateId() {
   return `user_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-function setSession(userId) {
-  writeStore(SESSION_KEY, userId);
+function setSession(userId, { remember = true } = {}) {
+  if (remember) {
+    writeStore(SESSION_KEY, userId);
+    writeSessionStore(SESSION_KEY, null);
+    volatileSessionId = null;
+  } else {
+    writeStore(SESSION_KEY, null);
+    writeSessionStore(SESSION_KEY, userId);
+    volatileSessionId = sessionStorageRef ? null : userId;
+  }
   notify();
 }
 
@@ -57,7 +119,7 @@ function persistUsers(users) {
 }
 
 export function currentUser() {
-  const sessionId = readStore(SESSION_KEY, null);
+  const sessionId = getSessionId();
   if (!sessionId) return null;
   return listUsers().find(user => user.id === sessionId) || null;
 }
@@ -86,18 +148,21 @@ export function register({ name, email, password, role = 'member' }, options = {
   return newUser;
 }
 
-export function login({ email, password }) {
+export function login({ email, password }, options = {}) {
+  const { remember = true } = options;
   const users = listUsers();
   const user = users.find(candidate => candidate.email === email && candidate.password === password);
   if (!user) {
     throw new Error('auth:invalid-credentials');
   }
-  setSession(user.id);
+  setSession(user.id, { remember });
   return user;
 }
 
 export function logout() {
   writeStore(SESSION_KEY, null);
+  clearSessionStore();
+  volatileSessionId = null;
   notify();
 }
 
@@ -147,9 +212,11 @@ export function deleteUser(id) {
   }
   const [removed] = users.splice(index, 1);
   persistUsers(users);
-  const sessionId = readStore(SESSION_KEY, null);
+  const sessionId = getSessionId();
   if (sessionId === id) {
     writeStore(SESSION_KEY, null);
+    clearSessionStore();
+    volatileSessionId = null;
   }
   notify();
   return removed;

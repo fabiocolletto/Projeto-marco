@@ -200,10 +200,55 @@ test.describe('MiniApp Base shell', () => {
 
     await expect(page.locator('#login-register-hint')).toBeHidden();
 
+    const loginPassword = page.locator('#login-password');
+    const togglePassword = page.locator('[data-action="toggle-password"]');
+    const rememberCheckbox = page.locator('#login-remember');
+    const forgotPassword = page.locator('[data-action="forgot-password"]');
+    const switchUser = page.locator('[data-action="switch-user"]');
+
+    await expect(rememberCheckbox).not.toBeChecked();
+    await expect(togglePassword).toHaveText('Mostrar contraseña');
+    await expect(loginPassword).toHaveAttribute('type', 'password');
+
+    await togglePassword.click();
+    await expect(loginPassword).toHaveAttribute('type', 'text');
+    await expect(togglePassword).toHaveText('Ocultar contraseña');
+    await togglePassword.click();
+    await expect(loginPassword).toHaveAttribute('type', 'password');
+    await expect(togglePassword).toHaveText('Mostrar contraseña');
+
     await page.fill('#login-email', 'bruno@example.com');
-    await page.fill('#login-password', 'secret2');
+    await loginPassword.fill('secret2');
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toBe('Enviaremos instrucciones de restablecimiento a bruno@example.com.');
+      await dialog.accept();
+    });
+    await forgotPassword.click();
+    await expect(page.locator('#login-feedback')).toHaveText(
+      'Enviaremos instrucciones de restablecimiento a bruno@example.com.'
+    );
+
+    await switchUser.click();
+    await expect(page.locator('#login-email')).toHaveValue('');
+    await expect(loginPassword).toHaveValue('');
+    await expect(page.locator('#login-feedback')).toHaveText(
+      'Sesión anterior finalizada. Ingresa las credenciales de la nueva persona usuaria.'
+    );
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
+    await expect
+      .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
+      .toBe('null');
+    await expect(rememberCheckbox).not.toBeChecked();
+    await expect(togglePassword).toHaveText('Mostrar contraseña');
+
+    await page.fill('#login-email', 'bruno@example.com');
+    await loginPassword.fill('secret2');
     await page.click('#login-form .cta');
     await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Bruno Member.');
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
+    await expect
+      .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
+      .not.toBe('null');
 
     await openUserMenu();
     await page.click('#btnUserPanel');
@@ -245,6 +290,10 @@ test.describe('MiniApp Base shell', () => {
     await expect(profileEmail).toBeDisabled();
 
     await expect(page).toHaveURL(/auth\/login\.html$/);
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
+    await expect
+      .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
+      .toBe('null');
     await page.fill('#login-email', 'bruno.partner@example.com');
     await page.fill('#login-password', 'secret2New');
     await page.click('#login-form .cta');
@@ -253,11 +302,22 @@ test.describe('MiniApp Base shell', () => {
     await openUserMenu();
     await page.click('#user-menu button[data-action="logout"]');
     await expect(page).toHaveURL(/auth\/login\.html$/);
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
+    await expect
+      .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
+      .toBe('null');
 
     await page.fill('#login-email', 'alice@example.com');
     await page.fill('#login-password', 'secret1');
+    await page.check('#login-remember');
     await page.click('#login-form .cta');
     await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Alice Owner.');
+    await expect
+      .poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session')))
+      .not.toBe('null');
+    await expect
+      .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
+      .toBe('null');
 
     await openUserMenu();
     await page.click('#btnUserPanel');
@@ -302,6 +362,10 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#profile-logout');
     await expect(page.locator('#profile-feedback')).toHaveText('Cerrar sesión');
     await expect(page).toHaveURL(/auth\/login\.html$/);
+    await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session'))).toBe('null');
+    await expect
+      .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
+      .toBe('null');
 
     await page.fill('#login-email', 'alicia.admin@example.com');
     await page.fill('#login-password', 'newSecret1');
