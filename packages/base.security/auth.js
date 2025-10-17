@@ -42,6 +42,15 @@ function writeStore(key, value) {
   }
 }
 
+function removeStore(key) {
+  if (!storage) return;
+  try {
+    storage.removeItem(key);
+  } catch (error) {
+    console.warn('auth: unable to remove data', error);
+  }
+}
+
 function readSessionStore(key, fallback) {
   if (!sessionStorageRef) return fallback ?? volatileSessionId;
   try {
@@ -71,6 +80,18 @@ function writeSessionStore(key, value) {
 
 function clearSessionStore() {
   writeSessionStore(SESSION_KEY, null);
+}
+
+function removeSessionStore(key) {
+  if (!sessionStorageRef) {
+    volatileSessionId = null;
+    return;
+  }
+  try {
+    sessionStorageRef.removeItem(key);
+  } catch (error) {
+    console.warn('auth: unable to remove session data', error);
+  }
 }
 
 function getSessionId() {
@@ -240,4 +261,12 @@ export function setUserPassword(id, newPassword) {
 export function onAuthChange(listener) {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+export function resetAuth() {
+  removeStore(USERS_KEY);
+  removeStore(SESSION_KEY);
+  removeSessionStore(SESSION_KEY);
+  volatileSessionId = null;
+  notify();
 }
