@@ -7,134 +7,37 @@
     <link rel="stylesheet" href="../styles.css" />
     <link rel="stylesheet" href="../../../packages/base.theme/theme.css" />
   </head>
-  <body>
-    <div class="app-shell">
-      <header class="app-header" role="banner">
-        <button id="btnMenu" class="ghost" aria-label="Menu" aria-expanded="true">
-          <span aria-hidden="true">☰</span>
-        </button>
-        <img
-          id="logo"
-          class="brand"
-          src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-          alt="5Horas"
-          data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-          data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
-        />
-        <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
-        <div class="toolbar" role="group" aria-label="Global actions">
-          <div class="user-menu" role="group" aria-label="User menu">
-            <button id="btnUser" class="ghost" aria-haspopup="true" aria-expanded="false">
-              <span class="user-avatar" aria-hidden="true">👤</span>
-              <span id="current-user" class="sr-only">--</span>
-            </button>
-            <ul id="user-menu" class="menu" hidden>
-              <li>
-                <button id="btnLang" class="menu-item" type="button">
-                  <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
-                  <span class="menu-text" data-i18n="settings.language">Idioma</span>
-                  <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
-                </button>
-              </li>
-              <li>
-                <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
-                  <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
-                  <span class="menu-text" data-i18n="settings.theme">Tema</span>
-                  <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
-                </button>
-              </li>
-              <li>
-                <button id="btnUserPanel" class="menu-item" type="button">
-                  <span class="menu-icon" aria-hidden="true">👤</span>
-                  <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
-                  <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
-                </button>
-              </li>
-              <li class="menu-divider" role="separator" aria-hidden="true"></li>
-              <li>
-                <button class="menu-item" type="button" data-action="profile">
-                  <span class="menu-icon" aria-hidden="true">🔐</span>
-                  <span class="menu-text" data-i18n="actions.profile">Perfil</span>
-                </button>
-              </li>
-              <li>
-                <button class="menu-item" type="button" data-action="logout">
-                  <span class="menu-icon" aria-hidden="true">🚪</span>
-                  <span class="menu-text" data-i18n="actions.logout">Sair</span>
-                </button>
-              </li>
-            </ul>
+  <body class="auth-login">
+    <main id="panel" class="panel panel--auth" role="main" tabindex="-1">
+      <section class="panel-content auth-login__content">
+        <div class="auth-login__brand">
+          <img
+            id="logo"
+            class="brand auth-login__brand-image"
+            src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+            alt="5Horas"
+            data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+            data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
+          />
+        </div>
+        <form id="login-form" class="card auth-login__form" novalidate>
+          <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
+          <div class="field">
+            <label for="login-email" data-i18n="auth.form.email">E-mail</label>
+            <input id="login-email" name="email" type="email" required autocomplete="email" />
           </div>
-        </div>
-      </header>
-      <div class="layout">
-        <aside id="sidebar" class="sidebar" aria-label="Navegação principal">
-          <nav>
-            <ul>
-              <li>
-                <a href="../index.html" title="Dashboard">
-                  <span class="icon" aria-hidden="true">🏠</span>
-                  <span class="label" data-i18n="nav.dashboard">Início</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" title="Atividades">
-                  <span class="icon" aria-hidden="true">🗂</span>
-                  <span class="label" data-i18n="nav.activity">Atividades</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" title="Análises">
-                  <span class="icon" aria-hidden="true">📊</span>
-                  <span class="label" data-i18n="nav.analytics">Análises</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-        </aside>
-        <main id="panel" class="panel" role="main" tabindex="-1">
-          <section class="panel-content">
-            <form id="login-form" class="card" novalidate>
-              <h2 data-i18n="auth.login.title">Acessar conta</h2>
-              <div class="field">
-                <label for="login-email" data-i18n="auth.form.email">E-mail</label>
-                <input id="login-email" name="email" type="email" required autocomplete="email" />
-              </div>
-              <div class="field">
-                <label for="login-password" data-i18n="auth.form.password">Senha</label>
-                <input id="login-password" name="password" type="password" required autocomplete="current-password" />
-              </div>
-              <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
-              <p class="form-hint" id="login-register-hint" data-register-guard>
-                <a href="./register.html" data-i18n="panel.actions.register">Criar conta</a>
-              </p>
-              <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
-            </form>
-          </section>
-        </main>
-      </div>
-      <footer class="app-footer" role="contentinfo">
-        <div class="footer-content">
-          <small class="footer-copy">
-            &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
-          </small>
-          <small class="footer-revision">
-            <span data-revision data-i18n="footer.revisionFallback">
-              MiniApp Base · Revisão indisponível
-            </span>
-            <a
-              class="footer-revision-log"
-              href="../REVISION_LOG.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-i18n="footer.revisionLog"
-            >
-              Log de revisões
-            </a>
-          </small>
-        </div>
-      </footer>
-    </div>
+          <div class="field">
+            <label for="login-password" data-i18n="auth.form.password">Senha</label>
+            <input id="login-password" name="password" type="password" required autocomplete="current-password" />
+          </div>
+          <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
+          <p class="form-hint" id="login-register-hint" data-register-guard>
+            <a href="./register.html" data-i18n="panel.actions.register">Criar conta</a>
+          </p>
+          <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
     <script type="module" src="../app.js"></script>
   </body>
 </html>
