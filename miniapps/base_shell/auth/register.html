@@ -71,9 +71,33 @@
                 Selecione Brasil (+55) para formatar automaticamente ou informe o código do país em números internacionais.
               </p>
             </div>
-            <div class="field">
+            <div class="field auth-register__password-field">
               <label for="register-password" data-i18n="auth.form.password">Senha</label>
-              <input id="register-password" name="password" type="password" required autocomplete="new-password" />
+              <input
+                id="register-password"
+                name="password"
+                type="password"
+                required
+                autocomplete="new-password"
+                aria-describedby="password-strength-status"
+              />
+              <div class="password-strength" data-password-meter data-strength="weak">
+                <div class="password-strength__header">
+                  <span class="password-strength__label" data-i18n="auth.passwordStrength.label">Força da senha</span>
+                  <span
+                    id="password-strength-status"
+                    class="password-strength__status"
+                    data-password-status
+                    data-i18n="auth.passwordStrength.level.weak"
+                    aria-live="polite"
+                  >
+                    Fraca
+                  </span>
+                </div>
+                <div class="password-strength__meter" aria-hidden="true">
+                  <span class="password-strength__bar" data-password-bar></span>
+                </div>
+              </div>
             </div>
             <div class="field auth-login__field-actions">
               <label class="auth-login__remember auth-register__terms" for="register-terms">
