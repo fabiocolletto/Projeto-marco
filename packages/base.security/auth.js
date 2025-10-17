@@ -151,12 +151,16 @@ export function register({ name, email, password, role = 'member' }, options = {
   if (users.some(user => user.email === email)) {
     throw new Error('auth:user-exists');
   }
+  const normalizedRole = normalizeRole(role);
+  if (normalizedRole === 'owner' && users.some(user => user.role === 'owner')) {
+    throw new Error('auth:owner-exists');
+  }
   const newUser = {
     id: generateId(),
     name,
     email,
     password,
-    role: normalizeRole(role),
+    role: normalizedRole,
     createdAt: new Date().toISOString()
   };
   users.push(newUser);
@@ -197,11 +201,22 @@ export function updateUserProfile(id, { name, email, role }) {
   if (nextEmail && users.some(user => user.email === nextEmail && user.id !== id)) {
     throw new Error('auth:user-exists');
   }
+  const currentRole = users[index].role;
+  const nextRole = normalizeRole(role ?? currentRole);
+  if (nextRole === 'owner' && users.some(user => user.role === 'owner' && user.id !== id)) {
+    throw new Error('auth:owner-exists');
+  }
+  if (currentRole === 'owner' && nextRole !== 'owner') {
+    const otherOwnerExists = users.some(user => user.id !== id && user.role === 'owner');
+    if (!otherOwnerExists) {
+      throw new Error('auth:owner-required');
+    }
+  }
   const updated = {
     ...users[index],
     name: name ?? users[index].name,
     email: nextEmail,
-    role: normalizeRole(role ?? users[index].role)
+    role: nextRole
   };
   users[index] = updated;
   persistUsers(users);
@@ -231,6 +246,10 @@ export function deleteUser(id) {
   if (index === -1) {
     throw new Error('auth:user-not-found');
   }
+  const isOwner = users[index].role === 'owner';
+  if (isOwner) {
+    throw new Error('auth:owner-delete-forbidden');
+  }
   const [removed] = users.splice(index, 1);
   persistUsers(users);
   const sessionId = getSessionId();
@@ -256,6 +275,35 @@ export function setUserPassword(id, newPassword) {
   persistUsers(users);
   notify();
   return users[index];
+}
+
+export function transferOwnership(targetId) {
+  const users = listUsers();
+  if (!users.length) {
+    throw new Error('auth:user-not-found');
+  }
+  const currentOwnerIndex = users.findIndex(user => user.role === 'owner');
+  if (currentOwnerIndex === -1) {
+    throw new Error('auth:owner-required');
+  }
+  const targetIndex = users.findIndex(user => user.id === targetId);
+  if (targetIndex === -1) {
+    throw new Error('auth:user-not-found');
+  }
+  if (users[targetIndex].role === 'owner') {
+    return users[targetIndex];
+  }
+  users[currentOwnerIndex] = {
+    ...users[currentOwnerIndex],
+    role: 'member'
+  };
+  users[targetIndex] = {
+    ...users[targetIndex],
+    role: 'owner'
+  };
+  persistUsers(users);
+  notify();
+  return users[targetIndex];
 }
 
 export function onAuthChange(listener) {

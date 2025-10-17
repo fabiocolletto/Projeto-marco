@@ -353,9 +353,9 @@ test.describe('MiniApp Base shell', () => {
     const ownerProfileEmail = page.locator('#profile-email');
     const ownerProfileRole = page.locator('#profile-role');
     const ownerProfileFeedback = page.locator('#profile-form-feedback');
+    await expect(ownerProfileRole).toHaveValue('owner');
     await ownerProfileName.fill('Alicia Admin');
     await ownerProfileEmail.fill('alicia.admin@example.com');
-    await ownerProfileRole.selectOption('owner');
     await page.click('#profile-form button[type="submit"]');
     await expect(ownerProfileFeedback).toHaveText('Perfil actualizado correctamente.');
     await expect(page.locator('#current-user')).toHaveText('Alicia Admin');
@@ -399,6 +399,17 @@ test.describe('MiniApp Base shell', () => {
 
     await page.click('#btnUserPanel');
     await expect(page).toHaveURL(/auth\/profile\.html$/);
+
+    const transferButton = page
+      .locator('#user-management-list tr', { hasText: 'Bruno Colaborador' })
+      .locator('button', { hasText: 'Transferir propiedad' });
+    page.once('dialog', async dialog => {
+      expect(dialog.message()).toContain('¿Desea transferir la propiedad a Bruno Colaborador?');
+      await dialog.accept();
+    });
+    await transferButton.click();
+    await expect(ownerProfileRole).toHaveValue('member');
+    await expect(page.locator('#user-management')).toBeHidden();
 
     page.once('dialog', async dialog => {
       expect(dialog.message()).toContain('¿Desea eliminar la cuenta de Alicia Admin?');
