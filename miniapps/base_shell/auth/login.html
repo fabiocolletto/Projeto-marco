@@ -15,7 +15,7 @@
           <div class="auth-login__actions" role="group" aria-label="User menu">
             <div class="user-menu">
               <button id="btnUser" class="ghost icon-only" aria-haspopup="true" aria-expanded="false">
-                <span class="user-avatar" aria-hidden="true">👤</span>
+                <span class="user-avatar" aria-hidden="true">☰</span>
                 <span id="current-user" class="sr-only">--</span>
               </button>
               <ul id="user-menu" class="menu" hidden>
@@ -38,6 +38,25 @@
                     <span class="menu-icon" aria-hidden="true">👤</span>
                     <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
                     <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
+                  </button>
+                </li>
+                <li class="menu-divider" role="separator" aria-hidden="true"></li>
+                <li>
+                  <button class="menu-item" type="button" data-action="forgot-password">
+                    <span class="menu-icon" aria-hidden="true">❓</span>
+                    <span class="menu-text" data-i18n="auth.login.forgot">Esqueci minha senha</span>
+                  </button>
+                </li>
+                <li data-register-guard>
+                  <a class="menu-item" href="./register.html">
+                    <span class="menu-icon" aria-hidden="true">🆕</span>
+                    <span class="menu-text" data-i18n="panel.actions.register">Criar conta</span>
+                  </a>
+                </li>
+                <li>
+                  <button class="menu-item" type="button" data-action="switch-user">
+                    <span class="menu-icon" aria-hidden="true">🔄</span>
+                    <span class="menu-text" data-i18n="auth.login.switchUser">Trocar usuário</span>
                   </button>
                 </li>
                 <li class="menu-divider" role="separator" aria-hidden="true"></li>
@@ -74,13 +93,25 @@
                 />
                 <button
                   type="button"
-                  class="link-button auth-login__toggle-password"
+                  class="auth-login__toggle-password"
                   data-action="toggle-password"
                   aria-controls="login-password"
                   aria-pressed="false"
-                  data-i18n="auth.login.showPassword"
+                  aria-labelledby="login-password-toggle-label"
                 >
-                  Mostrar senha
+                  <span
+                    class="auth-login__toggle-password-icon"
+                    aria-hidden="true"
+                    data-password-visibility-icon
+                  >👁️</span>
+                  <span
+                    id="login-password-toggle-label"
+                    class="sr-only"
+                    data-password-visibility-label
+                    data-i18n="auth.login.showPassword"
+                  >
+                    Mostrar senha
+                  </span>
                 </button>
               </div>
             </div>
@@ -89,39 +120,8 @@
                 <input id="login-remember" name="remember" type="checkbox" />
                 <span data-i18n="auth.login.remember">Lembrar-me</span>
               </label>
-              <button
-                type="button"
-                class="link-button auth-login__forgot"
-                data-action="forgot-password"
-                data-i18n="auth.login.forgot"
-              >
-                Esqueci minha senha
-              </button>
             </div>
             <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
-            <div class="auth-login__links">
-              <span
-                id="login-register-hint"
-                class="auth-login__link-group"
-                data-register-guard
-              >
-                <a
-                  class="link-button auth-login__link"
-                  href="./register.html"
-                  data-i18n="panel.actions.register"
-                >
-                  Criar conta
-                </a>
-              </span>
-              <button
-                type="button"
-                class="link-button auth-login__link"
-                data-action="switch-user"
-                data-i18n="auth.login.switchUser"
-              >
-                Trocar usuário
-              </button>
-            </div>
             <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
           </form>
           <footer class="auth-login__card-footer" aria-label="5Horas">

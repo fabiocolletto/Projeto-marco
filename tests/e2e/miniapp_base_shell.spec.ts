@@ -131,7 +131,8 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('#btnUserPanel')).toHaveAttribute('aria-label', 'Abrir panel de usuario');
     await closeUserMenu();
 
-    await page.click('a[data-i18n="panel.actions.register"]');
+    await openUserMenu();
+    await page.click('#user-menu a[href$="register.html"]');
     await expect(page).toHaveURL(/register\.html$/);
 
     await page.fill('#register-name', 'Alice Owner');
@@ -160,24 +161,31 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#user-menu button[data-action="logout"]');
     await expect(page).toHaveURL(/auth\/login\.html$/);
 
-    await expect(page.locator('#login-register-hint')).toBeHidden();
+    await openUserMenu();
+    await expect(page.locator('#user-menu [data-register-guard]')).toBeHidden();
+    await closeUserMenu();
 
     const loginPassword = page.locator('#login-password');
     const togglePassword = page.locator('[data-action="toggle-password"]');
+    const togglePasswordLabel = togglePassword.locator('[data-password-visibility-label]');
+    const togglePasswordIcon = togglePassword.locator('[data-password-visibility-icon]');
     const rememberCheckbox = page.locator('#login-remember');
-    const forgotPassword = page.locator('[data-action="forgot-password"]');
-    const switchUser = page.locator('[data-action="switch-user"]');
+    const forgotPassword = page.locator('#user-menu [data-action="forgot-password"]');
+    const switchUser = page.locator('#user-menu [data-action="switch-user"]');
 
     await expect(rememberCheckbox).not.toBeChecked();
-    await expect(togglePassword).toHaveText('Mostrar contraseña');
+    await expect(togglePasswordLabel).toHaveText('Mostrar contraseña');
+    await expect(togglePasswordIcon).toHaveText('👁️');
     await expect(loginPassword).toHaveAttribute('type', 'password');
 
     await togglePassword.click();
     await expect(loginPassword).toHaveAttribute('type', 'text');
-    await expect(togglePassword).toHaveText('Ocultar contraseña');
+    await expect(togglePasswordLabel).toHaveText('Ocultar contraseña');
+    await expect(togglePasswordIcon).toHaveText('🙈');
     await togglePassword.click();
     await expect(loginPassword).toHaveAttribute('type', 'password');
-    await expect(togglePassword).toHaveText('Mostrar contraseña');
+    await expect(togglePasswordLabel).toHaveText('Mostrar contraseña');
+    await expect(togglePasswordIcon).toHaveText('👁️');
 
     await page.fill('#login-email', 'bruno@example.com');
     await loginPassword.fill('secret2');
@@ -185,11 +193,13 @@ test.describe('MiniApp Base shell', () => {
       expect(dialog.message()).toBe('Enviaremos instrucciones de restablecimiento a bruno@example.com.');
       await dialog.accept();
     });
+    await openUserMenu();
     await forgotPassword.click();
     await expect(page.locator('#login-feedback')).toHaveText(
       'Enviaremos instrucciones de restablecimiento a bruno@example.com.'
     );
 
+    await openUserMenu();
     await switchUser.click();
     await expect(page.locator('#login-email')).toHaveValue('');
     await expect(loginPassword).toHaveValue('');
@@ -201,7 +211,8 @@ test.describe('MiniApp Base shell', () => {
       .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
       .toBe('null');
     await expect(rememberCheckbox).not.toBeChecked();
-    await expect(togglePassword).toHaveText('Mostrar contraseña');
+    await expect(togglePasswordLabel).toHaveText('Mostrar contraseña');
+    await expect(togglePasswordIcon).toHaveText('👁️');
 
     await page.fill('#login-email', 'bruno@example.com');
     await loginPassword.fill('secret2');
