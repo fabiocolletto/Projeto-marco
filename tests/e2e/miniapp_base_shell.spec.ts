@@ -58,21 +58,45 @@ test.describe('MiniApp Base shell', () => {
   test('layout, theme, i18n e autenticação local', async ({ page }) => {
     await page.goto(`${baseURL}/miniapps/base_shell/index.html`);
 
+    const navigationTrigger = page.locator('#btnMenu');
+    const navigationOverlay = page.locator('#navigation-overlay');
+
     await expect(page.locator('.app-header')).toBeVisible();
-    await expect(page.locator('#sidebar')).toBeVisible();
+    await expect(navigationOverlay).toBeHidden();
     await expect(page.locator('#panel')).toBeVisible();
     await expect(page.locator('.app-footer')).toBeVisible();
 
-    const miniAppToggle = page.locator('#miniapp-toggle');
-    const miniAppSubmenu = page.locator('#miniapp-submenu');
     const miniAppTitle = page.locator('[data-miniapp-title]');
     const miniAppMessage = page.locator('[data-miniapp-message]');
     const userMenuToggle = page.locator('#btnUser');
     const userMenu = page.locator('#user-menu');
+    const openNavigation = async () => {
+      if (await navigationOverlay.isHidden()) {
+        await navigationTrigger.click();
+        await expect(navigationOverlay).toBeVisible();
+      }
+    };
+    const closeNavigation = async () => {
+      if (await navigationOverlay.isVisible()) {
+        const closeButton = navigationOverlay.locator('[data-navigation-close]');
+        await expect(closeButton).toBeVisible();
+        await closeButton.click();
+        await expect(navigationOverlay).toBeHidden();
+      }
+    };
+    const selectNavigationAction = async (action: string) => {
+      await openNavigation();
+      const actionButton = navigationOverlay.locator(`[data-nav-action="${action}"]`).first();
+      await expect(actionButton).toBeVisible();
+      await actionButton.click();
+      await expect(navigationOverlay).toBeHidden();
+    };
     const selectMiniApp = async (id: string) => {
-      await miniAppToggle.click();
-      await expect(miniAppSubmenu).toBeVisible();
-      await page.click(`[data-miniapp-id="${id}"]`);
+      await openNavigation();
+      const miniAppButton = navigationOverlay.locator(`[data-miniapp-id="${id}"]`).first();
+      await expect(miniAppButton).toBeVisible();
+      await miniAppButton.click();
+      await expect(navigationOverlay).toBeHidden();
     };
     const openUserMenu = async () => {
       if (!(await userMenu.isVisible())) {
@@ -82,7 +106,7 @@ test.describe('MiniApp Base shell', () => {
     };
     const closeUserMenu = async () => {
       if (await userMenu.isVisible()) {
-        await userMenuToggle.click();
+        await page.keyboard.press('Escape');
         await expect(userMenu).toBeHidden();
       }
     };
@@ -94,26 +118,23 @@ test.describe('MiniApp Base shell', () => {
     await expect(miniAppTitle).toHaveText('Bem-vindo ao Mini-app 2');
     await expect(miniAppMessage).toHaveText('Você está visualizando o conteúdo do Mini-app 2.');
 
-    const shell = page.locator('.app-shell');
-
-    await expect(shell).not.toHaveClass(/is-collapsed/);
-
     await expect(userMenu).toBeHidden();
     await userMenuToggle.click();
     await expect(userMenu).toBeVisible();
-    await userMenuToggle.click();
+    await page.keyboard.press('Escape');
     await expect(userMenu).toBeHidden();
 
-    await page.click('#btnMenu');
-    await expect(shell).not.toHaveClass(/is-collapsed/);
+    await openNavigation();
+    await expect(navigationTrigger).toHaveAttribute('aria-expanded', 'true');
 
-    await page.click('#btnMenu');
-    await expect(shell).toHaveClass(/is-collapsed/);
+    await closeNavigation();
+    await expect(navigationTrigger).toHaveAttribute('aria-expanded', 'false');
 
     await openUserMenu();
     await page.click('#btnTheme');
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 
+    await openUserMenu();
     await page.click('#btnLang');
     await expect(page.locator('a.cta').first()).toHaveText('Sign in');
     await expect(miniAppTitle).toHaveText('Welcome to Mini-app 2');
@@ -125,6 +146,7 @@ test.describe('MiniApp Base shell', () => {
     await expect(miniAppTitle).toHaveText('Welcome to Mini-app 2');
     await expect(miniAppMessage).toHaveText("You're now exploring Mini-app 2.");
 
+    await openUserMenu();
     await page.click('#btnLang');
     await expect(page.locator('a.cta').first()).toHaveText('Ingresar');
     await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 2');
@@ -135,6 +157,13 @@ test.describe('MiniApp Base shell', () => {
     await selectMiniApp('mini-app-2');
     await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 2');
     await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 2.');
+
+    await selectNavigationAction('home');
+    await expect(miniAppTitle).toHaveText('¡Bienvenido!');
+    await expect(miniAppMessage).toHaveText(
+      'Elige una opción del menú para comenzar a explorar tu mini app.'
+    );
+    await selectMiniApp('mini-app-2');
 
     await expect(page.locator('#btnUserPanel')).toBeHidden();
     await expect(page.locator('#btnUserPanel')).toHaveAttribute('aria-label', 'Abrir panel de usuario');
@@ -165,7 +194,7 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('#user-management-list')).toContainText('Alice Owner');
     await expect(page.locator('#user-management-list')).toContainText('Bruno Member');
 
-    await page.click('#btnUser');
+    await openUserMenu();
     await page.click('#user-menu button[data-action="logout"]');
     await expect(page).toHaveURL(/auth\/login\.html$/);
 
@@ -221,7 +250,7 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#login-form .cta');
     await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Bruno Partner.');
 
-    await page.click('#btnUser');
+    await openUserMenu();
     await page.click('#user-menu button[data-action="logout"]');
     await expect(page).toHaveURL(/auth\/login\.html$/);
 
@@ -230,6 +259,7 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#login-form .cta');
     await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Alice Owner.');
 
+    await openUserMenu();
     await page.click('#btnUserPanel');
     await expect(page).toHaveURL(/auth\/profile\.html$/);
 
