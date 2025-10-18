@@ -1,34 +1,34 @@
 import type { RegistryEntry } from '../app/types.js';
 
-export function renderCatalog(container: HTMLElement, entries: RegistryEntry[], activeId: string | null): void {
-  container.innerHTML = '';
+export function renderCatalog(
+  selector: HTMLSelectElement,
+  entries: RegistryEntry[],
+  activeId: string | null,
+): void {
+  selector.innerHTML = '';
 
-  if (entries.length === 0) {
-    const empty = document.createElement('p');
-    empty.textContent = 'Nenhum MiniApp disponível.';
-    empty.setAttribute('role', 'note');
-    container.append(empty);
-    return;
-  }
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.dataset.role = 'placeholder';
+  placeholder.textContent = entries.length ? 'Selecione um MiniApp' : 'Nenhum MiniApp disponível';
+  selector.append(placeholder);
+
+  const hasActiveEntry = entries.some((entry) => entry.id === activeId);
+  selector.disabled = entries.length === 0;
 
   for (const entry of entries) {
-    const card = document.createElement('button');
-    card.type = 'button';
-    card.classList.add('card');
-    card.setAttribute('data-app-id', entry.id);
-    card.setAttribute('role', 'listitem');
-    card.classList.toggle('active', activeId === entry.id);
-
-    const title = document.createElement('span');
-    title.textContent = entry.name;
+    const option = document.createElement('option');
+    option.value = entry.id;
+    option.dataset.appId = entry.id;
     if (entry.adminOnly) {
-      const badge = document.createElement('span');
-      badge.classList.add('badge');
-      badge.textContent = 'Privado';
-      title.append(badge);
+      option.dataset.adminOnly = 'true';
     }
+    option.textContent = entry.adminOnly ? `${entry.name} · Privado` : entry.name;
+    option.selected = activeId === entry.id;
+    selector.append(option);
+  }
 
-    card.append(title);
-    container.append(card);
+  if (!hasActiveEntry) {
+    placeholder.selected = true;
   }
 }

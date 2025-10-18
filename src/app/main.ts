@@ -6,7 +6,7 @@ import { wireCatalog } from '../registry/wireCatalog.js';
 import { ensureMasterGate } from '../auth/gate.js';
 import { initStatusBar, scheduleStatusBarUpdate } from './statusBar.js';
 
-let catalogContainer: HTMLElement | null = null;
+let catalogContainer: HTMLSelectElement | null = null;
 let disposeCatalogListener: (() => void) | null = null;
 let detachGlobalListeners: (() => void) | null = null;
 
@@ -43,8 +43,8 @@ const clearError = () => {
   delete banner.dataset.visible;
 };
 
-const ensureCatalogWired = (): HTMLElement | null => {
-  const nextContainer = document.querySelector<HTMLElement>('#catalog-cards');
+const ensureCatalogWired = (): HTMLSelectElement | null => {
+  const nextContainer = document.querySelector<HTMLSelectElement>('#app-selector');
   if (nextContainer !== catalogContainer) {
     disposeCatalogListener?.();
     catalogContainer = nextContainer;

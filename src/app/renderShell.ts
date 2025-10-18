@@ -6,7 +6,7 @@ import { scheduleStatusBarUpdate } from './statusBar.js';
 
 const APP_TITLE = 'AppBase';
 
-let catalogContainer: HTMLElement | null = null;
+let catalogContainer: HTMLSelectElement | null = null;
 let errorBanner: HTMLDivElement | null = null;
 let panelTitle: HTMLHeadingElement | null = null;
 let panelSubtitle: HTMLSpanElement | null = null;
@@ -21,7 +21,7 @@ const onCloseButtonClick = () => {
 };
 
 const attachDom = (): void => {
-  const nextCatalog = document.querySelector<HTMLElement>('#catalog-cards');
+  const nextCatalog = document.querySelector<HTMLSelectElement>('#app-selector');
   if (nextCatalog !== catalogContainer) {
     catalogContainer = nextCatalog;
   }
