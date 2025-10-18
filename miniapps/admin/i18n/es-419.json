@@ -27,7 +27,79 @@
     "localChanges": "Cambios locales — no se realizará ninguna llamada al backend."
   },
   "users": {
-    "helper": "Administración de usuarios disponible pronto.",
-    "placeholder": "Usa esta área para registrar, promover o desactivar usuarios cuando los flujos estén disponibles."
+    "helper": "Administra usuarios locales y sus dependientes. Todos los cambios permanecen en este dispositivo.",
+    "create": {
+      "title": "Nuevo usuario",
+      "description": "Completa los datos básicos e incluye dependientes por teléfono.",
+      "submit": "Agregar usuario",
+      "fields": {
+        "nome": "Nombre completo",
+        "email": "Correo electrónico",
+        "telefone": "Teléfono",
+        "role": "Rol",
+        "status": "Estado",
+        "idioma": "Idioma preferido",
+        "tema": "Tema preferido",
+        "seguirSistema": "Seguir la configuración del sistema",
+        "dependentes": "Dependientes",
+        "dependenteNome": "Nombre del dependiente",
+        "dependenteTelefone": "Teléfono del dependiente",
+        "adicionarDependente": "Agregar dependiente",
+        "removerDependente": "Eliminar"
+      }
+    },
+    "list": {
+      "title": "Usuarios registrados",
+      "empty": "No hay usuarios disponibles.",
+      "email": "Correo electrónico",
+      "telefone": "Hash del teléfono",
+      "dependentes": "Dependientes",
+      "noDependentes": "Sin dependientes registrados.",
+      "actions": {
+        "edit": "Editar usuario",
+        "save": "Guardar cambios",
+        "cancel": "Cancelar",
+        "delete": "Eliminar usuario"
+      },
+      "status": {
+        "active": "Activo",
+        "pending": "Pendiente",
+        "suspended": "Suspendido"
+      },
+      "role": {
+        "admin": "Administrador",
+        "manager": "Gestor",
+        "viewer": "Visualizador"
+      },
+      "seguirSistema": "Sigue al sistema",
+      "temaPersonalizado": "Tema definido"
+    },
+    "dependentes": {
+      "hash": "Hash del teléfono"
+    },
+    "events": {
+      "title": "Oportunidades de traducción",
+      "empty": "No hay eventos registrados.",
+      "unsupportedLocale": "Idioma detectado no compatible",
+      "timestamp": "Registrado el"
+    },
+    "feedback": {
+      "created": "Usuario creado correctamente.",
+      "updated": "Usuario actualizado.",
+      "deleted": "Usuario eliminado."
+    },
+    "errors": {
+      "requiredName": "Ingresa el nombre del usuario.",
+      "requiredEmail": "Ingresa un correo válido."
+    },
+    "languages": {
+      "pt-BR": "Portugués (Brasil)",
+      "en-US": "Inglés (EE. UU.)",
+      "es-419": "Español (LatAm)"
+    },
+    "themes": {
+      "light": "Claro",
+      "dark": "Oscuro"
+    }
   }
 }

@@ -4,10 +4,15 @@ import {
   getSessionPreferences,
   subscribeToSessionPreferences,
 } from "./session.js";
+import { bootstrapLocale } from "./i18n.js";
+import { bootstrapTheme } from "./theme.js";
 
 const appOutlet = document.querySelector("#app");
 const statusFooter = document.querySelector("#status");
 const adminElements = document.querySelectorAll("[data-admin-only]");
+
+bootstrapLocale();
+bootstrapTheme();
 
 function applySessionMode(preferences) {
   const isAdmin = preferences?.mode === "admin";

@@ -27,7 +27,79 @@
     "localChanges": "Local changes — no backend calls will be triggered."
   },
   "users": {
-    "helper": "User management coming soon.",
-    "placeholder": "Use this area to register, promote or deactivate users once the flows are available."
+    "helper": "Manage local users and their dependents. Changes never leave this device.",
+    "create": {
+      "title": "New user",
+      "description": "Fill in the basic details and include dependents by phone number.",
+      "submit": "Add user",
+      "fields": {
+        "nome": "Full name",
+        "email": "Email",
+        "telefone": "Phone",
+        "role": "Role",
+        "status": "Status",
+        "idioma": "Preferred language",
+        "tema": "Preferred theme",
+        "seguirSistema": "Follow system settings",
+        "dependentes": "Dependents",
+        "dependenteNome": "Dependent name",
+        "dependenteTelefone": "Dependent phone",
+        "adicionarDependente": "Add dependent",
+        "removerDependente": "Remove"
+      }
+    },
+    "list": {
+      "title": "Registered users",
+      "empty": "No users available.",
+      "email": "Email",
+      "telefone": "Phone hash",
+      "dependentes": "Dependents",
+      "noDependentes": "No dependents registered.",
+      "actions": {
+        "edit": "Edit user",
+        "save": "Save changes",
+        "cancel": "Cancel",
+        "delete": "Remove user"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "suspended": "Suspended"
+      },
+      "role": {
+        "admin": "Administrator",
+        "manager": "Manager",
+        "viewer": "Viewer"
+      },
+      "seguirSistema": "Follows system",
+      "temaPersonalizado": "Custom theme"
+    },
+    "dependentes": {
+      "hash": "Phone hash"
+    },
+    "events": {
+      "title": "Translation opportunities",
+      "empty": "No events registered.",
+      "unsupportedLocale": "Detected unsupported locale",
+      "timestamp": "Recorded on"
+    },
+    "feedback": {
+      "created": "User created successfully.",
+      "updated": "User updated.",
+      "deleted": "User removed."
+    },
+    "errors": {
+      "requiredName": "Please provide the user name.",
+      "requiredEmail": "Please provide a valid email."
+    },
+    "languages": {
+      "pt-BR": "Portuguese (Brazil)",
+      "en-US": "English (US)",
+      "es-419": "Spanish (LatAm)"
+    },
+    "themes": {
+      "light": "Light",
+      "dark": "Dark"
+    }
   }
 }
