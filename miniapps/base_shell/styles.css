@@ -98,17 +98,17 @@ body.auth-login .panel-content {
   gap: 0.5rem;
 }
 
-.auth-login__password-wrapper {
+.auth-password-wrapper {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-.auth-login__password-wrapper input {
+.auth-password-wrapper input {
   flex: 1;
 }
 
-.auth-login__toggle-password {
+.auth-toggle-password {
   border: none;
   background: none;
   padding: 0.35rem;
@@ -124,20 +124,18 @@ body.auth-login .panel-content {
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
   line-height: 1;
-}
-
-.auth-login__toggle-password:hover,
-.auth-login__toggle-password:focus-visible {
+.auth-toggle-password:hover,
+.auth-toggle-password:focus-visible {
   color: var(--color-text);
   background-color: color-mix(in srgb, var(--color-accent) 12%, transparent);
 }
 
-.auth-login__toggle-password:focus-visible {
+.auth-toggle-password:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
 
-.auth-login__toggle-password-icon {
+.auth-toggle-password-icon {
   display: inline-flex;
   line-height: 1;
 }

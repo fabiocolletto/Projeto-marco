@@ -73,14 +73,34 @@
             </div>
             <div class="field auth-register__password-field">
               <label for="register-password" data-i18n="auth.form.password">Senha</label>
-              <input
-                id="register-password"
-                name="password"
-                type="password"
-                required
-                autocomplete="new-password"
-                aria-describedby="password-strength-status"
-              />
+              <div class="auth-password-wrapper">
+                <input
+                  id="register-password"
+                  name="password"
+                  type="password"
+                  required
+                  autocomplete="new-password"
+                  aria-describedby="password-strength-status"
+                />
+                <button
+                  type="button"
+                  class="auth-toggle-password"
+                  data-action="toggle-password"
+                  aria-controls="register-password"
+                  aria-pressed="false"
+                  aria-labelledby="register-password-toggle-label"
+                >
+                  <span class="auth-toggle-password-icon" aria-hidden="true" data-password-visibility-icon>👁️</span>
+                  <span
+                    id="register-password-toggle-label"
+                    class="sr-only"
+                    data-password-visibility-label
+                    data-i18n="auth.register.showPassword"
+                  >
+                    Mostrar senha
+                  </span>
+                </button>
+              </div>
               <div class="password-strength" data-password-meter data-strength="weak">
                 <div class="password-strength__header">
                   <span class="password-strength__label" data-i18n="auth.passwordStrength.label">Força da senha</span>

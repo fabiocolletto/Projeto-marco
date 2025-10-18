@@ -2157,6 +2157,45 @@ function handleKeydown(event) {
 }
 
 function setupAuthForms() {
+  const passwordToggleRefreshers = [];
+
+  function setupPasswordToggle({ input, button, showLabelKey, hideLabelKey }) {
+    if (!input || !button) return null;
+    const icon = button.querySelector('[data-password-visibility-icon]');
+    const label = button.querySelector('[data-password-visibility-label]');
+    let isVisible = false;
+
+    const renderState = () => {
+      const labelKey = isVisible ? hideLabelKey : showLabelKey;
+      if (label) {
+        label.dataset.i18n = labelKey;
+        const labelText = t(labelKey);
+        label.textContent = labelText && labelText !== labelKey ? labelText : labelKey;
+      }
+      if (icon) {
+        icon.textContent = isVisible ? '🙈' : '👁️';
+      }
+    };
+
+    const applyVisibility = visible => {
+      isVisible = Boolean(visible);
+      input.type = isVisible ? 'text' : 'password';
+      button.setAttribute('aria-pressed', String(isVisible));
+      renderState();
+    };
+
+    button.addEventListener('click', () => {
+      applyVisibility(!isVisible);
+    });
+
+    passwordToggleRefreshers.push(renderState);
+    applyVisibility(false);
+
+    return {
+      setVisibility: applyVisibility
+    };
+  }
+
   const loginForm = document.getElementById('login-form');
   if (loginForm) {
     const feedback = document.getElementById('login-feedback');
@@ -2165,31 +2204,12 @@ function setupAuthForms() {
     const rememberCheckbox = loginForm.querySelector('#login-remember');
     const forgotPasswordButton = document.querySelector('[data-action="forgot-password"]');
     const switchUserButton = document.querySelector('[data-action="switch-user"]');
-    const togglePasswordIcon = togglePasswordButton?.querySelector('[data-password-visibility-icon]');
-    const togglePasswordLabel = togglePasswordButton?.querySelector('[data-password-visibility-label]');
-    let isPasswordVisible = false;
-
-    const applyPasswordVisibility = visible => {
-      if (!passwordInput || !togglePasswordButton) return;
-      isPasswordVisible = visible;
-      passwordInput.type = visible ? 'text' : 'password';
-      const labelKey = visible ? 'auth.login.hidePassword' : 'auth.login.showPassword';
-      togglePasswordButton.setAttribute('aria-pressed', String(visible));
-      if (togglePasswordLabel) {
-        togglePasswordLabel.dataset.i18n = labelKey;
-        togglePasswordLabel.textContent = t(labelKey);
-      }
-      if (togglePasswordIcon) {
-        togglePasswordIcon.textContent = visible ? '🙈' : '👁️';
-      }
-    };
-
-    if (togglePasswordButton && passwordInput) {
-      applyPasswordVisibility(false);
-      togglePasswordButton.addEventListener('click', () => {
-        applyPasswordVisibility(!isPasswordVisible);
-      });
-    }
+    const loginPasswordToggle = setupPasswordToggle({
+      input: passwordInput,
+      button: togglePasswordButton,
+      showLabelKey: 'auth.login.showPassword',
+      hideLabelKey: 'auth.login.hidePassword'
+    });
 
     if (forgotPasswordButton) {
       forgotPasswordButton.addEventListener('click', () => {
@@ -2211,7 +2231,7 @@ function setupAuthForms() {
         closeActiveMenu();
         logout();
         loginForm.reset();
-        applyPasswordVisibility(false);
+        loginPasswordToggle?.setVisibility(false);
         const emailField = loginForm.querySelector('#login-email');
         emailField?.focus();
         const message = t('auth.login.switchUserSuccess');
@@ -2248,6 +2268,7 @@ function setupAuthForms() {
     const feedback = document.getElementById('register-feedback');
     const phoneRegionField = registerForm.querySelector('[data-phone-region]');
     const passwordField = registerForm.querySelector('#register-password');
+    const togglePasswordButton = registerForm.querySelector('[data-action="toggle-password"]');
     const passwordStrengthMeter = registerForm.querySelector('[data-password-meter]');
     const passwordStrengthBar = passwordStrengthMeter?.querySelector('[data-password-bar]');
     const passwordStrengthStatus = passwordStrengthMeter?.querySelector('[data-password-status]');
@@ -2310,7 +2331,14 @@ function setupAuthForms() {
 
     applyPasswordStrength(registerState.passwordLevel);
 
+    let registerPasswordToggle = null;
     if (passwordField) {
+      registerPasswordToggle = setupPasswordToggle({
+        input: passwordField,
+        button: togglePasswordButton,
+        showLabelKey: 'auth.register.showPassword',
+        hideLabelKey: 'auth.register.hidePassword'
+      });
       setPasswordStrength(passwordField.value);
       passwordField.addEventListener('input', () => {
         const level = setPasswordStrength(passwordField.value);
@@ -2371,6 +2399,7 @@ function setupAuthForms() {
         announceFeedback(t('auth.feedback.registered'));
         updateUserDisplay(user);
         registerForm.reset();
+        registerPasswordToggle?.setVisibility(false);
         setPasswordStrength('');
         if (phoneRegionField) {
           phoneRegionField.value = 'BR';
@@ -2904,6 +2933,14 @@ function handleUserManagementSubmit(event) {
     } else {
       announceTo(feedback, t('auth.feedback.generic'));
     }
+  }
+
+  if (passwordToggleRefreshers.length) {
+    onLanguageChange(() => {
+      passwordToggleRefreshers.forEach(renderState => {
+        renderState();
+      });
+    });
   }
 }
 
