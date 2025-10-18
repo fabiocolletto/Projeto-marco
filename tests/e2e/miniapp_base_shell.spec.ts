@@ -152,6 +152,7 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#user-management-create');
     await page.fill('#manage-name', 'Bruno Member');
     await page.fill('#manage-email', 'bruno@example.com');
+    await page.fill('#manage-phone', '+55 11 98888-7777');
     await page.fill('#manage-password', 'secret2');
     await page.selectOption('#manage-role', 'member');
     await page.click('#user-management-submit');

@@ -152,8 +152,8 @@ const ADMIN_UPTIME_PERCENT = 99.97;
 
 const SHELL_APP_ID = 'base.shell';
 
-const USER_PANEL_URL = new URL('./auth/profile.html', import.meta.url);
-const USER_PANEL_EMBED_ROUTE = './auth/profile-panel.html';
+const USER_PANEL_EMBED_ROUTE = './auth/profile.html?embed=panel';
+const USER_PANEL_URL = new URL(USER_PANEL_EMBED_ROUTE, import.meta.url);
 const USER_PANEL_MINI_APP_ID = 'base.shell.user-panel';
 const USER_PANEL_MINI_APP = {
   id: USER_PANEL_MINI_APP_ID,
@@ -2769,9 +2769,10 @@ function setupUserManagement() {
   const cancelButton = document.getElementById('user-management-cancel');
   const nameField = document.getElementById('manage-name');
   const emailField = document.getElementById('manage-email');
+  const phoneField = document.getElementById('manage-phone');
   const passwordField = document.getElementById('manage-password');
   const roleField = document.getElementById('manage-role');
-  if (!list || !createButton || !form || !feedback || !title || !submitButton || !cancelButton || !nameField || !emailField || !passwordField || !roleField) {
+  if (!list || !createButton || !form || !feedback || !title || !submitButton || !cancelButton || !nameField || !emailField || !phoneField || !passwordField || !roleField) {
     return;
   }
   userManagementControls = {
@@ -2785,6 +2786,7 @@ function setupUserManagement() {
     cancelButton,
     nameField,
     emailField,
+    phoneField,
     passwordField,
     roleField
   };
@@ -2825,7 +2827,7 @@ function renderUserManagementTable() {
   if (!users || users.length === 0) {
     const row = document.createElement('tr');
     const cell = document.createElement('td');
-    cell.colSpan = 5;
+    cell.colSpan = 6;
     cell.textContent = t('auth.profile.userEmpty');
     row.appendChild(cell);
     list.appendChild(row);
@@ -2843,6 +2845,9 @@ function renderUserManagementTable() {
     const emailCell = document.createElement('td');
     emailCell.textContent = user.email;
     row.appendChild(emailCell);
+    const phoneCell = document.createElement('td');
+    phoneCell.textContent = user.phone || '—';
+    row.appendChild(phoneCell);
     const roleCell = document.createElement('td');
     roleCell.textContent = user.role === 'owner' ? t('auth.form.owner') : t('auth.form.member');
     row.appendChild(roleCell);
@@ -2891,6 +2896,7 @@ function openUserManagementForm(mode, user) {
     submitButton,
     nameField,
     emailField,
+    phoneField,
     passwordField,
     roleField
   } = userManagementControls;
@@ -2909,6 +2915,7 @@ function openUserManagementForm(mode, user) {
   nameField.value = user?.name || '';
   emailField.value = mode === 'duplicate' ? '' : user?.email || '';
   emailField.placeholder = mode === 'duplicate' ? t('auth.profile.userForm.emailPlaceholderDuplicate', { email: user?.email || '' }) : '';
+  phoneField.value = mode === 'duplicate' ? '' : user?.phone || '';
   passwordField.value = '';
   const isOwner = user?.role === 'owner';
   const ownerOption = roleField.querySelector('option[value="owner"]');
@@ -2918,6 +2925,7 @@ function openUserManagementForm(mode, user) {
   }
   roleField.value = isOwner ? 'owner' : 'member';
   roleField.disabled = mode !== 'edit' || isOwner;
+  phoneField.required = true;
   passwordField.required = mode !== 'edit';
   passwordField.placeholder = mode === 'edit'
     ? t('auth.profile.userForm.passwordOptional')
@@ -2934,6 +2942,7 @@ function closeUserManagementForm() {
     form,
     nameField,
     emailField,
+    phoneField,
     passwordField,
     roleField
   } = userManagementControls;
@@ -2941,6 +2950,7 @@ function closeUserManagementForm() {
   nameField.value = '';
   emailField.value = '';
   emailField.placeholder = '';
+  phoneField.value = '';
   passwordField.value = '';
   passwordField.placeholder = '';
   passwordField.required = true;
@@ -2958,13 +2968,14 @@ function closeUserManagementForm() {
 function handleUserManagementSubmit(event) {
   event.preventDefault();
   if (!userManagementControls) return;
-  const { feedback, nameField, emailField, passwordField, roleField } = userManagementControls;
+  const { feedback, nameField, emailField, phoneField, passwordField, roleField } = userManagementControls;
   const mode = userManagementState.mode || 'create';
   const name = nameField.value.trim();
   const email = emailField.value.trim();
+  const phone = phoneField.value.trim();
   const role = mode === 'edit' ? roleField.value || 'member' : 'member';
   const password = passwordField.value;
-  if (!name || !email || (mode !== 'edit' && !password)) {
+  if (!name || !email || !phone || (mode !== 'edit' && !password)) {
     announceTo(feedback, t('auth.feedback.required'));
     return;
   }
@@ -2975,13 +2986,13 @@ function handleUserManagementSubmit(event) {
         announceTo(feedback, t('auth.feedback.userNotFound'));
         return;
       }
-      const updated = updateUserProfile(targetId, { name, email, role });
+      const updated = updateUserProfile(targetId, { name, email, role, phone });
       if (password) {
         setUserPassword(targetId, password);
       }
       announceTo(feedback, t('auth.profile.userUpdated', { name: updated.name }));
     } else {
-      register({ name, email, password, role }, { autoLogin: false });
+      register({ name, email, password, role, phone }, { autoLogin: false });
       const key = mode === 'duplicate'
         ? 'auth.profile.userDuplicated'
         : 'auth.profile.userCreated';
