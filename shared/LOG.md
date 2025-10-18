@@ -10,3 +10,6 @@
 ## 2025-10-04
 - Reimplementadas `normalizeName` e `stripNumbersFromName` em `listUtils.js` usando exports ESM nomeados.
 - Adicionada camada de compatibilidade `higienizarLista.mjs` reexportando os novos utilitários e expondo `deriveTelefone`.
+
+## 2025-10-18
+- Adicionadas helpers `formatBrazilPhoneDigits` e `applyPhoneMask` em `auth/register.js` para reutilizar a máscara de telefone brasileiro nos formulários de cadastro.
