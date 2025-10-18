@@ -1,0 +1,33 @@
+{
+  "title": "Administration",
+  "modeBadge": "Admin mode",
+  "tabs": {
+    "catalog": "Catalog",
+    "users": "Users"
+  },
+  "access": {
+    "title": "Restricted access",
+    "description": "This MiniApp is only available to administrators. Switch the session mode to access it."
+  },
+  "catalog": {
+    "helper": "Reorder the marketplace listing and adjust visibility. Changes are local only.",
+    "empty": "No MiniApps were found in the catalog.",
+    "error": "The MiniApp catalog could not be loaded.",
+    "positionLabel": "Position",
+    "visibilityLabel": "Visibility",
+    "visibility": {
+      "visible": "Visible",
+      "hidden": "Hidden"
+    },
+    "actions": {
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "toggleVisibility": "Toggle visibility"
+    },
+    "localChanges": "Local changes — no backend calls will be triggered."
+  },
+  "users": {
+    "helper": "User management coming soon.",
+    "placeholder": "Use this area to register, promote or deactivate users once the flows are available."
+  }
+}

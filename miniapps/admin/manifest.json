@@ -1,0 +1,15 @@
+{
+  "id": "admin",
+  "name": {
+    "pt-BR": "Administração",
+    "en-US": "Administration",
+    "es-419": "Administración"
+  },
+  "version": "0.1.0",
+  "entry": "./index.js",
+  "summary": "Ferramentas administrativas para catálogo e usuários.",
+  "visibility": "restricted",
+  "routes": [
+    { "path": "/", "titleKey": "title" }
+  ]
+}
