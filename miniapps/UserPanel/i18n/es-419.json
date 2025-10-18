@@ -1,0 +1,19 @@
+{
+  "title": "Panel de Usuario",
+  "subtitle": "Sigue tu progreso personal.",
+  "journey": {
+    "title": "Tu recorrido",
+    "items": [
+      "Completa tu perfil",
+      "Activa notificaciones importantes",
+      "Revisa tus metas semanales"
+    ]
+  },
+  "resources": {
+    "title": "Recursos rápidos",
+    "items": [
+      { "label": "Centro de ayuda", "href": "#" },
+      { "label": "Comunidad", "href": "#" }
+    ]
+  }
+}

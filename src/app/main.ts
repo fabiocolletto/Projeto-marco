@@ -129,6 +129,7 @@ export async function bootstrap(): Promise<void> {
   try {
     const registry = await fetchRegistry();
     setRegistryEntries(registry);
+    renderShell();
     normalizeQuery(registry);
     applyRouteFromLocation();
   } catch (error) {
