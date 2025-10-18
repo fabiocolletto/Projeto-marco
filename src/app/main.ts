@@ -4,7 +4,6 @@ import { applyRouteFromLocation, getSelectedAppId, setSelectedAppId, setRouteFor
 import { renderShell } from './renderShell.js';
 import { wireCatalog } from '../registry/wireCatalog.js';
 import { ensureMasterGate } from '../auth/gate.js';
-import { autoProvisionMaster } from '../auth/provision.js';
 
 let catalogContainer: HTMLElement | null = null;
 let disposeCatalogListener: (() => void) | null = null;
@@ -121,14 +120,6 @@ export async function bootstrap(): Promise<void> {
   attachGlobalListeners();
   const config = parseConfig();
   setAppConfig(config);
-
-  const seededMaster = await autoProvisionMaster();
-  if (seededMaster) {
-    const hash = window.location.hash;
-    if (!/^#\/(login|setup)\/master$/.test(hash)) {
-      window.location.hash = '#/login/master';
-    }
-  }
 
   const gate = await ensureMasterGate();
   if (!gate.allowed) {
