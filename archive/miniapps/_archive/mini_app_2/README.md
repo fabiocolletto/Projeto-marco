@@ -1,4 +1,18 @@
-# Mini-app 2
+# Mini-app 2 (Arquivado)
+
+> Arquivado em 2025-10-19 durante a limpeza do repositório para manter apenas o shell base ativo.
+
+## Motivo do arquivamento
+
+- O catálogo atual do shell não prevê mais entradas placeholder além do painel principal.
+- Os fluxos de demonstração migraram para o histórico em `archive/2025-10/`.
+
+## Como restaurar
+
+1. Execute `npm run archive:restore -- --path=miniapps/mini_app_2`.
+2. Reative o registro correspondente em `appbase/registry.json` se desejar expor novamente o atalho na navegação.
+
+---
 
 Estrutura básica do segundo mini-app, preparada para integração via shell base.
 

@@ -25,3 +25,8 @@
 - Documentado o fluxo de detecção automática de idioma no shell base, garantindo fallback consistente para inglês quando o navegador não oferece uma opção suportada.
 - Simulados navegadores com `navigator.languages` variados via DevTools (`Object.defineProperty(window.navigator, 'languages', { value: [...] })`) e recarga da página para validar seleção automática em pt-BR, en-US e es-419, além do fallback para en-US quando apenas `['fr-FR', 'de-DE']` estava disponível.
 - Registrada verificação manual do atributo `document.documentElement.lang` após a inicialização para assegurar que reflete o idioma efetivo carregado pelo i18n.
+
+## 2025-10-19
+- Arquivadas as pastas `Assistentes/`, `docs/`, `reports/`, `scripts/`, `shared/`, `tools/`, `unique/` e os mini-apps `miniapps/mini_app_1` e `miniapps/mini_app_2` em `archive/`, seguindo a política de preservar apenas o shell base ativo.
+- Atualizado o fallback do catálogo em `miniapps/base_shell/app.js` e o `appbase/registry.json` para refletirem a remoção dos mini-apps temporários.
+- Registrados os itens movidos no `archive/MANIFEST.json` e adicionadas instruções de restauração nos READMEs dos mini-apps arquivados.

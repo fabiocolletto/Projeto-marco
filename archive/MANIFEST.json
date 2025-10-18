@@ -1,1 +1,542 @@
-[]
+[
+  {
+    "originalPath": "Assistentes/Cerimonial/app_free_v4/assistente-cerimonial-v4-lite.html",
+    "archivePath": "archive/2025-10/Assistentes/Cerimonial/app_free_v4/assistente-cerimonial-v4-lite.html",
+    "sha256": "144ec1990fd8283fcf3ea4a45b01a5677241a5ad4039aa8b7d4ae0aae18f8aca",
+    "size": 71019,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "docs/MAINTENANCE.md",
+    "archivePath": "archive/2025-10/docs/MAINTENANCE.md",
+    "sha256": "ccded3fec8e4b5c649a6b12f8e56e3139ded9c2cfd1829cc4194965f16fcc47f",
+    "size": 3805,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "docs/make/verify-hmac.md",
+    "archivePath": "archive/2025-10/docs/make/verify-hmac.md",
+    "sha256": "dcf19e08f1d9d080756ecb8a5c22e591d9501186eeef32ef20c3aeb26035a054",
+    "size": 1999,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "reports/.gitkeep",
+    "archivePath": "archive/2025-10/reports/.gitkeep",
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "size": 0,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "scripts/canonical-json.js",
+    "archivePath": "archive/2025-10/scripts/canonical-json.js",
+    "sha256": "b4ed716eae756198c2744deed5bc1f4589cfa161e076ea383fe0e87a898bf122",
+    "size": 731,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "scripts/sign-hmac.js",
+    "archivePath": "archive/2025-10/scripts/sign-hmac.js",
+    "sha256": "b32b8cd755d89bfdbb8a1eb0fce266eaf5abd98eb3e88baa12412f98eab7eb59",
+    "size": 1335,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/LOG.md",
+    "archivePath": "archive/2025-10/shared/LOG.md",
+    "sha256": "1729e06949d0d9866e5c1311da7d9461b35c09f43ba9388a31eb30ae5d1a29d7",
+    "size": 959,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/README.md",
+    "archivePath": "archive/2025-10/shared/README.md",
+    "sha256": "ce8de2e0077c0e131370345adfa8ae5d6797eaf5d48b0f2554eac643bf7707cb",
+    "size": 1068,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/acConvidados.v1.mjs",
+    "archivePath": "archive/2025-10/shared/acConvidados.v1.mjs",
+    "sha256": "15e019376b9efb163c7b878aa2a1a50d9ba9ec21e5a6357a38f09a981c2b1bbe",
+    "size": 14913,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/acEventsCore.mjs",
+    "archivePath": "archive/2025-10/shared/acEventsCore.mjs",
+    "sha256": "91e3c8f703100218f8c68feb0031cdd395df10993a9dd8b4c9e3faafb28b2fc5",
+    "size": 5533,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/acEventsCore.v2.mjs",
+    "archivePath": "archive/2025-10/shared/acEventsCore.v2.mjs",
+    "sha256": "c439a5be4faa915d8e6b635055a4e9c0de1bd66ce96dc11c7d867217e91e7be9",
+    "size": 7971,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/acFornecedores.v1.mjs",
+    "archivePath": "archive/2025-10/shared/acFornecedores.v1.mjs",
+    "sha256": "51ba6f60601acfd8347fa29d9a920026ce15e6852e83fec15f1b3d2bfe696aad",
+    "size": 18022,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/acMensagens.v1.mjs",
+    "archivePath": "archive/2025-10/shared/acMensagens.v1.mjs",
+    "sha256": "26498fe6a98e153a8ed3cf6aa726b17ae4ce37f0ed6a3ac729b6478fea93392f",
+    "size": 15589,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/acMiniHost.v1.mjs",
+    "archivePath": "archive/2025-10/shared/acMiniHost.v1.mjs",
+    "sha256": "7aeefa0034e49c87fa5b191a711923a453b63e3cb08280eb1ae06291289a4c3b",
+    "size": 4986,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/acTasks.v1.mjs",
+    "archivePath": "archive/2025-10/shared/acTasks.v1.mjs",
+    "sha256": "7501026aca6ce729103de02ac2d7ef38514826493a1ea8ce5b20670475e6816b",
+    "size": 12009,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/app.base.css",
+    "archivePath": "archive/2025-10/shared/app.base.css",
+    "sha256": "51bb4bd6304804825a6d9af5314e9245a0fda6162ceb81b29b71fd40e3454600",
+    "size": 5567,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/gestaoEventosApp.css",
+    "archivePath": "archive/2025-10/shared/gestaoEventosApp.css",
+    "sha256": "abbd26c0ad2f9452622f75b2822b94109c99ef9ce43e82feb57fa9a0dd7f77d3",
+    "size": 5418,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/higienizarLista.mjs",
+    "archivePath": "archive/2025-10/shared/higienizarLista.mjs",
+    "sha256": "718eec59565588c95f3ab060f7d8d08ebe6dd5e493bfc21b74e62a2a36e6cb23",
+    "size": 2108,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/invite-processor.html",
+    "archivePath": "archive/2025-10/shared/invite-processor.html",
+    "sha256": "b41a2ebfb5a3e9e969d365741c3349ea74a6ef2968008e08c58b012aa80a6da1",
+    "size": 22674,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/inviteProcessor.js",
+    "archivePath": "archive/2025-10/shared/inviteProcessor.js",
+    "sha256": "4b8589e7529a13ff07b934c57cade8e6826b76a58866d7600de664ff54848ff0",
+    "size": 6671,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/inviteUtils.js",
+    "archivePath": "archive/2025-10/shared/inviteUtils.js",
+    "sha256": "f05cc7dabe59cd296adc9ead5b3c73c4c3824ed360cdd8547441f19ad72866ce",
+    "size": 3265,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/js/auth/register.js",
+    "archivePath": "archive/2025-10/shared/js/auth/register.js",
+    "sha256": "29eeaab9485516d80a3ea8cce5d46061ac4ebc92b18f737779e9a692bca68d16",
+    "size": 19319,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/js/main.js",
+    "archivePath": "archive/2025-10/shared/js/main.js",
+    "sha256": "28cb245a40bf8cb3b6abc6807fdefc60915299db85ad12d7f6c8efca90ec6cf9",
+    "size": 338,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/listUtils.js",
+    "archivePath": "archive/2025-10/shared/listUtils.js",
+    "sha256": "67b11c650b846ad71df548e32448ba91931b3cf259806122bc535f7d19f176f4",
+    "size": 2047,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/marcoBus.js",
+    "archivePath": "archive/2025-10/shared/marcoBus.js",
+    "sha256": "da53b5f761a9b9892f83002e585c565b05dc887e6e72d4c013717fce6874c862",
+    "size": 1374,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "shared/projectStore.js",
+    "archivePath": "archive/2025-10/shared/projectStore.js",
+    "sha256": "4185986ee3450b67d90da5047fa586e8fee0d037e572f900c466060c80d4e43c",
+    "size": 9239,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/LOG.md",
+    "archivePath": "archive/2025-10/tools/LOG.md",
+    "sha256": "c1a0d63ddc890d02b2fe9190051521a6c0dcef3f7f607dfc80391f33539e2594",
+    "size": 152,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/README.md",
+    "archivePath": "archive/2025-10/tools/README.md",
+    "sha256": "ec7c1118c2aa762e63a26a04c132bf1a4b3b0a62fae784a0671429acadd477e0",
+    "size": 531,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/LOG.md",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/LOG.md",
+    "sha256": "83f0c1dde2301c893adec1793031a9cfdf988249c7fd347a8595c167f2ea1930",
+    "size": 199,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/README.md",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/README.md",
+    "sha256": "55c7485138b02fda7060778cae9863ed5946f0603e059877bef7bd35af0ebb3e",
+    "size": 829,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/app.html",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/app.html",
+    "sha256": "1ea7b3df767bfa432d59ce8a92165d02a0f8f26e766f07b90a8c5121c99cd7b5",
+    "size": 35586,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/app_header.mjs",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/app_header.mjs",
+    "sha256": "f7d798b574375950992d4f0234d5aa92f5b6916d2e8d6eb2621574c3b3cf0b12",
+    "size": 12549,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/convidados.html",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/convidados.html",
+    "sha256": "6922ea93d8d40accfa28c79abab6e1a46f4afad43f2f1fec73f9c0b3aa997f24",
+    "size": 24475,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/eventos.html",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/eventos.html",
+    "sha256": "21dd6f3e319c3908bda6d9756958c4c3b9df3701fbae446e8c8dcf41b2599cda",
+    "size": 13954,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/fornecedores.html",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/fornecedores.html",
+    "sha256": "299147573491b9ad6baa57dd95ccad8ebd1980332d27c53578ed177eda2d9430",
+    "size": 18637,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/mensagens.html",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/mensagens.html",
+    "sha256": "df86b9c5070c264193f8250ee292c45272258de3e2a4d36f01f2f21a1fe29a32",
+    "size": 20624,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/tarefas.html",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/tarefas.html",
+    "sha256": "8d420c7ec16e0fb89e44c8c0831418e4ff0ac9163afb7d1f2877905a5e443d03",
+    "size": 14918,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-convidados/widget-shell.html",
+    "archivePath": "archive/2025-10/tools/gestao-de-convidados/widget-shell.html",
+    "sha256": "8b89f1ba2855f7d6800fb11209483c3812191c1cfff896b28192270de658ed58",
+    "size": 7675,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/gestao-de-fornecedores/fornecedores.minapp.js",
+    "archivePath": "archive/2025-10/tools/gestao-de-fornecedores/fornecedores.minapp.js",
+    "sha256": "9b9a44e14f9607cdb451055395a426a8ca810e9b0de645bae641155431e7c503",
+    "size": 28113,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/maintenance/__tests__/policy.spec.mjs",
+    "archivePath": "archive/2025-10/tools/maintenance/__tests__/policy.spec.mjs",
+    "sha256": "e7d6d2639b5a1cefd67b09329f173c63da703573c4aeb02e11c3fc3ca1fd90a2",
+    "size": 3652,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/maintenance/archive.mjs",
+    "archivePath": "archive/2025-10/tools/maintenance/archive.mjs",
+    "sha256": "04df4605aa90467fe2a28960f5e48f66013ac6c3124fbdb4225df971bf3a7e01",
+    "size": 6614,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/maintenance/audit.mjs",
+    "archivePath": "archive/2025-10/tools/maintenance/audit.mjs",
+    "sha256": "1f4bc3fa475b7994285ab265607f77a6c4eae335c1407a782cd8e4d2ce2d8b63",
+    "size": 2481,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/maintenance/lfs-scan.mjs",
+    "archivePath": "archive/2025-10/tools/maintenance/lfs-scan.mjs",
+    "sha256": "f31362545d928b88e7d77f35beb7b1587d7ca754a2e1a6db9de76bda612665e2",
+    "size": 1838,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/maintenance/lib/analyzer.mjs",
+    "archivePath": "archive/2025-10/tools/maintenance/lib/analyzer.mjs",
+    "sha256": "fe669845fc4bc4dbeca763959c876b9b8f44ff9871f09d3b4c014e6340069834",
+    "size": 14234,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/maintenance/lib/archive-helpers.mjs",
+    "archivePath": "archive/2025-10/tools/maintenance/lib/archive-helpers.mjs",
+    "sha256": "bae06c05b902a9aabd184fe0e754f07322f741b33d931424d5a1280c9976284b",
+    "size": 2228,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/maintenance/restore.mjs",
+    "archivePath": "archive/2025-10/tools/maintenance/restore.mjs",
+    "sha256": "28451ae5f63c7f6efcfed50242c8f4e168b3f934bac0bb0705c07f4d439ddda2",
+    "size": 3217,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "tools/serve-miniapp.mjs",
+    "archivePath": "archive/2025-10/tools/serve-miniapp.mjs",
+    "sha256": "da2b8f9cf8f84c4fb8f8a36f1e2134e02acc407a22453551d5b45bc0f6093dbb",
+    "size": 3582,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "unique/sync.minapp.js",
+    "archivePath": "archive/2025-10/unique/sync.minapp.js",
+    "sha256": "d8a3f87ffed23aab565b90fe04e3973cb8b09f93e1aaae09c10b73a149312d6e",
+    "size": 27467,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "miniapps/mini_app_1/README.md",
+    "archivePath": "archive/miniapps/_archive/mini_app_1/README.md",
+    "sha256": "658af250fe7f525c52558f498a3215f47fead1d4bbdece176861141a87a6e8c5",
+    "size": 838,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "miniapps/mini_app_1/index.html",
+    "archivePath": "archive/miniapps/_archive/mini_app_1/index.html",
+    "sha256": "486ecba08c44ce295ea6a1abbd91c902689c14473a9261e11d5f3c3028cc8817",
+    "size": 1231,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "miniapps/mini_app_1/manifest.json",
+    "archivePath": "archive/miniapps/_archive/mini_app_1/manifest.json",
+    "sha256": "83aa0c21f4175059f3018733980304d18e987591c2fabf00980627387540f3e7",
+    "size": 260,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "miniapps/mini_app_2/README.md",
+    "archivePath": "archive/miniapps/_archive/mini_app_2/README.md",
+    "sha256": "80004f960286e051b0fbc7e878d7ea6451e69c264bb6111167da14cc26ebc2dd",
+    "size": 740,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "miniapps/mini_app_2/index.html",
+    "archivePath": "archive/miniapps/_archive/mini_app_2/index.html",
+    "sha256": "6df0375f0d0934ddd43fdf984186eeee1116deb705fdac83ace4649c3cdd1c47",
+    "size": 1225,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  },
+  {
+    "originalPath": "miniapps/mini_app_2/manifest.json",
+    "archivePath": "archive/miniapps/_archive/mini_app_2/manifest.json",
+    "sha256": "f9f9bfe062dc914974e40c350b51db27f2e8d56561860f13928e93fe24a98492",
+    "size": 257,
+    "reason": "Repository cleanup to keep only the base shell and shared packages active.",
+    "evidence": "TREE_miniapp-base-shell_R1.txt enumerates the active runtime footprint; this path is not listed.",
+    "archivedAt": "2025-10-19T00:00:00Z",
+    "type": "file"
+  }
+]

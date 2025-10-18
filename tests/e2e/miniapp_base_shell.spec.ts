@@ -87,12 +87,11 @@ test.describe('MiniApp Base shell', () => {
       await actionButton.click();
       await expect(navigationOverlay).toBeHidden();
     };
-    const selectMiniApp = async (id: string) => {
+    const expectMiniAppCatalogHidden = async () => {
       await openNavigation();
-      const miniAppButton = navigationOverlay.locator(`[data-miniapp-id="${id}"]`).first();
-      await expect(miniAppButton).toBeVisible();
-      await miniAppButton.click();
-      await expect(navigationOverlay).toBeHidden();
+      const miniAppSection = navigationOverlay.locator('[data-navigation-miniapps="true"]');
+      await expect(miniAppSection).toBeHidden();
+      await closeNavigation();
     };
     const openUserMenu = async () => {
       if (!(await userMenu.isVisible())) {
@@ -305,12 +304,11 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('.app-footer')).toBeVisible();
     await expect(navigationOverlay).toBeHidden();
 
-    await selectMiniApp('mini-app-1');
-    await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 1');
-    await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 1.');
-    await selectMiniApp('mini-app-2');
-    await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 2');
-    await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 2.');
+    await expectMiniAppCatalogHidden();
+    await expect(miniAppTitle).toHaveText('¡Bienvenido!');
+    await expect(miniAppMessage).toHaveText(
+      'Elige una opción del menú para comenzar a explorar tu mini app.'
+    );
 
     await expect(userMenu).toBeHidden();
     await userMenuToggle.click();
@@ -326,28 +324,38 @@ test.describe('MiniApp Base shell', () => {
 
     await openUserMenu();
     await page.click('#btnLang');
-    await expect(miniAppTitle).toHaveText('Bem-vindo ao Mini-app 2');
-    await expect(miniAppMessage).toHaveText('Você está visualizando o conteúdo do Mini-app 2.');
+    await expect(miniAppTitle).toHaveText('Bem-vindo(a)!');
+    await expect(miniAppMessage).toHaveText(
+      'Selecione uma opção no menu para começar a explorar seu miniaplicativo.'
+    );
 
     await openUserMenu();
     await page.click('#btnLang');
-    await expect(miniAppTitle).toHaveText('Welcome to Mini-app 2');
-    await expect(miniAppMessage).toHaveText("You're now exploring Mini-app 2.");
+    await expect(miniAppTitle).toHaveText('Welcome!');
+    await expect(miniAppMessage).toHaveText(
+      'Pick an option from the menu to start exploring your mini app.'
+    );
 
     await openUserMenu();
     await page.click('#btnLang');
-    await expect(miniAppTitle).toHaveText('Bienvenido al Mini-app 2');
-    await expect(miniAppMessage).toHaveText('Estás explorando el Mini-app 2.');
+    await expect(miniAppTitle).toHaveText('¡Bienvenido!');
+    await expect(miniAppMessage).toHaveText(
+      'Elige una opción del menú para comenzar a explorar tu mini app.'
+    );
 
     await selectNavigationAction('home');
     await expect(miniAppTitle).toHaveText('¡Bienvenido!');
     await expect(miniAppMessage).toHaveText(
       'Elige una opción del menú para comenzar a explorar tu mini app.'
     );
-    await selectMiniApp('mini-app-2');
+    await expectMiniAppCatalogHidden();
 
+    await openUserMenu();
     await expect(page.locator('#btnUserPanel')).toBeVisible();
-    await expect(page.locator('#btnUserPanel')).toHaveAttribute('aria-label', 'Abrir panel de usuario');
+    await expect(page.locator('#btnUserPanel')).toHaveAttribute(
+      'aria-label',
+      'Abrir panel de usuario'
+    );
     await expect(page.locator('a[data-i18n="panel.actions.register"]')).toBeHidden();
     await closeUserMenu();
 

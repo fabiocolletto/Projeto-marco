@@ -113,26 +113,9 @@ function readStoredLanguagePreference() {
   }
 }
 
-const MINI_APP_CATALOG = [
-  {
-    id: 'mini-app-1',
-    labelKey: 'nav.miniapps.miniappOne',
-    welcomeTitleKey: 'panel.miniapps.item1.title',
-    welcomeMessageKey: 'panel.miniapps.item1.message',
-    icon: '🧩',
-    route: '../mini_app_1/index.html'
-  },
-  {
-    id: 'mini-app-2',
-    labelKey: 'nav.miniapps.miniappTwo',
-    welcomeTitleKey: 'panel.miniapps.item2.title',
-    welcomeMessageKey: 'panel.miniapps.item2.message',
-    icon: '🧩',
-    route: '../mini_app_2/index.html'
-  }
-];
+const MINI_APP_CATALOG = [];
 
-const MINI_APP_CATALOG_MAP = new Map(MINI_APP_CATALOG.map(item => [item.id, item]));
+const MINI_APP_CATALOG_MAP = new Map();
 
 const NAVIGATION_ITEMS = [
   { id: 'nav-home', labelKey: 'nav.dashboard', icon: '🏠', action: 'home' },
