@@ -1,6 +1,6 @@
 import { renderCatalog } from '../registry/renderCatalog.js';
 import { getManifestCache, getRegistryEntries, getAppConfig } from './state.js';
-import { getSelectedAppId, setSelectedAppId, setRouteForSelection } from './router.js';
+import { getSelectedAppId, setSelectedAppId, setRouteForSelection, clearStoredSelectedAppId } from './router.js';
 import type { RegistryEntry, ManifestCacheEntry } from './types.js';
 import { scheduleStatusBarUpdate } from './statusBar.js';
 
@@ -172,6 +172,13 @@ export function renderShell(): void {
   }
 
   if (!selectedId) {
+    if (visibleEntries.length === 1) {
+      const [singleEntry] = visibleEntries;
+      setSelectedAppId(singleEntry.id);
+      setRouteForSelection(singleEntry.id);
+      return;
+    }
+
     clearError();
     resetFrame();
     const subtitle = visibleEntries.length
@@ -196,6 +203,7 @@ export function renderShell(): void {
   ) {
     setSelectedAppId(null);
     setRouteForSelection(null);
+    clearStoredSelectedAppId();
     showError('MiniApp não disponível.');
     return;
   }
