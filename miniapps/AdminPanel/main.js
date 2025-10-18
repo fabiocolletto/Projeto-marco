@@ -1,6 +1,24 @@
 import { exportBackup, importBackup } from '../../src/storage/backup/backupJson.js';
 import { openIdxDB } from '../../src/storage/indexeddb/IdxDBStore.js';
 
+const isArray = (value) => Array.isArray(value);
+
+const isValidBackup = (payload) => {
+  if (!payload || typeof payload !== 'object') return false;
+  if (typeof payload.version !== 'number') return false;
+  if (typeof payload.exportedAt !== 'string') return false;
+  if (!payload.data || typeof payload.data !== 'object') return false;
+  const { profiles, settings, telemetry } = payload.data;
+  return isArray(profiles) && isArray(settings) && isArray(telemetry);
+};
+
+const summarizeBackup = (payload) => {
+  const profiles = payload?.data?.profiles?.length ?? 0;
+  const settings = payload?.data?.settings?.length ?? 0;
+  const telemetry = payload?.data?.telemetry?.length ?? 0;
+  return `Perfis: ${profiles} · Configurações: ${settings} · Telemetria: ${telemetry}`;
+};
+
 const preferencesRoot = document.getElementById('preferences');
 const telemetryTable = document.getElementById('telemetry-table');
 const exportButton = document.getElementById('export-backup');
@@ -75,6 +93,7 @@ exportButton?.addEventListener('click', async () => {
   try {
     const backup = await exportBackup();
     triggerDownload(`appbase-backup-${new Date().toISOString()}.json`, JSON.stringify(backup, null, 2));
+    alert(`Backup exportado. ${summarizeBackup(backup)}`);
   } catch (error) {
     console.error('Falha ao exportar backup', error);
   }
@@ -86,9 +105,12 @@ importInput?.addEventListener('change', async (event) => {
   try {
     const text = await file.text();
     const payload = JSON.parse(text);
+    if (!isValidBackup(payload)) {
+      throw new Error('Backup inválido. Estrutura inesperada.');
+    }
     await importBackup(payload, { mergeStrategy: 'keep-newer' });
     await refresh();
-    alert('Backup importado com sucesso.');
+    alert(`Backup importado com sucesso. ${summarizeBackup(payload)}`);
   } catch (error) {
     console.error('Falha ao importar backup', error);
     alert('Não foi possível importar o backup. Verifique o arquivo.');
