@@ -89,6 +89,183 @@ const resetIndexedDB = async () => {
   });
 };
 
+const testShellCatalogToggle = async () => {
+  const previousWindow = (globalThis as { window?: Window }).window;
+  const previousDocument = (globalThis as { document?: Document }).document;
+  const previousHistory = (globalThis as { history?: History }).history;
+  const previousLocation = (globalThis as { location?: Location }).location;
+  const previousNavigator = globalAny.navigator;
+  const previousFetch = globalThis.fetch;
+
+  const dom = new JSDOM(
+    `<!DOCTYPE html><html><body>
+      <div id="error-banner"></div>
+      <section id="catalog"><div id="catalog-cards" role="list"></div></section>
+      <section id="panel">
+        <header>
+          <div>
+            <h2 id="panel-title">Catálogo</h2>
+            <span id="panel-subtitle">Escolha um MiniApp para abrir no painel central</span>
+          </div>
+          <button id="panel-close" type="button" hidden>✕</button>
+        </header>
+        <div id="panel-placeholder"><p>Escolha um MiniApp ao lado para abrir seu painel aqui.</p></div>
+        <iframe id="miniapp-frame" hidden></iframe>
+      </section>
+      <script id="app-config" type="application/json">{"publicAdmin":true,"baseHref":"/"}</script>
+    </body></html>`,
+    { url: 'https://appbase.local/' },
+  );
+
+  const { window } = dom;
+  Object.assign(globalThis, {
+    window,
+    document: window.document,
+    history: window.history,
+    location: window.location,
+    navigator: window.navigator,
+  });
+  window.document.title = 'AppBase';
+
+  const registryPayload = {
+    miniapps: [
+      {
+        id: 'admin-panel',
+        name: 'Painel Administrativo',
+        path: 'miniapps/AdminPanel/manifest.json',
+        adminOnly: true,
+        visible: true,
+      },
+    ],
+  } satisfies { miniapps: Array<{ id: string; name: string; path: string; adminOnly: boolean; visible: boolean }> };
+
+  const manifestPayload = {
+    id: 'admin-panel',
+    name: 'Painel Administrativo',
+    version: '0.1.0',
+    adminOnly: true,
+    visible: true,
+  };
+
+  globalThis.fetch = async (input: RequestInfo | URL) => {
+    const url =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+        ? input.href
+        : (input as Request).url;
+
+    if (url.endsWith('/miniapps/registry.json')) {
+      return new Response(JSON.stringify(registryPayload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (url.endsWith('/miniapps/AdminPanel/manifest.json')) {
+      return new Response(JSON.stringify(manifestPayload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response('Not Found', { status: 404 });
+  };
+  Object.defineProperty(window, 'fetch', {
+    configurable: true,
+    value: globalThis.fetch,
+  });
+
+  await import('../src/app/main.ts');
+  const router = await import('../src/app/router.ts');
+
+  await sleep(50);
+
+  const queryCard = () =>
+    window.document.querySelector<HTMLButtonElement>('[data-app-id="admin-panel"]');
+
+  let card = queryCard();
+  assert(card, 'catalogo deve conter card do Painel Administrativo');
+  assert.equal(card?.classList.contains('card'), true);
+  assert.equal(card?.classList.contains('active'), false);
+
+  card?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await sleep(50);
+  card = queryCard();
+  assert.equal(router.getSelectedAppId(), 'admin-panel', 'seleção deve apontar para admin-panel');
+  assert(card?.classList.contains('active'), 'card deve ficar ativo após clique');
+  assert.equal(window.location.hash, '#/app/admin-panel');
+  const frame = window.document.getElementById('miniapp-frame') as HTMLIFrameElement;
+  assert(frame, 'iframe do painel deve existir');
+  assert.equal(frame.hidden, false, 'iframe deve ficar visível ao abrir o MiniApp');
+  assert(frame.src.endsWith('/miniapps/AdminPanel/index.html'), 'iframe deve apontar para entry do MiniApp');
+
+  card?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await sleep(30);
+  card = queryCard();
+  assert.equal(router.getSelectedAppId(), null, 'segunda interação deve limpar seleção');
+  assert.equal(window.location.hash, '#/');
+  assert(card && !card.classList.contains('active'), 'card deve remover estado ativo ao deselecionar');
+
+  card?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await sleep(50);
+  window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
+  await sleep(30);
+  assert.equal(router.getSelectedAppId(), null, 'ESC deve limpar seleção');
+  assert.equal(window.location.hash, '#/');
+  assert(frame.hidden, 'iframe deve ser ocultado após ESC');
+
+  router.setSelectedAppId(null);
+  router.setRouteForSelection(null);
+  await sleep(20);
+  window.location.hash = '#/app/admin-panel';
+  router.applyRouteFromLocation();
+  await sleep(50);
+  assert.equal(router.getSelectedAppId(), 'admin-panel', 'rota direta deve selecionar admin-panel');
+  assert.equal(frame.hidden, false, 'iframe deve ficar visível via rota direta');
+  assert.equal(window.location.hash, '#/app/admin-panel');
+
+  dom.window.close();
+
+  if (previousWindow === undefined) {
+    delete (globalThis as { window?: Window }).window;
+  } else {
+    Object.assign(globalThis, { window: previousWindow });
+  }
+
+  if (previousDocument === undefined) {
+    delete (globalThis as { document?: Document }).document;
+  } else {
+    Object.assign(globalThis, { document: previousDocument });
+  }
+
+  if (previousHistory === undefined) {
+    delete (globalThis as { history?: History }).history;
+  } else {
+    Object.assign(globalThis, { history: previousHistory });
+  }
+
+  if (previousLocation === undefined) {
+    delete (globalThis as { location?: Location }).location;
+  } else {
+    Object.assign(globalThis, { location: previousLocation });
+  }
+
+  if (previousNavigator === undefined) {
+    delete globalAny.navigator;
+  } else {
+    globalAny.navigator = previousNavigator;
+  }
+
+  if (previousFetch) {
+    globalThis.fetch = previousFetch;
+  } else {
+    delete (globalThis as { fetch?: typeof fetch }).fetch;
+  }
+
+  console.log('✓ Catálogo shell renderiza card do AdminPanel e toggle funciona');
+};
+
 const testIndexedDBBackup = async () => {
   await resetIndexedDB();
   globalAny.localStorage?.clear?.();
@@ -330,6 +507,7 @@ const testAdminPanel = async () => {
 
 const main = async () => {
   try {
+    await testShellCatalogToggle();
     await testIndexedDBBackup();
     await testAutoSaveQueue();
     await testAutoSaveRetries();
