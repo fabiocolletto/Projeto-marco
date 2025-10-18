@@ -9,7 +9,9 @@
     "audit:repo": "node tools/maintenance/audit.mjs",
     "archive:apply": "node tools/maintenance/archive.mjs --apply",
     "archive:restore": "node tools/maintenance/restore.mjs",
-    "lfs:scan": "node tools/maintenance/lfs-scan.mjs"
+    "lfs:scan": "node tools/maintenance/lfs-scan.mjs",
+    "app:dev": "npx serve . -l 5173",
+    "miniapp:create": "node ./tools/create-miniapp.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.0"
