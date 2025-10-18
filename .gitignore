@@ -1,0 +1,16 @@
+# Build and dependency directories
+node_modules/
+dist/
+tmp/
+
+# Editor and system files
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Reports generated locally (keep placeholder)
+reports/*
+!reports/.gitkeep
