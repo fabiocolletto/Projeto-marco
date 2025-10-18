@@ -189,62 +189,7 @@ if (exportButton && table) {
   });
 }
 
-const overlay = document.getElementById('login-overlay');
-const dialog = overlay?.querySelector('.ac-dialog');
-const closeControls = overlay ? Array.from(overlay.querySelectorAll('.js-close')) : [];
-const openLoginButton = document.querySelector('.js-open-login');
 const resetAppButton = document.querySelector('.js-reset-app');
-let lastFocus = null;
-
-function openOverlay() {
-  if (!overlay || !dialog) return;
-  lastFocus = document.activeElement;
-  overlay.hidden = false;
-  requestAnimationFrame(() => {
-    dialog.focus();
-  });
-  MarcoBus.emit('overlay:open');
-  Store.set('ui.loginOverlay', { open: true });
-}
-
-function closeOverlay() {
-  if (!overlay || !dialog) return;
-  overlay.hidden = true;
-  if (lastFocus && typeof lastFocus.focus === 'function') {
-    lastFocus.focus();
-  }
-  MarcoBus.emit('overlay:close');
-  Store.set('ui.loginOverlay', { open: false });
-}
-
-openLoginButton?.addEventListener('click', openOverlay);
-
-closeControls.forEach((control) => {
-  control.addEventListener('click', closeOverlay);
-});
-
-overlay?.addEventListener('click', (event) => {
-  const target = event.target;
-  if (target instanceof HTMLElement && target.dataset.overlayDismiss === 'true') {
-    closeOverlay();
-  }
-});
-
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && !overlay?.hidden) {
-    event.preventDefault();
-    closeOverlay();
-  }
-});
-
-if (dialog) {
-  dialog.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') {
-      event.stopPropagation();
-    }
-  });
-}
-
 async function clearIndexedDbDatabases() {
   if (!('indexedDB' in window)) return;
 

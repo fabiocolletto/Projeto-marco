@@ -21,9 +21,6 @@
           >
             Resetar aplicativo
           </button>
-          <button type="button" class="ac-btn ac-btn--ghost js-open-login">
-            Entrar
-          </button>
         </div>
       </header>
       <div class="ac-main">
@@ -253,41 +250,6 @@
       <footer class="ac-footer" role="contentinfo">
         <p>© 2024 Marco Cloud. Todos os direitos reservados.</p>
       </footer>
-    </div>
-    <div class="ac-overlay" id="login-overlay" hidden>
-      <div class="ac-overlay__backdrop" data-overlay-dismiss="true"></div>
-      <div
-        class="ac-dialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="login-title"
-        aria-describedby="login-desc"
-        tabindex="-1"
-      >
-        <header class="ac-dialog__header">
-          <h2 id="login-title">Acesso restrito</h2>
-          <button type="button" class="ac-btn ac-btn--ghost js-close" aria-label="Fechar janela de login">
-            ×
-          </button>
-        </header>
-        <div class="ac-dialog__body">
-          <p id="login-desc">Informe as credenciais corporativas para continuar.</p>
-          <form class="ac-form">
-            <label class="ac-field">
-              <span>E-mail</span>
-              <input type="email" name="email" autocomplete="username" required />
-            </label>
-            <label class="ac-field">
-              <span>Senha</span>
-              <input type="password" name="password" autocomplete="current-password" required />
-            </label>
-            <div class="ac-form__actions">
-              <button type="submit" class="ac-btn">Entrar</button>
-              <button type="button" class="ac-btn ac-btn--ghost js-close">Cancelar</button>
-            </div>
-          </form>
-        </div>
-      </div>
     </div>
     <script src="app.js" type="module"></script>
   </body>
