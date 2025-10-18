@@ -124,6 +124,8 @@ body.auth-login .panel-content {
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
   line-height: 1;
+}
+
 .auth-toggle-password:hover,
 .auth-toggle-password:focus-visible {
   color: var(--color-text);
@@ -262,6 +264,32 @@ body:focus-within .app-shell:focus {
   .app-shell {
     height: 100dvh;
   }
+}
+
+html[data-embed-mode='panel'] body {
+  background: transparent;
+}
+
+html[data-embed-mode='panel'] .app-shell {
+  display: block;
+  grid-template-rows: none;
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+}
+
+html[data-embed-mode='panel'] .app-header,
+html[data-embed-mode='panel'] .sidebar,
+html[data-embed-mode='panel'] .app-footer,
+html[data-embed-mode='panel'] .navigation-overlay,
+html[data-embed-mode='panel'] .menu-overlay {
+  display: none !important;
+}
+
+html[data-embed-mode='panel'] .layout {
+  height: auto;
+  min-height: 0;
+  overflow: visible;
 }
 
 .app-header {

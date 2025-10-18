@@ -4,6 +4,32 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title data-i18n="auth.profile.title">Perfil</title>
+    <script>
+      (function () {
+        const root = document.documentElement;
+        let mode = 'panel';
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const embed = params.get('embed');
+          if (embed && embed.toLowerCase() === 'inline') {
+            mode = null;
+          } else if (embed && embed.toLowerCase() === 'panel') {
+            mode = 'panel';
+          } else if (window.self === window.top) {
+            mode = null;
+          }
+        } catch (error) {
+          if (window.self === window.top) {
+            mode = null;
+          }
+        }
+        if (mode === 'panel') {
+          root.dataset.embedMode = 'panel';
+        } else {
+          delete root.dataset.embedMode;
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="../styles.css" />
     <link rel="stylesheet" href="../../../packages/base.theme/theme.css" />
   </head>
@@ -162,6 +188,7 @@
                         <tr>
                           <th scope="col" data-i18n="auth.profile.userTable.name">Nome</th>
                           <th scope="col" data-i18n="auth.profile.userTable.email">E-mail</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.phone">Telefone</th>
                           <th scope="col" data-i18n="auth.profile.userTable.role">Perfil</th>
                           <th scope="col" data-i18n="auth.profile.userTable.createdAt">Criado em</th>
                           <th scope="col" data-i18n="auth.profile.userTable.actions">Ações</th>
@@ -169,7 +196,7 @@
                       </thead>
                       <tbody id="user-management-list">
                         <tr>
-                          <td colspan="5" data-i18n="auth.profile.userEmpty">Nenhum usuário cadastrado.</td>
+                          <td colspan="6" data-i18n="auth.profile.userEmpty">Nenhum usuário cadastrado.</td>
                         </tr>
                       </tbody>
                     </table>
@@ -185,6 +212,10 @@
                       <div class="form-field">
                         <label for="manage-email" data-i18n="auth.form.email">E-mail</label>
                         <input id="manage-email" name="email" type="email" autocomplete="email" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-phone" data-i18n="auth.form.phone">Celular</label>
+                        <input id="manage-phone" name="phone" type="tel" autocomplete="tel" required />
                       </div>
                       <div class="form-field">
                         <label for="manage-password" data-i18n="auth.form.password">Senha</label>

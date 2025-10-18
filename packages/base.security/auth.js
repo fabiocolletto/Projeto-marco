@@ -170,7 +170,7 @@ export function currentUser() {
 }
 
 export function register(
-  { name, email, password, role = 'member', phone = '', phoneRegion = 'BR' },
+  { name, email, password, role = 'member', phone = '', phoneRegion = null },
   options = {}
 ) {
   const { autoLogin = true } = options;
@@ -182,7 +182,7 @@ export function register(
   if (normalizedRole === 'owner' && users.some(user => user.role === 'owner')) {
     throw new Error('auth:owner-exists');
   }
-  const normalizedPhoneRegion = derivePhoneRegion(phoneRegion, phone);
+  const normalizedPhoneRegion = derivePhoneRegion(phoneRegion ?? undefined, phone);
   const newUser = {
     id: generateId(),
     name,
@@ -221,7 +221,7 @@ export function logout() {
   notify();
 }
 
-export function updateUserProfile(id, { name, email, role }) {
+export function updateUserProfile(id, { name, email, role, phone }) {
   const users = listUsers();
   const index = users.findIndex(user => user.id === id);
   if (index === -1) {
@@ -242,11 +242,14 @@ export function updateUserProfile(id, { name, email, role }) {
       throw new Error('auth:owner-required');
     }
   }
+  const nextPhone = phone ?? users[index].phone;
   const updated = {
     ...users[index],
     name: name ?? users[index].name,
     email: nextEmail,
-    role: nextRole
+    role: nextRole,
+    phone: nextPhone,
+    phoneRegion: derivePhoneRegion(undefined, nextPhone)
   };
   users[index] = updated;
   persistUsers(users);

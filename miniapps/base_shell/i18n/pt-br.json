@@ -95,6 +95,7 @@
   "auth.profile.userPanelOwnerOnly": "Somente proprietários podem gerenciar usuários.",
   "auth.profile.userTable.name": "Nome",
   "auth.profile.userTable.email": "E-mail",
+  "auth.profile.userTable.phone": "Telefone",
   "auth.profile.userTable.role": "Perfil",
   "auth.profile.userTable.createdAt": "Criado em",
   "auth.profile.userTable.actions": "Ações",
