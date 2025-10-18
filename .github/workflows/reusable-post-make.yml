@@ -31,22 +31,44 @@ jobs:
             exit 1
           fi
 
-          if ! printf '%s' "${PAYLOAD_JSON}" | jq empty >/dev/null 2>&1; then
-            echo "payload_json must be valid JSON" >&2
-            exit 1
-          fi
-
           TS=$(date -u +%s)
           NONCE=$(uuidgen | tr 'A-Z' 'a-z')
 
           echo "::add-mask::${TS}"
           echo "::add-mask::${NONCE}"
 
-          BODY=$(jq -c -n --arg action "${ACTION_INPUT}" --arg ts "${TS}" --arg nonce "${NONCE}" --argjson data "${PAYLOAD_JSON}" '{action: $action, ts: $ts, nonce: $nonce, data: $data}')
+          BODY_FILE="$(mktemp)"
+          export ACTION_INPUT TS NONCE PAYLOAD_JSON BODY_FILE
+
+          node --input-type=module <<'NODE'
+            import { writeFile } from 'node:fs/promises';
+            import { canonicalStringify } from './scripts/canonical-json.js';
+
+            const payloadRaw = process.env.PAYLOAD_JSON ?? '{}';
+            let payload;
+
+            try {
+              payload = payloadRaw ? JSON.parse(payloadRaw) : {};
+            } catch (error) {
+              console.error('payload_json must be valid JSON');
+              process.exit(1);
+            }
+
+            const canonicalBody = canonicalStringify({
+              action: process.env.ACTION_INPUT ?? '',
+              ts: process.env.TS ?? '',
+              nonce: process.env.NONCE ?? '',
+              data: payload
+            });
+
+            await writeFile(process.env.BODY_FILE, canonicalBody, 'utf8');
+          NODE
+
+          BODY=$(cat "${BODY_FILE}")
 
           echo "::add-mask::${BODY}"
 
-          SIGNATURE=$(printf '%s' "${BODY}" | openssl dgst -sha256 -hmac "${WEBHOOK_SECRET}" | awk '{print $2}')
+          SIGNATURE=$(node scripts/sign-hmac.js --secret "${WEBHOOK_SECRET}" "${BODY_FILE}")
 
           echo "::add-mask::${SIGNATURE}"
 
@@ -62,6 +84,8 @@ jobs:
             echo "X-Timestamp=${TS}"
             echo "X-Nonce=${NONCE}"
           } >> "$GITHUB_OUTPUT"
+
+          rm -f "${BODY_FILE}"
 
       - name: Invoke Make webhook
         env:
