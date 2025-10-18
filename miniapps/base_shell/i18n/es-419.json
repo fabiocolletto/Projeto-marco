@@ -67,6 +67,8 @@
   "auth.register.terms.suffix": "disponibles en el sitio de 5Horas.",
   "auth.register.showPassword": "Mostrar contraseña",
   "auth.register.hidePassword": "Ocultar contraseña",
+  "auth.register.panelTitle": "Registro inicial",
+  "auth.register.panelMessage": "Complete los datos para crear la primera cuenta propietaria.",
   "auth.profile.title": "Perfil",
   "auth.profile.panelTitle": "Panel del usuario",
   "auth.profile.panelMessage": "Administra tu cuenta sin salir del panel principal.",

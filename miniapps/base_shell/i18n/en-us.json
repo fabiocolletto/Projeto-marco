@@ -67,6 +67,8 @@
   "auth.register.terms.suffix": "available on the 5Horas website.",
   "auth.register.showPassword": "Show password",
   "auth.register.hidePassword": "Hide password",
+  "auth.register.panelTitle": "Initial registration",
+  "auth.register.panelMessage": "Complete the form to create the first owner account.",
   "auth.profile.title": "Profile",
   "auth.profile.panelTitle": "User panel",
   "auth.profile.panelMessage": "Manage your account without leaving the main dashboard.",

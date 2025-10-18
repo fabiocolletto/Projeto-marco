@@ -164,6 +164,17 @@ const USER_PANEL_MINI_APP = {
   route: USER_PANEL_EMBED_ROUTE,
   hidden: true
 };
+const REGISTER_PANEL_EMBED_ROUTE = './auth/register.html?embed=panel';
+const REGISTER_PANEL_MINI_APP_ID = 'base.shell.register';
+const REGISTER_PANEL_MINI_APP = {
+  id: REGISTER_PANEL_MINI_APP_ID,
+  labelKey: 'auth.register.panelTitle',
+  welcomeTitleKey: 'auth.register.panelTitle',
+  welcomeMessageKey: 'auth.register.panelMessage',
+  icon: '📝',
+  route: REGISTER_PANEL_EMBED_ROUTE,
+  hidden: true
+};
 const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const REGISTER_URL = new URL('./auth/register.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
@@ -319,6 +330,7 @@ async function bootstrap() {
   revisionInfo = await loadRevisionInfo();
   updateRevisionMetadata();
   applyTranslations();
+  updateEmbeddedAuthLayout();
   setupLanguageToggle();
   updateLanguageToggle();
   setupThemeToggle();
@@ -331,7 +343,7 @@ async function bootstrap() {
   updateProfileView(currentUser());
   setupNavigationOverlay();
   updateNavigationVisibility(currentUser());
-  const miniApps = withUserPanelMiniApp(await loadActiveMiniApps());
+  const miniApps = withShellMiniApps(await loadActiveMiniApps());
   const initialMiniAppId = getInitialMiniAppId(miniApps);
   if (initialMiniAppId) {
     miniAppState.activeId = initialMiniAppId;
@@ -357,6 +369,7 @@ async function bootstrap() {
     document.documentElement.lang = lang;
     updateRevisionMetadata();
     applyTranslations();
+    updateEmbeddedAuthLayout();
     updateLanguageToggle();
     renderLanguageOptions();
     updateThemeToggle();
@@ -522,6 +535,65 @@ function withUserPanelMiniApp(items) {
     return list;
   }
   return [...list, { ...USER_PANEL_MINI_APP }];
+}
+
+function withRegisterMiniApp(items) {
+  const list = Array.isArray(items) ? [...items] : [];
+  const existingIndex = list.findIndex(item => item && item.id === REGISTER_PANEL_MINI_APP_ID);
+  const allowRegistration = shouldAllowPublicRegistration();
+  if (!allowRegistration) {
+    if (existingIndex >= 0) {
+      list.splice(existingIndex, 1);
+    }
+    return list;
+  }
+  if (existingIndex >= 0) {
+    const existing = list[existingIndex] || {};
+    const merged = {
+      ...REGISTER_PANEL_MINI_APP,
+      ...existing
+    };
+    merged.labelKey = existing.labelKey || REGISTER_PANEL_MINI_APP.labelKey;
+    merged.route = existing.route || REGISTER_PANEL_MINI_APP.route;
+    merged.icon = existing.icon || REGISTER_PANEL_MINI_APP.icon;
+    merged.welcomeTitleKey = existing.welcomeTitleKey || REGISTER_PANEL_MINI_APP.welcomeTitleKey;
+    merged.welcomeMessageKey = existing.welcomeMessageKey || REGISTER_PANEL_MINI_APP.welcomeMessageKey;
+    if (typeof existing.hidden === 'boolean') {
+      merged.hidden = existing.hidden;
+    }
+    list[existingIndex] = merged;
+    return list;
+  }
+  return [...list, { ...REGISTER_PANEL_MINI_APP }];
+}
+
+function withShellMiniApps(items) {
+  return withRegisterMiniApp(withUserPanelMiniApp(items));
+}
+
+function refreshShellMiniApps(allowRegistrationOverride) {
+  const allowRegistration =
+    typeof allowRegistrationOverride === 'boolean'
+      ? allowRegistrationOverride
+      : shouldAllowPublicRegistration();
+  const wasRegisterActive = miniAppState.activeId === REGISTER_PANEL_MINI_APP_ID;
+  miniAppState.items = withShellMiniApps(miniAppState.items);
+  if (!allowRegistration && wasRegisterActive) {
+    setActiveMiniApp(null);
+    return;
+  }
+  renderMiniAppMenu();
+  updateMiniAppPanel();
+  updateNavigationState();
+  updateAdminDashboardMetrics();
+  updateAdminDashboardStatus();
+  updateAdminDashboardActivity();
+  updateAdminDashboardHealth();
+}
+
+function hasRegisterMiniApp() {
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  return items.some(item => item?.id === REGISTER_PANEL_MINI_APP_ID);
 }
 
 function extractRevisionInfo(manifest) {
@@ -910,7 +982,7 @@ function updateNavigationState() {
 }
 
 function setupMiniAppMenu(items) {
-  miniAppState.items = withUserPanelMiniApp(items);
+  miniAppState.items = withShellMiniApps(items);
   renderMiniAppMenu();
   updateMiniAppPanel();
   updateAdminDashboardMetrics();
@@ -999,7 +1071,7 @@ function activateUserPanelMiniApp(options = {}) {
   if (!controls || !controls.host) {
     return false;
   }
-  miniAppState.items = withUserPanelMiniApp(miniAppState.items);
+  miniAppState.items = withShellMiniApps(miniAppState.items);
   const historyOptions = options.skipHistory ? { skipHistory: true } : {};
   setActiveMiniApp(USER_PANEL_MINI_APP_ID, historyOptions);
   if (options.focus !== false) {
@@ -1022,6 +1094,15 @@ function updateMiniAppPanel() {
   const active = items.find(item => item.id === miniAppState.activeId);
   const titleKey = active ? active.welcomeTitleKey : DEFAULT_MINI_APP_CONTENT.titleKey;
   const messageKey = active ? active.welcomeMessageKey : DEFAULT_MINI_APP_CONTENT.messageKey;
+  const panelRoot = document.getElementById('panel');
+  const isRegisterActive = Boolean(active && active.id === REGISTER_PANEL_MINI_APP_ID);
+  if (panelRoot) {
+    if (isRegisterActive) {
+      panelRoot.dataset.panelMode = 'register';
+    } else {
+      delete panelRoot.dataset.panelMode;
+    }
+  }
   if (titleNode) {
     titleNode.dataset.i18n = titleKey;
     delete titleNode.dataset.i18nParams;
@@ -1029,13 +1110,69 @@ function updateMiniAppPanel() {
     titleNode.textContent = titleLabel === titleKey ? t(DEFAULT_MINI_APP_CONTENT.titleKey) : titleLabel;
   }
   if (messageNode) {
-    messageNode.dataset.i18n = messageKey;
-    delete messageNode.dataset.i18nParams;
-    const messageLabel = t(messageKey);
-    messageNode.textContent = messageLabel === messageKey ? t(DEFAULT_MINI_APP_CONTENT.messageKey) : messageLabel;
+    if (!messageNode.dataset.panelOriginalI18n) {
+      messageNode.dataset.panelOriginalI18n = messageNode.dataset.i18n || DEFAULT_MINI_APP_CONTENT.messageKey;
+    }
+    if (isRegisterActive) {
+      if (messageNode.dataset.i18n) {
+        messageNode.dataset.panelActiveI18n = messageNode.dataset.i18n;
+      }
+      delete messageNode.dataset.i18n;
+      delete messageNode.dataset.i18nParams;
+      messageNode.hidden = true;
+      messageNode.setAttribute('aria-hidden', 'true');
+      messageNode.textContent = '';
+    } else {
+      const nextKey = messageKey || messageNode.dataset.panelActiveI18n || messageNode.dataset.panelOriginalI18n;
+      messageNode.dataset.i18n = nextKey;
+      delete messageNode.dataset.panelActiveI18n;
+      delete messageNode.dataset.i18nParams;
+      messageNode.hidden = false;
+      messageNode.removeAttribute('aria-hidden');
+      const messageLabel = t(nextKey);
+      messageNode.textContent = messageLabel === nextKey ? t(DEFAULT_MINI_APP_CONTENT.messageKey) : messageLabel;
+    }
   }
   applyTranslations();
   renderMiniAppStage(active ? active.id : null);
+}
+
+function updateEmbeddedAuthLayout() {
+  const titleNode = document.getElementById('page-title');
+  if (!titleNode) return;
+  const registerForm = document.getElementById('register-form');
+  if (!titleNode.dataset.panelOriginalI18n) {
+    titleNode.dataset.panelOriginalI18n = titleNode.dataset.i18n || '';
+  }
+  if (!registerForm) {
+    const originalKey = titleNode.dataset.panelOriginalI18n || titleNode.dataset.i18n;
+    if (originalKey) {
+      titleNode.dataset.i18n = originalKey;
+      const originalLabel = t(originalKey);
+      if (originalLabel && originalLabel !== originalKey) {
+        titleNode.textContent = originalLabel;
+      }
+    }
+    return;
+  }
+  const isPanelEmbed = document.documentElement.dataset.embedMode === 'panel';
+  const nextKey = isPanelEmbed ? 'auth.register.panelTitle' : titleNode.dataset.panelOriginalI18n || 'auth.register.title';
+  titleNode.dataset.i18n = nextKey;
+  delete titleNode.dataset.i18nParams;
+  const nextLabel = t(nextKey);
+  if (nextLabel && nextLabel !== nextKey) {
+    titleNode.textContent = nextLabel;
+    return;
+  }
+  const fallbackKey = isPanelEmbed ? 'auth.register.title' : nextKey;
+  const fallbackLabel = t(fallbackKey);
+  if (fallbackLabel && fallbackLabel !== fallbackKey) {
+    titleNode.textContent = fallbackLabel;
+    return;
+  }
+  if (titleNode.dataset.i18nOriginalText) {
+    titleNode.textContent = titleNode.dataset.i18nOriginalText;
+  }
 }
 
 function getStageHost() {
@@ -1166,6 +1303,11 @@ function getInitialMiniAppId(items) {
     }
   } catch (error) {
     console.warn('mini-app stage: unable to read location', error);
+  }
+  const allowRegistration = shouldAllowPublicRegistration();
+  const hasRegisterMiniApp = list.some(item => item.id === REGISTER_PANEL_MINI_APP_ID);
+  if (!currentUser() && allowRegistration && hasRegisterMiniApp) {
+    return REGISTER_PANEL_MINI_APP_ID;
   }
   return null;
 }
@@ -1857,7 +1999,11 @@ function redirectIfAuthenticationRequired(user) {
   }
   const registerForm = document.getElementById('register-form');
   const allowRegistration = shouldAllowPublicRegistration();
+  const registerMiniAppAvailable = allowRegistration && hasRegisterMiniApp();
   if (registerForm && allowRegistration) {
+    return;
+  }
+  if (registerMiniAppAvailable) {
     return;
   }
   if (allowRegistration && window.location.href === REGISTER_URL.href) {
@@ -3091,6 +3237,7 @@ function updateRegistrationAccess() {
   document.querySelectorAll('[data-register-guard]').forEach(node => {
     node.hidden = !allowRegistration;
   });
+  refreshShellMiniApps(allowRegistration);
 }
 
 function updateOnboardingState() {
