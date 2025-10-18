@@ -108,7 +108,10 @@ const testMasterAuthFlow = async () => {
   const dom = new JSDOM(
     `<!DOCTYPE html><html><body>
       <div id="error-banner"></div>
-      <section id="catalog"><div id="catalog-cards" role="list"></div></section>
+      <div class="header-controls">
+        <label for="app-selector">MiniApp ativo</label>
+        <select id="app-selector"></select>
+      </div>
       <section id="panel">
         <header>
           <div>
@@ -117,7 +120,7 @@ const testMasterAuthFlow = async () => {
           </div>
           <button id="panel-close" type="button" hidden>✕</button>
         </header>
-        <div class="placeholder" id="panel-placeholder"><p>Escolha um MiniApp ao lado para abrir seu painel aqui.</p></div>
+        <div class="placeholder" id="panel-placeholder"><p>Selecione um MiniApp acima para abrir seu painel aqui.</p></div>
         <iframe id="miniapp-frame" hidden></iframe>
       </section>
       <script id="app-config" type="application/json">{"publicAdmin":false,"baseHref":"/"}</script>
@@ -199,8 +202,12 @@ const testMasterAuthFlow = async () => {
   assert.equal(window.location.hash, '#/');
   await sleep(150);
 
-  const initialCards = window.document.querySelectorAll('#catalog-cards .card');
-  assert.equal(initialCards.length, 2, 'catálogo deve incluir apps públicos e privados após cadastro');
+  const listOptions = () =>
+    Array.from(window.document.querySelectorAll<HTMLOptionElement>('#app-selector option'))
+      .filter((option) => option.value);
+
+  const initialOptions = listOptions();
+  assert.equal(initialOptions.length, 2, 'catálogo deve incluir apps públicos e privados após cadastro');
 
   const session = await import('../src/auth/session.js');
   session.clearMasterAuthentication();
@@ -221,8 +228,8 @@ const testMasterAuthFlow = async () => {
   await sleep(200);
 
   assert.equal(window.location.hash, '#/');
-  const cardsAfterLogin = window.document.querySelectorAll('#catalog-cards .card');
-  assert.equal(cardsAfterLogin.length, 2, 'após login catálogo deve manter apps privados visíveis');
+  const optionsAfterLogin = listOptions();
+  assert.equal(optionsAfterLogin.length, 2, 'após login catálogo deve manter apps privados visíveis');
 
   dom.window.close();
 
@@ -314,7 +321,10 @@ const testShellCatalogToggle = async () => {
   const dom = new JSDOM(
     `<!DOCTYPE html><html><body>
       <div id="error-banner"></div>
-      <section id="catalog"><div id="catalog-cards" role="list"></div></section>
+      <div class="header-controls">
+        <label for="app-selector">MiniApp ativo</label>
+        <select id="app-selector"></select>
+      </div>
       <section id="panel">
         <header>
           <div>
@@ -323,7 +333,7 @@ const testShellCatalogToggle = async () => {
           </div>
           <button id="panel-close" type="button" hidden>✕</button>
         </header>
-        <div id="panel-placeholder"><p>Escolha um MiniApp ao lado para abrir seu painel aqui.</p></div>
+        <div id="panel-placeholder"><p>Selecione um MiniApp acima para abrir seu painel aqui.</p></div>
         <iframe id="miniapp-frame" hidden></iframe>
       </section>
       <script id="app-config" type="application/json">{"publicAdmin":true,"baseHref":"/"}</script>
@@ -413,39 +423,39 @@ const testShellCatalogToggle = async () => {
   const state = await import('../src/app/state.js');
   assert.equal(state.getRegistryEntries().length, 1, 'catálogo deve carregar manifest do AdminPanel');
 
-  const queryCard = () =>
-    window.document.querySelector<HTMLButtonElement>('[data-app-id="admin-panel"]');
+  const selector = window.document.querySelector<HTMLSelectElement>('#app-selector');
+  assert(selector, 'deve existir seletor de MiniApps');
+  const adminOption = selector?.querySelector<HTMLOptionElement>('option[value="admin-panel"]');
+  assert(adminOption, 'catálogo deve listar opção para o Painel Administrativo');
+  assert.equal(selector?.value, '', 'estado inicial do seletor deve ser vazio');
 
-  let card = queryCard();
-  assert(card, 'catalogo deve conter card do Painel Administrativo');
-  assert.equal(card?.classList.contains('card'), true);
-  assert.equal(card?.classList.contains('active'), false);
-
-  card?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  selector!.value = 'admin-panel';
+  selector!.dispatchEvent(new window.Event('change', { bubbles: true }));
   await sleep(50);
-  card = queryCard();
   assert.equal(router.getSelectedAppId(), 'admin-panel', 'seleção deve apontar para admin-panel');
-  assert(card?.classList.contains('active'), 'card deve ficar ativo após clique');
+  assert.equal(selector?.value, 'admin-panel', 'seletor deve refletir miniapp ativo');
   assert.equal(window.location.hash, '#/app/admin-panel');
   const frame = window.document.getElementById('miniapp-frame') as HTMLIFrameElement;
   assert(frame, 'iframe do painel deve existir');
   assert.equal(frame.hidden, false, 'iframe deve ficar visível ao abrir o MiniApp');
   assert(frame.src.endsWith('/miniapps/AdminPanel/index.html'), 'iframe deve apontar para entry do MiniApp');
 
-  card?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  selector!.value = '';
+  selector!.dispatchEvent(new window.Event('change', { bubbles: true }));
   await sleep(30);
-  card = queryCard();
   assert.equal(router.getSelectedAppId(), null, 'segunda interação deve limpar seleção');
   assert.equal(window.location.hash, '#/');
-  assert(card && !card.classList.contains('active'), 'card deve remover estado ativo ao deselecionar');
+  assert.equal(selector?.value, '', 'seletor deve voltar para placeholder após limpar seleção');
 
-  card?.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  selector!.value = 'admin-panel';
+  selector!.dispatchEvent(new window.Event('change', { bubbles: true }));
   await sleep(50);
   window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
   await sleep(30);
   assert.equal(router.getSelectedAppId(), null, 'ESC deve limpar seleção');
   assert.equal(window.location.hash, '#/');
   assert(frame.hidden, 'iframe deve ser ocultado após ESC');
+  assert.equal(selector?.value, '', 'seletor deve ser resetado após ESC');
 
   router.setSelectedAppId(null);
   router.setRouteForSelection(null);
@@ -506,7 +516,7 @@ const testShellCatalogToggle = async () => {
     globalAny.sessionStorage = previousSessionStorage;
   }
 
-  console.log('✓ Catálogo shell renderiza card do AdminPanel e toggle funciona');
+  console.log('✓ Catálogo shell renderiza Painel Administrativo via seletor e toggle funciona');
 };
 
 const testIndexedDBBackup = async () => {

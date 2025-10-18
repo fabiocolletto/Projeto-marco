@@ -23,8 +23,9 @@ let dom: JSDOM | null = null;
 const mountShellDom = () => {
   document.body.innerHTML = `
     <div id="error-banner"></div>
-    <div id="catalog">
-      <div id="catalog-cards"></div>
+    <div class="header-controls">
+      <label for="app-selector">MiniApp ativo</label>
+      <select id="app-selector"></select>
     </div>
     <section id="panel">
       <header>
@@ -35,7 +36,7 @@ const mountShellDom = () => {
         <button id="panel-close" type="button"></button>
       </header>
       <div class="placeholder" id="panel-placeholder">
-        <p>Escolha um MiniApp ao lado para abrir seu painel aqui.</p>
+        <p>Selecione um MiniApp acima para abrir seu painel aqui.</p>
       </div>
       <iframe id="miniapp-frame"></iframe>
       <footer>
@@ -187,10 +188,12 @@ describe('Master auth flow', () => {
     ]);
     renderShell();
 
-    const cards = document.querySelectorAll('#catalog-cards .card');
-    expect(cards.length).toBe(2);
-    const badges = Array.from(cards).map((card) => card.querySelector('.badge')?.textContent ?? '');
-    expect(badges).toContain('Privado');
+    const selector = document.querySelector<HTMLSelectElement>('#app-selector');
+    expect(selector).not.toBeNull();
+    const options = Array.from(selector?.querySelectorAll('option') ?? []).filter((option) => option.value);
+    expect(options.length).toBe(2);
+    const privateOption = options.find((option) => option.dataset.adminOnly === 'true');
+    expect(privateOption?.textContent).toContain('Privado');
   });
 
   it('updates password hash when changing credentials in the widget', async () => {
