@@ -151,14 +151,45 @@ const testMasterAuthFlow = async () => {
   const registryPayload = {
     miniapps: [
       { id: 'public-app', name: 'Catálogo Público', path: 'miniapps/Public/manifest.json', adminOnly: false, visible: true },
-      { id: 'admin-panel', name: 'Painel Administrativo', path: 'miniapps/AdminPanel/manifest.json', adminOnly: true, visible: true },
+      { id: 'user-panel', name: 'Painel do Usuário', path: 'miniapps/UserPanel/manifest.json', adminOnly: false, visible: true },
+      { id: 'admin-panel-1', name: 'Painel Administrativo 1', path: 'miniapps/AdminPanel/manifest.json', adminOnly: true, visible: true },
+      { id: 'admin-panel-2', name: 'Painel Administrativo 2', path: 'miniapps/AdminPanelSecundario/manifest.json', adminOnly: true, visible: true },
     ],
   } as const;
 
-  const manifestPayload = {
-    id: 'public-app',
-    name: 'Catálogo Público',
-    version: '1.0.0',
+  const manifestPayloadByPath: Record<string, Record<string, unknown>> = {
+    'miniapps/Public/manifest.json': {
+      id: 'public-app',
+      name: 'Catálogo Público',
+      version: '1.0.0',
+      entry: './index.html',
+      adminOnly: false,
+      visible: true,
+    },
+    'miniapps/UserPanel/manifest.json': {
+      id: 'user-panel',
+      name: 'Painel do Usuário',
+      version: '0.1.0',
+      entry: './index.html',
+      adminOnly: false,
+      visible: true,
+    },
+    'miniapps/AdminPanel/manifest.json': {
+      id: 'admin-panel-1',
+      name: 'Painel Administrativo 1',
+      version: '0.1.0',
+      entry: './index.html',
+      adminOnly: true,
+      visible: true,
+    },
+    'miniapps/AdminPanelSecundario/manifest.json': {
+      id: 'admin-panel-2',
+      name: 'Painel Administrativo 2',
+      version: '0.1.0',
+      entry: './index.html',
+      adminOnly: true,
+      visible: true,
+    },
   };
 
   globalThis.fetch = async (input: RequestInfo | URL) => {
@@ -169,17 +200,15 @@ const testMasterAuthFlow = async () => {
         headers: { 'Content-Type': 'application/json' },
       });
     }
-    if (url.endsWith('/miniapps/Public/manifest.json')) {
-      return new Response(JSON.stringify(manifestPayload), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-    if (url.endsWith('/miniapps/AdminPanel/manifest.json')) {
-      return new Response(JSON.stringify({ ...manifestPayload, id: 'admin-panel', name: 'Painel Administrativo' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (url.includes('/miniapps/')) {
+      const key = url.substring(url.indexOf('/miniapps/') + 1);
+      const payload = manifestPayloadByPath[key];
+      if (payload) {
+        return new Response(JSON.stringify(payload), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
     }
     return new Response('Not Found', { status: 404 });
   };
@@ -207,7 +236,7 @@ const testMasterAuthFlow = async () => {
       .filter((option) => option.value);
 
   const initialOptions = listOptions();
-  assert.equal(initialOptions.length, 2, 'catálogo deve incluir apps públicos e privados após cadastro');
+  assert.equal(initialOptions.length, 2, 'catálogo deve incluir apenas MiniApps públicos após cadastro');
 
   const session = await import('../src/auth/session.js');
   session.clearMasterAuthentication();
@@ -229,7 +258,7 @@ const testMasterAuthFlow = async () => {
 
   assert.equal(window.location.hash, '#/');
   const optionsAfterLogin = listOptions();
-  assert.equal(optionsAfterLogin.length, 2, 'após login catálogo deve manter apps privados visíveis');
+  assert.equal(optionsAfterLogin.length, 4, 'após login catálogo deve listar MiniApps públicos e administrativos');
 
   dom.window.close();
 
@@ -366,21 +395,54 @@ const testShellCatalogToggle = async () => {
   const registryPayload = {
     miniapps: [
       {
-        id: 'admin-panel',
-        name: 'Painel Administrativo',
+        id: 'admin-panel-1',
+        name: 'Painel Administrativo 1',
         path: 'miniapps/AdminPanel/manifest.json',
         adminOnly: true,
+        visible: true,
+      },
+      {
+        id: 'admin-panel-2',
+        name: 'Painel Administrativo 2',
+        path: 'miniapps/AdminPanelSecundario/manifest.json',
+        adminOnly: true,
+        visible: true,
+      },
+      {
+        id: 'user-panel',
+        name: 'Painel do Usuário',
+        path: 'miniapps/UserPanel/manifest.json',
+        adminOnly: false,
         visible: true,
       },
     ],
   } satisfies { miniapps: Array<{ id: string; name: string; path: string; adminOnly: boolean; visible: boolean }> };
 
-  const manifestPayload = {
-    id: 'admin-panel',
-    name: 'Painel Administrativo',
-    version: '0.1.0',
-    adminOnly: true,
-    visible: true,
+  const manifestPayloadByPath: Record<string, Record<string, unknown>> = {
+    'miniapps/AdminPanel/manifest.json': {
+      id: 'admin-panel-1',
+      name: 'Painel Administrativo 1',
+      version: '0.1.0',
+      adminOnly: true,
+      visible: true,
+      entry: './index.html',
+    },
+    'miniapps/AdminPanelSecundario/manifest.json': {
+      id: 'admin-panel-2',
+      name: 'Painel Administrativo 2',
+      version: '0.1.0',
+      adminOnly: true,
+      visible: true,
+      entry: './index.html',
+    },
+    'miniapps/UserPanel/manifest.json': {
+      id: 'user-panel',
+      name: 'Painel do Usuário',
+      version: '0.1.0',
+      adminOnly: false,
+      visible: true,
+      entry: './index.html',
+    },
   };
 
   const fetchStub = async (input: RequestInfo | URL) => {
@@ -397,10 +459,21 @@ const testShellCatalogToggle = async () => {
       });
     }
 
-    if (url.endsWith('/miniapps/AdminPanel/manifest.json')) {
-      return new Response(JSON.stringify(manifestPayload), {
+    if (url.includes('/miniapps/')) {
+      const key = url.substring(url.indexOf('/miniapps/') + 1);
+      const payload = manifestPayloadByPath[key];
+      if (payload) {
+        return new Response(JSON.stringify(payload), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    }
+
+    if (url.endsWith('/miniapps/AdminPanel/index.html')) {
+      return new Response('<html></html>', {
         status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/html' },
       });
     }
 
@@ -421,24 +494,37 @@ const testShellCatalogToggle = async () => {
 
   await sleep(150);
   const state = await import('../src/app/state.js');
-  assert.equal(state.getRegistryEntries().length, 1, 'catálogo deve carregar manifest do AdminPanel');
+  assert.equal(state.getRegistryEntries().length, 3, 'catálogo deve carregar os três MiniApps');
 
   const selector = window.document.querySelector<HTMLSelectElement>('#app-selector');
   assert(selector, 'deve existir seletor de MiniApps');
-  const adminOption = selector?.querySelector<HTMLOptionElement>('option[value="admin-panel"]');
-  assert(adminOption, 'catálogo deve listar opção para o Painel Administrativo');
+  const adminPrimaryOption = selector?.querySelector<HTMLOptionElement>('option[value="admin-panel-1"]');
+  const adminSecondaryOption = selector?.querySelector<HTMLOptionElement>('option[value="admin-panel-2"]');
+  const userOption = selector?.querySelector<HTMLOptionElement>('option[value="user-panel"]');
+  assert(adminPrimaryOption, 'catálogo deve listar opção para o Painel Administrativo 1');
+  assert(adminSecondaryOption, 'catálogo deve listar opção para o Painel Administrativo 2');
+  assert(userOption, 'catálogo deve listar opção para o Painel do Usuário');
+
+  const optionTexts = Array.from(selector?.querySelectorAll('option') ?? [])
+    .filter((option) => option.value)
+    .map((option) => option.textContent);
+  assert.deepEqual(
+    optionTexts,
+    ['Painel Administrativo 1 · Privado', 'Painel Administrativo 2 · Privado', 'Painel do Usuário'],
+    'opções devem respeitar ordem alfabética por nome',
+  );
   assert.equal(selector?.value, '', 'estado inicial do seletor deve ser vazio');
 
-  selector!.value = 'admin-panel';
+  selector!.value = 'admin-panel-1';
   selector!.dispatchEvent(new window.Event('change', { bubbles: true }));
   await sleep(50);
-  assert.equal(router.getSelectedAppId(), 'admin-panel', 'seleção deve apontar para admin-panel');
-  assert.equal(selector?.value, 'admin-panel', 'seletor deve refletir miniapp ativo');
-  assert.equal(window.location.hash, '#/app/admin-panel');
+  assert.equal(router.getSelectedAppId(), 'admin-panel-1', 'seleção deve apontar para admin-panel-1');
+  assert.equal(selector?.value, 'admin-panel-1', 'seletor deve refletir miniapp ativo');
+  assert.equal(window.location.hash, '#/app/admin-panel-1');
   const frame = window.document.getElementById('miniapp-frame') as HTMLIFrameElement;
   assert(frame, 'iframe do painel deve existir');
   assert.equal(frame.hidden, false, 'iframe deve ficar visível ao abrir o MiniApp');
-  assert(frame.src.endsWith('/miniapps/AdminPanel/index.html'), 'iframe deve apontar para entry do MiniApp');
+  assert(frame.src.endsWith('/miniapps/AdminPanel/index.html'), 'iframe deve apontar para entry do MiniApp primário');
 
   selector!.value = '';
   selector!.dispatchEvent(new window.Event('change', { bubbles: true }));
@@ -447,7 +533,7 @@ const testShellCatalogToggle = async () => {
   assert.equal(window.location.hash, '#/');
   assert.equal(selector?.value, '', 'seletor deve voltar para placeholder após limpar seleção');
 
-  selector!.value = 'admin-panel';
+  selector!.value = 'admin-panel-1';
   selector!.dispatchEvent(new window.Event('change', { bubbles: true }));
   await sleep(50);
   window.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' }));
@@ -460,12 +546,12 @@ const testShellCatalogToggle = async () => {
   router.setSelectedAppId(null);
   router.setRouteForSelection(null);
   await sleep(20);
-  window.location.hash = '#/app/admin-panel';
+  window.location.hash = '#/app/admin-panel-1';
   router.applyRouteFromLocation();
   await sleep(50);
-  assert.equal(router.getSelectedAppId(), 'admin-panel', 'rota direta deve selecionar admin-panel');
+  assert.equal(router.getSelectedAppId(), 'admin-panel-1', 'rota direta deve selecionar admin-panel-1');
   assert.equal(frame.hidden, false, 'iframe deve ficar visível via rota direta');
-  assert.equal(window.location.hash, '#/app/admin-panel');
+  assert.equal(window.location.hash, '#/app/admin-panel-1');
 
   dom.window.close();
 
