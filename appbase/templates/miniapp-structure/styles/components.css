@@ -1,16 +1,1 @@
-.miniapp-card {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.miniapp-card .card-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.miniapp-view {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+@import "/packages/ui/components.css";

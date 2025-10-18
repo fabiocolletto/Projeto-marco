@@ -1,16 +1,1 @@
-{
-  "miniapp": {
-    "title": "MiniApp Scaffold"
-  },
-  "home": {
-    "title": "Home",
-    "description": "This MiniApp showcases the default scaffolded structure."
-  },
-  "settings": {
-    "title": "Settings",
-    "description": "Use this section to wire specific preferences and options for the MiniApp."
-  },
-  "actions": {
-    "openSettings": "Open Settings"
-  }
-}
+{ "home.title": "Home" }

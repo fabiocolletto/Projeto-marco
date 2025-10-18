@@ -3,9 +3,9 @@
     {
       "id": "example",
       "name": {
-        "pt-BR": "Example",
-        "en-US": "Example",
-        "es-419": "Example"
+        "pt-BR": "example",
+        "en-US": "example",
+        "es-419": "example"
       },
       "icon": "/miniapps/example/icon-128.png",
       "summary": "MiniApp gerado via scaffold",

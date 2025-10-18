@@ -1,61 +1,31 @@
-const REGISTRY_PATH = "/appbase/market/registry.json";
-let cachedApps = null;
+import router from "./router.js";
 
-async function loadRegistry() {
-  if (cachedApps) {
-    return cachedApps;
-  }
-  const response = await fetch(REGISTRY_PATH, { cache: "no-store" });
-  if (!response.ok) {
-    cachedApps = [];
-    return cachedApps;
-  }
-  const payload = await response.json();
-  cachedApps = Array.isArray(payload.apps) ? payload.apps : [];
-  return cachedApps;
-}
+export async function mountMarket(root=document.querySelector("#app")){
+  const { apps } = await (await fetch("/appbase/market/registry.json")).json();
+  root.innerHTML = `<section class="grid" id="market-grid"></section>`;
+  const grid = root.querySelector("#market-grid");
 
-function createMarketCard(app) {
-  const article = document.createElement("article");
-  article.className = "card";
-  const title = app.name?.["pt-BR"] || app.name?.default || app.id;
-  article.innerHTML = `
-    <header class="card-hd">
-      <div>
-        <h3>${title || "MiniApp"}</h3>
+  if (!apps || apps.length === 0) {
+    const empty = document.createElement("article");
+    empty.className = "card";
+    empty.innerHTML = `<div class="card-bd">Nenhum MiniApp ainda. Use “Criar MiniApp” (modo Admin).</div>`;
+    grid.appendChild(empty); return;
+  }
+
+  for (const app of apps){
+    const el = document.createElement("article");
+    el.className = "card";
+    el.innerHTML = `
+      <header class="card-hd">
+        <h3>${app.name?.["pt-BR"] || app.id}</h3>
+        <div class="card-actions"><button class="btn primary" data-id="${app.id}">Abrir</button></div>
+      </header>
+      <div class="card-bd">
+        ${app.icon ? `<img src="${app.icon}" alt="" style="width:48px;height:48px;border-radius:12px">` : ""}
+        <p>${app.summary || ""}</p>
       </div>
-      <div class="card-actions">
-        <button class="btn primary" data-id="${app.id}">Abrir</button>
-      </div>
-    </header>
-    <div class="card-bd">
-      <p>${app.summary || "Experimente esta MiniApp."}</p>
-    </div>
-  `;
-  return article;
-}
-
-export async function mountMarket(container) {
-  if (!container) {
-    return;
+    `;
+    el.querySelector("button").onclick = () => router.navigate(`#/miniapps/${app.id}`);
+    grid.appendChild(el);
   }
-  const apps = await loadRegistry();
-  container.innerHTML = "";
-  if (!apps.length) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "Nenhuma MiniApp disponível no momento.";
-    container.appendChild(empty);
-    return;
-  }
-  const fragment = document.createDocumentFragment();
-  for (const app of apps) {
-    fragment.appendChild(createMarketCard(app));
-  }
-  container.appendChild(fragment);
-}
-
-export async function getAppsCount() {
-  const apps = await loadRegistry();
-  return apps.length;
 }

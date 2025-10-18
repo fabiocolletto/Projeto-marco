@@ -1,16 +1,1 @@
-{
-  "miniapp": {
-    "title": "MiniApp Scaffold"
-  },
-  "home": {
-    "title": "Inicio",
-    "description": "Este MiniApp presenta la estructura creada automáticamente."
-  },
-  "settings": {
-    "title": "Configuraciones",
-    "description": "Utiliza esta sección para conectar preferencias y opciones específicas del MiniApp."
-  },
-  "actions": {
-    "openSettings": "Abrir Settings"
-  }
-}
+{ "home.title": "Inicio" }
