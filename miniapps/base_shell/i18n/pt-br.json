@@ -145,7 +145,7 @@
   "auth.form.currentPassword": "Senha atual",
   "auth.form.newPassword": "Nova senha",
   "auth.form.confirmPassword": "Confirmar nova senha",
-  "auth.feedback.registered": "Cadastro realizado com sucesso.",
+  "auth.feedback.registered": "Cadastro enviado para processamento. Aguarde a confirmação.",
   "auth.feedback.loggedIn": "Sessão iniciada como {name}.",
   "auth.feedback.invalid": "Credenciais inválidas. Tente novamente.",
   "auth.feedback.exists": "E-mail já cadastrado.",

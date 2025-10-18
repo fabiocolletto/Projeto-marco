@@ -141,7 +141,7 @@
   "auth.form.currentPassword": "Contraseña actual",
   "auth.form.newPassword": "Nueva contraseña",
   "auth.form.confirmPassword": "Confirmar nueva contraseña",
-  "auth.feedback.registered": "Registro completado con éxito.",
+  "auth.feedback.registered": "Solicitud de registro enviada para procesamiento.",
   "auth.feedback.loggedIn": "Sesión iniciada como {name}.",
   "auth.feedback.invalid": "Credenciales inválidas. Intenta de nuevo.",
   "auth.feedback.exists": "Correo ya registrado.",
