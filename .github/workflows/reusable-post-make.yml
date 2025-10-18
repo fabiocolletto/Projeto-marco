@@ -1,0 +1,93 @@
+name: Reusable Make Webhook
+
+on:
+  workflow_call:
+    inputs:
+      action:
+        description: Action to invoke in Make
+        type: string
+        required: true
+      payload_json:
+        description: JSON payload forwarded to Make
+        type: string
+        default: "{}"
+
+jobs:
+  post-make:
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Prepare signed payload
+        id: prepare
+        env:
+          ACTION_INPUT: ${{ inputs.action }}
+          PAYLOAD_JSON: ${{ inputs.payload_json }}
+          WEBHOOK_SECRET: ${{ secrets.MAKE_WEBHOOK_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${WEBHOOK_SECRET}" ]; then
+            echo "Missing required secret: MAKE_WEBHOOK_SECRET" >&2
+            exit 1
+          fi
+
+          if ! printf '%s' "${PAYLOAD_JSON}" | jq empty >/dev/null 2>&1; then
+            echo "payload_json must be valid JSON" >&2
+            exit 1
+          fi
+
+          TS=$(date -u +%s)
+          NONCE=$(uuidgen | tr 'A-Z' 'a-z')
+
+          echo "::add-mask::${TS}"
+          echo "::add-mask::${NONCE}"
+
+          BODY=$(jq -c -n --arg action "${ACTION_INPUT}" --arg ts "${TS}" --arg nonce "${NONCE}" --argjson data "${PAYLOAD_JSON}" '{action: $action, ts: $ts, nonce: $nonce, data: $data}')
+
+          echo "::add-mask::${BODY}"
+
+          SIGNATURE=$(printf '%s' "${BODY}" | openssl dgst -sha256 -hmac "${WEBHOOK_SECRET}" | awk '{print $2}')
+
+          echo "::add-mask::${SIGNATURE}"
+
+          {
+            echo "X_SIGNATURE=${SIGNATURE}"
+            echo "X_TIMESTAMP=${TS}"
+            echo "X_NONCE=${NONCE}"
+            echo "CANONICAL_BODY=${BODY}"
+          } >> "$GITHUB_ENV"
+
+          {
+            echo "X-Signature=${SIGNATURE}"
+            echo "X-Timestamp=${TS}"
+            echo "X-Nonce=${NONCE}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Invoke Make webhook
+        env:
+          MAKE_WEBHOOK_URL: ${{ secrets.MAKE_WEBHOOK_URL }}
+          MAKE_API_KEY: ${{ secrets.MAKE_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${MAKE_WEBHOOK_URL}" ]; then
+            echo "Missing required secret: MAKE_WEBHOOK_URL" >&2
+            exit 1
+          fi
+
+          if [ -z "${MAKE_API_KEY}" ]; then
+            echo "Missing required secret: MAKE_API_KEY" >&2
+            exit 1
+          fi
+
+          echo "::add-mask::${MAKE_API_KEY}"
+          echo "::add-mask::${MAKE_WEBHOOK_URL}"
+
+          curl -sSf -X POST \
+            -H 'Content-Type: application/json' \
+            -H "x-make-apikey: ${MAKE_API_KEY}" \
+            -H "X-Signature: ${X_SIGNATURE}" \
+            -H "X-Timestamp: ${X_TIMESTAMP}" \
+            -H "X-Nonce: ${X_NONCE}" \
+            -d "${CANONICAL_BODY}" \
+            "${MAKE_WEBHOOK_URL}"
