@@ -6,9 +6,17 @@ const createWithCryptoRandomValues = (cryptoObj: Crypto): string => {
   }
   if (typeof cryptoObj.getRandomValues === 'function') {
     const bytes = cryptoObj.getRandomValues(new Uint8Array(16));
+    if (!(bytes instanceof Uint8Array)) {
+      return '';
+    }
+    const sixth = bytes[6];
+    const eighth = bytes[8];
+    if (sixth === undefined || eighth === undefined) {
+      return '';
+    }
     // Adapted from RFC4122 section 4.4
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    bytes[6] = (sixth & 0x0f) | 0x40;
+    bytes[8] = (eighth & 0x3f) | 0x80;
     const segments = [
       bytes.subarray(0, 4),
       bytes.subarray(4, 6),

@@ -6,8 +6,12 @@ const MASTER_KEY = 'masterUser';
 export async function getMaster(): Promise<MasterUser | null> {
   const db = await openIdxDB();
   try {
-    const payload = (await db.settings.get(MASTER_KEY)) as MasterUser | undefined;
-    return payload ?? null;
+    const payload = await db.settings.get(MASTER_KEY);
+    if (!payload) {
+      return null;
+    }
+    const { key: _ignored, ...rest } = payload;
+    return rest as MasterUser;
   } finally {
     await db.close();
   }
@@ -16,7 +20,7 @@ export async function getMaster(): Promise<MasterUser | null> {
 export async function saveMaster(user: MasterUser): Promise<void> {
   const db = await openIdxDB();
   try {
-    await db.settings.set(MASTER_KEY, user);
+    await db.settings.set(MASTER_KEY, { ...user, key: MASTER_KEY });
   } finally {
     await db.close();
   }
