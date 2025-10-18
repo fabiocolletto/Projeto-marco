@@ -4,6 +4,7 @@ import { setMasterAuthenticated } from '../auth/session.js';
 import { saveMaster } from '../auth/store.js';
 import { sha256 } from '../auth/crypto.js';
 import type { MasterUser } from '../auth/types.js';
+import { scheduleStatusBarUpdate } from '../app/statusBar.js';
 
 export interface MasterSignupOptions {
   master?: MasterUser | null;
@@ -264,6 +265,7 @@ export function renderMasterSignup(
 
       await saveMaster(payload);
       setMasterAuthenticated();
+      void scheduleStatusBarUpdate();
       dispatchAuthChanged();
 
       const target = consumePostAuthHash();

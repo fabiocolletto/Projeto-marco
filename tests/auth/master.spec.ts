@@ -38,7 +38,12 @@ const mountShellDom = () => {
         <p>Escolha um MiniApp ao lado para abrir seu painel aqui.</p>
       </div>
       <iframe id="miniapp-frame"></iframe>
-      <footer></footer>
+      <footer>
+        <div class="status-stack">
+          <span id="status-db" data-state="idle">Banco de dados: verificando…</span>
+          <span id="status-user" data-state="idle">Usuário: verificando…</span>
+        </div>
+      </footer>
     </section>
   `;
 };
@@ -116,6 +121,27 @@ describe('Master auth flow', () => {
     expect(master?.username).toBe('adm');
     expect(globalThis.localStorage?.getItem('appbase:auth')).toBe('master');
     expect(window.location.hash).toBe('#/');
+  });
+
+  it('updates footer status indicators through the master lifecycle', async () => {
+    mountShellDom();
+    const { ensureMasterGate } = await import('../../src/auth/gate.js');
+    await ensureMasterGate();
+    const { scheduleStatusBarUpdate } = await import('../../src/app/statusBar.js');
+    await scheduleStatusBarUpdate();
+
+    const dbStatus = document.querySelector('#status-db');
+    const userStatus = document.querySelector('#status-user');
+    expect(dbStatus?.textContent).toBe('Banco de dados: ativo');
+    expect(userStatus?.textContent).toBe('Usuário: nenhum master cadastrado');
+
+    const form = document.querySelector('form');
+    form?.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+    await flushPromises();
+    await scheduleStatusBarUpdate();
+
+    expect(userStatus?.textContent).toBe('Usuário: adm (master)');
+    expect(userStatus?.dataset.state).toBe('active');
   });
 
   it('redirects to master login when master already exists on first access', async () => {
