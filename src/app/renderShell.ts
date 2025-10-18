@@ -6,6 +6,7 @@ import { isMasterAuthenticated } from '../auth/session.js';
 import { renderMasterSignup } from '../widgets/MasterSignup.js';
 import { renderMasterLogin } from '../widgets/MasterLogin.js';
 import { getMaster } from '../auth/store.js';
+import { scheduleStatusBarUpdate } from './statusBar.js';
 
 const APP_TITLE = 'AppBase';
 
@@ -190,6 +191,7 @@ const renderMiniAppByEntry = async (entry: RegistryEntry): Promise<void> => {
 
 export function renderShell(): void {
   attachDom();
+  void scheduleStatusBarUpdate();
   const entries = getRegistryEntries();
   const routeMode = getRouteMode();
   const masterAuthenticated = isMasterAuthenticated();
@@ -197,7 +199,11 @@ export function renderShell(): void {
   const selectedId = getSelectedAppId();
 
   if (routeMode !== 'catalog') {
-    renderCatalogLocked('Disponível após autenticação master.');
+    const catalogMessage =
+      routeMode === 'setupMaster'
+        ? 'Cadastre a conta master para liberar o catálogo.'
+        : 'Disponível após autenticação master.';
+    renderCatalogLocked(catalogMessage);
     clearError();
   } else if (catalogContainer) {
     renderCatalog(catalogContainer, visibleEntries, selectedId);

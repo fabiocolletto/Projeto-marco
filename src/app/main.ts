@@ -4,6 +4,7 @@ import { applyRouteFromLocation, getSelectedAppId, setSelectedAppId, setRouteFor
 import { renderShell } from './renderShell.js';
 import { wireCatalog } from '../registry/wireCatalog.js';
 import { ensureMasterGate } from '../auth/gate.js';
+import { initStatusBar, scheduleStatusBarUpdate } from './statusBar.js';
 
 let catalogContainer: HTMLElement | null = null;
 let disposeCatalogListener: (() => void) | null = null;
@@ -68,6 +69,7 @@ function attachGlobalListeners(): void {
 
   const activeWindow = window;
   const handleMasterAuthChanged = () => {
+    void scheduleStatusBarUpdate();
     void bootstrap();
   };
   activeWindow.addEventListener('keydown', handleEscape);
@@ -117,6 +119,7 @@ const normalizeQuery = (entries: RegistryEntry[]) => {
 
 export async function bootstrap(): Promise<void> {
   ensureCatalogWired();
+  initStatusBar();
   attachGlobalListeners();
   const config = parseConfig();
   setAppConfig(config);
