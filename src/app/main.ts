@@ -124,10 +124,7 @@ export async function bootstrap(): Promise<void> {
   const config = parseConfig();
   setAppConfig(config);
 
-  const gate = await ensureMasterGate();
-  if (!gate.allowed) {
-    return;
-  }
+  await ensureMasterGate();
 
   try {
     const registry = await fetchRegistry();
