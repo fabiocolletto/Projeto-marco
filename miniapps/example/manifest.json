@@ -1,9 +1,9 @@
 {
-  "id": "<id-kebab>",
+  "id": "example",
   "name": {
-    "pt-BR": "<Nome PT>",
-    "en-US": "<Name EN>",
-    "es-419": "<Nombre ES>"
+    "pt-BR": "Example",
+    "en-US": "Example",
+    "es-419": "Example"
   },
   "version": "1.0.0",
   "entry": "./index.js",
