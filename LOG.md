@@ -20,3 +20,8 @@
 - Sincronizados comportamentos dos menus do usuário e de navegação para evitar conflitos de foco e eventos de clique.
 - Validado fluxo de abertura via suíte Playwright (`npm test -- --reporter=line`) para garantir carregamento das telas de autenticação.
 - Registrado passo a passo alternativo para baixar navegadores e dependências do Playwright em ambientes com proxy restritivo.
+
+## 2025-10-18
+- Documentado o fluxo de detecção automática de idioma no shell base, garantindo fallback consistente para inglês quando o navegador não oferece uma opção suportada.
+- Simulados navegadores com `navigator.languages` variados via DevTools (`Object.defineProperty(window.navigator, 'languages', { value: [...] })`) e recarga da página para validar seleção automática em pt-BR, en-US e es-419, além do fallback para en-US quando apenas `['fr-FR', 'de-DE']` estava disponível.
+- Registrada verificação manual do atributo `document.documentElement.lang` após a inicialização para assegurar que reflete o idioma efetivo carregado pelo i18n.
