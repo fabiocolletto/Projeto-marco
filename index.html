@@ -17,6 +17,7 @@
         background-attachment: fixed;
         min-height: 100vh;
         margin: 0;
+        --brand-accent: rgba(59, 130, 246, 0.85);
       }
 
       body {
@@ -74,14 +75,11 @@
       }
 
       #catalog-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
         display: grid;
         gap: 0.75rem;
       }
 
-      #catalog-list button {
+      .card {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -92,30 +90,35 @@
         color: inherit;
         font-size: 1rem;
         font-weight: 500;
+        text-align: left;
         cursor: pointer;
-        transition: background 120ms ease, transform 120ms ease, border-color 120ms ease;
+        transition: background 120ms ease, transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+        user-select: none;
+        width: 100%;
+        gap: 0.75rem;
       }
 
-      #catalog-list button:hover,
-      #catalog-list button:focus-visible {
+      .card:hover,
+      .card:focus-visible {
         background: rgba(59, 130, 246, 0.16);
         border-color: rgba(96, 165, 250, 0.35);
         transform: translateY(-1px);
         outline: none;
       }
 
-      #catalog-list button[data-selected="true"] {
+      .card.active {
+        outline: 2px solid var(--brand-accent, rgba(59, 130, 246, 0.8));
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand-accent, rgba(59, 130, 246, 0.8)), transparent 70%);
         background: linear-gradient(135deg, rgba(59, 130, 246, 0.35), rgba(14, 165, 233, 0.25));
         border-color: rgba(59, 130, 246, 0.45);
-        box-shadow: 0 18px 40px rgba(37, 99, 235, 0.2);
       }
 
-      #catalog-list button small {
-        font-size: 0.8rem;
-        color: rgba(226, 232, 240, 0.7);
+      .card-title {
+        display: block;
+        font-weight: 600;
       }
 
-      .badge {
+      .card-badge {
         border-radius: 999px;
         background: rgba(30, 64, 175, 0.35);
         border: 1px solid rgba(147, 197, 253, 0.2);
@@ -124,6 +127,11 @@
         font-weight: 600;
         letter-spacing: 0.02em;
         text-transform: uppercase;
+      }
+
+      .catalog-empty {
+        color: rgba(226, 232, 240, 0.65);
+        font-size: 0.95rem;
       }
 
       #panel {
@@ -142,7 +150,14 @@
         border-bottom: 1px solid rgba(148, 163, 184, 0.12);
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      #panel header .panel-heading {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
       }
 
       #panel header h2 {
@@ -153,6 +168,25 @@
 
       #panel header span {
         color: rgba(148, 163, 184, 0.85);
+      }
+
+      #panel-close {
+        background: transparent;
+        border: none;
+        color: rgba(226, 232, 240, 0.85);
+        font-size: 1.25rem;
+        cursor: pointer;
+        line-height: 1;
+        border-radius: 999px;
+        padding: 0.25rem 0.5rem;
+        transition: background 120ms ease, color 120ms ease;
+      }
+
+      #panel-close:hover,
+      #panel-close:focus-visible {
+        background: rgba(59, 130, 246, 0.18);
+        color: rgba(248, 250, 252, 0.95);
+        outline: none;
       }
 
       #panel .placeholder {
@@ -251,15 +285,18 @@
     <div id="app-shell">
       <section id="catalog" aria-labelledby="catalog-title">
         <h2 id="catalog-title">MiniApps disponíveis</h2>
-        <ul id="catalog-list"></ul>
+        <div id="catalog-list" role="list"></div>
       </section>
       <section id="panel" aria-live="polite">
         <header>
-          <h2 id="panel-title">Catálogo</h2>
-          <span id="panel-subtitle">Escolha um MiniApp para abrir no painel central</span>
+          <div class="panel-heading">
+            <h2 id="panel-title">Catálogo</h2>
+            <span id="panel-subtitle">Escolha um MiniApp para abrir no painel central</span>
+          </div>
+          <button id="panel-close" type="button" aria-label="Fechar painel" hidden>×</button>
         </header>
         <div class="placeholder" id="panel-placeholder">
-          <p>Navegue pelo catálogo ao lado ou abra diretamente um MiniApp com a rota <strong>#/app/&lt;id&gt;</strong>.</p>
+          <p>Escolha um MiniApp ao lado para iniciar.</p>
         </div>
         <iframe id="miniapp-frame" title="Painel do MiniApp" hidden></iframe>
         <footer>

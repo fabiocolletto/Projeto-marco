@@ -328,6 +328,133 @@ const testAdminPanel = async () => {
   console.log('✓ AdminPanel export/import ok');
 };
 
+const testShellCatalogToggle = async () => {
+  const dom = new JSDOM(
+    `<!DOCTYPE html><html><body>
+      <div id="error-banner"></div>
+      <div id="app-shell">
+        <section id="catalog"><div id="catalog-list"></div></section>
+        <section id="panel">
+          <header>
+            <div class="panel-heading">
+              <h2 id="panel-title">Catálogo</h2>
+              <span id="panel-subtitle"></span>
+            </div>
+            <button id="panel-close" type="button" hidden></button>
+          </header>
+          <div id="panel-placeholder" class="placeholder"></div>
+          <iframe id="miniapp-frame" hidden></iframe>
+          <footer></footer>
+        </section>
+      </div>
+      <script id="app-config" type="application/json">{"publicAdmin":false,"baseHref":"/"}</script>
+    </body></html>`,
+    { url: 'https://appbase.local/#/', pretendToBeVisual: true },
+  );
+
+  const { window } = dom;
+  Object.assign(globalThis, {
+    window,
+    document: window.document,
+    navigator: window.navigator,
+    location: window.location,
+    history: window.history,
+  });
+  globalAny.addEventListener = window.addEventListener.bind(window);
+  globalAny.removeEventListener = window.removeEventListener.bind(window);
+  globalAny.dispatchEvent = (event: Event) => window.dispatchEvent(event);
+
+  const registryResponse = {
+    miniapps: [
+      {
+        id: 'admin-panel',
+        name: 'Painel Administrativo',
+        path: 'miniapps/AdminPanel/manifest.json',
+        adminOnly: true,
+        visible: true,
+      },
+    ],
+  } satisfies {
+    miniapps: Array<{
+      id: string;
+      name: string;
+      path: string;
+      adminOnly: boolean;
+      visible: boolean;
+    }>;
+  };
+
+  const manifestResponse = {
+    id: 'admin-panel',
+    name: 'Painel Administrativo',
+    version: '0.1.0',
+    entry: './index.html',
+    adminOnly: true,
+    visible: true,
+  } satisfies Record<string, unknown>;
+
+  const createResponse = (data: unknown) => ({
+    ok: true,
+    status: 200,
+    statusText: 'OK',
+    json: async () => data,
+  }) as Response;
+
+  const originalFetch = global.fetch;
+  global.fetch = async (input: RequestInfo | URL) => {
+    const url = typeof input === 'string' ? input : input.toString();
+    if (url.endsWith('registry.json')) {
+      return createResponse(registryResponse);
+    }
+    if (url.endsWith('manifest.json')) {
+      return createResponse(manifestResponse);
+    }
+    return createResponse({});
+  };
+
+  await import('../src/app/main.ts');
+  const { getSelectedAppId, applyRouteFromLocation } = await import('../src/app/router.js');
+
+  await sleep(10);
+
+  const catalogList = window.document.getElementById('catalog-list');
+  assert(catalogList, 'catálogo deve existir');
+  const card = catalogList!.querySelector('[data-app-id="admin-panel"]') as HTMLButtonElement | null;
+  assert(card, 'card do Painel Administrativo deve existir');
+  assert.equal(card?.querySelector('.card-title')?.textContent?.trim(), 'Painel Administrativo');
+
+  assert.equal(getSelectedAppId(), null);
+
+  card!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await sleep(10);
+  assert.equal(getSelectedAppId(), 'admin-panel');
+  assert.equal(window.location.hash, '#/app/admin-panel');
+
+  card!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await sleep(10);
+  assert.equal(getSelectedAppId(), null);
+  assert.equal(window.location.hash, '#/');
+
+  card!.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await sleep(10);
+  const escEvent = new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
+  window.dispatchEvent(escEvent);
+  await sleep(10);
+  assert.equal(getSelectedAppId(), null);
+  assert.equal(window.location.hash, '#/');
+
+  window.location.hash = '#/app/admin-panel';
+  applyRouteFromLocation();
+  await sleep(10);
+  assert.equal(getSelectedAppId(), 'admin-panel');
+  const frame = window.document.getElementById('miniapp-frame') as HTMLIFrameElement | null;
+  assert(frame && frame.hidden === false, 'iframe deve estar visível após deep-link');
+
+  dom.window.close();
+  global.fetch = originalFetch;
+  console.log('✓ Catálogo com toggle e deep-link ok');
+};
+
 const main = async () => {
   try {
     await testIndexedDBBackup();
@@ -335,6 +462,7 @@ const main = async () => {
     await testAutoSaveRetries();
     await testMiniAppScaffold();
     await testSyncProviders();
+    await testShellCatalogToggle();
     await testAdminPanel();
     console.log('Smoke tests concluídos com sucesso.');
   } catch (error) {
