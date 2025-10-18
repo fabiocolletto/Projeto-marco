@@ -1,12 +1,366 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{TITLE}}</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.5;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+
+      #app {
+        flex: 1;
+        padding: clamp(1.5rem, 2vw + 1rem, 3rem);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .miniapp {
+        width: min(720px, 100%);
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .miniapp__card {
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 20px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        padding: clamp(1.5rem, 2vw + 1rem, 2.5rem);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+      }
+
+      .miniapp__header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .miniapp__badge {
+        align-self: flex-start;
+        border-radius: 999px;
+        padding: 0.2rem 0.75rem;
+        background: rgba(59, 130, 246, 0.14);
+        color: #1d4ed8;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .miniapp__header h1 {
+        margin: 0;
+        font-size: clamp(2rem, 2vw + 1.5rem, 2.8rem);
+        letter-spacing: -0.04em;
+      }
+
+      .miniapp__lead {
+        margin: 0;
+        color: #334155;
+      }
+
+      .miniapp__actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .miniapp__actions button {
+        border: none;
+        border-radius: 12px;
+        padding: 0.65rem 1.25rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        background: #2563eb;
+        color: white;
+        transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
+      }
+
+      .miniapp__actions button:nth-child(2) {
+        background: #0f766e;
+      }
+
+      .miniapp__actions button:nth-child(3) {
+        background: #dc2626;
+      }
+
+      .miniapp__actions button:hover,
+      .miniapp__actions button:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px rgba(37, 99, 235, 0.25);
+        outline: none;
+      }
+
+      .miniapp__actions button:nth-child(2):hover,
+      .miniapp__actions button:nth-child(2):focus-visible {
+        box-shadow: 0 10px 24px rgba(15, 118, 110, 0.25);
+      }
+
+      .miniapp__actions button:nth-child(3):hover,
+      .miniapp__actions button:nth-child(3):focus-visible {
+        box-shadow: 0 10px 24px rgba(220, 38, 38, 0.25);
+      }
+
+      .miniapp__hint {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #475569;
+      }
+
+      .miniapp__register {
+        margin: 0;
+        padding: 1.5rem;
+        border-radius: 16px;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        background: rgba(15, 23, 42, 0.02);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        transition: opacity 150ms ease, transform 150ms ease;
+      }
+
+      .miniapp__register[hidden] {
+        display: none !important;
+      }
+
+      .miniapp__register-header h2 {
+        margin: 0;
+        font-size: 1.35rem;
+      }
+
+      .miniapp__register-header p {
+        margin: 0.5rem 0 0;
+        color: #475569;
+        font-size: 0.9rem;
+      }
+
+      .miniapp__register-form {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+      }
+
+      .miniapp__register-field {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #1f2937;
+      }
+
+      .miniapp__register-field span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .miniapp__register-field input {
+        border: 1px solid rgba(15, 23, 42, 0.18);
+        border-radius: 10px;
+        padding: 0.65rem 0.75rem;
+        font: inherit;
+        color: inherit;
+        background: white;
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+      }
+
+      .miniapp__register-field input:focus {
+        outline: none;
+        border-color: rgba(37, 99, 235, 0.65);
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+      }
+
+      .miniapp__register-submit {
+        align-self: flex-start;
+        border: none;
+        border-radius: 12px;
+        padding: 0.7rem 1.4rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        background: linear-gradient(135deg, #2563eb, #0ea5e9);
+        color: white;
+        transition: transform 120ms ease, box-shadow 120ms ease;
+      }
+
+      .miniapp__register-submit:hover,
+      .miniapp__register-submit:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 30px rgba(14, 165, 233, 0.25);
+        outline: none;
+      }
+
+      footer.miniapp-footer {
+        border-top: 1px solid rgba(15, 23, 42, 0.08);
+        background: rgba(255, 255, 255, 0.85);
+        padding: 1rem clamp(1.5rem, 2vw + 1rem, 3rem);
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        backdrop-filter: blur(6px);
+        transition: color 120ms ease;
+      }
+
+      .miniapp-footer__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      .miniapp-footer__badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.2rem 0.65rem;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(14, 165, 233, 0.14);
+        color: #0e7490;
+      }
+
+      .miniapp-footer[data-driver='indexeddb'] .miniapp-footer__badge {
+        background: rgba(22, 163, 74, 0.12);
+        color: #166534;
+      }
+
+      .miniapp-footer[data-driver='memory'] .miniapp-footer__badge {
+        background: rgba(251, 191, 36, 0.22);
+        color: #92400e;
+      }
+
+      .miniapp-footer__status {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .miniapp-footer__details {
+        margin: 0;
+        color: #475569;
+        font-size: 0.75rem;
+      }
+
+      .miniapp-footer__user {
+        margin: 0;
+        color: #1f2937;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .miniapp-footer[data-memory-state='error'] .miniapp-footer__status {
+        color: #b91c1c;
+      }
+
+      .miniapp-footer[data-memory-state='saving'] .miniapp-footer__status,
+      .miniapp-footer[data-memory-state='loading'] .miniapp-footer__status,
+      .miniapp-footer[data-memory-state='clearing'] .miniapp-footer__status {
+        color: #0f766e;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body {
+          background: #0f172a;
+          color: #e2e8f0;
+        }
+
+        footer.miniapp-footer {
+          background: rgba(15, 23, 42, 0.65);
+          border-top-color: rgba(148, 163, 184, 0.24);
+        }
+
+        .miniapp-footer__details {
+          color: rgba(148, 163, 184, 0.85);
+        }
+
+        .miniapp-footer__user {
+          color: #e2e8f0;
+        }
+
+        .miniapp__card {
+          background: rgba(15, 23, 42, 0.85);
+          border-color: rgba(148, 163, 184, 0.18);
+          box-shadow: 0 24px 60px rgba(15, 23, 42, 0.45);
+        }
+
+        .miniapp__lead,
+        .miniapp__hint {
+          color: rgba(226, 232, 240, 0.75);
+        }
+
+        .miniapp__actions button {
+          box-shadow: none;
+        }
+
+        .miniapp__register {
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(148, 163, 184, 0.18);
+        }
+
+        .miniapp__register-header p,
+        .miniapp__register-field {
+          color: rgba(226, 232, 240, 0.85);
+        }
+
+        .miniapp__register-field input {
+          background: rgba(15, 23, 42, 0.65);
+          border-color: rgba(148, 163, 184, 0.24);
+          color: #e2e8f0;
+        }
+
+        .miniapp__register-field input::placeholder {
+          color: rgba(226, 232, 240, 0.55);
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app" data-miniapp-id="{{ID}}"></div>
+    <script type="importmap">
+      {
+        "imports": {
+          "idb": "https://cdn.jsdelivr.net/npm/idb@8/+esm"
+        }
+      }
+    </script>
+    <footer
+      class="miniapp-footer"
+      data-memory-footer
+      data-memory-state="checking"
+      aria-live="polite"
+    >
+      <div class="miniapp-footer__row">
+        <strong>Status da memória</strong>
+        <span class="miniapp-footer__badge" data-memory-driver>Verificando…</span>
+      </div>
+      <p class="miniapp-footer__status" data-memory-status>Verificando suporte à IndexedDB…</p>
+      <p class="miniapp-footer__details" data-memory-details hidden>
+        As informações serão atualizadas assim que a verificação for concluída.
+      </p>
+      <p class="miniapp-footer__user" data-user-status>Usuário logado: verificando…</p>
+    </footer>
     <script type="module" src="./main.js"></script>
   </body>
 </html>
