@@ -1,8 +1,31 @@
 import { configureRouter, navigate, resolve } from "./router.js";
 import { getAppsCount, mountMarket } from "./market.js";
+import {
+  getSessionPreferences,
+  subscribeToSessionPreferences,
+} from "./session.js";
 
 const appOutlet = document.querySelector("#app");
 const statusFooter = document.querySelector("#status");
+const adminElements = document.querySelectorAll("[data-admin-only]");
+
+function applySessionMode(preferences) {
+  const isAdmin = preferences?.mode === "admin";
+  adminElements.forEach((element) => {
+    if (!element) {
+      return;
+    }
+    element.hidden = !isAdmin;
+    element.setAttribute("aria-hidden", String(!isAdmin));
+  });
+  document.body.dataset.sessionMode = isAdmin ? "admin" : "user";
+}
+
+applySessionMode(getSessionPreferences());
+
+subscribeToSessionPreferences((preferences) => {
+  applySessionMode(preferences);
+});
 
 configureRouter({
   target: appOutlet,
