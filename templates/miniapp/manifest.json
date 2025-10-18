@@ -1,0 +1,7 @@
+{
+  "id": "{{ID}}",
+  "name": "{{TITLE}}",
+  "version": "0.1.0",
+  "adminOnly": {{ADMIN_ONLY}},
+  "visible": {{VISIBLE}}
+}
