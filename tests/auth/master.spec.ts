@@ -86,6 +86,19 @@ describe('Master auth flow', () => {
     expect(window.location.hash).toBe('#/setup/master');
   });
 
+  it('auto provisions default master credentials on first run', async () => {
+    mountShellDom();
+    const { autoProvisionMaster } = await import('../../src/auth/provision.js');
+    const seeded = await autoProvisionMaster();
+    expect(seeded).toBe(true);
+
+    const { getMaster } = await import('../../src/auth/store.js');
+    const master = await getMaster();
+    expect(master).not.toBeNull();
+    expect(master?.username).toBe('adm');
+    expect(globalThis.localStorage?.getItem('appbase:auth')).toBe('master');
+  });
+
   it('registers default master credentials and persists auth', async () => {
     mountShellDom();
     const { ensureMasterGate } = await import('../../src/auth/gate.js');
@@ -103,6 +116,21 @@ describe('Master auth flow', () => {
     expect(master?.username).toBe('adm');
     expect(globalThis.localStorage?.getItem('appbase:auth')).toBe('master');
     expect(window.location.hash).toBe('#/');
+  });
+
+  it('redirects to master login when master already exists on first access', async () => {
+    mountShellDom();
+    const { autoProvisionMaster } = await import('../../src/auth/provision.js');
+    await autoProvisionMaster();
+
+    window.localStorage.clear();
+    window.sessionStorage.clear();
+    window.location.hash = '#/';
+
+    const { ensureMasterGate } = await import('../../src/auth/gate.js');
+    const gate = await ensureMasterGate();
+    expect(gate.allowed).toBe(false);
+    expect(window.location.hash).toBe('#/login/master');
   });
 
   it('keeps full catalog available after restart when master authenticated', async () => {
