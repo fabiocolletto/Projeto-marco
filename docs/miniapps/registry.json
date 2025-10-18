@@ -2,7 +2,7 @@
   "miniapps": [
     {
       "id": "admin-panel",
-      "name": "AdminPanel",
+      "name": "Painel Administrativo",
       "path": "miniapps/AdminPanel/manifest.json",
       "adminOnly": true,
       "visible": true
