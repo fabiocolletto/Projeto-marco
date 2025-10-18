@@ -24,6 +24,9 @@ let panelPlaceholder: HTMLDivElement | null = null;
 let frame: HTMLIFrameElement | null = null;
 let closeButton: HTMLButtonElement | null = null;
 let placeholderDefault = '';
+let renderGeneration = 0;
+
+const isLatestRender = (generation: number): boolean => generation === renderGeneration;
 
 const onCloseButtonClick = () => {
   setSelectedAppId(null);
@@ -127,17 +130,22 @@ const renderCatalogLocked = (message: string) => {
 
 const mountAuthWidget = async (
   renderer: (container: HTMLElement) => Promise<void> | void,
+  generation: number,
 ): Promise<void> => {
   attachDom();
+  if (!isLatestRender(generation)) return;
   resetFrame();
   closeButton?.setAttribute('hidden', '');
+  if (!isLatestRender(generation)) return;
   setSelectedAppId(null);
+  if (!isLatestRender(generation)) return;
   if (!panelPlaceholder) return;
   panelPlaceholder.hidden = false;
   panelPlaceholder.innerHTML = '';
   const host = document.createElement('div');
   panelPlaceholder.append(host);
   await renderer(host);
+  if (!isLatestRender(generation)) return;
 };
 
 const applyPanelHeader = (title: string, subtitle: string) => {
@@ -201,6 +209,7 @@ const renderMiniAppByEntry = async (entry: RegistryEntry): Promise<void> => {
 
 export function renderShell(): void {
   attachDom();
+  const generation = ++renderGeneration;
   void scheduleStatusBarUpdate();
   const entries = getRegistryEntries();
   const routeMode = getRouteMode();
@@ -217,11 +226,9 @@ export function renderShell(): void {
   }
 
   if (routeMode === 'setupMaster') {
-    void (async () => {
-      applyPanelHeader('Cadastro Master', 'Crie a conta master para este dispositivo');
-      setTitle('Cadastro Master');
-      await mountAuthWidget((container) => renderMasterSignup(container, { mode: 'create' }));
-    })();
+    applyPanelHeader('Cadastro Master', 'Crie a conta master para este dispositivo');
+    setTitle('Cadastro Master');
+    void mountAuthWidget((container) => renderMasterSignup(container, { mode: 'create' }), generation);
     return;
   }
 
@@ -230,14 +237,16 @@ export function renderShell(): void {
       applyPanelHeader('Login Master', 'Autentique-se para liberar o catálogo completo');
       setTitle('Login Master');
       const master = await getMaster();
-      await mountAuthWidget((container) => renderMasterLogin(container, { master: master ?? undefined }));
+      if (!isLatestRender(generation)) return;
+      await mountAuthWidget((container) => renderMasterLogin(container, { master: master ?? null }), generation);
     })();
     return;
   }
 
   if (!selectedId) {
     if (visibleEntries.length === 1) {
-      const [singleEntry] = visibleEntries;
+      const singleEntry = visibleEntries[0];
+      if (!singleEntry) return;
       setSelectedAppId(singleEntry.id);
       setRouteForSelection(singleEntry.id);
       return;
