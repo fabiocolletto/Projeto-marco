@@ -1,0 +1,38 @@
+{
+  "users": [
+    {
+      "userId": "usr-001",
+      "nome": "Ana Costa",
+      "email": "ana.costa@example.com",
+      "telefoneHash": "2fcdd156d6b76800e97b8cfffd36d6c22c58e2be75352b0025efba35a2a8778e",
+      "idiomaPreferido": "pt-BR",
+      "temaPreferido": "dark",
+      "seguirSistema": false,
+      "status": "active",
+      "role": "admin",
+      "dependentes": [
+        {
+          "nome": "Bianca Costa",
+          "telefoneHash": "d0d17da7fe2567750053ea26f28d2aa71287516b1d1bd758cac4d2e1e148eb95"
+        }
+      ]
+    },
+    {
+      "userId": "usr-002",
+      "nome": "Bruno Lima",
+      "email": "bruno.lima@example.com",
+      "telefoneHash": "141a85899250ed44dce321f576de87c055b55afe8fed416bfb2cf2ec69ebcb4d",
+      "idiomaPreferido": "en-US",
+      "temaPreferido": null,
+      "seguirSistema": true,
+      "status": "pending",
+      "role": "viewer",
+      "dependentes": [
+        {
+          "nome": "Iris Lima",
+          "telefoneHash": "78f79c06a96d2d505b2e2b24d32b6d1356638eacda492d724a7c51551dee19ff"
+        }
+      ]
+    }
+  ]
+}

@@ -27,7 +27,79 @@
     "localChanges": "Alterações locais — nenhuma chamada ao backend será feita."
   },
   "users": {
-    "helper": "Gestão de usuários em breve.",
-    "placeholder": "Use esta área para cadastrar, promover ou desativar usuários assim que os fluxos estiverem disponíveis."
+    "helper": "Gerencie usuários locais e seus dependentes. Todas as alterações acontecem apenas nesta sessão.",
+    "create": {
+      "title": "Novo usuário",
+      "description": "Preencha os dados básicos e inclua dependentes por telefone.",
+      "submit": "Adicionar usuário",
+      "fields": {
+        "nome": "Nome completo",
+        "email": "E-mail",
+        "telefone": "Telefone",
+        "role": "Papel",
+        "status": "Status",
+        "idioma": "Idioma preferido",
+        "tema": "Tema preferido",
+        "seguirSistema": "Seguir configurações do sistema",
+        "dependentes": "Dependentes",
+        "dependenteNome": "Nome do dependente",
+        "dependenteTelefone": "Telefone do dependente",
+        "adicionarDependente": "Adicionar dependente",
+        "removerDependente": "Remover"
+      }
+    },
+    "list": {
+      "title": "Usuários cadastrados",
+      "empty": "Nenhum usuário cadastrado.",
+      "email": "E-mail",
+      "telefone": "Telefone (hash)",
+      "dependentes": "Dependentes",
+      "noDependentes": "Nenhum dependente informado.",
+      "actions": {
+        "edit": "Editar usuário",
+        "save": "Salvar alterações",
+        "cancel": "Cancelar",
+        "delete": "Remover usuário"
+      },
+      "status": {
+        "active": "Ativo",
+        "pending": "Pendente",
+        "suspended": "Suspenso"
+      },
+      "role": {
+        "admin": "Administrador",
+        "manager": "Gestor",
+        "viewer": "Visualizador"
+      },
+      "seguirSistema": "Segue sistema",
+      "temaPersonalizado": "Tema definido"
+    },
+    "dependentes": {
+      "hash": "Hash do telefone"
+    },
+    "events": {
+      "title": "Oportunidades de tradução",
+      "empty": "Nenhum evento registrado.",
+      "unsupportedLocale": "Idioma detectado não suportado",
+      "timestamp": "Registrado em"
+    },
+    "feedback": {
+      "created": "Usuário criado com sucesso.",
+      "updated": "Dados do usuário atualizados.",
+      "deleted": "Usuário removido."
+    },
+    "errors": {
+      "requiredName": "Informe o nome do usuário.",
+      "requiredEmail": "Informe um e-mail válido."
+    },
+    "languages": {
+      "pt-BR": "Português (Brasil)",
+      "en-US": "Inglês (EUA)",
+      "es-419": "Espanhol (LatAm)"
+    },
+    "themes": {
+      "light": "Claro",
+      "dark": "Escuro"
+    }
   }
 }
