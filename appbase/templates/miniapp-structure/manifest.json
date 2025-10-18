@@ -1,0 +1,30 @@
+{
+  "id": "<id-kebab>",
+  "name": {
+    "pt-BR": "<Nome PT>",
+    "en-US": "<Name EN>",
+    "es-419": "<Nombre ES>"
+  },
+  "version": "1.0.0",
+  "entry": "./index.js",
+  "icons": {
+    "128": "./icon-128.png"
+  },
+  "scopes": ["storage:kv"],
+  "capabilities": ["i18n"],
+  "routes": [
+    {
+      "path": "/",
+      "titleKey": "home.title"
+    },
+    {
+      "path": "/settings",
+      "titleKey": "settings.title",
+      "secure": true
+    }
+  ],
+  "about": {
+    "summary": "MiniApp gerado via scaffold",
+    "publisher": "5 Horas"
+  }
+}
