@@ -1,0 +1,7 @@
+{
+  "id": "miniapp-admin-panel",
+  "name": "Admin Panel",
+  "version": "0.1.0",
+  "adminOnly": true,
+  "visible": true
+}

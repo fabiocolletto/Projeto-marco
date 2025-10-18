@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main id="admin-panel">
+      <section>
+        <h1>Painel Administrativo</h1>
+        <dl id="preferences"></dl>
+      </section>
+      <section>
+        <h2>Telemetria (últimas 200 entradas)</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Evento</th>
+              <th>Quantidade</th>
+            </tr>
+          </thead>
+          <tbody id="telemetry-table"></tbody>
+        </table>
+      </section>
+      <section>
+        <h2>Backup</h2>
+        <div class="backup-actions">
+          <button id="export-backup">Exportar backup (.json)</button>
+          <label>
+            Importar backup
+            <input type="file" id="import-backup" accept="application/json" />
+          </label>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
