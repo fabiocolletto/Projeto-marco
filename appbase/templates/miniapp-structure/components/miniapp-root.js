@@ -1,63 +1,25 @@
-import "../styles/tokens.css";
-import "../styles/components.css";
-import { renderHome } from "../views/home.js";
-import { renderSettings } from "../views/settings.js";
-
-const routes = {
-  "/": renderHome,
-  "/settings": renderSettings
-};
-
-function renderRoute(host, route) {
-  const target = host.querySelector(".miniapp-view");
-  const action = routes[route] ?? routes["/"];
-  action(target);
-}
-
-class MiniappRoot extends HTMLElement {
-  constructor() {
-    super();
-    this.handleClick = this.handleClick.bind(this);
+const tpl = document.createElement("template");
+tpl.innerHTML = `
+  <style>
+    @import "/packages/ui/tokens.css";
+    @import "/packages/ui/components.css";
+  </style>
+  <article class="card">
+    <header class="card-hd">
+      <h3>MiniApp: <span id="title"></span></h3>
+      <div class="card-actions">
+        <a class="btn ghost" href="#/miniapps/<id-kebab>/settings">Settings</a>
+      </div>
+    </header>
+    <div class="card-bd">
+      <p>Estrutura base pronta. Edite <code>views/</code> e <code>styles/</code>.</p>
+    </div>
+    <footer class="card-ft">Versão 1.0.0</footer>
+  </article>
+`;
+customElements.define("miniapp-root", class extends HTMLElement {
+  constructor(){
+    super(); this.attachShadow({mode:"open"}).appendChild(tpl.content.cloneNode(true));
+    this.shadowRoot.getElementById("title").textContent = location.hash.split("/")[2] || "<id-kebab>";
   }
-
-  connectedCallback() {
-    if (this.initialized) return;
-    this.initialized = true;
-    this.innerHTML = `
-      <section class="card miniapp-card">
-        <header class="card-hd">
-          <h2 class="miniapp-title" data-i18n="miniapp.title">MiniApp Scaffold</h2>
-        </header>
-        <div class="card-bd">
-          <div class="miniapp-view"></div>
-          <button class="btn primary miniapp-action" type="button" data-route="/settings" data-i18n="actions.openSettings">
-            Abrir Settings
-          </button>
-        </div>
-      </section>
-    `;
-    this.addEventListener("click", this.handleClick);
-    renderRoute(this, "/");
-  }
-
-  disconnectedCallback() {
-    this.removeEventListener("click", this.handleClick);
-  }
-
-  handleClick(event) {
-    const btn = event.target.closest("[data-route]");
-    if (!btn) return;
-    event.preventDefault();
-    const route = btn.dataset.route;
-    renderRoute(this, route);
-    this.dispatchEvent(
-      new CustomEvent("miniapp:navigate", {
-        bubbles: true,
-        composed: true,
-        detail: { route }
-      })
-    );
-  }
-}
-
-customElements.define("miniapp-root", MiniappRoot);
+});

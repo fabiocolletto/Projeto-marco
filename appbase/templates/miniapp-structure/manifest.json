@@ -7,24 +7,9 @@
   },
   "version": "1.0.0",
   "entry": "./index.js",
-  "icons": {
-    "128": "./icon-128.png"
-  },
-  "scopes": ["storage:kv"],
-  "capabilities": ["i18n"],
-  "routes": [
-    {
-      "path": "/",
-      "titleKey": "home.title"
-    },
-    {
-      "path": "/settings",
-      "titleKey": "settings.title",
-      "secure": true
-    }
-  ],
-  "about": {
-    "summary": "MiniApp gerado via scaffold",
-    "publisher": "5 Horas"
-  }
+  "icons": { "128": "./icon-128.png" },
+  "routes": [{ "path": "/", "titleKey": "home.title" }],
+  "capabilities": ["kv","queue"],
+  "summary": "MiniApp gerado via scaffold",
+  "visibility": "public"
 }

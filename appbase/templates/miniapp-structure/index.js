@@ -1,8 +1,4 @@
-import "./components/miniapp-root.js";
-
-export function mount(root = document.body) {
-  const host = document.createElement("miniapp-root");
-  root.innerHTML = "";
-  root.appendChild(host);
-  return host;
+export async function mount(root){
+  await import("./components/miniapp-root.js");
+  root.innerHTML = "<miniapp-root></miniapp-root>";
 }
