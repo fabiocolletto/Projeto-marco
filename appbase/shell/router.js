@@ -1,24 +1,38 @@
-export function navigate(path) {
-  history.pushState({}, "", path);
-  dispatchEvent(new Event("popstate"));
+let outlet = null;
+let homeHandler = null;
+let miniAppHandler = null;
+
+export function configureRouter({ target = document.querySelector("#app"), onHome, onMiniApp }) {
+  outlet = target;
+  homeHandler = onHome;
+  miniAppHandler = onMiniApp;
 }
 
-export async function resolve(outlet = document.querySelector("#app")) {
-  const parts = location.pathname.split("/").filter(Boolean);
-  if (parts[0] === "miniapps" && parts[1]) {
-    const id = parts[1];
-    try {
-      const mod = await import(`/miniapps/${id}/index.js`);
-      return mod.mount(outlet);
-    } catch {
-      outlet.innerHTML = `<div class="card"><div class="card-bd">MiniApp não encontrado.</div></div>`;
+export function navigate(path) {
+  if (location.pathname !== path) {
+    history.pushState({}, "", path);
+  }
+  resolve();
+}
+
+export async function resolve() {
+  if (!outlet) {
+    outlet = document.querySelector("#app");
+  }
+  const segments = location.pathname.split("/").filter(Boolean);
+  if (segments[0] === "miniapps" && segments[1]) {
+    if (typeof miniAppHandler === "function") {
+      await miniAppHandler({ id: segments[1], outlet });
+      return;
     }
-  } else {
-    const { mountMarket } = await import("./market.js");
-    return mountMarket(outlet);
+  }
+  if (typeof homeHandler === "function") {
+    await homeHandler({ outlet });
   }
 }
 
-addEventListener("popstate", () => resolve());
+addEventListener("popstate", () => {
+  resolve();
+});
 
-export default { navigate, resolve };
+export default { configureRouter, navigate, resolve };
