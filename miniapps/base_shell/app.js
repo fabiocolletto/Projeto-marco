@@ -44,6 +44,75 @@ const LANG_ICON_SOURCE_MAP = {
   'es-419': new URL('./assets/flags/es-419.svg', import.meta.url).href
 };
 
+const I18N_STORAGE_KEY = 'miniapp.base.lang';
+
+const NORMALIZED_LANG_RESOURCE_MAP = new Map();
+const PRIMARY_LANG_RESOURCE_MAP = new Map();
+
+for (const resource of LANG_RESOURCES) {
+  const normalized = normalizeLangVariant(resource.lang);
+  NORMALIZED_LANG_RESOURCE_MAP.set(normalized, resource.lang);
+  const primary = normalized.split('-')[0];
+  if (!PRIMARY_LANG_RESOURCE_MAP.has(primary)) {
+    PRIMARY_LANG_RESOURCE_MAP.set(primary, resource.lang);
+  }
+}
+
+function normalizeLangVariant(value) {
+  if (!value) return '';
+  return String(value).replace(/_/g, '-').replace(/\s+/g, '').toLowerCase();
+}
+
+function resolveSupportedLang(candidate) {
+  const normalized = normalizeLangVariant(candidate);
+  if (!normalized) return null;
+  if (NORMALIZED_LANG_RESOURCE_MAP.has(normalized)) {
+    return NORMALIZED_LANG_RESOURCE_MAP.get(normalized);
+  }
+  const primary = normalized.split('-')[0];
+  if (PRIMARY_LANG_RESOURCE_MAP.has(primary)) {
+    return PRIMARY_LANG_RESOURCE_MAP.get(primary);
+  }
+  return null;
+}
+
+function detectPreferredLanguage() {
+  if (typeof navigator === 'undefined') return null;
+  const candidates = [];
+  if (Array.isArray(navigator.languages)) {
+    candidates.push(...navigator.languages);
+  }
+  const fallbackProperties = ['language', 'userLanguage', 'browserLanguage', 'systemLanguage'];
+  for (const property of fallbackProperties) {
+    const value = navigator[property];
+    if (value) {
+      candidates.push(value);
+    }
+  }
+  const seen = new Set();
+  for (const candidate of candidates) {
+    const normalized = normalizeLangVariant(candidate);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    const supported = resolveSupportedLang(candidate);
+    if (supported) {
+      return supported;
+    }
+  }
+  return null;
+}
+
+function readStoredLanguagePreference() {
+  if (typeof window === 'undefined') return null;
+  try {
+    const storage = window.localStorage;
+    return storage ? storage.getItem(I18N_STORAGE_KEY) : null;
+  } catch (error) {
+    console.warn('app: unable to read stored language preference', error);
+    return null;
+  }
+}
+
 const MINI_APP_CATALOG = [
   {
     id: 'mini-app-1',
@@ -243,7 +312,9 @@ export function evaluatePasswordStrength(password) {
 async function bootstrap() {
   initTheme(getTheme().mode);
   await loadDictionaries();
-  const initialLang = initI18n('pt-BR');
+  const storedLanguage = readStoredLanguagePreference();
+  const preferredLanguage = storedLanguage ? null : detectPreferredLanguage();
+  const initialLang = initI18n(storedLanguage || preferredLanguage || 'en-US');
   document.documentElement.lang = initialLang;
   revisionInfo = await loadRevisionInfo();
   updateRevisionMetadata();

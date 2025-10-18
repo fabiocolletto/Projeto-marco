@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'miniapp.base.lang';
-const FALLBACK_LANG = 'pt-br';
+const FALLBACK_LANG = 'en-us';
 const listeners = new Set();
 const dictionaries = new Map();
 const storage = (() => {
