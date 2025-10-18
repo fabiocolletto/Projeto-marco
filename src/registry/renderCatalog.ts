@@ -24,7 +24,7 @@ export function renderCatalog(container: HTMLElement, entries: RegistryEntry[], 
     if (entry.adminOnly) {
       const badge = document.createElement('span');
       badge.classList.add('badge');
-      badge.textContent = 'Admin';
+      badge.textContent = 'Privado';
       title.append(badge);
     }
 

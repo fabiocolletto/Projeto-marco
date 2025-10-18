@@ -10,6 +10,7 @@ import { exportBackup, importBackup } from '../src/storage/backup/backupJson.js'
 import { createAutoSaver } from '../src/storage/autosave/AutoSaver.js';
 import { createMiniApp } from './create-miniapp.js';
 import { resolveSyncProvider } from '../src/sync/SyncProvider.js';
+import { sha256 } from '../src/auth/crypto.js';
 
 type EventListener = (event: Event) => void;
 
@@ -48,6 +49,7 @@ class MemoryStorage implements Storage {
 
 const globalAny = globalThis as unknown as {
   localStorage?: Storage;
+  sessionStorage?: Storage;
   navigator?: Navigator;
   addEventListener?: (type: string, listener: EventListener) => void;
   removeEventListener?: (type: string, listener: EventListener) => void;
@@ -57,6 +59,7 @@ const globalAny = globalThis as unknown as {
 const eventListeners = new Map<string, Set<EventListener>>();
 
 globalAny.localStorage = new MemoryStorage();
+globalAny.sessionStorage = new MemoryStorage();
 globalAny.navigator = ({ onLine: true } as unknown) as Navigator;
 globalAny.addEventListener = (type: string, listener: EventListener) => {
   if (!eventListeners.has(type)) {
@@ -89,13 +92,224 @@ const resetIndexedDB = async () => {
   });
 };
 
-const testShellCatalogToggle = async () => {
+const testMasterAuthFlow = async () => {
+  await resetIndexedDB();
   const previousWindow = (globalThis as { window?: Window }).window;
   const previousDocument = (globalThis as { document?: Document }).document;
   const previousHistory = (globalThis as { history?: History }).history;
   const previousLocation = (globalThis as { location?: Location }).location;
   const previousNavigator = globalAny.navigator;
   const previousFetch = globalThis.fetch;
+  const previousLocalStorage = globalAny.localStorage;
+  const previousSessionStorage = globalAny.sessionStorage;
+  globalAny.localStorage = new MemoryStorage();
+  globalAny.sessionStorage = new MemoryStorage();
+
+  const dom = new JSDOM(
+    `<!DOCTYPE html><html><body>
+      <div id="error-banner"></div>
+      <section id="catalog"><div id="catalog-cards" role="list"></div></section>
+      <section id="panel">
+        <header>
+          <div>
+            <h2 id="panel-title">Catálogo</h2>
+            <span id="panel-subtitle">Escolha um MiniApp para abrir no painel central</span>
+          </div>
+          <button id="panel-close" type="button" hidden>✕</button>
+        </header>
+        <div class="placeholder" id="panel-placeholder"><p>Escolha um MiniApp ao lado para abrir seu painel aqui.</p></div>
+        <iframe id="miniapp-frame" hidden></iframe>
+      </section>
+      <script id="app-config" type="application/json">{"publicAdmin":false,"baseHref":"/"}</script>
+    </body></html>`,
+    { url: 'https://appbase.local/' },
+  );
+
+  const { window } = dom;
+  Object.assign(globalThis, {
+    window,
+    document: window.document,
+    history: window.history,
+    location: window.location,
+    navigator: window.navigator,
+  });
+  globalAny.navigator = window.navigator;
+  window.document.title = 'AppBase';
+
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: globalAny.localStorage,
+  });
+  Object.defineProperty(window, 'sessionStorage', {
+    configurable: true,
+    value: globalAny.sessionStorage,
+  });
+
+  const registryPayload = {
+    miniapps: [
+      { id: 'public-app', name: 'Catálogo Público', path: 'miniapps/Public/manifest.json', adminOnly: false, visible: true },
+      { id: 'admin-panel', name: 'Painel Administrativo', path: 'miniapps/AdminPanel/manifest.json', adminOnly: true, visible: true },
+    ],
+  } as const;
+
+  const manifestPayload = {
+    id: 'public-app',
+    name: 'Catálogo Público',
+    version: '1.0.0',
+  };
+
+  globalThis.fetch = async (input: RequestInfo | URL) => {
+    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : (input as Request).url;
+    if (url.endsWith('/miniapps/registry.json')) {
+      return new Response(JSON.stringify(registryPayload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (url.endsWith('/miniapps/Public/manifest.json')) {
+      return new Response(JSON.stringify(manifestPayload), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (url.endsWith('/miniapps/AdminPanel/manifest.json')) {
+      return new Response(JSON.stringify({ ...manifestPayload, id: 'admin-panel', name: 'Painel Administrativo' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response('Not Found', { status: 404 });
+  };
+  Object.defineProperty(window, 'fetch', {
+    configurable: true,
+    value: globalThis.fetch,
+  });
+
+  const mainModule = await import('../src/app/main.ts');
+  await mainModule.bootstrap();
+  await sleep(100);
+
+  assert.equal(window.location.hash, '#/setup/master', 'primeiro acesso deve exigir cadastro master');
+
+  const signupForm = window.document.querySelector<HTMLFormElement>('#panel-placeholder form');
+  assert(signupForm, 'formulário de cadastro deve existir');
+  signupForm!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  await sleep(150);
+
+  assert.equal(window.location.hash, '#/');
+  await sleep(150);
+
+  const initialCards = window.document.querySelectorAll('#catalog-cards .card');
+  assert.equal(initialCards.length, 2, 'catálogo deve incluir apps públicos e privados após cadastro');
+
+  const session = await import('../src/auth/session.js');
+  session.clearMasterAuthentication();
+  const gateModule = await import('../src/auth/gate.js');
+  const gate = await gateModule.ensureMasterGate();
+  assert.equal(gate.allowed, false, 'sem token deve exigir login');
+  assert.equal(window.location.hash, '#/login/master', 'logout deve redirecionar para tela de login');
+  await sleep(100);
+
+  const loginForm = window.document.querySelector<HTMLFormElement>('#panel-placeholder form');
+  assert(loginForm, 'formulário de login deve existir');
+  const userInput = loginForm!.querySelector<HTMLInputElement>('input[name="username"]');
+  const passInput = loginForm!.querySelector<HTMLInputElement>('input[name="password"]');
+  assert(userInput && passInput, 'campos de login devem existir');
+  userInput!.value = 'adm';
+  passInput!.value = '0000';
+  loginForm!.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
+  await sleep(200);
+
+  assert.equal(window.location.hash, '#/');
+  const cardsAfterLogin = window.document.querySelectorAll('#catalog-cards .card');
+  assert.equal(cardsAfterLogin.length, 2, 'após login catálogo deve manter apps privados visíveis');
+
+  dom.window.close();
+
+  if (previousWindow === undefined) {
+    delete (globalThis as { window?: Window }).window;
+  } else {
+    Object.assign(globalThis, { window: previousWindow });
+  }
+
+  if (previousDocument === undefined) {
+    delete (globalThis as { document?: Document }).document;
+  } else {
+    Object.assign(globalThis, { document: previousDocument });
+  }
+
+  if (previousHistory === undefined) {
+    delete (globalThis as { history?: History }).history;
+  } else {
+    Object.assign(globalThis, { history: previousHistory });
+  }
+
+  if (previousLocation === undefined) {
+    delete (globalThis as { location?: Location }).location;
+  } else {
+    Object.assign(globalThis, { location: previousLocation });
+  }
+
+  if (previousNavigator === undefined) {
+    delete globalAny.navigator;
+  } else {
+    globalAny.navigator = previousNavigator;
+  }
+
+  if (previousFetch) {
+    globalThis.fetch = previousFetch;
+  } else {
+    delete (globalThis as { fetch?: typeof fetch }).fetch;
+  }
+
+  if (previousLocalStorage === undefined) {
+    delete globalAny.localStorage;
+  } else {
+    globalAny.localStorage = previousLocalStorage;
+  }
+  if (previousSessionStorage === undefined) {
+    delete globalAny.sessionStorage;
+  } else {
+    globalAny.sessionStorage = previousSessionStorage;
+  }
+
+  console.log('✓ Fluxo master offline-first (cadastro, login, catálogo completo) ok');
+};
+
+const testShellCatalogToggle = async () => {
+  await resetIndexedDB();
+  const previousWindow = (globalThis as { window?: Window }).window;
+  const previousDocument = (globalThis as { document?: Document }).document;
+  const previousHistory = (globalThis as { history?: History }).history;
+  const previousLocation = (globalThis as { location?: Location }).location;
+  const previousNavigator = globalAny.navigator;
+  const previousFetch = globalThis.fetch;
+  const previousLocalStorage = globalAny.localStorage;
+  const previousSessionStorage = globalAny.sessionStorage;
+  globalAny.localStorage = new MemoryStorage();
+  globalAny.sessionStorage = new MemoryStorage();
+
+  const appState = await import('../src/app/state.js');
+  appState.setAppConfig({ publicAdmin: false, baseHref: '/' });
+  appState.setRegistryEntries([]);
+  appState.getManifestCache().clear();
+
+  const now = new Date().toISOString();
+  const deviceId = 'shell-device';
+  const masterHash = await sha256(`${deviceId}:0000`);
+  const db = await openIdxDB();
+  await db.settings.set('masterUser', {
+    id: 'master',
+    username: 'adm',
+    passHash: masterHash,
+    createdAt: now,
+    updatedAt: now,
+    deviceId,
+    role: 'master',
+  } as any);
+  await db.close();
+  globalAny.localStorage.setItem('appbase:auth', 'master');
+  globalAny.localStorage.setItem('appbase:deviceId', deviceId);
 
   const dom = new JSDOM(
     `<!DOCTYPE html><html><body>
@@ -125,7 +339,19 @@ const testShellCatalogToggle = async () => {
     location: window.location,
     navigator: window.navigator,
   });
+  Object.defineProperty(window, 'localStorage', {
+    configurable: true,
+    value: globalAny.localStorage,
+  });
+  Object.defineProperty(window, 'sessionStorage', {
+    configurable: true,
+    value: globalAny.sessionStorage,
+  });
   window.document.title = 'AppBase';
+
+  const { ensureMasterGate } = await import('../src/auth/gate.js');
+  const gateCheck = await ensureMasterGate();
+  assert.equal(gateCheck.allowed, true, 'gate deve permitir quando master pré-autenticado');
 
   const registryPayload = {
     miniapps: [
@@ -147,14 +373,13 @@ const testShellCatalogToggle = async () => {
     visible: true,
   };
 
-  globalThis.fetch = async (input: RequestInfo | URL) => {
+  const fetchStub = async (input: RequestInfo | URL) => {
     const url =
       typeof input === 'string'
         ? input
         : input instanceof URL
         ? input.href
         : (input as Request).url;
-
     if (url.endsWith('/miniapps/registry.json')) {
       return new Response(JSON.stringify(registryPayload), {
         status: 200,
@@ -171,15 +396,22 @@ const testShellCatalogToggle = async () => {
 
     return new Response('Not Found', { status: 404 });
   };
+  globalThis.fetch = fetchStub;
   Object.defineProperty(window, 'fetch', {
     configurable: true,
     value: globalThis.fetch,
   });
 
-  await import('../src/app/main.ts');
+  const mainModule = await import('../src/app/main.ts');
+  await mainModule.bootstrap();
   const router = await import('../src/app/router.ts');
 
-  await sleep(50);
+  const gateAfterMain = await ensureMasterGate();
+  assert.equal(gateAfterMain.allowed, true, 'bootstrap deve liberar catálogo para master autenticado');
+
+  await sleep(150);
+  const state = await import('../src/app/state.js');
+  assert.equal(state.getRegistryEntries().length, 1, 'catálogo deve carregar manifest do AdminPanel');
 
   const queryCard = () =>
     window.document.querySelector<HTMLButtonElement>('[data-app-id="admin-panel"]');
@@ -261,6 +493,17 @@ const testShellCatalogToggle = async () => {
     globalThis.fetch = previousFetch;
   } else {
     delete (globalThis as { fetch?: typeof fetch }).fetch;
+  }
+
+  if (previousLocalStorage === undefined) {
+    delete globalAny.localStorage;
+  } else {
+    globalAny.localStorage = previousLocalStorage;
+  }
+  if (previousSessionStorage === undefined) {
+    delete globalAny.sessionStorage;
+  } else {
+    globalAny.sessionStorage = previousSessionStorage;
   }
 
   console.log('✓ Catálogo shell renderiza card do AdminPanel e toggle funciona');
@@ -507,6 +750,7 @@ const testAdminPanel = async () => {
 
 const main = async () => {
   try {
+    await testMasterAuthFlow();
     await testShellCatalogToggle();
     await testIndexedDBBackup();
     await testAutoSaveQueue();
