@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1120" />
+      <stop offset="100%" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0ea5e9" />
+      <stop offset="100%" stop-color="#6366f1" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.45" />
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)" />
+  <rect width="1200" height="630" fill="url(#glow)" />
+  <g fill="none" stroke="rgba(148, 163, 184, 0.35)" stroke-width="1">
+    <path d="M120 120h960v390H120z" opacity="0.4" />
+    <path d="M220 190h760v250H220z" opacity="0.2" />
+  </g>
+  <g transform="translate(160 190)">
+    <rect x="0" y="0" width="180" height="180" rx="48" fill="url(#accent)" />
+    <path
+      d="M48 144V52c0-6.627 5.373-12 12-12h21c4.02 0 7.71 2.311 9.45 5.994L108 76l5.55-30.006C115.29 42.311 118.98 40 123 40h21c6.627 0 12 5.373 12 12v92c0 6.627-5.373 12-12 12h-10.5c-6.627 0-12-5.373-12-12v-38l-14 34.998c-4.501 11.258-20.666 11.258-25.168 0L78 106v38c0 6.627-5.373 12-12 12H54c-6.627 0-12-5.373-12-12z"
+      fill="#f8fafc"
+    />
+  </g>
+  <text x="380" y="270" fill="#e2e8f0" font-family="'Inter', 'Segoe UI', sans-serif" font-size="56" font-weight="700" letter-spacing="0.04em">MiniApp Base</text>
+  <text x="380" y="340" fill="#94a3b8" font-family="'Inter', 'Segoe UI', sans-serif" font-size="32" letter-spacing="0.02em">PWA offline-first • Plataforma limpa</text>
+  <rect x="380" y="380" width="340" height="64" rx="32" fill="rgba(14, 165, 233, 0.18)" stroke="rgba(96, 165, 250, 0.4)" />
+  <text x="410" y="422" fill="#bae6fd" font-family="'Inter', 'Segoe UI', sans-serif" font-size="28" letter-spacing="0.08em">INSTALL READY</text>
+</svg>

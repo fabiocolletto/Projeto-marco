@@ -3,8 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0EA5E9" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- base href will be injected during deploy -->
     <title>AppBase</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" type="image/svg+xml" href="icons/apple-touch-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="icons/favicon-32.svg" />
+    <link rel="alternate icon" type="image/svg+xml" href="icons/favicon-16.svg" />
+    <meta property="og:image" content="og-image.svg" />
+    <script src="scripts/reset-factory.js" defer></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <style>
       :root {
@@ -320,6 +329,7 @@
         Catálogo unificado de MiniApps. Selecione um módulo para iniciar ou use um link direto para abrir um painel específico.
         As credenciais padrão são <strong>usuário: adm</strong> e <strong>senha: 0000</strong> (altere no primeiro acesso).
       </p>
+      <button id="factoryReset" hidden>Limpar plataforma</button>
     </header>
     <div id="error-banner" role="alert"></div>
     <div id="app-shell">
@@ -349,5 +359,64 @@
       </section>
     </div>
     <script type="module" src="./app/main.js"></script>
+    <script>
+      (function () {
+        const baseHref = (document.querySelector('base') || {}).href;
+        const derivedBase = (() => {
+          if (window.__APP_BASE_PATH__) return window.__APP_BASE_PATH__;
+          if (baseHref) {
+            const url = new URL(baseHref);
+            return url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`;
+          }
+          const parts = location.pathname.split('/');
+          parts.pop();
+          const path = parts.join('/') + '/';
+          return path === '//' ? '/' : path;
+        })();
+        window.__APP_BASE_PATH__ = derivedBase;
+
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            const normalized = derivedBase.endsWith('/') ? derivedBase.slice(0, -1) : derivedBase;
+            const swUrl = `${normalized || ''}/sw.js`;
+            navigator.serviceWorker.register(swUrl).catch(console.error);
+          });
+        }
+      })();
+    </script>
+    <script>
+      (function () {
+        const derivedBase = window.__APP_BASE_PATH__
+          || (() => {
+            const baseHref = (document.querySelector('base') || {}).href;
+            if (baseHref) {
+              const url = new URL(baseHref);
+              return url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`;
+            }
+            const parts = location.pathname.split('/');
+            parts.pop();
+            const path = parts.join('/') + '/';
+            return path === '//' ? '/' : path;
+          })();
+
+        const adminMode = new URL(location.href).searchParams.get('admin') === '1' || window.__ADMIN_MODE === true;
+        if (!adminMode) {
+          return;
+        }
+
+        const resetButton = document.getElementById('factoryReset');
+        if (!resetButton) {
+          return;
+        }
+
+        resetButton.hidden = false;
+        resetButton.addEventListener('click', () => {
+          window.__FACTORY_RESET_FORCE__ = true;
+          import(`${derivedBase}scripts/reset-factory.js`).finally(() => {
+            delete window.__FACTORY_RESET_FORCE__;
+          });
+        });
+      })();
+    </script>
   </body>
 </html>
