@@ -1,8 +1,7 @@
 {
   "id": "admin-panel",
-  "name": "AdminPanel",
+  "name": "Painel Administrativo",
   "version": "0.1.0",
-  "entry": "./index.html",
   "adminOnly": true,
   "visible": true
 }

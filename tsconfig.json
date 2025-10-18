@@ -4,7 +4,7 @@
     "outDir": "dist",
     "module": "node16",
     "target": "es2020",
-    "types": [],
+    "types": ["node"],
     "lib": ["es2020", "dom"],
     "sourceMap": true,
     "declaration": true,

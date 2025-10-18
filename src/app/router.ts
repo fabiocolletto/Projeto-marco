@@ -39,7 +39,9 @@ export function applyRouteFromLocation(): void {
   }
 
   const match = hash.match(/^#\/app\/(.+)$/);
-  setSelectedAppId(match ? decodeURIComponent(match[1]) : null);
+  const rawId = match?.[1];
+  const decodedId = typeof rawId === 'string' ? decodeURIComponent(rawId) : null;
+  setSelectedAppId(decodedId);
   routeMode = 'catalog';
   renderShell();
 }

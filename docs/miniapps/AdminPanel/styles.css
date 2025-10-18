@@ -14,6 +14,10 @@ main {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+section + section {
+  margin-top: 32px;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -34,4 +38,26 @@ tbody td {
   display: flex;
   gap: 16px;
   align-items: center;
+}
+
+#master-account {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#master-logout {
+  align-self: flex-start;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #ef4444;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#master-logout:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
