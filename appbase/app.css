@@ -231,6 +231,17 @@ input:focus-visible {
   transform: translateY(1px);
 }
 
+.ac-btn--danger {
+  background: var(--ac-color-danger);
+  border-color: color-mix(in srgb, var(--ac-color-danger) 80%, var(--ac-color-bg));
+  color: var(--ac-color-bg);
+}
+
+.ac-btn--danger:hover {
+  background: color-mix(in srgb, var(--ac-color-danger) 80%, #ffffff 10%);
+  border-color: var(--ac-color-danger);
+}
+
 .ac-btn--ghost {
   background: transparent;
   color: var(--ac-color-text);
