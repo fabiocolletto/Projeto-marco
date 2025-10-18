@@ -1,8 +1,18 @@
 import { renderCatalog } from '../registry/renderCatalog.js';
 import { getManifestCache, getRegistryEntries, getAppConfig } from './state.js';
-import { getSelectedAppId, setSelectedAppId, setRouteForSelection, clearStoredSelectedAppId } from './router.js';
+import {
+  getRouteMode,
+  getSelectedAppId,
+  setSelectedAppId,
+  setRouteForSelection,
+  clearStoredSelectedAppId,
+} from './router.js';
 import type { RegistryEntry, ManifestCacheEntry } from './types.js';
 import { scheduleStatusBarUpdate } from './statusBar.js';
+import { isMasterAuthenticated } from '../auth/session.js';
+import { renderMasterSignup } from '../widgets/MasterSignup.js';
+import { renderMasterLogin } from '../widgets/MasterLogin.js';
+import { getMaster } from '../auth/store.js';
 
 const APP_TITLE = 'AppBase';
 
@@ -68,11 +78,14 @@ const setTitle = (miniAppName?: string) => {
   }
 };
 
-const filterVisibleEntries = (entries: RegistryEntry[]): RegistryEntry[] => {
+const filterVisibleEntries = (
+  entries: RegistryEntry[],
+  showPrivate: boolean,
+): RegistryEntry[] => {
   const { publicAdmin } = getAppConfig();
   return entries.filter((entry) => {
     if (entry.visible === false) return false;
-    if (entry.adminOnly && !publicAdmin) return false;
+    if (entry.adminOnly && !publicAdmin && !showPrivate) return false;
     return true;
   });
 };
@@ -99,6 +112,32 @@ const hidePlaceholder = () => {
   attachDom();
   if (!panelPlaceholder) return;
   panelPlaceholder.hidden = true;
+};
+
+const renderCatalogLocked = (message: string) => {
+  attachDom();
+  if (!catalogContainer) return;
+  catalogContainer.innerHTML = '';
+  const option = document.createElement('option');
+  option.value = '';
+  option.textContent = message;
+  catalogContainer.append(option);
+  catalogContainer.disabled = true;
+};
+
+const mountAuthWidget = async (
+  renderer: (container: HTMLElement) => Promise<void> | void,
+): Promise<void> => {
+  attachDom();
+  resetFrame();
+  closeButton?.setAttribute('hidden', '');
+  setSelectedAppId(null);
+  if (!panelPlaceholder) return;
+  panelPlaceholder.hidden = false;
+  panelPlaceholder.innerHTML = '';
+  const host = document.createElement('div');
+  panelPlaceholder.append(host);
+  await renderer(host);
 };
 
 const applyPanelHeader = (title: string, subtitle: string) => {
@@ -164,11 +203,36 @@ export function renderShell(): void {
   attachDom();
   void scheduleStatusBarUpdate();
   const entries = getRegistryEntries();
-  const visibleEntries = filterVisibleEntries(entries);
+  const routeMode = getRouteMode();
+  const masterAuthenticated = isMasterAuthenticated();
+  const visibleEntries = filterVisibleEntries(entries, masterAuthenticated);
   const selectedId = getSelectedAppId();
 
-  if (catalogContainer) {
+  if (routeMode !== 'catalog') {
+    renderCatalogLocked('Disponível após autenticação master.');
+    clearError();
+  } else if (catalogContainer) {
+    catalogContainer.disabled = false;
     renderCatalog(catalogContainer, visibleEntries, selectedId);
+  }
+
+  if (routeMode === 'setupMaster') {
+    void (async () => {
+      applyPanelHeader('Cadastro Master', 'Crie a conta master para este dispositivo');
+      setTitle('Cadastro Master');
+      await mountAuthWidget((container) => renderMasterSignup(container, { mode: 'create' }));
+    })();
+    return;
+  }
+
+  if (routeMode === 'loginMaster') {
+    void (async () => {
+      applyPanelHeader('Login Master', 'Autentique-se para liberar o catálogo completo');
+      setTitle('Login Master');
+      const master = await getMaster();
+      await mountAuthWidget((container) => renderMasterLogin(container, { master: master ?? undefined }));
+    })();
+    return;
   }
 
   if (!selectedId) {
@@ -181,14 +245,21 @@ export function renderShell(): void {
 
     clearError();
     resetFrame();
-    const subtitle = visibleEntries.length
-      ? 'Escolha um MiniApp para abrir no painel central'
-      : 'Nenhum MiniApp disponível no catálogo';
-    applyPanelHeader('Catálogo', subtitle);
-    if (visibleEntries.length) {
-      showPlaceholder();
+    applyPanelHeader(
+      'Catálogo',
+      masterAuthenticated
+        ? 'Escolha um MiniApp para abrir no painel central'
+        : 'Autentique-se para visualizar todos os MiniApps',
+    );
+    if (masterAuthenticated) {
+      if (visibleEntries.length) {
+        showPlaceholder();
+      } else {
+        showPlaceholder('Nenhum MiniApp disponível no momento.');
+      }
     } else {
-      showPlaceholder('Nenhum MiniApp disponível no momento.');
+      renderCatalogLocked('Autentique-se para visualizar o catálogo.');
+      showPlaceholder('Faça login como master para liberar o catálogo.');
     }
     setTitle();
     closeButton?.setAttribute('hidden', '');
@@ -199,7 +270,7 @@ export function renderShell(): void {
   if (
     !entry ||
     entry.visible === false ||
-    (entry.adminOnly && !getAppConfig().publicAdmin)
+    (entry.adminOnly && !getAppConfig().publicAdmin && !masterAuthenticated)
   ) {
     setSelectedAppId(null);
     setRouteForSelection(null);

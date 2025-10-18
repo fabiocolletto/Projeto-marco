@@ -1,4 +1,6 @@
 import { openIdxDB } from '../storage/indexeddb/IdxDBStore.js';
+import { getMaster } from '../auth/store.js';
+import { isMasterAuthenticated } from '../auth/session.js';
 
 type StatusState = 'idle' | 'active' | 'warning' | 'locked' | 'error';
 
@@ -32,10 +34,23 @@ const evaluateDatabaseStatus = async (): Promise<{ label: string; state: StatusS
   }
 };
 
-const evaluateUserStatus = async (): Promise<{ label: string; state: StatusState }> => ({
-  label: 'Usuário: acesso livre',
-  state: 'active',
-});
+const evaluateUserStatus = async (): Promise<{ label: string; state: StatusState }> => {
+  try {
+    const master = await getMaster();
+    if (!master) {
+      return { label: 'Usuário: nenhum master cadastrado', state: 'locked' };
+    }
+
+    if (isMasterAuthenticated()) {
+      return { label: `Usuário: ${master.username} (master)`, state: 'active' };
+    }
+
+    return { label: `Usuário: ${master.username} (bloqueado)`, state: 'warning' };
+  } catch (error) {
+    console.error('Falha ao verificar status do usuário master', error);
+    return { label: 'Usuário: status indisponível', state: 'error' };
+  }
+};
 
 const performUpdate = async (): Promise<void> => {
   attachElements();
