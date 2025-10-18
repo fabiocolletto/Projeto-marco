@@ -1,3 +1,15 @@
 {
-  "apps": []
+  "apps": [
+    {
+      "id": "example",
+      "name": {
+        "pt-BR": "Example",
+        "en-US": "Example",
+        "es-419": "Example"
+      },
+      "icon": "/miniapps/example/icon-128.png",
+      "summary": "MiniApp gerado via scaffold",
+      "entry": "/miniapps/example/index.js"
+    }
+  ]
 }
