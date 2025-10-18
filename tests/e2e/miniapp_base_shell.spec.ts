@@ -144,7 +144,9 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('#register-feedback')).toHaveText('Ingresa un correo electrónico válido.');
     await page.fill('#register-email', 'alice@example.com');
     await page.click('#register-form .cta');
-    await expect(page.locator('#register-feedback')).toHaveText('Registro completado con éxito.');
+    await expect(page.locator('#register-feedback')).toHaveText(
+      'Solicitud de registro enviada para procesamiento.'
+    );
     await expect(page).toHaveURL(/auth\/profile\.html$/);
 
     const userManagementCard = page.locator('#user-management');

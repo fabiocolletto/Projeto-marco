@@ -141,7 +141,7 @@
   "auth.form.currentPassword": "Current password",
   "auth.form.newPassword": "New password",
   "auth.form.confirmPassword": "Confirm new password",
-  "auth.feedback.registered": "Registration completed successfully.",
+  "auth.feedback.registered": "Registration request submitted for processing.",
   "auth.feedback.loggedIn": "Signed in as {name}.",
   "auth.feedback.invalid": "Invalid credentials. Try again.",
   "auth.feedback.exists": "Email already registered.",

@@ -1,7 +1,9 @@
-const WEBHOOK_URL = 'https://hook.eu2.make.com/r5tejha9egnghosr7yi4knivxvxnb94a';
+const DISPATCH_ENDPOINT = '/api/github/dispatch';
+const DISPATCH_ACTION = 'user.register';
 const REQUEST_TIMEOUT_MS = 20_000;
-const SUCCESS_MESSAGE = 'Cadastro concluído.';
-const FAILURE_MESSAGE = 'Não foi possível concluir o cadastro. Tente novamente.';
+const SUCCESS_MESSAGE = 'Cadastro enviado para processamento.';
+const FAILURE_MESSAGE = 'Não foi possível enviar seu cadastro para processamento. Tente novamente.';
+const TIMEOUT_MESSAGE = 'Tempo limite de envio excedido. Verifique sua conexão e tente novamente.';
 
 const SELECTORS = Object.freeze({
   form: '#register-form, form[data-register-form], form[data-auth-register]',
@@ -174,6 +176,120 @@ async function sha256Hex(input) {
     .join('');
 }
 
+function isPlainObject(value) {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function extractDetailMessage(detail) {
+  if (!detail) {
+    return '';
+  }
+  if (typeof detail === 'string') {
+    return detail.trim();
+  }
+  if (Array.isArray(detail)) {
+    for (const item of detail) {
+      const message = extractDetailMessage(item);
+      if (message) {
+        return message;
+      }
+    }
+    return '';
+  }
+  if (isPlainObject(detail)) {
+    const candidates = ['message', 'detail', 'error', 'title', 'description'];
+    for (const key of candidates) {
+      if (key in detail) {
+        const message = extractDetailMessage(detail[key]);
+        if (message) {
+          return message;
+        }
+      }
+    }
+  }
+  return '';
+}
+
+async function readResponseBody(response) {
+  if (!response || typeof response.text !== 'function') {
+    return null;
+  }
+  try {
+    const text = await response.text();
+    if (!text) {
+      return null;
+    }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  } catch {
+    return null;
+  }
+}
+
+async function triggerRegisterDispatch(payload, { signal } = {}) {
+  if (typeof fetch !== 'function') {
+    throw new Error('Fetch API indisponível no ambiente atual.');
+  }
+  const response = await fetch(DISPATCH_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: DISPATCH_ACTION, payload }),
+    signal
+  });
+  const body = await readResponseBody(response);
+  if (!response.ok) {
+    const error = new Error('DISPATCH_REQUEST_FAILED');
+    error.status = response.status;
+    error.detail = body;
+    throw error;
+  }
+  return body;
+}
+
+function summarizeDispatchResult(result) {
+  if (!isPlainObject(result)) {
+    return null;
+  }
+  const summary = {};
+  const status =
+    typeof result.status === 'string'
+      ? result.status
+      : typeof result.state === 'string'
+      ? result.state
+      : '';
+  if (status) {
+    summary.status = status;
+  }
+  const runId =
+    typeof result.runId === 'string'
+      ? result.runId
+      : typeof result.runId === 'number'
+      ? String(result.runId)
+      : typeof result.workflow_run_id === 'number'
+      ? String(result.workflow_run_id)
+      : typeof result.workflow_run_id === 'string'
+      ? result.workflow_run_id
+      : typeof result.dispatchId === 'string'
+      ? result.dispatchId
+      : typeof result.id === 'string'
+      ? result.id
+      : null;
+  if (runId) {
+    summary.runId = runId;
+  }
+  const message = extractDetailMessage(result);
+  if (message) {
+    summary.message = message;
+  }
+  if (!Object.keys(summary).length) {
+    return null;
+  }
+  return summary;
+}
+
 function setButtonState(button, state) {
   if (!button) return;
   if (!button.dataset.originalLabel) {
@@ -225,30 +341,6 @@ function extractServerUserId(data) {
     }
   }
   return null;
-}
-
-async function resolveServerUserId(response) {
-  const contentType = response.headers.get('content-type') || '';
-  if (contentType.includes('application/json')) {
-    try {
-      const json = await response.json();
-      return extractServerUserId(json);
-    } catch {
-      return null;
-    }
-  }
-  try {
-    const text = await response.text();
-    if (!text) return null;
-    try {
-      const parsed = JSON.parse(text);
-      return extractServerUserId(parsed);
-    } catch {
-      return extractServerUserId(text);
-    }
-  } catch {
-    return null;
-  }
 }
 
 function persistUser(data) {
@@ -477,23 +569,14 @@ export function initRegisterForm() {
 
       const controller = new AbortController();
       const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-      let response;
+      let dispatchResponse;
       try {
-        response = await fetch(WEBHOOK_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: controller.signal
-        });
+        dispatchResponse = await triggerRegisterDispatch(payload, { signal: controller.signal });
       } finally {
         window.clearTimeout(timeoutId);
       }
 
-      if (!response || !response.ok || response.status !== 200) {
-        throw new Error('HTTP_ERROR');
-      }
-
-      const serverUserId = await resolveServerUserId(response);
+      const serverUserId = extractServerUserId(dispatchResponse);
       if (serverUserId && serverUserId !== userId) {
         userId = serverUserId;
       }
@@ -504,6 +587,8 @@ export function initRegisterForm() {
 
       const credentialPassword = password;
       password = '';
+
+      const dispatchSummary = summarizeDispatchResult(dispatchResponse);
 
       persistUser({
         user_id: userId,
@@ -526,10 +611,19 @@ export function initRegisterForm() {
         },
         termsAccepted: Boolean(termsAccepted),
         phoneRegion,
-        timestamp
+        timestamp,
+        dispatch: {
+          endpoint: DISPATCH_ENDPOINT,
+          action: DISPATCH_ACTION
+        }
       };
 
-      setFeedback(feedbackElement, SUCCESS_MESSAGE, 'success');
+      if (dispatchSummary) {
+        registrationDetail.dispatch.summary = dispatchSummary;
+      }
+
+      const successFeedbackMessage = extractDetailMessage(dispatchResponse) || SUCCESS_MESSAGE;
+      setFeedback(feedbackElement, successFeedbackMessage, 'success');
       if (form) {
         form.dispatchEvent(
           new CustomEvent('register:completed', {
@@ -555,10 +649,13 @@ export function initRegisterForm() {
     } catch (error) {
       submitting = false;
       setButtonState(submitButton, 'error');
-      setFeedback(feedbackElement, FAILURE_MESSAGE, 'error');
       if (error?.name === 'AbortError') {
+        setFeedback(feedbackElement, TIMEOUT_MESSAGE, 'error');
         return;
       }
+      const detailMessage =
+        extractDetailMessage(error?.detail) || extractDetailMessage(error?.message) || FAILURE_MESSAGE;
+      setFeedback(feedbackElement, detailMessage || FAILURE_MESSAGE, 'error');
     }
   });
 }

@@ -25,6 +25,7 @@ The dispatcher calls `.github/workflows/reusable-post-make.yml`, which signs the
   Approvers will receive a notification to unblock the `prod` environment. Use `gh run watch` to stream the logs after approval.
 
 ## Example payloads
+- `user.register`: payload enviado pelo cliente via `/api/github/dispatch`, consulte `shared/js/auth/register.js` para o formato completo.
 - `send_otp`: `{ "phone": "+5511987654321", "channel": "sms" }`
 - `sync_catalog`: `{ "force": true }`
 - `noop`: `{}` (relies on Make defaults)

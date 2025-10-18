@@ -13,3 +13,6 @@
 
 ## 2025-10-18
 - Adicionadas helpers `formatBrazilPhoneDigits` e `applyPhoneMask` em `auth/register.js` para reutilizar a máscara de telefone brasileiro nos formulários de cadastro.
+
+## 2025-10-31
+- `auth/register.js` passa a enviar o payload de cadastro via `/api/github/dispatch` (ação `user.register`) e atualizar as mensagens de feedback para refletir o processamento assíncrono do workflow.
