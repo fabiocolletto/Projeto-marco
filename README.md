@@ -34,3 +34,7 @@ Caso algum passo falhe, ajuste o ambiente de acordo com a mensagem de erro e rep
 - Utilize módulos ES (`type="module"`) para novos scripts.
 - Prefira imports relativos locais e utilize os CDNs somente como fallback.
 - Documente decisões relevantes no arquivo de log da pasta correspondente.
+
+## Documentação adicional
+- [SECURITY.md](SECURITY.md): práticas para proteger os segredos de produção, aprovações de ambiente e cabeçalhos exigidos pelo webhook.
+- [OPERATIONS.md](OPERATIONS.md): guia operacional para disparar o workflow `dispatch-post-make.yml`, exemplos de payload, testes e troubleshooting.
