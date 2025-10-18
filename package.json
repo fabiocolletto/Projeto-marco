@@ -5,11 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node tools/serve-miniapp.mjs",
-    "test": "playwright test",
-    "audit:repo": "node tools/maintenance/audit.mjs",
-    "archive:apply": "node tools/maintenance/archive.mjs --apply",
-    "archive:restore": "node tools/maintenance/restore.mjs",
-    "lfs:scan": "node tools/maintenance/lfs-scan.mjs"
+    "test": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.42.0"
