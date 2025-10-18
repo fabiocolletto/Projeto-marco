@@ -1,14 +1,18 @@
 import type { AppConfig, RegistryEntry } from './types.js';
 import { setAppConfig, setRegistryEntries } from './state.js';
-import { applyRouteFromLocation, getSelectedAppId, setSelectedAppId, setRouteForSelection } from './router.js';
+import { applyRouteFromLocation, getSelectedAppId, setSelectedAppId, setRouteForSelection, getStoredSelectedAppId } from './router.js';
 import { renderShell } from './renderShell.js';
 import { wireCatalog } from '../registry/wireCatalog.js';
 import { ensureMasterGate } from '../auth/gate.js';
 import { initStatusBar, scheduleStatusBarUpdate } from './statusBar.js';
 
 let catalogContainer: HTMLSelectElement | null = null;
+let panelSubtitle: HTMLSpanElement | null = null;
 let disposeCatalogListener: (() => void) | null = null;
 let detachGlobalListeners: (() => void) | null = null;
+let previousSubtitle: string | null = null;
+
+const LOADING_SUBTITLE = 'Carregando catálogo…';
 
 const normalizeId = (value: string): string => value.trim().toLowerCase();
 
@@ -51,6 +55,58 @@ const ensureCatalogWired = (): HTMLSelectElement | null => {
     disposeCatalogListener = nextContainer ? wireCatalog(nextContainer) : null;
   }
   return catalogContainer;
+};
+
+const ensurePanelSubtitle = (): HTMLSpanElement | null => {
+  if (!panelSubtitle) {
+    panelSubtitle = document.querySelector<HTMLSpanElement>('#panel-subtitle');
+  }
+  return panelSubtitle;
+};
+
+const setCatalogLoadingState = (loading: boolean): void => {
+  const catalog = ensureCatalogWired();
+  if (catalog) {
+    catalog.disabled = loading;
+  }
+
+  const subtitleElement = ensurePanelSubtitle();
+  if (!subtitleElement) return;
+
+  if (loading) {
+    if (previousSubtitle === null) {
+      previousSubtitle = subtitleElement.textContent ?? '';
+    }
+    subtitleElement.textContent = LOADING_SUBTITLE;
+  } else if (previousSubtitle !== null) {
+    subtitleElement.textContent = previousSubtitle;
+    previousSubtitle = null;
+  }
+};
+
+const isEntryVisible = (entry: RegistryEntry, config: AppConfig): boolean => {
+  if (entry.visible === false) return false;
+  if (entry.adminOnly && !config.publicAdmin) return false;
+  return true;
+};
+
+const restoreLastSelection = (entries: RegistryEntry[], config: AppConfig): void => {
+  if (typeof window === 'undefined') return;
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('open')) return;
+
+  const hash = window.location.hash || '#/';
+  if (hash && hash !== '#/' && hash !== '#') return;
+
+  const storedId = getStoredSelectedAppId();
+  if (!storedId) return;
+
+  const candidate = entries.find((item) => item.id === storedId);
+  if (!candidate || !isEntryVisible(candidate, config)) return;
+
+  setSelectedAppId(candidate.id);
+  setRouteForSelection(candidate.id);
 };
 
 const handleEscape = (event: KeyboardEvent): void => {
@@ -126,9 +182,11 @@ export async function bootstrap(): Promise<void> {
 
   await ensureMasterGate();
 
+  setCatalogLoadingState(true);
   try {
     const registry = await fetchRegistry();
     setRegistryEntries(registry);
+    restoreLastSelection(registry, config);
     renderShell();
     normalizeQuery(registry);
     applyRouteFromLocation();
@@ -138,6 +196,8 @@ export async function bootstrap(): Promise<void> {
     clearError();
     renderShell();
     showError('Não foi possível carregar o catálogo de MiniApps. Verifique a configuração.');
+  } finally {
+    setCatalogLoadingState(false);
   }
 }
 
