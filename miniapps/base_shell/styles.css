@@ -292,6 +292,24 @@ html[data-embed-mode='panel'] .layout {
   overflow: visible;
 }
 
+html[data-embed-mode='panel'] .auth-login__actions {
+  display: none;
+}
+
+html[data-embed-mode='panel'] .auth-login__content {
+  padding: 0;
+}
+
+html[data-embed-mode='panel'] .auth-login__card {
+  box-shadow: none;
+  border: none;
+  padding: 0;
+}
+
+html[data-embed-mode='panel'] .auth-login__card-footer {
+  display: none;
+}
+
 .app-header {
   display: flex;
   align-items: center;
@@ -838,6 +856,16 @@ button:focus-visible,
   gap: clamp(1.5rem, 3vw, 2.5rem);
   justify-items: stretch;
   align-content: start;
+}
+
+#panel[data-panel-mode='register'] .panel-content {
+  gap: clamp(1rem, 2.5vw, 1.75rem);
+}
+
+#panel[data-panel-mode='register'] .stage-fallback,
+#panel[data-panel-mode='register'] .cta-group,
+#panel[data-panel-mode='register'] [data-onboarding] {
+  display: none;
 }
 
 .stage-fallback {
