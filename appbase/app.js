@@ -193,6 +193,7 @@ const overlay = document.getElementById('login-overlay');
 const dialog = overlay?.querySelector('.ac-dialog');
 const closeControls = overlay ? Array.from(overlay.querySelectorAll('.js-close')) : [];
 const openLoginButton = document.querySelector('.js-open-login');
+const resetAppButton = document.querySelector('.js-reset-app');
 let lastFocus = null;
 
 function openOverlay() {
@@ -241,6 +242,82 @@ if (dialog) {
     if (event.key === 'Escape') {
       event.stopPropagation();
     }
+  });
+}
+
+async function clearIndexedDbDatabases() {
+  if (!('indexedDB' in window)) return;
+
+  const deleteDatabase = (name) =>
+    new Promise((resolve) => {
+      const request = window.indexedDB.deleteDatabase(name);
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+      request.onblocked = () => resolve();
+    });
+
+  if (typeof window.indexedDB.databases === 'function') {
+    try {
+      const databases = await window.indexedDB.databases();
+      const deletions = databases
+        .map((database) => database?.name)
+        .filter(Boolean)
+        .map((name) => deleteDatabase(name));
+      await Promise.all(deletions);
+    } catch (error) {
+      console.warn('[Reset] Não foi possível listar bancos IndexedDB', error);
+    }
+  }
+}
+
+async function clearCachesStorage() {
+  if (!('caches' in window)) return;
+  try {
+    const keys = await window.caches.keys();
+    await Promise.all(keys.map((key) => window.caches.delete(key)));
+  } catch (error) {
+    console.warn('[Reset] Não foi possível limpar Cache Storage', error);
+  }
+}
+
+async function resetStoredData() {
+  try {
+    window.localStorage?.clear?.();
+  } catch (error) {
+    console.warn('[Reset] Não foi possível limpar o localStorage', error);
+  }
+
+  try {
+    window.sessionStorage?.clear?.();
+  } catch (error) {
+    console.warn('[Reset] Não foi possível limpar o sessionStorage', error);
+  }
+
+  await Promise.all([clearIndexedDbDatabases(), clearCachesStorage()]);
+
+  MarcoBus.emit('app:reset:data');
+}
+
+if (resetAppButton) {
+  const originalLabel = resetAppButton.textContent.trim();
+
+  resetAppButton.addEventListener('click', async () => {
+    const confirmed = window.confirm(
+      'Tem certeza de que deseja limpar todos os dados salvos e restaurar o aplicativo?'
+    );
+    if (!confirmed) return;
+
+    resetAppButton.disabled = true;
+    resetAppButton.textContent = 'Resetando…';
+
+    await resetStoredData();
+
+    resetAppButton.disabled = false;
+    resetAppButton.textContent = originalLabel;
+
+    alert('Os dados locais foram limpos. O aplicativo será recarregado.');
+    MarcoBus.emit('app:reset:complete');
+    window.location.reload();
   });
 }
 
