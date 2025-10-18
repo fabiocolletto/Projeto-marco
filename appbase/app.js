@@ -84,7 +84,7 @@ function updateKpi(service, isActive) {
     delete tile.dataset.state;
     stateEl.textContent = 'Desativado';
     dateEl.textContent = '—';
-    dateEl.removeAttribute('dateTime');
+    dateEl.removeAttribute('datetime');
   }
 }
 
