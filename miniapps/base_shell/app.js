@@ -241,13 +241,13 @@ export function evaluatePasswordStrength(password) {
 }
 
 async function bootstrap() {
+  initTheme(getTheme().mode);
   await loadDictionaries();
   const initialLang = initI18n('pt-BR');
   document.documentElement.lang = initialLang;
   revisionInfo = await loadRevisionInfo();
   updateRevisionMetadata();
   applyTranslations();
-  initTheme(getTheme().mode);
   setupLanguageToggle();
   updateLanguageToggle();
   setupThemeToggle();
