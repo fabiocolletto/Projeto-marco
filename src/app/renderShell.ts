@@ -1,30 +1,63 @@
 import { renderCatalog } from '../registry/renderCatalog.js';
 import { getManifestCache, getRegistryEntries, getAppConfig } from './state.js';
-import { getSelectedAppId, setSelectedAppId, setRouteForSelection } from './router.js';
+import { getRouteMode, getSelectedAppId, setSelectedAppId, setRouteForSelection } from './router.js';
 import type { RegistryEntry, ManifestCacheEntry } from './types.js';
+import { isMasterAuthenticated } from '../auth/session.js';
+import { renderMasterSignup } from '../widgets/MasterSignup.js';
+import { renderMasterLogin } from '../widgets/MasterLogin.js';
+import { getMaster } from '../auth/store.js';
 
 const APP_TITLE = 'AppBase';
-const catalogContainer = document.querySelector<HTMLElement>('#catalog-cards');
-const errorBanner = document.querySelector<HTMLDivElement>('#error-banner');
-const panelTitle = document.querySelector<HTMLHeadingElement>('#panel-title');
-const panelSubtitle = document.querySelector<HTMLSpanElement>('#panel-subtitle');
-const panelPlaceholder = document.querySelector<HTMLDivElement>('#panel-placeholder');
-const frame = document.querySelector<HTMLIFrameElement>('#miniapp-frame');
-const closeButton = document.querySelector<HTMLButtonElement>('#panel-close');
-const placeholderDefault = panelPlaceholder?.innerHTML ?? '';
 
-closeButton?.addEventListener('click', () => {
+let catalogContainer: HTMLElement | null = null;
+let errorBanner: HTMLDivElement | null = null;
+let panelTitle: HTMLHeadingElement | null = null;
+let panelSubtitle: HTMLSpanElement | null = null;
+let panelPlaceholder: HTMLDivElement | null = null;
+let frame: HTMLIFrameElement | null = null;
+let closeButton: HTMLButtonElement | null = null;
+let placeholderDefault = '';
+
+const onCloseButtonClick = () => {
   setSelectedAppId(null);
   setRouteForSelection(null);
-});
+};
+
+const attachDom = (): void => {
+  const nextCatalog = document.querySelector<HTMLElement>('#catalog-cards');
+  if (nextCatalog !== catalogContainer) {
+    catalogContainer = nextCatalog;
+  }
+
+  errorBanner = document.querySelector<HTMLDivElement>('#error-banner');
+  panelTitle = document.querySelector<HTMLHeadingElement>('#panel-title');
+  panelSubtitle = document.querySelector<HTMLSpanElement>('#panel-subtitle');
+
+  const nextPlaceholder = document.querySelector<HTMLDivElement>('#panel-placeholder');
+  if (nextPlaceholder !== panelPlaceholder) {
+    panelPlaceholder = nextPlaceholder;
+    placeholderDefault = panelPlaceholder?.innerHTML ?? '';
+  }
+
+  frame = document.querySelector<HTMLIFrameElement>('#miniapp-frame');
+
+  const nextCloseButton = document.querySelector<HTMLButtonElement>('#panel-close');
+  if (closeButton && closeButton !== nextCloseButton) {
+    closeButton.removeEventListener('click', onCloseButtonClick);
+  }
+  closeButton = nextCloseButton;
+  closeButton?.addEventListener('click', onCloseButtonClick);
+};
 
 const showError = (message: string) => {
+  attachDom();
   if (!errorBanner) return;
   errorBanner.textContent = message;
   errorBanner.dataset.visible = 'true';
 };
 
 const clearError = () => {
+  attachDom();
   if (!errorBanner) return;
   errorBanner.textContent = '';
   delete errorBanner.dataset.visible;
@@ -38,22 +71,24 @@ const setTitle = (miniAppName?: string) => {
   }
 };
 
-const filterVisibleEntries = (entries: RegistryEntry[]): RegistryEntry[] => {
+const filterVisibleEntries = (entries: RegistryEntry[], showPrivate: boolean): RegistryEntry[] => {
   const { publicAdmin } = getAppConfig();
   return entries.filter((entry) => {
     if (entry.visible === false) return false;
-    if (entry.adminOnly && !publicAdmin) return false;
+    if (entry.adminOnly && !publicAdmin && !showPrivate) return false;
     return true;
   });
 };
 
 const resetFrame = () => {
+  attachDom();
   if (!frame) return;
   frame.hidden = true;
   frame.src = 'about:blank';
 };
 
 const showPlaceholder = (message?: string) => {
+  attachDom();
   if (!panelPlaceholder) return;
   panelPlaceholder.hidden = false;
   if (message) {
@@ -64,11 +99,38 @@ const showPlaceholder = (message?: string) => {
 };
 
 const hidePlaceholder = () => {
+  attachDom();
   if (!panelPlaceholder) return;
   panelPlaceholder.hidden = true;
 };
 
+const renderCatalogLocked = (message: string) => {
+  attachDom();
+  if (!catalogContainer) return;
+  catalogContainer.innerHTML = '';
+  const info = document.createElement('p');
+  info.textContent = message;
+  info.setAttribute('role', 'note');
+  catalogContainer.append(info);
+};
+
+const mountAuthWidget = async (
+  renderer: (container: HTMLElement) => void | Promise<void>,
+): Promise<void> => {
+  attachDom();
+  resetFrame();
+  closeButton?.setAttribute('hidden', '');
+  setSelectedAppId(null);
+  if (!panelPlaceholder) return;
+  panelPlaceholder.hidden = false;
+  panelPlaceholder.innerHTML = '';
+  const host = document.createElement('div');
+  panelPlaceholder.append(host);
+  await renderer(host);
+};
+
 const applyPanelHeader = (title: string, subtitle: string) => {
+  attachDom();
   if (panelTitle) panelTitle.textContent = title;
   if (panelSubtitle) panelSubtitle.textContent = subtitle;
 };
@@ -96,6 +158,7 @@ const resolveManifest = async (entry: RegistryEntry): Promise<ManifestCacheEntry
 };
 
 const renderMiniAppByEntry = async (entry: RegistryEntry): Promise<void> => {
+  attachDom();
   try {
     clearError();
     applyPanelHeader(entry.name, 'Carregando…');
@@ -126,26 +189,64 @@ const renderMiniAppByEntry = async (entry: RegistryEntry): Promise<void> => {
 };
 
 export function renderShell(): void {
+  attachDom();
   const entries = getRegistryEntries();
-  const visibleEntries = filterVisibleEntries(entries);
+  const routeMode = getRouteMode();
+  const masterAuthenticated = isMasterAuthenticated();
+  const visibleEntries = filterVisibleEntries(entries, masterAuthenticated);
   const selectedId = getSelectedAppId();
 
-  if (catalogContainer) {
+  if (routeMode !== 'catalog') {
+    renderCatalogLocked('Disponível após autenticação master.');
+    clearError();
+  } else if (catalogContainer) {
     renderCatalog(catalogContainer, visibleEntries, selectedId);
+  }
+
+  if (routeMode === 'setupMaster') {
+    void (async () => {
+      applyPanelHeader('Cadastro Master', 'Crie a conta master para este dispositivo');
+      setTitle('Cadastro Master');
+      await mountAuthWidget((container) => {
+        renderMasterSignup(container, { mode: 'create' });
+      });
+    })();
+    return;
+  }
+
+  if (routeMode === 'loginMaster') {
+    void (async () => {
+      applyPanelHeader('Login Master', 'Autentique-se para liberar o catálogo completo');
+      setTitle('Login Master');
+      const master = await getMaster();
+      await mountAuthWidget((container) => renderMasterLogin(container, { master }));
+    })();
+    return;
   }
 
   if (!selectedId) {
     clearError();
     resetFrame();
-    applyPanelHeader('Catálogo', 'Escolha um MiniApp para abrir no painel central');
-    showPlaceholder();
+    applyPanelHeader('Catálogo', masterAuthenticated
+      ? 'Escolha um MiniApp para abrir no painel central'
+      : 'Autentique-se para visualizar todos os MiniApps');
+    if (masterAuthenticated) {
+      showPlaceholder();
+    } else {
+      renderCatalogLocked('Autentique-se para visualizar o catálogo.');
+      showPlaceholder('Faça login como master para liberar o catálogo.');
+    }
     setTitle();
     closeButton?.setAttribute('hidden', '');
     return;
   }
 
   const entry = entries.find((item) => item.id === selectedId);
-  if (!entry || entry.visible === false || (entry.adminOnly && !getAppConfig().publicAdmin)) {
+  if (
+    !entry ||
+    entry.visible === false ||
+    (entry.adminOnly && !getAppConfig().publicAdmin && !masterAuthenticated)
+  ) {
     setSelectedAppId(null);
     setRouteForSelection(null);
     showError('MiniApp não disponível.');

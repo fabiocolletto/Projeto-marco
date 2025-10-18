@@ -3,9 +3,11 @@ import { setAppConfig, setRegistryEntries } from './state.js';
 import { applyRouteFromLocation, getSelectedAppId, setSelectedAppId, setRouteForSelection } from './router.js';
 import { renderShell } from './renderShell.js';
 import { wireCatalog } from '../registry/wireCatalog.js';
+import { ensureMasterGate } from '../auth/gate.js';
 
-const catalogContainer = document.querySelector<HTMLElement>('#catalog-cards');
-const errorBanner = document.querySelector<HTMLDivElement>('#error-banner');
+let catalogContainer: HTMLElement | null = null;
+let disposeCatalogListener: (() => void) | null = null;
+let detachGlobalListeners: (() => void) | null = null;
 
 const normalizeId = (value: string): string => value.trim().toLowerCase();
 
@@ -27,16 +29,54 @@ const parseConfig = (): AppConfig => {
 };
 
 const showError = (message: string) => {
-  if (!errorBanner) return;
-  errorBanner.textContent = message;
-  errorBanner.dataset.visible = 'true';
+  const banner = document.querySelector<HTMLDivElement>('#error-banner');
+  if (!banner) return;
+  banner.textContent = message;
+  banner.dataset.visible = 'true';
 };
 
 const clearError = () => {
-  if (!errorBanner) return;
-  errorBanner.textContent = '';
-  delete errorBanner.dataset.visible;
+  const banner = document.querySelector<HTMLDivElement>('#error-banner');
+  if (!banner) return;
+  banner.textContent = '';
+  delete banner.dataset.visible;
 };
+
+const ensureCatalogWired = (): HTMLElement | null => {
+  const nextContainer = document.querySelector<HTMLElement>('#catalog-cards');
+  if (nextContainer !== catalogContainer) {
+    disposeCatalogListener?.();
+    catalogContainer = nextContainer;
+    disposeCatalogListener = nextContainer ? wireCatalog(nextContainer) : null;
+  }
+  return catalogContainer;
+};
+
+const handleEscape = (event: KeyboardEvent): void => {
+  if (event.key === 'Escape' && getSelectedAppId()) {
+    setSelectedAppId(null);
+    setRouteForSelection(null);
+  }
+};
+
+function attachGlobalListeners(): void {
+  detachGlobalListeners?.();
+  if (typeof window === 'undefined') {
+    detachGlobalListeners = null;
+    return;
+  }
+
+  const activeWindow = window;
+  const handleMasterAuthChanged = () => {
+    void bootstrap();
+  };
+  activeWindow.addEventListener('keydown', handleEscape);
+  activeWindow.addEventListener('appbase:master-auth-changed', handleMasterAuthChanged as EventListener);
+  detachGlobalListeners = () => {
+    activeWindow.removeEventListener('keydown', handleEscape);
+    activeWindow.removeEventListener('appbase:master-auth-changed', handleMasterAuthChanged as EventListener);
+  };
+}
 
 const fetchRegistry = async (): Promise<RegistryEntry[]> => {
   const response = await fetch('./miniapps/registry.json', { cache: 'no-cache' });
@@ -75,20 +115,16 @@ const normalizeQuery = (entries: RegistryEntry[]) => {
   history.replaceState(null, '', nextUrl.toString());
 };
 
-if (catalogContainer) {
-  wireCatalog(catalogContainer);
-}
-
-window.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && getSelectedAppId()) {
-    setSelectedAppId(null);
-    setRouteForSelection(null);
-  }
-});
-
-const bootstrap = async () => {
+export async function bootstrap(): Promise<void> {
+  ensureCatalogWired();
+  attachGlobalListeners();
   const config = parseConfig();
   setAppConfig(config);
+
+  const gate = await ensureMasterGate();
+  if (!gate.allowed) {
+    return;
+  }
 
   try {
     const registry = await fetchRegistry();
@@ -102,6 +138,6 @@ const bootstrap = async () => {
     renderShell();
     showError('Não foi possível carregar o catálogo de MiniApps. Verifique a configuração.');
   }
-};
+}
 
 void bootstrap();

@@ -16,8 +16,48 @@ const loadIdxDbModule = async () => {
   }
 };
 
+const loadMasterWidgetModule = async () => {
+  try {
+    return await import('../../widgets/MasterSignup.js');
+  } catch (error) {
+    console.warn('Falling back to source master widget module', error);
+    return import('../../src/widgets/MasterSignup.js');
+  }
+};
+
+const loadMasterStoreModule = async () => {
+  try {
+    return await import('../../auth/store.js');
+  } catch (error) {
+    console.warn('Falling back to source master store module', error);
+    return import('../../src/auth/store.js');
+  }
+};
+
+const loadMasterSessionModule = async () => {
+  try {
+    return await import('../../auth/session.js');
+  } catch (error) {
+    console.warn('Falling back to source master session module', error);
+    return import('../../src/auth/session.js');
+  }
+};
+
+const loadMasterCryptoModule = async () => {
+  try {
+    return await import('../../auth/crypto.js');
+  } catch (error) {
+    console.warn('Falling back to source master crypto module', error);
+    return import('../../src/auth/crypto.js');
+  }
+};
+
 const { exportBackup, importBackup } = await loadBackupModule();
 const { openIdxDB } = await loadIdxDbModule();
+const { renderMasterSignup } = await loadMasterWidgetModule();
+const { getMaster } = await loadMasterStoreModule();
+const { clearMasterAuthentication } = await loadMasterSessionModule();
+const { sha256 } = await loadMasterCryptoModule();
 
 const isArray = (value) => Array.isArray(value);
 
@@ -41,6 +81,8 @@ const preferencesRoot = document.getElementById('preferences');
 const telemetryTable = document.getElementById('telemetry-table');
 const exportButton = document.getElementById('export-backup');
 const importInput = document.getElementById('import-backup');
+const masterAccountRoot = document.getElementById('master-account');
+const masterLogoutButton = document.getElementById('master-logout');
 
 const formatBoolean = (value) => (value ? 'Sim' : 'Não');
 
@@ -81,6 +123,28 @@ const renderTelemetry = (events) => {
   }
 };
 
+const renderMasterAccount = async () => {
+  if (!masterAccountRoot) return;
+  const master = await getMaster();
+  if (!master) {
+    masterAccountRoot.innerHTML = '<p>Nenhum usuário master cadastrado.</p>';
+    masterLogoutButton?.setAttribute('disabled', '');
+    return;
+  }
+
+  masterLogoutButton?.removeAttribute('disabled');
+  const defaultHash = await sha256(`${master.deviceId}:0000`);
+  renderMasterSignup(masterAccountRoot, {
+    master,
+    mode: 'edit',
+    deviceIdBadge: master.deviceId,
+    requirePasswordChange: master.passHash === defaultHash,
+    onCompleted: async () => {
+      await renderMasterAccount();
+    },
+  });
+};
+
 const refresh = async () => {
   const db = await openIdxDB();
   try {
@@ -94,6 +158,12 @@ const refresh = async () => {
     await db.close();
   }
 };
+
+masterLogoutButton?.addEventListener('click', () => {
+  clearMasterAuthentication();
+  window.location.hash = '#/login/master';
+  window.dispatchEvent(new window.Event('hashchange'));
+});
 
 const triggerDownload = (fileName, content) => {
   const blob = new Blob([content], { type: 'application/json' });
@@ -135,6 +205,11 @@ importInput?.addEventListener('change', async (event) => {
   } finally {
     event.target.value = '';
   }
+});
+
+await renderMasterAccount();
+window.addEventListener('appbase:master-auth-changed', () => {
+  void renderMasterAccount();
 });
 
 refresh();
