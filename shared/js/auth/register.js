@@ -20,6 +20,99 @@ const SELECTORS = Object.freeze({
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_E164_REGEX = /^\+[1-9]\d{7,14}$/;
 
+export function formatBrazilPhoneDigits(input) {
+  const digits = String(input || '')
+    .replace(/\D+/g, '')
+    .slice(0, 11);
+  if (!digits) {
+    return '';
+  }
+  if (digits.length <= 2) {
+    return `(${digits}`;
+  }
+  const areaCode = digits.slice(0, 2);
+  const subscriber = digits.slice(2);
+  let formatted = `(${areaCode})`;
+  if (!subscriber) {
+    return formatted;
+  }
+  formatted += ' ';
+  if (subscriber.length <= 4) {
+    formatted += subscriber;
+    return formatted;
+  }
+  if (subscriber.length <= 8) {
+    const prefix = subscriber.slice(0, subscriber.length - 4);
+    const suffix = subscriber.slice(-4);
+    formatted += `${prefix}-${suffix}`;
+    return formatted;
+  }
+  const prefix = subscriber.slice(0, 5);
+  const suffix = subscriber.slice(5, 9);
+  formatted += `${prefix}-${suffix}`;
+  return formatted;
+}
+
+export function applyPhoneMask(input, { digits: digitsOverride, updateInput = true } = {}) {
+  if (!input) {
+    return { masked: '', raw: '', e164: '' };
+  }
+  const source = (() => {
+    if (digitsOverride != null) {
+      return String(digitsOverride);
+    }
+    const valueFromInput = String(input.value || '');
+    if (valueFromInput) {
+      return valueFromInput;
+    }
+    if (input.dataset.rawValue != null) {
+      return String(input.dataset.rawValue);
+    }
+    return '';
+  })();
+  const digits = source.replace(/\D+/g, '').slice(0, 11);
+  const masked = formatBrazilPhoneDigits(digits);
+  if (updateInput) {
+    input.value = masked;
+    if (digits) {
+      input.dataset.rawValue = digits;
+    } else {
+      delete input.dataset.rawValue;
+    }
+  }
+  const e164 = digits.length >= 10 ? `+55${digits}` : '';
+  return { masked, raw: digits, e164 };
+}
+
+function normalizeInternationalInput(value, { ensurePlus = false } = {}) {
+  const raw = String(value || '').trim();
+  if (!raw) {
+    return '';
+  }
+  const filtered = raw.replace(/[^0-9+]/g, '');
+  let digits = '';
+  let hasPlus = false;
+  for (const char of filtered) {
+    if (char === '+') {
+      if (!hasPlus) {
+        hasPlus = true;
+      }
+      continue;
+    }
+    if (digits.length >= 15) {
+      continue;
+    }
+    digits += char;
+  }
+  if (!digits) {
+    return hasPlus && !ensurePlus ? '+' : '';
+  }
+  if (hasPlus || ensurePlus) {
+    return `+${digits}`;
+  }
+  return digits;
+}
+
 let hasInitialized = false;
 
 function getFieldErrorElement(field) {
@@ -197,9 +290,59 @@ export function initRegisterForm() {
   const emailField = form.querySelector(SELECTORS.email);
   const passwordField = form.querySelector(SELECTORS.password);
   const phoneField = form.querySelector(SELECTORS.phone);
+  const phoneRegionField = form.querySelector('[data-phone-region]');
+  const phoneHint = form.querySelector('[data-phone-field] .form-hint');
   const termsField = form.querySelector(SELECTORS.terms);
   const submitButton = form.querySelector(SELECTORS.button);
   const feedbackElement = document.querySelector(SELECTORS.feedback);
+
+  const updatePhonePlaceholder = region => {
+    if (!phoneField) return;
+    phoneField.placeholder = region === 'INTL' ? '+447700900123' : '(11) 98888-7777';
+  };
+
+  const syncPhoneHintRegion = region => {
+    if (!phoneHint) return;
+    phoneHint.dataset.phoneRegion = region;
+  };
+
+  const getPhoneRegion = () => {
+    const rawValue = phoneRegionField ? String(phoneRegionField.value || '').trim().toUpperCase() : '';
+    return rawValue === 'INTL' ? 'INTL' : 'BR';
+  };
+
+  const enableBrazilPhoneMask = digits => {
+    if (!phoneField) return;
+    applyPhoneMask(phoneField, { digits });
+    updatePhonePlaceholder('BR');
+    syncPhoneHintRegion('BR');
+  };
+
+  const enableInternationalPhoneInput = ({ ensurePlus = false } = {}) => {
+    if (!phoneField) return;
+    const { raw, e164 } = applyPhoneMask(phoneField, { updateInput: false });
+    let nextValue = phoneField.value;
+    if (raw) {
+      const masked = formatBrazilPhoneDigits(raw);
+      if (!nextValue || nextValue === masked) {
+        nextValue = e164;
+      }
+    }
+    const normalized = normalizeInternationalInput(nextValue, { ensurePlus });
+    phoneField.value = normalized;
+    delete phoneField.dataset.rawValue;
+    updatePhonePlaceholder('INTL');
+    syncPhoneHintRegion('INTL');
+  };
+
+  const syncPhoneInputOnRegionChange = ({ ensurePlus = false } = {}) => {
+    const region = getPhoneRegion();
+    if (region === 'BR') {
+      enableBrazilPhoneMask();
+    } else {
+      enableInternationalPhoneInput({ ensurePlus });
+    }
+  };
 
   const clearFieldErrors = () => {
     [fullNameField, emailField, passwordField, phoneField, termsField].forEach(clearFieldError);
@@ -227,6 +370,24 @@ export function initRegisterForm() {
     termsField.addEventListener('input', clearTermsError);
   }
 
+  if (phoneField) {
+    phoneField.addEventListener('input', () => {
+      syncPhoneInputOnRegionChange();
+    });
+    phoneField.addEventListener('blur', () => {
+      syncPhoneInputOnRegionChange({ ensurePlus: true });
+    });
+  }
+
+  if (phoneRegionField) {
+    phoneRegionField.addEventListener('change', () => {
+      syncPhoneInputOnRegionChange({ ensurePlus: true });
+    });
+    syncPhoneInputOnRegionChange();
+  } else if (phoneField) {
+    syncPhoneInputOnRegionChange();
+  }
+
   let submitting = false;
 
   form.addEventListener('submit', async event => {
@@ -238,10 +399,19 @@ export function initRegisterForm() {
 
     const fullName = String(getFieldValue(fullNameField)).trim();
     const email = String(getFieldValue(emailField)).trim();
-    const rawPhone = String(getFieldValue(phoneField));
-    const sanitizedPhone = sanitizePhone(rawPhone);
-    if (phoneField && sanitizedPhone) {
-      phoneField.value = sanitizedPhone;
+    const phoneRegion = getPhoneRegion();
+    const rawPhoneValue = String(getFieldValue(phoneField));
+    let sanitizedPhone = '';
+    if (phoneRegion === 'BR') {
+      const { e164 } = applyPhoneMask(phoneField);
+      sanitizedPhone = e164;
+    } else {
+      const normalizedInternational = normalizeInternationalInput(rawPhoneValue, { ensurePlus: true });
+      if (phoneField) {
+        phoneField.value = normalizedInternational;
+        delete phoneField.dataset.rawValue;
+      }
+      sanitizedPhone = sanitizePhone(normalizedInternational);
     }
     let password = String(getFieldValue(passwordField));
     const termsAccepted = termsField ? termsField.checked : true;
@@ -343,11 +513,6 @@ export function initRegisterForm() {
         user_role: 'proprietario'
       });
 
-      const phoneRegionField = form?.querySelector('[data-phone-region]');
-      const rawPhoneRegion = phoneRegionField
-        ? String(phoneRegionField.value || '').trim().toUpperCase()
-        : null;
-      const phoneRegion = rawPhoneRegion === 'INTL' ? 'INTL' : 'BR';
       const registrationDetail = {
         user: {
           id: userId,
@@ -383,6 +548,7 @@ export function initRegisterForm() {
       if (form) {
         form.reset();
         clearFieldErrors();
+        syncPhoneInputOnRegionChange();
       }
       submitting = false;
       setButtonState(submitButton, 'idle');

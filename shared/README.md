@@ -8,6 +8,7 @@ Esta pasta contém os módulos compartilhados utilizados pelos widgets da ferram
 - `inviteUtils.js`: utilitários usados por múltiplos widgets.
 - `listUtils.js`: funções `normalizeName` e `stripNumbersFromName` para tratar nomes antes da criação dos convites.
 - `higienizarLista.mjs`: camada de compatibilidade que reexporta os utilitários de nomes e provê `deriveTelefone`.
+- `auth/register.js`: inicialização do formulário de cadastro, incluindo helpers `formatBrazilPhoneDigits` e `applyPhoneMask` para máscara de telefone brasileiro.
 - `gestaoEventosApp.css`: estilos globais reutilizados.
 
 ## Boas práticas
