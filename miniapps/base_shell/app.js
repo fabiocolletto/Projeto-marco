@@ -345,6 +345,7 @@ async function bootstrap() {
   updateNavigationState();
   setupMiniAppMenu(miniApps);
   setupLoginPanelShortcut();
+  setupRegisterPanelShortcut();
   updateAdminDashboardMetrics();
   updateAdminDashboardStatus();
   updateAdminDashboardActivity();
@@ -1804,6 +1805,22 @@ function setupLoginPanelShortcut() {
     }
     miniAppState.items = withShellMiniApps(miniAppState.items);
     setActiveMiniApp(LOGIN_PANEL_MINI_APP_ID);
+    focusPanel();
+  });
+}
+
+function setupRegisterPanelShortcut() {
+  const trigger = document.querySelector('[data-action="open-register"]');
+  if (!trigger) return;
+  trigger.addEventListener('click', event => {
+    event.preventDefault();
+    const controls = getStageHost();
+    if (!controls || !controls.host) {
+      window.location.href = REGISTER_URL.href;
+      return;
+    }
+    miniAppState.items = withShellMiniApps(miniAppState.items);
+    setActiveMiniApp(REGISTER_PANEL_MINI_APP_ID);
     focusPanel();
   });
 }
