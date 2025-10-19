@@ -55,6 +55,8 @@
   "auth.login.switchUserSuccess": "Sessão anterior encerrada. Informe as credenciais da nova pessoa usuária.",
   "auth.login.recoveryMessage": "Informe seu e-mail no campo acima e enviaremos instruções para redefinir a senha.",
   "auth.login.recoveryMessageWithEmail": "Enviaremos instruções de redefinição para {email}.",
+  "auth.login.panelTitle": "Acessar conta",
+  "auth.login.panelMessage": "Use suas credenciais para entrar sem sair do painel principal.",
   "auth.register.title": "Criar conta",
   "auth.register.submit": "Registrar",
   "auth.register.terms.prefix": "Li e aceito os",

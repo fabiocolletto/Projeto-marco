@@ -51,6 +51,8 @@
   "auth.login.switchUserSuccess": "Previous session cleared. Enter the credentials for the new account.",
   "auth.login.recoveryMessage": "Enter your e-mail above and we'll send password reset instructions.",
   "auth.login.recoveryMessageWithEmail": "We'll send reset instructions to {email}.",
+  "auth.login.panelTitle": "Sign in",
+  "auth.login.panelMessage": "Use your credentials to sign in without leaving the main shell.",
   "auth.register.title": "Create account",
   "auth.register.submit": "Register",
   "auth.register.terms.prefix": "I have read and accept the",
