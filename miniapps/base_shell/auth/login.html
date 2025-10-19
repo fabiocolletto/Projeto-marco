@@ -4,6 +4,32 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title data-i18n="auth.login.title">Acessar conta</title>
+    <script>
+      (function () {
+        const root = document.documentElement;
+        let mode = 'panel';
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const embed = params.get('embed');
+          if (embed && embed.toLowerCase() === 'inline') {
+            mode = null;
+          } else if (embed && embed.toLowerCase() === 'panel') {
+            mode = 'panel';
+          } else if (window.self === window.top) {
+            mode = null;
+          }
+        } catch (error) {
+          if (window.self === window.top) {
+            mode = null;
+          }
+        }
+        if (mode === 'panel') {
+          root.dataset.embedMode = 'panel';
+        } else {
+          delete root.dataset.embedMode;
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="../styles.css" />
     <link rel="stylesheet" href="../../../packages/base.theme/theme.css" />
   </head>

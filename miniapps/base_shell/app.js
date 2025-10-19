@@ -147,6 +147,17 @@ const USER_PANEL_MINI_APP = {
   route: USER_PANEL_EMBED_ROUTE,
   hidden: true
 };
+const LOGIN_PANEL_EMBED_ROUTE = './auth/login.html?embed=panel';
+const LOGIN_PANEL_MINI_APP_ID = 'base.shell.login';
+const LOGIN_PANEL_MINI_APP = {
+  id: LOGIN_PANEL_MINI_APP_ID,
+  labelKey: 'auth.login.panelTitle',
+  welcomeTitleKey: 'auth.login.panelTitle',
+  welcomeMessageKey: 'auth.login.panelMessage',
+  icon: '🔐',
+  route: LOGIN_PANEL_EMBED_ROUTE,
+  hidden: true
+};
 const REGISTER_PANEL_EMBED_ROUTE = './auth/register.html?embed=panel';
 const REGISTER_PANEL_MINI_APP_ID = 'base.shell.register';
 const REGISTER_PANEL_MINI_APP = {
@@ -333,6 +344,7 @@ async function bootstrap() {
   }
   updateNavigationState();
   setupMiniAppMenu(miniApps);
+  setupLoginPanelShortcut();
   updateAdminDashboardMetrics();
   updateAdminDashboardStatus();
   updateAdminDashboardActivity();
@@ -518,6 +530,29 @@ function withUserPanelMiniApp(items) {
   return [...list, { ...USER_PANEL_MINI_APP }];
 }
 
+function withLoginMiniApp(items) {
+  const list = Array.isArray(items) ? [...items] : [];
+  const existingIndex = list.findIndex(item => item && item.id === LOGIN_PANEL_MINI_APP_ID);
+  if (existingIndex >= 0) {
+    const existing = list[existingIndex] || {};
+    const merged = {
+      ...LOGIN_PANEL_MINI_APP,
+      ...existing
+    };
+    merged.labelKey = existing.labelKey || LOGIN_PANEL_MINI_APP.labelKey;
+    merged.route = existing.route || LOGIN_PANEL_MINI_APP.route;
+    merged.icon = existing.icon || LOGIN_PANEL_MINI_APP.icon;
+    merged.welcomeTitleKey = existing.welcomeTitleKey || LOGIN_PANEL_MINI_APP.welcomeTitleKey;
+    merged.welcomeMessageKey = existing.welcomeMessageKey || LOGIN_PANEL_MINI_APP.welcomeMessageKey;
+    if (typeof existing.hidden === 'boolean') {
+      merged.hidden = existing.hidden;
+    }
+    list[existingIndex] = merged;
+    return list;
+  }
+  return [...list, { ...LOGIN_PANEL_MINI_APP }];
+}
+
 function withRegisterMiniApp(items) {
   const list = Array.isArray(items) ? [...items] : [];
   const existingIndex = list.findIndex(item => item && item.id === REGISTER_PANEL_MINI_APP_ID);
@@ -549,7 +584,7 @@ function withRegisterMiniApp(items) {
 }
 
 function withShellMiniApps(items) {
-  return withRegisterMiniApp(withUserPanelMiniApp(items));
+  return withRegisterMiniApp(withLoginMiniApp(withUserPanelMiniApp(items)));
 }
 
 function refreshShellMiniApps(allowRegistrationOverride) {
@@ -1755,6 +1790,22 @@ function handleAdminDashboardAction(action, button) {
     closeAdminDashboard({ restoreFocus: false });
     openNavigationOverlay();
   }
+}
+
+function setupLoginPanelShortcut() {
+  const trigger = document.querySelector('[data-action="open-login"]');
+  if (!trigger) return;
+  trigger.addEventListener('click', event => {
+    event.preventDefault();
+    const controls = getStageHost();
+    if (!controls || !controls.host) {
+      window.location.href = LOGIN_URL.href;
+      return;
+    }
+    miniAppState.items = withShellMiniApps(miniAppState.items);
+    setActiveMiniApp(LOGIN_PANEL_MINI_APP_ID);
+    focusPanel();
+  });
 }
 
 function setupUserPanelShortcut() {

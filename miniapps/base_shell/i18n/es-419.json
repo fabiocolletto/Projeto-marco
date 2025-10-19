@@ -51,6 +51,8 @@
   "auth.login.switchUserSuccess": "Sesión anterior finalizada. Ingresa las credenciales de la nueva persona usuaria.",
   "auth.login.recoveryMessage": "Ingresa tu correo arriba y te enviaremos instrucciones para restablecer la contraseña.",
   "auth.login.recoveryMessageWithEmail": "Enviaremos instrucciones de restablecimiento a {email}.",
+  "auth.login.panelTitle": "Iniciar sesión",
+  "auth.login.panelMessage": "Usa tus credenciales para ingresar sin salir del panel principal.",
   "auth.register.title": "Crear cuenta",
   "auth.register.submit": "Registrar",
   "auth.register.terms.prefix": "He leído y acepto los",
