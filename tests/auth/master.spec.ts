@@ -23,10 +23,9 @@ let dom: JSDOM | null = null;
 const mountShellDom = () => {
   document.body.innerHTML = `
     <div id="error-banner"></div>
-    <div class="header-controls">
-      <label for="app-selector">MiniApp ativo</label>
-      <select id="app-selector"></select>
-    </div>
+    <section id="catalog">
+      <div id="catalog-cards" role="list"></div>
+    </section>
     <section id="panel">
       <header>
         <div>
@@ -36,7 +35,7 @@ const mountShellDom = () => {
         <button id="panel-close" type="button"></button>
       </header>
       <div class="placeholder" id="panel-placeholder">
-        <p>Selecione um MiniApp acima para abrir seu painel aqui.</p>
+        <p>Escolha um MiniApp ao lado para abrir seu painel aqui.</p>
       </div>
       <iframe id="miniapp-frame"></iframe>
       <footer>
@@ -139,10 +138,11 @@ describe('Master auth flow', () => {
     const form = document.querySelector('form');
     form?.dispatchEvent(new window.Event('submit', { bubbles: true, cancelable: true }));
     await flushPromises();
-    await scheduleStatusBarUpdate();
-
-    expect(userStatus?.textContent).toBe('Usuário: adm (master)');
-    expect(userStatus?.dataset.state).toBe('active');
+    await vi.waitFor(async () => {
+      await scheduleStatusBarUpdate();
+      expect(userStatus?.textContent).toBe('Usuário: adm (master)');
+      expect(userStatus?.dataset.state).toBe('active');
+    });
   });
 
   it('redirects to master login when master already exists on first access', async () => {
@@ -188,12 +188,15 @@ describe('Master auth flow', () => {
     ]);
     renderShell();
 
-    const selector = document.querySelector<HTMLSelectElement>('#app-selector');
-    expect(selector).not.toBeNull();
-    const options = Array.from(selector?.querySelectorAll('option') ?? []).filter((option) => option.value);
-    expect(options.length).toBe(2);
-    const privateOption = options.find((option) => option.dataset.adminOnly === 'true');
-    expect(privateOption?.textContent).toContain('Privado');
+    const cards = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('#catalog-cards [data-app-id]'),
+    );
+    expect(cards.length).toBe(2);
+    const ids = cards.map((card) => card.dataset.appId);
+    expect(ids).toContain('privado');
+    expect(ids).toContain('public');
+    const privateCard = cards.find((card) => card.dataset.appId === 'privado');
+    expect(privateCard?.querySelector('.badge')?.textContent).toContain('Privado');
   });
 
   it('updates password hash when changing credentials in the widget', async () => {

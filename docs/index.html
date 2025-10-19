@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- base href will be injected during deploy -->
     <title>AppBase</title>
-    <base href="/Projeto-marco/">
+    <base href="/Projeto-marco/" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <style>
       :root {
@@ -32,8 +32,10 @@
       header {
         padding: 2.5rem 3rem 1.5rem;
         display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        align-items: flex-end;
+        justify-content: space-between;
       }
 
       header h1 {
@@ -78,6 +80,16 @@
       #catalog-cards {
         display: grid;
         gap: 0.75rem;
+      }
+
+      #catalog-cards[data-loading='true'] {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+
+      #catalog-cards[data-locked='true'] {
+        opacity: 0.4;
+        pointer-events: none;
       }
 
       .card {
@@ -212,6 +224,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
+        flex-wrap: wrap;
       }
 
       #panel footer a {
@@ -234,8 +247,76 @@
         display: none;
       }
 
-      #error-banner[data-visible="true"] {
+      #error-banner[data-visible='true'] {
         display: block;
+      }
+
+      .status-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        align-items: flex-start;
+      }
+
+      .status-pill {
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        color: rgba(226, 232, 240, 0.85);
+        transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
+      }
+
+      .status-pill[data-state='active'] {
+        background: rgba(34, 197, 94, 0.2);
+        border-color: rgba(134, 239, 172, 0.45);
+        color: rgba(187, 247, 208, 0.95);
+      }
+
+      .status-pill[data-state='warning'] {
+        background: rgba(250, 204, 21, 0.18);
+        border-color: rgba(253, 224, 71, 0.4);
+        color: rgba(254, 249, 195, 0.92);
+      }
+
+      .status-pill[data-state='locked'] {
+        background: rgba(59, 130, 246, 0.16);
+        border-color: rgba(96, 165, 250, 0.35);
+        color: rgba(191, 219, 254, 0.95);
+      }
+
+      .status-pill[data-state='error'] {
+        background: rgba(248, 113, 113, 0.2);
+        border-color: rgba(248, 113, 113, 0.45);
+        color: rgba(254, 226, 226, 0.95);
+      }
+
+      .footer-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      #factoryReset {
+        border: 1px solid rgba(248, 113, 113, 0.4);
+        border-radius: 999px;
+        background: rgba(248, 113, 113, 0.18);
+        color: rgba(254, 226, 226, 0.92);
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+      }
+
+      #factoryReset:hover,
+      #factoryReset:focus-visible {
+        background: rgba(248, 113, 113, 0.28);
+        border-color: rgba(248, 113, 113, 0.6);
+        outline: none;
       }
 
       @media (max-width: 1024px) {
@@ -251,6 +332,7 @@
       @media (max-width: 720px) {
         header {
           padding: 2rem 1.5rem 1rem;
+          gap: 1rem;
         }
 
         #app-shell {
@@ -267,23 +349,29 @@
           padding-left: 1.5rem;
           padding-right: 1.5rem;
         }
+
+        #error-banner {
+          margin: 0 1.5rem 1.5rem;
+        }
       }
     </style>
     <script id="app-config" type="application/json">{"publicAdmin":true,"baseHref":"/Projeto-marco/"}</script>
   </head>
   <body>
     <header>
-      <h1>AppBase</h1>
-      <p>
-        Catálogo unificado de MiniApps. Selecione um módulo para iniciar ou use um link direto para abrir um painel específico.
-        As credenciais padrão são <strong>usuário: adm</strong> e <strong>senha: 0000</strong> (altere no primeiro acesso).
-      </p>
+      <div>
+        <h1>AppBase</h1>
+        <p>
+          Catálogo unificado de MiniApps. Selecione um módulo para iniciar ou use um link direto para abrir um painel específico.
+          As credenciais padrão são <strong>usuário: adm</strong> e <strong>senha: 0000</strong> (altere no primeiro acesso).
+        </p>
+      </div>
     </header>
     <div id="error-banner" role="alert"></div>
     <div id="app-shell">
       <section id="catalog" aria-labelledby="catalog-title">
         <h2 id="catalog-title">MiniApps disponíveis</h2>
-        <div id="catalog-cards" role="list"></div>
+        <div id="catalog-cards" role="list" aria-live="polite"></div>
       </section>
       <section id="panel" aria-live="polite">
         <header>
@@ -298,8 +386,14 @@
         </div>
         <iframe id="miniapp-frame" title="Painel do MiniApp" hidden></iframe>
         <footer>
-          <span>AppBase · publicação estática</span>
-          <a href="./miniapps/registry.json" target="_blank" rel="noopener">Ver registry</a>
+          <div class="status-stack">
+            <span class="status-pill" id="status-db" data-state="idle">Banco de dados: verificando…</span>
+            <span class="status-pill" id="status-user" data-state="idle">Usuário: verificando…</span>
+          </div>
+          <div class="footer-actions">
+            <button id="factoryReset" hidden>Limpar plataforma</button>
+            <a href="./miniapps/registry.json" target="_blank" rel="noopener">Ver registry</a>
+          </div>
         </footer>
       </section>
     </div>
