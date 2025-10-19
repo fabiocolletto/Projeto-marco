@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { MiniAppRegistry } from '../src/core/types.js';
 import { listVisibleMiniApps, resolveMiniAppName, sortMiniApps } from '../src/registry/registry.js';
+import { normalizeRegistryEntries } from '../src/app/registryNormalizer.js';
 
 const registry: MiniAppRegistry = {
   version: '1.0.0',
@@ -59,5 +60,18 @@ describe('miniapp registry', () => {
   it('sorts manifests respecting locale collation', () => {
     const list = sortMiniApps(registry.miniapps, 'pt-BR');
     expect(list.map((app) => app.id)).toEqual(['market', 'admin-dashboard']);
+  });
+
+  it('ignores registry entries without a valid path', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const entries = normalizeRegistryEntries([
+      { id: 'valid', name: 'App Válido', path: './valid/manifest.json' },
+      { id: 'sem-path', name: 'App Sem Path' },
+      { id: 'path-vazio', name: 'App Path Vazio', path: '   ' },
+    ]);
+
+    expect(entries.map((item) => item.id)).toEqual(['valid']);
+    expect(warnSpy).toHaveBeenCalledTimes(2);
+    warnSpy.mockRestore();
   });
 });

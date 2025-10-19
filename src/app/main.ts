@@ -5,6 +5,7 @@ import { renderShell } from './renderShell.js';
 import { wireCatalog } from '../registry/wireCatalog.js';
 import { ensureMasterGate } from '../auth/gate.js';
 import { initStatusBar, scheduleStatusBarUpdate } from './statusBar.js';
+import { normalizeRegistryEntries, normalizeRegistryId } from './registryNormalizer.js';
 
 let catalogContainer: HTMLElement | null = null;
 let panelSubtitle: HTMLSpanElement | null = null;
@@ -13,8 +14,6 @@ let detachGlobalListeners: (() => void) | null = null;
 let previousSubtitle: string | null = null;
 
 const LOADING_SUBTITLE = 'Carregando catálogo…';
-
-const normalizeId = (value: string): string => value.trim().toLowerCase();
 
 const parseConfig = (): AppConfig => {
   const element = document.getElementById('app-config');
@@ -149,16 +148,8 @@ const fetchRegistry = async (): Promise<RegistryEntry[]> => {
   }
 
   const payload = (await response.json()) as { miniapps?: RegistryEntry[] };
-  const entries = Array.isArray(payload.miniapps) ? payload.miniapps : [];
-  return entries
-    .filter((item) => item && typeof item.id === 'string' && typeof item.name === 'string')
-    .map((item) => ({
-      ...item,
-      id: normalizeId(item.id),
-      name: item.name,
-      path: item.path,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }));
+  const entries = normalizeRegistryEntries(payload.miniapps);
+  return entries.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }));
 };
 
 const normalizeQuery = (entries: RegistryEntry[]) => {
@@ -166,7 +157,7 @@ const normalizeQuery = (entries: RegistryEntry[]) => {
   const open = params.get('open');
   if (!open) return;
 
-  const normalized = normalizeId(open);
+  const normalized = normalizeRegistryId(open);
   const target = entries.find((item) => item.id === normalized);
   if (target) {
     setSelectedAppId(target.id);
