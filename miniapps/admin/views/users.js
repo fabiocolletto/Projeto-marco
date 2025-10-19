@@ -4,12 +4,12 @@ import {
   listUsers,
   subscribeToUsers,
   updateUser,
-} from "/appbase/shell/users-store.js";
+} from "../../../appbase/shell/users-store.js";
 import {
   SUPPORTED_LOCALES,
   getTranslationOpportunities,
   subscribeToTranslationOpportunities,
-} from "/appbase/shell/i18n.js";
+} from "../../../appbase/shell/i18n.js";
 
 const STATUS_OPTIONS = ["active", "pending", "suspended"];
 const ROLE_OPTIONS = ["admin", "manager", "viewer"];

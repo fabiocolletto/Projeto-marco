@@ -4,32 +4,59 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>MiniApp Base • Shell</title>
-    <link rel="stylesheet" href="/packages/ui/base.css" />
-    <link rel="stylesheet" href="/packages/ui/components.css" />
+    <link rel="stylesheet" href="../../packages/ui/base.css" />
+    <link rel="stylesheet" href="../../packages/ui/components.css" />
   </head>
   <body>
     <header class="toolbar" data-role="shell-header">
-      <div class="left"><strong>MiniApp Base</strong></div>
+      <div class="left header-brand">
+        <img
+          id="logo"
+          class="brand"
+          src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
+          alt="MiniApp Base"
+        />
+        <strong>MiniApp Base</strong>
+      </div>
       <nav class="right" aria-label="Atalhos do shell">
-        <a class="btn ghost" href="/">Marketplace</a>
+        <a class="btn ghost" href="../../">Marketplace</a>
         <a
           class="btn ghost"
-          href="/miniapps/admin#create"
+          href="../../miniapps/admin#create"
           data-admin-only
           hidden
         >Criar MiniApp</a>
         <a
           class="btn ghost"
-          href="/miniapps/admin#catalog"
+          href="../../miniapps/admin#catalog"
           data-admin-only
           hidden
         >Editar/Ordenar Market</a>
         <a
           class="btn primary"
-          href="/miniapps/admin"
+          href="../../miniapps/admin"
           data-admin-only
           hidden
         >Admin</a>
+        <button
+          type="button"
+          class="btn ghost"
+          id="theme-toggle"
+          aria-live="polite"
+        >
+          <span aria-hidden="true" data-theme-icon>☀️</span>
+          <span data-theme-label>Tema</span>
+          <span class="sr-only" data-theme-description>Alternar tema</span>
+        </button>
+        <button
+          type="button"
+          class="btn ghost"
+          id="language-toggle"
+        >
+          <span aria-hidden="true" data-language-icon>🇧🇷</span>
+          <span data-language-label>Idioma</span>
+          <span class="sr-only" data-language-description>Alternar idioma</span>
+        </button>
       </nav>
     </header>
     <main id="app" class="app-shell" role="main"></main>

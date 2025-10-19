@@ -4,7 +4,7 @@ import {
   createTranslator as createBaseTranslator,
   fetchLocaleData,
   normalizeLocale,
-} from "/appbase/shell/i18n.js";
+} from "../../../appbase/shell/i18n.js";
 
 const cache = new Map();
 let fallbackPromise = null;

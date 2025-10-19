@@ -8,9 +8,12 @@ export function configureRouter({ target = document.querySelector("#app"), onHom
   miniAppHandler = onMiniApp;
 }
 
-export function navigate(path) {
-  if (location.pathname !== path) {
-    history.pushState({}, "", path);
+export function navigate(target) {
+  const url = typeof target === "string" ? new URL(target, window.location.href) : target;
+  const nextPath = `${url.pathname}${url.search}${url.hash}`;
+  const currentPath = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  if (currentPath !== nextPath) {
+    window.history.pushState({}, "", nextPath);
   }
   resolve();
 }

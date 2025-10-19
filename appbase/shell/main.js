@@ -3,13 +3,46 @@ import { getAppsCount, mountMarket } from "./market.js";
 import {
   getSessionPreferences,
   subscribeToSessionPreferences,
+  updateSessionPreferences,
 } from "./session.js";
-import { bootstrapLocale } from "./i18n.js";
+import {
+  bootstrapLocale,
+  DEFAULT_LOCALE,
+  SUPPORTED_LOCALES,
+} from "./i18n.js";
 import { bootstrapTheme } from "./theme.js";
 
 const appOutlet = document.querySelector("#app");
 const statusFooter = document.querySelector("#status");
 const adminElements = document.querySelectorAll("[data-admin-only]");
+const themeToggle = document.getElementById("theme-toggle");
+const languageToggle = document.getElementById("language-toggle");
+
+const LOCALE_SEQUENCE = (() => {
+  const sequence = Array.from(SUPPORTED_LOCALES);
+  if (!sequence.includes(DEFAULT_LOCALE)) {
+    sequence.unshift(DEFAULT_LOCALE);
+  }
+  return sequence;
+})();
+
+const LOCALE_LABELS = {
+  "pt-BR": "Português (Brasil)",
+  "en-US": "English (US)",
+  "es-419": "Español (Latinoamérica)",
+};
+
+const LOCALE_ICONS = {
+  "pt-BR": "🇧🇷",
+  "en-US": "🇺🇸",
+  "es-419": "🇲🇽",
+};
+
+const THEME_LABELS = {
+  system: { label: "Sistema", icon: "💻" },
+  dark: { label: "Escuro", icon: "🌙" },
+  light: { label: "Claro", icon: "☀️" },
+};
 
 bootstrapLocale();
 bootstrapTheme();
@@ -26,11 +59,141 @@ function applySessionMode(preferences) {
   document.body.dataset.sessionMode = isAdmin ? "admin" : "user";
 }
 
-applySessionMode(getSessionPreferences());
+const initialPreferences = getSessionPreferences();
+applySessionMode(initialPreferences);
+renderThemeControl(initialPreferences);
+renderLanguageControl(initialPreferences);
 
 subscribeToSessionPreferences((preferences) => {
   applySessionMode(preferences);
+  renderThemeControl(preferences);
+  renderLanguageControl(preferences);
 });
+
+function getThemeState(preferences) {
+  if (!preferences) {
+    return "system";
+  }
+  if (preferences.seguirSistema !== false) {
+    return "system";
+  }
+  return preferences.temaPreferido === "dark" ? "dark" : "light";
+}
+
+function renderThemeControl(preferences) {
+  if (!themeToggle) {
+    return;
+  }
+  const current = getThemeState(preferences);
+  const config = THEME_LABELS[current] ?? THEME_LABELS.system;
+  const icon = themeToggle.querySelector("[data-theme-icon]");
+  const label = themeToggle.querySelector("[data-theme-label]");
+  const description = themeToggle.querySelector("[data-theme-description]");
+  const readable = `Tema: ${config.label}`;
+  themeToggle.setAttribute("aria-label", `Alternar tema (atual: ${config.label})`);
+  themeToggle.title = readable;
+  if (description) {
+    description.textContent = `Alternar tema (atual: ${config.label})`;
+  }
+  if (icon) {
+    icon.textContent = config.icon;
+  }
+  if (label) {
+    label.textContent = config.label;
+  }
+}
+
+function cycleTheme() {
+  const preferences = getSessionPreferences();
+  const current = getThemeState(preferences);
+  if (current === "system") {
+    updateSessionPreferences({ seguirSistema: false, temaPreferido: "dark" });
+    return;
+  }
+  if (current === "dark") {
+    updateSessionPreferences({ seguirSistema: false, temaPreferido: "light" });
+    return;
+  }
+  updateSessionPreferences({ seguirSistema: true });
+}
+
+function getLocaleState(preferences) {
+  if (!preferences) {
+    return DEFAULT_LOCALE;
+  }
+  const preferred = preferences.idiomaPreferido;
+  if (preferred && SUPPORTED_LOCALES.has(preferred)) {
+    return preferred;
+  }
+  return DEFAULT_LOCALE;
+}
+
+function getLocaleLabel(locale) {
+  return LOCALE_LABELS[locale] ?? locale;
+}
+
+function getLocaleIcon(locale) {
+  return LOCALE_ICONS[locale] ?? "🌐";
+}
+
+function renderLanguageControl(preferences) {
+  if (!languageToggle) {
+    return;
+  }
+  if (!LOCALE_SEQUENCE.length) {
+    languageToggle.setAttribute("aria-label", "Alternar idioma");
+    languageToggle.title = "Idioma";
+    const description = languageToggle.querySelector("[data-language-description]");
+    if (description) {
+      description.textContent = "Alternar idioma";
+    }
+    return;
+  }
+  const locale = getLocaleState(preferences);
+  const icon = languageToggle.querySelector("[data-language-icon]");
+  const label = languageToggle.querySelector("[data-language-label]");
+  const description = languageToggle.querySelector("[data-language-description]");
+  const readable = `Idioma: ${getLocaleLabel(locale)}`;
+  languageToggle.setAttribute("aria-label", `Alternar idioma (atual: ${getLocaleLabel(locale)})`);
+  languageToggle.title = readable;
+  if (description) {
+    description.textContent = `Alternar idioma (atual: ${getLocaleLabel(locale)})`;
+  }
+  if (icon) {
+    icon.textContent = getLocaleIcon(locale);
+  }
+  if (label) {
+    label.textContent = getLocaleLabel(locale);
+  }
+}
+
+function cycleLanguage() {
+  if (!LOCALE_SEQUENCE.length) {
+    return;
+  }
+  const preferences = getSessionPreferences();
+  const locale = getLocaleState(preferences);
+  const index = LOCALE_SEQUENCE.indexOf(locale);
+  if (index === -1) {
+    updateSessionPreferences({ idiomaPreferido: LOCALE_SEQUENCE[0] ?? DEFAULT_LOCALE });
+    return;
+  }
+  const nextIndex = (index + 1) % LOCALE_SEQUENCE.length;
+  const nextLocale = LOCALE_SEQUENCE[nextIndex] ?? DEFAULT_LOCALE;
+  updateSessionPreferences({ idiomaPreferido: nextLocale });
+}
+
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    cycleTheme();
+  });
+}
+
+if (languageToggle) {
+  languageToggle.addEventListener("click", () => {
+    cycleLanguage();
+  });
+}
 
 configureRouter({
   target: appOutlet,
@@ -44,7 +207,11 @@ function wireNavigation() {
     if (!link) {
       return;
     }
-    const url = new URL(link.href, location.origin);
+    const href = link.getAttribute("href");
+    if (!href) {
+      return;
+    }
+    const url = new URL(href, window.location.href);
     if (url.origin !== location.origin) {
       return;
     }
@@ -103,7 +270,8 @@ async function renderHome({ outlet }) {
     event.preventDefault();
     const id = trigger.getAttribute("data-id");
     if (id) {
-      navigate(`/miniapps/${id}`);
+      const target = new URL(`../../miniapps/${id}/`, window.location.href);
+      navigate(`${target.pathname}${target.search}${target.hash}`);
     }
   });
   if (statusFooter) {
@@ -116,7 +284,8 @@ async function renderMiniApp({ id, outlet }) {
     return;
   }
   try {
-    const mod = await import(`/miniapps/${id}/index.js`);
+    const moduleUrl = new URL(`../../miniapps/${id}/index.js`, import.meta.url);
+    const mod = await import(moduleUrl.href);
     if (typeof mod.mount === "function") {
       await mod.mount(outlet);
       if (statusFooter) {

@@ -1,11 +1,155 @@
 import { DEFAULT_LOCALE } from "./i18n.js";
+import {
+  listUsers as listAuthUsers,
+  register as registerUser,
+  updateUserProfile,
+  deleteUser as deleteAuthUser,
+  onAuthChange,
+} from "../../packages/base.security/auth.js";
 
-const STORAGE_KEY = "appbase:shell:users";
-const DATA_URL = "/appbase/data/users.db.json";
+const META_STORAGE_KEY = "miniapp.base.users.meta";
+const LEGACY_STORAGE_KEY = "appbase:shell:users";
+const USERS_STORAGE_KEY = "miniapp.base.users";
+
+const STATUS_OPTIONS = new Set(["active", "pending", "suspended"]);
+const ROLE_OPTIONS = new Set(["admin", "manager", "viewer"]);
+
 const subscribers = new Set();
+let metaState = loadMeta();
+let notificationChain = Promise.resolve([]);
 
-let state = { users: [] };
-let loadPromise = null;
+migrateLegacyUsers();
+queueEmit();
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event) => {
+    if (!event) {
+      return;
+    }
+    if (event.key === META_STORAGE_KEY || event.key === USERS_STORAGE_KEY) {
+      metaState = loadMeta();
+      queueEmit();
+    }
+  });
+}
+
+onAuthChange(() => {
+  queueEmit();
+});
+
+function loadMeta() {
+  if (typeof localStorage === "undefined") {
+    return {};
+  }
+  try {
+    const raw = localStorage.getItem(META_STORAGE_KEY);
+    if (!raw) {
+      return {};
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      return Object.fromEntries(
+        Object.entries(parsed).map(([key, value]) => [key, sanitizeMetaEntry(value)]),
+      );
+    }
+  } catch (error) {
+    console.warn("users-store: falha ao carregar metadados persistidos.", error);
+  }
+  return {};
+}
+
+function persistMeta() {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  try {
+    localStorage.setItem(META_STORAGE_KEY, JSON.stringify(metaState));
+  } catch (error) {
+    console.warn("users-store: não foi possível salvar metadados.", error);
+  }
+}
+
+function normalizeStatus(value) {
+  if (STATUS_OPTIONS.has(value)) {
+    return value;
+  }
+  return "pending";
+}
+
+function normalizeRole(value) {
+  if (ROLE_OPTIONS.has(value)) {
+    return value;
+  }
+  return "viewer";
+}
+
+function normalizeThemePreference(value) {
+  if (value === "dark" || value === "light") {
+    return value;
+  }
+  return null;
+}
+
+function mapBaseRoleToUi(role) {
+  return role === "owner" ? "admin" : "viewer";
+}
+
+function mapUiRoleToBase(role) {
+  return role === "admin" ? "owner" : "member";
+}
+
+function sanitizeMetaEntry(entry) {
+  const dependentes = Array.isArray(entry?.dependentes)
+    ? entry.dependentes.map((item) => cloneDependent(item)).filter(Boolean)
+    : [];
+  const seguirSistema = entry?.seguirSistema !== false;
+  const temaPreferido = seguirSistema ? null : normalizeThemePreference(entry?.temaPreferido);
+  return {
+    status: normalizeStatus(entry?.status),
+    idiomaPreferido: typeof entry?.idiomaPreferido === "string" ? entry.idiomaPreferido : DEFAULT_LOCALE,
+    temaPreferido,
+    seguirSistema,
+    dependentes,
+    telefoneHash: typeof entry?.telefoneHash === "string" ? entry.telefoneHash : null,
+    role: normalizeRole(entry?.role),
+  };
+}
+
+function ensureMeta(userId) {
+  if (!userId) {
+    return null;
+  }
+  if (!metaState[userId]) {
+    metaState[userId] = sanitizeMetaEntry({});
+    persistMeta();
+  }
+  return metaState[userId];
+}
+
+function setMeta(userId, patch = {}) {
+  if (!userId) {
+    return null;
+  }
+  const current = ensureMeta(userId) ?? sanitizeMetaEntry({});
+  const next = sanitizeMetaEntry({ ...current, ...patch });
+  metaState[userId] = next;
+  persistMeta();
+  return next;
+}
+
+function pruneMetaForExistingUsers(baseUsers) {
+  const validIds = new Set(baseUsers.map((user) => user.id));
+  let changed = false;
+  for (const userId of Object.keys(metaState)) {
+    if (!validIds.has(userId)) {
+      delete metaState[userId];
+      changed = true;
+    }
+  }
+  if (changed) {
+    persistMeta();
+  }
+}
 
 function cloneDependent(item) {
   if (!item) {
@@ -39,117 +183,22 @@ function cloneUser(user) {
 
 function sanitizeUser(input) {
   const dependentes = Array.isArray(input?.dependentes)
-    ? input.dependentes
-        .map((dep) => cloneDependent(dep))
-        .filter((dep) => dep && dep.nome)
+    ? input.dependentes.map((dep) => cloneDependent(dep)).filter(Boolean)
     : [];
+  const seguirSistema = input?.seguirSistema !== false;
+  const temaPreferido = seguirSistema ? null : normalizeThemePreference(input?.temaPreferido);
   return {
     userId: String(input?.userId ?? ""),
     nome: typeof input?.nome === "string" ? input.nome : "",
     email: typeof input?.email === "string" ? input.email : "",
     telefoneHash: typeof input?.telefoneHash === "string" ? input.telefoneHash : null,
     idiomaPreferido: typeof input?.idiomaPreferido === "string" ? input.idiomaPreferido : DEFAULT_LOCALE,
-    temaPreferido:
-      input?.temaPreferido === "dark"
-        ? "dark"
-        : input?.temaPreferido === "light"
-        ? "light"
-        : null,
-    seguirSistema: input?.seguirSistema !== false,
-    status: typeof input?.status === "string" ? input.status : "pending",
-    role: typeof input?.role === "string" ? input.role : "viewer",
+    temaPreferido,
+    seguirSistema,
+    status: normalizeStatus(input?.status),
+    role: normalizeRole(input?.role),
     dependentes,
   };
-}
-
-function readFromStorage() {
-  try {
-    if (typeof localStorage === "undefined") {
-      return null;
-    }
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return null;
-    }
-    const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.users)) {
-      return null;
-    }
-    return {
-      users: parsed.users.map((user) => sanitizeUser(user)).filter((user) => user.userId),
-    };
-  } catch (error) {
-    console.warn("users-store: falha ao ler dados persistidos.", error);
-    return null;
-  }
-}
-
-function writeToStorage(data) {
-  try {
-    if (typeof localStorage === "undefined") {
-      return;
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.warn("users-store: não foi possível salvar dados.", error);
-  }
-}
-
-async function fetchInitialData() {
-  try {
-    const response = await fetch(DATA_URL);
-    if (!response.ok) {
-      throw new Error(`Resposta inválida ao carregar ${DATA_URL}`);
-    }
-    const payload = await response.json();
-    if (!payload || typeof payload !== "object" || !Array.isArray(payload.users)) {
-      return;
-    }
-    state = {
-      users: payload.users.map((user) => sanitizeUser(user)).filter((user) => user.userId),
-    };
-  } catch (error) {
-    console.warn("users-store: falha ao carregar dados iniciais.", error);
-    state = { users: [] };
-  }
-}
-
-function notifySubscribers() {
-  const snapshot = state.users.map((user) => cloneUser(user)).filter(Boolean);
-  subscribers.forEach((callback) => {
-    try {
-      callback(snapshot);
-    } catch (error) {
-      console.error("users-store: falha ao notificar inscrito.", error);
-    }
-  });
-}
-
-function persistState() {
-  writeToStorage({ users: state.users });
-}
-
-async function ensureDataLoaded() {
-  if (loadPromise) {
-    return loadPromise;
-  }
-  loadPromise = (async () => {
-    const stored = readFromStorage();
-    if (stored) {
-      state = stored;
-      return;
-    }
-    await fetchInitialData();
-    persistState();
-  })();
-  return loadPromise;
-}
-
-function generateId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  return `usr-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 async function hashValue(value) {
@@ -191,7 +240,11 @@ async function prepareDependents(list) {
       continue;
     }
     const telefone = typeof item.telefone === "string" ? item.telefone.trim() : "";
-    const telefoneHash = telefone ? await hashValue(telefone) : item.telefoneHash ?? null;
+    const telefoneHash = telefone
+      ? await hashValue(telefone)
+      : typeof item.telefoneHash === "string"
+      ? item.telefoneHash
+      : null;
     result.push({
       nome,
       telefoneHash,
@@ -200,25 +253,147 @@ async function prepareDependents(list) {
   return result;
 }
 
-async function buildUserPayload(input, baseUser = null) {
-  const userId = baseUser?.userId ?? input?.userId ?? generateId();
-  const telefone = typeof input?.telefone === "string" ? input.telefone.trim() : "";
-  const telefoneHash = telefone
-    ? await hashValue(telefone)
-    : baseUser?.telefoneHash ?? input?.telefoneHash ?? null;
-  const dependentes = await prepareDependents(input?.dependentes);
+async function mapUser(baseUser) {
+  if (!baseUser) {
+    return null;
+  }
+  const meta = ensureMeta(baseUser.id);
+  if (!meta) {
+    return null;
+  }
+  const derivedRole = mapBaseRoleToUi(baseUser.role);
+  if (!meta.role || (derivedRole === "admin" && meta.role !== "admin")) {
+    meta.role = derivedRole;
+    persistMeta();
+  }
+  let telefoneHash = meta.telefoneHash;
+  if (!telefoneHash && baseUser.phone) {
+    telefoneHash = await hashValue(baseUser.phone);
+    if (telefoneHash) {
+      meta.telefoneHash = telefoneHash;
+      persistMeta();
+    }
+  }
   return sanitizeUser({
-    ...baseUser,
-    ...input,
-    userId,
+    userId: baseUser.id,
+    nome: baseUser.name ?? "",
+    email: baseUser.email ?? "",
     telefoneHash,
-    dependentes,
+    idiomaPreferido: meta.idiomaPreferido,
+    temaPreferido: meta.temaPreferido,
+    seguirSistema: meta.seguirSistema,
+    status: meta.status,
+    role: meta.role,
+    dependentes: meta.dependentes,
   });
 }
 
+async function collectUsersSnapshot() {
+  const baseUsers = listAuthUsers();
+  pruneMetaForExistingUsers(baseUsers);
+  if (!Array.isArray(baseUsers) || !baseUsers.length) {
+    return [];
+  }
+  const mapped = await Promise.all(baseUsers.map((user) => mapUser(user)));
+  return mapped.filter(Boolean);
+}
+
+async function emitChange() {
+  const snapshot = await collectUsersSnapshot();
+  const clones = snapshot.map((user) => cloneUser(user)).filter(Boolean);
+  subscribers.forEach((callback) => {
+    try {
+      callback(clones);
+    } catch (error) {
+      console.error("users-store: falha ao notificar inscrito.", error);
+    }
+  });
+  return snapshot;
+}
+
+function queueEmit() {
+  notificationChain = notificationChain
+    .catch(() => [])
+    .then(() => emitChange());
+  return notificationChain;
+}
+
+function generateTemporaryPassword() {
+  return `tmp-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function migrateLegacyUsers() {
+  if (typeof localStorage === "undefined") {
+    return;
+  }
+  let raw = null;
+  try {
+    raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+  } catch (error) {
+    console.warn("users-store: falha ao ler usuários legados.", error);
+    return;
+  }
+  if (!raw) {
+    return;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.users)) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return;
+    }
+    const existing = listAuthUsers();
+    if (existing.length) {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+      return;
+    }
+    for (const entry of parsed.users) {
+      try {
+        const nome = typeof entry?.nome === "string" ? entry.nome : entry?.email ?? "";
+        const email = typeof entry?.email === "string" ? entry.email : `${entry?.userId ?? "user"}@example.com`;
+        const role = normalizeRole(entry?.role);
+        const created = registerUser(
+          {
+            name: nome,
+            email,
+            password: generateTemporaryPassword(),
+            role: mapUiRoleToBase(role),
+            phone: "",
+          },
+          { autoLogin: false },
+        );
+        if (created && created.id) {
+          const dependentes = Array.isArray(entry?.dependentes)
+            ? entry.dependentes.map((item) => cloneDependent(item)).filter(Boolean)
+            : [];
+          setMeta(created.id, {
+            status: entry?.status,
+            idiomaPreferido: entry?.idiomaPreferido,
+            temaPreferido: entry?.temaPreferido,
+            seguirSistema: entry?.seguirSistema,
+            dependentes,
+            telefoneHash: entry?.telefoneHash,
+            role,
+          });
+        }
+      } catch (error) {
+        console.warn("users-store: não foi possível migrar usuário legado.", error);
+      }
+    }
+  } catch (error) {
+    console.warn("users-store: formato inválido de usuários legados.", error);
+  } finally {
+    try {
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
+    } catch (error) {
+      console.warn("users-store: falha ao limpar dados legados.", error);
+    }
+  }
+}
+
 export async function listUsers() {
-  await ensureDataLoaded();
-  return state.users.map((user) => cloneUser(user)).filter(Boolean);
+  const snapshot = await collectUsersSnapshot();
+  return snapshot.map((user) => cloneUser(user)).filter(Boolean);
 }
 
 export function subscribeToUsers(callback) {
@@ -226,58 +401,134 @@ export function subscribeToUsers(callback) {
     throw new TypeError("subscribeToUsers requer uma função de callback.");
   }
   subscribers.add(callback);
+  listUsers()
+    .then((users) => {
+      try {
+        callback(users.map((user) => cloneUser(user)).filter(Boolean));
+      } catch (error) {
+        console.error("users-store: falha ao enviar estado inicial.", error);
+      }
+    })
+    .catch((error) => {
+      console.error("users-store: falha ao carregar usuários ao inscrever.", error);
+    });
   return () => {
     subscribers.delete(callback);
   };
 }
 
 export async function createUser(input) {
-  await ensureDataLoaded();
-  const user = await buildUserPayload(input);
-  state.users.push(user);
-  persistState();
-  notifySubscribers();
-  return cloneUser(user);
+  const nome = typeof input?.nome === "string" ? input.nome.trim() : "";
+  const email = typeof input?.email === "string" ? input.email.trim() : "";
+  const telefone = typeof input?.telefone === "string" ? input.telefone.trim() : "";
+  const role = normalizeRole(input?.role);
+  const status = normalizeStatus(input?.status);
+  const idiomaPreferido = typeof input?.idiomaPreferido === "string" ? input.idiomaPreferido : DEFAULT_LOCALE;
+  const seguirSistema = input?.seguirSistema !== false;
+  const temaPreferido = seguirSistema ? null : normalizeThemePreference(input?.temaPreferido);
+  const dependentes = await prepareDependents(input?.dependentes);
+  const telefoneHash = telefone ? await hashValue(telefone) : null;
+  const created = registerUser(
+    {
+      name: nome || email,
+      email,
+      password: generateTemporaryPassword(),
+      role: mapUiRoleToBase(role),
+      phone: telefone,
+    },
+    { autoLogin: false },
+  );
+  setMeta(created.id, {
+    status,
+    idiomaPreferido,
+    temaPreferido,
+    seguirSistema,
+    dependentes,
+    telefoneHash,
+    role,
+  });
+  const snapshot = await queueEmit();
+  return snapshot.find((user) => user.userId === created.id) ?? null;
 }
 
 export async function updateUser(userId, changes) {
   if (!userId) {
     throw new TypeError("updateUser requer um userId válido.");
   }
-  await ensureDataLoaded();
-  const index = state.users.findIndex((user) => user.userId === userId);
-  if (index === -1) {
+  const baseUsers = listAuthUsers();
+  const baseUser = baseUsers.find((user) => user.id === userId);
+  if (!baseUser) {
     throw new Error(`Usuário ${userId} não encontrado.`);
   }
-  const current = state.users[index];
-  const next = await buildUserPayload({ ...changes, userId }, current);
-  state.users[index] = next;
-  persistState();
-  notifySubscribers();
-  return cloneUser(next);
+  const nome = typeof changes?.nome === "string" ? changes.nome.trim() : baseUser.name;
+  const email = typeof changes?.email === "string" ? changes.email.trim() : baseUser.email;
+  const telefone = typeof changes?.telefone === "string" ? changes.telefone.trim() : baseUser.phone ?? "";
+  const role = normalizeRole(changes?.role ?? ensureMeta(userId)?.role);
+  const status = normalizeStatus(changes?.status ?? ensureMeta(userId)?.status);
+  const idiomaPreferido = typeof changes?.idiomaPreferido === "string"
+    ? changes.idiomaPreferido
+    : ensureMeta(userId)?.idiomaPreferido;
+  const seguirSistema = changes?.seguirSistema !== undefined
+    ? changes.seguirSistema !== false
+    : ensureMeta(userId)?.seguirSistema !== false;
+  const temaPreferido = seguirSistema
+    ? null
+    : normalizeThemePreference(
+        changes?.temaPreferido ?? ensureMeta(userId)?.temaPreferido ?? null,
+      );
+  const dependentes = await prepareDependents(
+    changes?.dependentes ?? ensureMeta(userId)?.dependentes ?? [],
+  );
+  const telefoneHash = telefone ? await hashValue(telefone) : ensureMeta(userId)?.telefoneHash ?? null;
+
+  updateUserProfile(userId, {
+    name: nome,
+    email,
+    role: mapUiRoleToBase(role),
+    phone: telefone,
+  });
+
+  setMeta(userId, {
+    status,
+    idiomaPreferido,
+    temaPreferido,
+    seguirSistema,
+    dependentes,
+    telefoneHash,
+    role,
+  });
+
+  const snapshot = await queueEmit();
+  return snapshot.find((user) => user.userId === userId) ?? null;
 }
 
 export async function deleteUser(userId) {
   if (!userId) {
     throw new TypeError("deleteUser requer um userId válido.");
   }
-  await ensureDataLoaded();
-  const index = state.users.findIndex((user) => user.userId === userId);
-  if (index === -1) {
-    return false;
+  deleteAuthUser(userId);
+  if (metaState[userId]) {
+    delete metaState[userId];
+    persistMeta();
   }
-  state.users.splice(index, 1);
-  persistState();
-  notifySubscribers();
+  await queueEmit();
   return true;
 }
 
-export function resetUsers(data) {
-  state = {
-    users: Array.isArray(data?.users)
-      ? data.users.map((user) => sanitizeUser(user)).filter((user) => user.userId)
-      : [],
-  };
-  persistState();
-  notifySubscribers();
+export async function resetUsers(data) {
+  metaState = {};
+  if (Array.isArray(data?.users)) {
+    for (const entry of data.users) {
+      if (!entry || !entry.userId) {
+        continue;
+      }
+      metaState[entry.userId] = sanitizeMetaEntry(entry);
+      metaState[entry.userId].telefoneHash =
+        typeof entry.telefoneHash === "string" ? entry.telefoneHash : metaState[entry.userId].telefoneHash;
+    }
+    persistMeta();
+  } else {
+    persistMeta();
+  }
+  await queueEmit();
 }

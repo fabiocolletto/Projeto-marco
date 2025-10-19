@@ -1,5 +1,5 @@
 import { getSessionPreferences, subscribeToSessionPreferences } from "./session.js";
-import { initTheme, setTheme, onThemeChange } from "/packages/base.theme/theme.js";
+import { initTheme, setTheme, onThemeChange } from "../../packages/base.theme/theme.js";
 
 const listeners = new Set();
 let initialized = false;

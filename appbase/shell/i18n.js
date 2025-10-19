@@ -3,7 +3,8 @@ import { getSessionPreferences, updateSessionPreferences } from "./session.js";
 export const DEFAULT_LOCALE = "pt-BR";
 export const SUPPORTED_LOCALES = new Set(["pt-BR", "en-US", "es-419"]);
 
-const EVENTS_STORAGE_KEY = "appbase:shell:admin-events";
+const EVENTS_STORAGE_KEY = "miniapp.base.admin-events";
+const LEGACY_EVENTS_STORAGE_KEY = "appbase:shell:admin-events";
 const EVENT_TYPES = {
   UNSUPPORTED_LOCALE: "idioma_nao_suportado",
 };
@@ -20,6 +21,14 @@ function readEventsFromStorage() {
   try {
     if (typeof localStorage !== "undefined") {
       raw = localStorage.getItem(EVENTS_STORAGE_KEY);
+      if (!raw && LEGACY_EVENTS_STORAGE_KEY) {
+        const legacy = localStorage.getItem(LEGACY_EVENTS_STORAGE_KEY);
+        if (legacy) {
+          localStorage.setItem(EVENTS_STORAGE_KEY, legacy);
+          localStorage.removeItem(LEGACY_EVENTS_STORAGE_KEY);
+          raw = legacy;
+        }
+      }
     }
   } catch (error) {
     console.warn("i18n: não foi possível ler eventos persistidos.", error);
