@@ -1,11 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>MiniApp Base</title>
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="../../packages/base.theme/theme.css" />
+    <style>
+      .app-footer{display:flex;justify-content:flex-end;align-items:center;padding:.5rem 1rem;font:12px/1.4 system-ui,sans-serif;opacity:.9}
+      .app-footer .footer-content{margin-right:auto}
+      #mem-status{padding:.15rem .5rem;border-radius:.5rem;border:1px solid transparent}
+      #mem-status.ok{border-color:#0a0}
+      #mem-status.warn{border-color:#c90}
+      #mem-status.crit{border-color:#c00}
+      #mem-status.off{border-color:#666}
+    </style>
   </head>
   <body>
     <div class="app-shell" data-state="ready">
@@ -73,7 +82,7 @@
           </section>
         </main>
       </div>
-      <footer class="app-footer" role="contentinfo">
+      <footer id="app-footer" class="app-footer" role="contentinfo">
         <div class="footer-content">
           <small class="footer-copy">
             &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
@@ -93,6 +102,7 @@
             </a>
           </small>
         </div>
+        <span id="mem-status" role="status" aria-live="polite">Memória: verificando…</span>
       </footer>
     </div>
     <div
@@ -385,6 +395,7 @@
         </section>
       </div>
     </div>
-    <script type="module" src="./app.js"></script>
+    <script defer type="module" src="./sys/memory-status.js"></script>
+    <script defer type="module" src="./app/main.js"></script>
   </body>
 </html>
