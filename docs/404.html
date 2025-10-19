@@ -3,9 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0EA5E9" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- base href will be injected during deploy -->
     <title>AppBase</title>
-    <base href="/Projeto-marco/" />
+    <base href="/Projeto-marco/">
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" type="image/svg+xml" href="icons/apple-touch-icon.svg" />
+    <link rel="icon" type="image/svg+xml" href="icons/favicon-32.svg" />
+    <link rel="alternate icon" type="image/svg+xml" href="icons/favicon-16.svg" />
+    <meta property="og:image" content="og-image.svg" />
+    <script src="scripts/reset-factory.js" defer></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <style>
       :root {
@@ -30,12 +39,18 @@
       }
 
       header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
         padding: 2.5rem 3rem 1.5rem;
         display: flex;
         flex-wrap: wrap;
         gap: 1.5rem;
         align-items: flex-end;
         justify-content: space-between;
+        background: linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.75));
+        backdrop-filter: blur(14px);
+        border-bottom: 1px solid rgba(148, 163, 184, 0.12);
       }
 
       header h1 {
@@ -49,6 +64,35 @@
         margin: 0;
         color: rgba(226, 232, 240, 0.8);
         max-width: 60ch;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .header-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        border-radius: 999px;
+        border: 1px solid rgba(96, 165, 250, 0.45);
+        background: rgba(59, 130, 246, 0.2);
+        color: rgba(240, 249, 255, 0.95);
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+      }
+
+      .header-link:hover,
+      .header-link:focus-visible {
+        background: rgba(96, 165, 250, 0.3);
+        border-color: rgba(125, 211, 252, 0.7);
+        transform: translateY(-1px);
+        outline: none;
       }
 
       #app-shell {
@@ -335,6 +379,11 @@
           gap: 1rem;
         }
 
+        .header-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
         #app-shell {
           padding: 0 1.5rem 2rem;
           gap: 1.25rem;
@@ -356,6 +405,13 @@
       }
     </style>
     <script id="app-config" type="application/json">{"publicAdmin":true,"baseHref":"/Projeto-marco/"}</script>
+    <script type="importmap">
+      {
+        "imports": {
+          "idb": "./vendor/idb/index.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <header>
@@ -366,6 +422,15 @@
           As credenciais padrão são <strong>usuário: adm</strong> e <strong>senha: 0000</strong> (altere no primeiro acesso).
         </p>
       </div>
+      <nav class="header-actions" aria-label="Acesso rápido">
+        <a
+          class="header-link"
+          href="#/app/user-panel"
+          aria-label="Abrir o MiniApp Painel do Usuário para fazer login, logoff, trocar senha, excluir conta ou encerrar sessão"
+        >
+          Abrir Painel do Usuário
+        </a>
+      </nav>
     </header>
     <div id="error-banner" role="alert"></div>
     <div id="app-shell">
@@ -397,6 +462,97 @@
         </footer>
       </section>
     </div>
-    <script type="module" src="./app/main.js"></script>
+    <script type="module">
+      const renderBootError = (message) => {
+        const banner = document.getElementById('error-banner');
+        if (!banner) return;
+        banner.textContent = message;
+        banner.dataset.visible = 'true';
+      };
+
+      const loadAppModule = async () => {
+        const candidateModules = ['./app/main.js', './dist/app/main.js', './docs/app/main.js'];
+        const errors = [];
+
+        for (const modulePath of candidateModules) {
+          try {
+            await import(modulePath);
+            if (errors.length > 0) {
+              console.info('AppBase inicializado a partir do fallback %s.', modulePath, errors);
+            }
+            return;
+          } catch (error) {
+            errors.push({ modulePath, error });
+            console.warn(`Falha ao carregar ${modulePath}.`, error);
+          }
+        }
+
+        console.error('Falha ao carregar módulo principal do AppBase.', errors);
+        renderBootError(
+          'Não foi possível inicializar o AppBase. Execute "npm run build" ou publique novamente e recarregue a página.'
+        );
+      };
+
+      void loadAppModule();
+    </script>
+    <script>
+      (function () {
+        const baseHref = (document.querySelector('base') || {}).href;
+        const derivedBase = (() => {
+          if (window.__APP_BASE_PATH__) return window.__APP_BASE_PATH__;
+          if (baseHref) {
+            const url = new URL(baseHref);
+            return url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`;
+          }
+          const parts = location.pathname.split('/');
+          parts.pop();
+          const path = parts.join('/') + '/';
+          return path === '//' ? '/' : path;
+        })();
+        window.__APP_BASE_PATH__ = derivedBase;
+
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            const normalized = derivedBase.endsWith('/') ? derivedBase.slice(0, -1) : derivedBase;
+            const swUrl = `${normalized || ''}/sw.js`;
+            navigator.serviceWorker.register(swUrl).catch(console.error);
+          });
+        }
+      })();
+    </script>
+    <script>
+      (function () {
+        const derivedBase =
+          window.__APP_BASE_PATH__ || (() => {
+            const baseHref = (document.querySelector('base') || {}).href;
+            if (baseHref) {
+              const url = new URL(baseHref);
+              return url.pathname.endsWith('/') ? url.pathname : `${url.pathname}/`;
+            }
+            const parts = location.pathname.split('/');
+            parts.pop();
+            const path = parts.join('/') + '/';
+            return path === '//' ? '/' : path;
+          })();
+
+        const adminMode = new URL(location.href).searchParams.get('admin') === '1' || window.__ADMIN_MODE === true;
+        if (!adminMode) {
+          return;
+        }
+
+        const resetButton = document.getElementById('factoryReset');
+        if (!resetButton) {
+          return;
+        }
+
+        resetButton.hidden = false;
+        resetButton.addEventListener('click', () => {
+          window.__FACTORY_RESET_FORCE__ = true;
+          import(`${derivedBase}scripts/reset-factory.js`).finally(() => {
+            delete window.__FACTORY_RESET_FORCE__;
+          });
+        });
+      })();
+    </script>
   </body>
 </html>

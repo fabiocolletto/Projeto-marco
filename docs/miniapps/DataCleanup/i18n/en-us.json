@@ -1,0 +1,27 @@
+{
+  "badge": "MiniApp",
+  "title": "Device Data Cleanup",
+  "description": "Remove every piece of information stored by AppBase on this device.",
+  "warning": {
+    "title": "Warning",
+    "text": "This action cannot be undone. All profiles, settings, telemetry records and active sessions will be erased."
+  },
+  "button": {
+    "label": "Erase device data",
+    "confirm": "Are you sure? This will permanently remove every local record.",
+    "working": "Erasing data…",
+    "done": "Cleanup finished"
+  },
+  "status": {
+    "working": "Cleaning local data…",
+    "success": "Data removed successfully.",
+    "error": "We could not finish the cleanup."
+  },
+  "details": {
+    "working": "Please wait while we delete databases, caches and credentials.",
+    "success": "Re-open AppBase to start a fresh setup.",
+    "error": "Check if other AppBase tabs are open and try again.",
+    "blocked": "Close other AppBase panels or tabs and retry."
+  },
+  "footer": "We recommend exporting a backup before wiping your data."
+}

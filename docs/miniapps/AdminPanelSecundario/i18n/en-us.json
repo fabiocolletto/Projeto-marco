@@ -1,0 +1,18 @@
+{
+  "title": "Admin Panel 2",
+  "subtitle": "Quick overview for advanced administrators.",
+  "metrics": {
+    "title": "Highlighted metrics",
+    "items": [
+      { "label": "Active users (24h)", "value": "128" },
+      { "label": "Critical backlogs", "value": "5" }
+    ]
+  },
+  "shortcuts": {
+    "title": "Main shortcuts",
+    "items": [
+      { "label": "View audit trail", "href": "#" },
+      { "label": "Advanced settings", "href": "#" }
+    ]
+  }
+}

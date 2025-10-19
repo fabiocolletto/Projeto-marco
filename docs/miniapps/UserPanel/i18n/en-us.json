@@ -1,0 +1,19 @@
+{
+  "title": "User Panel",
+  "subtitle": "Keep track of your personal progress.",
+  "journey": {
+    "title": "Your journey",
+    "items": [
+      "Complete your profile",
+      "Enable important notifications",
+      "Review your weekly goals"
+    ]
+  },
+  "resources": {
+    "title": "Quick resources",
+    "items": [
+      { "label": "Help center", "href": "#" },
+      { "label": "Community", "href": "#" }
+    ]
+  }
+}

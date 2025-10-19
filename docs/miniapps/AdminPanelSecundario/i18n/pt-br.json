@@ -1,0 +1,18 @@
+{
+  "title": "Painel Administrativo 2",
+  "subtitle": "Resumo rápido para administradores avançados.",
+  "metrics": {
+    "title": "Indicadores em destaque",
+    "items": [
+      { "label": "Usuários ativos (24h)", "value": "128" },
+      { "label": "Pendências críticas", "value": "5" }
+    ]
+  },
+  "shortcuts": {
+    "title": "Atalhos principais",
+    "items": [
+      { "label": "Ver auditoria", "href": "#" },
+      { "label": "Configurações avançadas", "href": "#" }
+    ]
+  }
+}

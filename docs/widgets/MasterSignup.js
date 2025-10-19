@@ -3,6 +3,7 @@ import { consumePostAuthHash } from '../auth/gate.js';
 import { setMasterAuthenticated } from '../auth/session.js';
 import { saveMaster } from '../auth/store.js';
 import { sha256 } from '../auth/crypto.js';
+import { scheduleStatusBarUpdate } from '../app/statusBar.js';
 export const masterAuthClasses = {
     container: 'master-auth-card',
     field: 'master-auth-field',
@@ -228,6 +229,7 @@ export function renderMasterSignup(container, options = {}) {
             };
             await saveMaster(payload);
             setMasterAuthenticated();
+            void scheduleStatusBarUpdate();
             dispatchAuthChanged();
             const target = consumePostAuthHash();
             if (target) {
