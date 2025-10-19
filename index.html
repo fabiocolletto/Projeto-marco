@@ -404,6 +404,13 @@
       }
     </style>
     <script id="app-config" type="application/json">{"publicAdmin":false,"baseHref":"/"}</script>
+    <script type="importmap">
+      {
+        "imports": {
+          "idb": "./node_modules/idb/build/index.js"
+        }
+      }
+    </script>
   </head>
   <body>
     <header>
@@ -454,7 +461,32 @@
         </footer>
       </section>
     </div>
-    <script type="module" src="./app/main.js"></script>
+    <script type="module">
+      const renderBootError = (message) => {
+        const banner = document.getElementById('error-banner');
+        if (!banner) return;
+        banner.textContent = message;
+        banner.dataset.visible = 'true';
+      };
+
+      const loadAppModule = async () => {
+        try {
+          await import('./app/main.js');
+          return;
+        } catch (primaryError) {
+          console.warn('Falha ao carregar ./app/main.js. Tentando fallback ./dist/app/main.js.', primaryError);
+        }
+
+        try {
+          await import('./dist/app/main.js');
+        } catch (fallbackError) {
+          console.error('Falha ao carregar módulo principal do AppBase.', fallbackError);
+          renderBootError('Não foi possível inicializar o AppBase. Execute "npm run build" e recarregue a página.');
+        }
+      };
+
+      void loadAppModule();
+    </script>
     <script>
       (function () {
         const baseHref = (document.querySelector('base') || {}).href;
