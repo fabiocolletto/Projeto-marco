@@ -2,6 +2,7 @@
   --header-height: 64px;
   --footer-height: 48px;
   --sidebar-width: clamp(280px, 80vw, 360px);
+  --viewport-safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 * {
@@ -260,9 +261,17 @@ body:focus-within .app-shell:focus {
   overflow: hidden;
 }
 
+@supports (height: 100svh) {
+  .app-shell {
+    min-height: 100svh;
+    height: 100svh;
+  }
+}
+
 @supports (height: 100dvh) {
   .app-shell {
     height: 100dvh;
+    min-height: 100dvh;
   }
 }
 
@@ -838,6 +847,9 @@ button:focus-visible,
 .panel {
   background: var(--color-surface);
   padding: clamp(1.25rem, 2.5vw, 2.25rem);
+  padding-bottom: calc(
+    clamp(1.25rem, 2.5vw, 2.25rem) + var(--viewport-safe-area-bottom)
+  );
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -975,6 +987,7 @@ button:focus-visible,
   gap: 0.75rem;
   flex-wrap: wrap;
   padding: 0.75rem 0;
+  padding-bottom: calc(0.75rem + var(--viewport-safe-area-bottom));
 }
 
 .app-footer .footer-copy {
