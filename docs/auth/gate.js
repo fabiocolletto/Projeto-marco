@@ -11,6 +11,8 @@ const getSessionStorage = () => {
     return null;
 };
 export const rememberPostAuthHash = () => {
+    if (typeof window === 'undefined')
+        return;
     if (isAuthRoute(window.location.hash))
         return;
     const storage = getSessionStorage();
@@ -30,34 +32,43 @@ export const consumePostAuthHash = () => {
     }
     return null;
 };
+const setHash = (next) => {
+    if (typeof window === 'undefined')
+        return;
+    if (window.location.hash !== next) {
+        window.location.hash = next;
+    }
+};
 export const ensureMasterGate = async () => {
-    const master = await getMaster();
-    const auth = getAuthToken();
-    if (!master) {
-        rememberPostAuthHash();
-        if (window.location.hash !== '#/setup/master') {
-            window.location.hash = '#/setup/master';
+    try {
+        const master = await getMaster();
+        const auth = getAuthToken();
+        if (!master) {
+            rememberPostAuthHash();
+            setHash('#/setup/master');
+            applyRouteFromLocation();
+            renderShell();
+            return { allowed: false, master: null };
         }
-        applyRouteFromLocation();
-        renderShell();
-        return { allowed: false, master: null };
-    }
-    const deviceId = getDeviceId();
-    const needsDeviceSync = master.deviceId !== deviceId;
-    if (auth !== MASTER_AUTH_TOKEN || needsDeviceSync) {
-        rememberPostAuthHash();
-        if (window.location.hash !== '#/login/master') {
-            window.location.hash = '#/login/master';
+        const deviceId = getDeviceId();
+        const needsDeviceSync = master.deviceId !== deviceId;
+        if (auth !== MASTER_AUTH_TOKEN || needsDeviceSync) {
+            rememberPostAuthHash();
+            setHash('#/login/master');
+            applyRouteFromLocation();
+            renderShell();
+            return { allowed: false, master };
         }
-        applyRouteFromLocation();
-        renderShell();
-        return { allowed: false, master };
+        if (typeof window !== 'undefined' && isAuthRoute(window.location.hash)) {
+            const pending = consumePostAuthHash();
+            setHash(pending ?? '#/');
+            applyRouteFromLocation();
+        }
+        return { allowed: true, master };
     }
-    if (isAuthRoute(window.location.hash)) {
-        const pending = consumePostAuthHash();
-        window.location.hash = pending ?? '#/';
-        applyRouteFromLocation();
+    catch (error) {
+        console.error('Falha ao garantir acesso master', error);
+        return { allowed: true, master: null };
     }
-    return { allowed: true, master };
 };
 //# sourceMappingURL=gate.js.map

@@ -1,10 +1,31 @@
 {
   "miniapps": [
     {
-      "id": "admin-panel",
-      "name": "Painel Administrativo",
+      "id": "miniapp-data-cleanup",
+      "name": "Limpeza de Dados do Dispositivo",
+      "path": "miniapps/DataCleanup/manifest.json",
+      "adminOnly": true,
+      "visible": true
+    },
+    {
+      "id": "admin-panel-1",
+      "name": "Painel Administrativo 1",
       "path": "miniapps/AdminPanel/manifest.json",
       "adminOnly": true,
+      "visible": true
+    },
+    {
+      "id": "admin-panel-2",
+      "name": "Painel Administrativo 2",
+      "path": "miniapps/AdminPanelSecundario/manifest.json",
+      "adminOnly": true,
+      "visible": true
+    },
+    {
+      "id": "user-panel",
+      "name": "Painel do Usuário",
+      "path": "miniapps/UserPanel/manifest.json",
+      "adminOnly": false,
       "visible": true
     }
   ],

@@ -1,6 +1,7 @@
 import { renderCatalog } from '../registry/renderCatalog.js';
 import { getManifestCache, getRegistryEntries, getAppConfig } from './state.js';
-import { getRouteMode, getSelectedAppId, setSelectedAppId, setRouteForSelection } from './router.js';
+import { getRouteMode, getSelectedAppId, setSelectedAppId, setRouteForSelection, clearStoredSelectedAppId, } from './router.js';
+import { scheduleStatusBarUpdate } from './statusBar.js';
 import { isMasterAuthenticated } from '../auth/session.js';
 import { renderMasterSignup } from '../widgets/MasterSignup.js';
 import { renderMasterLogin } from '../widgets/MasterLogin.js';
@@ -14,6 +15,8 @@ let panelPlaceholder = null;
 let frame = null;
 let closeButton = null;
 let placeholderDefault = '';
+let renderGeneration = 0;
+const isLatestRender = (generation) => generation === renderGeneration;
 const onCloseButtonClick = () => {
     setSelectedAppId(null);
     setRouteForSelection(null);
@@ -105,12 +108,25 @@ const renderCatalogLocked = (message) => {
     info.textContent = message;
     info.setAttribute('role', 'note');
     catalogContainer.append(info);
+    catalogContainer.dataset.locked = 'true';
+    catalogContainer.setAttribute('aria-disabled', 'true');
 };
-const mountAuthWidget = async (renderer) => {
+const unlockCatalog = () => {
     attachDom();
+    if (!catalogContainer)
+        return;
+    delete catalogContainer.dataset.locked;
+    catalogContainer.removeAttribute('aria-disabled');
+};
+const mountAuthWidget = async (renderer, generation) => {
+    attachDom();
+    if (!isLatestRender(generation))
+        return;
     resetFrame();
     closeButton?.setAttribute('hidden', '');
     setSelectedAppId(null);
+    if (!isLatestRender(generation))
+        return;
     if (!panelPlaceholder)
         return;
     panelPlaceholder.hidden = false;
@@ -118,6 +134,8 @@ const mountAuthWidget = async (renderer) => {
     const host = document.createElement('div');
     panelPlaceholder.append(host);
     await renderer(host);
+    if (!isLatestRender(generation))
+        return;
 };
 const applyPanelHeader = (title, subtitle) => {
     attachDom();
@@ -146,7 +164,7 @@ const resolveManifest = async (entry) => {
     cache.set(entry.id, payload);
     return payload;
 };
-const renderMiniAppByEntry = async (entry) => {
+const renderMiniAppByEntry = async (entry, generation) => {
     attachDom();
     try {
         clearError();
@@ -154,11 +172,9 @@ const renderMiniAppByEntry = async (entry) => {
         hidePlaceholder();
         closeButton?.removeAttribute('hidden');
         const payload = await resolveManifest(entry);
-        if (getSelectedAppId() !== entry.id)
+        if (!isLatestRender(generation) || getSelectedAppId() !== entry.id)
             return;
-        applyPanelHeader(payload.manifest.name ?? entry.name, payload.manifest.version
-            ? `Versão ${payload.manifest.version}`
-            : 'MiniApp carregado');
+        applyPanelHeader(payload.manifest.name ?? entry.name, payload.manifest.version ? `Versão ${payload.manifest.version}` : 'MiniApp carregado');
         if (frame) {
             frame.hidden = false;
             if (frame.src !== payload.entryUrl) {
@@ -169,35 +185,42 @@ const renderMiniAppByEntry = async (entry) => {
     }
     catch (error) {
         console.error(error);
-        showError('Falha ao carregar o MiniApp selecionado. Tente novamente.');
+        showError('Falha ao carregar o MiniApp selecionado. Verifique a configuração e tente novamente.');
         resetFrame();
-        showPlaceholder('Não foi possível carregar o MiniApp selecionado.');
+        showPlaceholder('Não foi possível carregar o MiniApp selecionado. Verifique a configuração.');
         closeButton?.removeAttribute('hidden');
         setTitle();
     }
 };
 export function renderShell() {
     attachDom();
+    const generation = ++renderGeneration;
+    void scheduleStatusBarUpdate();
     const entries = getRegistryEntries();
     const routeMode = getRouteMode();
     const masterAuthenticated = isMasterAuthenticated();
     const visibleEntries = filterVisibleEntries(entries, masterAuthenticated);
     const selectedId = getSelectedAppId();
-    if (routeMode !== 'catalog') {
-        renderCatalogLocked('Disponível após autenticação master.');
-        clearError();
-    }
-    else if (catalogContainer) {
-        renderCatalog(catalogContainer, visibleEntries, selectedId);
+    if (catalogContainer) {
+        if (visibleEntries.length === 0) {
+            const lockMessage = masterAuthenticated
+                ? 'Nenhum MiniApp disponível no momento.'
+                : 'Autentique-se para visualizar o catálogo.';
+            renderCatalogLocked(lockMessage);
+            clearError();
+        }
+        else {
+            unlockCatalog();
+            renderCatalog(catalogContainer, visibleEntries, selectedId);
+            if (routeMode !== 'catalog') {
+                clearError();
+            }
+        }
     }
     if (routeMode === 'setupMaster') {
-        void (async () => {
-            applyPanelHeader('Cadastro Master', 'Crie a conta master para este dispositivo');
-            setTitle('Cadastro Master');
-            await mountAuthWidget((container) => {
-                renderMasterSignup(container, { mode: 'create' });
-            });
-        })();
+        applyPanelHeader('Cadastro Master', 'Crie a conta master para este dispositivo');
+        setTitle('Cadastro Master');
+        void mountAuthWidget((container) => renderMasterSignup(container, { mode: 'create' }), generation);
         return;
     }
     if (routeMode === 'loginMaster') {
@@ -205,22 +228,42 @@ export function renderShell() {
             applyPanelHeader('Login Master', 'Autentique-se para liberar o catálogo completo');
             setTitle('Login Master');
             const master = await getMaster();
-            await mountAuthWidget((container) => renderMasterLogin(container, { master }));
+            if (!isLatestRender(generation))
+                return;
+            await mountAuthWidget((container) => renderMasterLogin(container, { master: master ?? null }), generation);
         })();
         return;
     }
     if (!selectedId) {
+        if (masterAuthenticated && visibleEntries.length === 1) {
+            const [singleEntry] = visibleEntries;
+            if (singleEntry) {
+                setSelectedAppId(singleEntry.id);
+                setRouteForSelection(singleEntry.id);
+                return;
+            }
+        }
         clearError();
         resetFrame();
         applyPanelHeader('Catálogo', masterAuthenticated
             ? 'Escolha um MiniApp para abrir no painel central'
             : 'Autentique-se para visualizar todos os MiniApps');
         if (masterAuthenticated) {
-            showPlaceholder();
+            if (visibleEntries.length) {
+                showPlaceholder();
+            }
+            else {
+                showPlaceholder('Nenhum MiniApp disponível no momento.');
+            }
         }
         else {
-            renderCatalogLocked('Autentique-se para visualizar o catálogo.');
-            showPlaceholder('Faça login como master para liberar o catálogo.');
+            if (visibleEntries.length === 0) {
+                showPlaceholder('Faça login como master para liberar o catálogo.');
+            }
+            else {
+                unlockCatalog();
+                showPlaceholder('MiniApps públicos estão disponíveis. Autentique-se para acessar conteúdos privados.');
+            }
         }
         setTitle();
         closeButton?.setAttribute('hidden', '');
@@ -232,9 +275,10 @@ export function renderShell() {
         (entry.adminOnly && !getAppConfig().publicAdmin && !masterAuthenticated)) {
         setSelectedAppId(null);
         setRouteForSelection(null);
+        clearStoredSelectedAppId();
         showError('MiniApp não disponível.');
         return;
     }
-    void renderMiniAppByEntry(entry);
+    void renderMiniAppByEntry(entry, generation);
 }
 //# sourceMappingURL=renderShell.js.map
