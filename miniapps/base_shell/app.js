@@ -344,7 +344,6 @@ async function bootstrap() {
   setupAuthForms();
   setupUserManagement();
   updateRegistrationAccess();
-  updateOnboardingState();
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleKeydown);
   window.addEventListener('popstate', handleHistoryNavigation);
@@ -377,7 +376,6 @@ async function bootstrap() {
     refreshUserMenu();
     refreshUserManagement();
     updateRegistrationAccess();
-    updateOnboardingState();
     updateNavigationVisibility(user);
     redirectIfAuthenticationRequired(user);
     updateAdminDashboardMetrics();
@@ -3221,21 +3219,6 @@ function updateRegistrationAccess() {
     node.hidden = !allowRegistration;
   });
   refreshShellMiniApps(allowRegistration);
-}
-
-function updateOnboardingState() {
-  const container = document.querySelector('[data-onboarding]');
-  if (!container) return;
-  const user = currentUser();
-  const hasUsers = listUsers().length > 0;
-  container.hidden = Boolean(user);
-  container.setAttribute('aria-hidden', user ? 'true' : 'false');
-  container.querySelectorAll('[data-onboarding-empty]').forEach(node => {
-    node.hidden = hasUsers;
-  });
-  container.querySelectorAll('[data-onboarding-existing]').forEach(node => {
-    node.hidden = !hasUsers;
-  });
 }
 
 function formatUserDate(timestamp) {
