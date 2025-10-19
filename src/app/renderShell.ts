@@ -16,7 +16,7 @@ import { getMaster } from '../auth/store.js';
 
 const APP_TITLE = 'AppBase';
 
-let catalogContainer: HTMLSelectElement | null = null;
+let catalogContainer: HTMLElement | null = null;
 let errorBanner: HTMLDivElement | null = null;
 let panelTitle: HTMLHeadingElement | null = null;
 let panelSubtitle: HTMLSpanElement | null = null;
@@ -34,7 +34,7 @@ const onCloseButtonClick = () => {
 };
 
 const attachDom = (): void => {
-  const nextCatalog = document.querySelector<HTMLSelectElement>('#app-selector');
+  const nextCatalog = document.querySelector<HTMLElement>('#catalog-cards');
   if (nextCatalog !== catalogContainer) {
     catalogContainer = nextCatalog;
   }
@@ -121,11 +121,19 @@ const renderCatalogLocked = (message: string) => {
   attachDom();
   if (!catalogContainer) return;
   catalogContainer.innerHTML = '';
-  const option = document.createElement('option');
-  option.value = '';
-  option.textContent = message;
-  catalogContainer.append(option);
-  catalogContainer.disabled = true;
+  const info = document.createElement('p');
+  info.textContent = message;
+  info.setAttribute('role', 'note');
+  catalogContainer.append(info);
+  catalogContainer.dataset.locked = 'true';
+  catalogContainer.setAttribute('aria-disabled', 'true');
+};
+
+const unlockCatalog = () => {
+  attachDom();
+  if (!catalogContainer) return;
+  delete catalogContainer.dataset.locked;
+  catalogContainer.removeAttribute('aria-disabled');
 };
 
 const mountAuthWidget = async (
@@ -136,7 +144,6 @@ const mountAuthWidget = async (
   if (!isLatestRender(generation)) return;
   resetFrame();
   closeButton?.setAttribute('hidden', '');
-  if (!isLatestRender(generation)) return;
   setSelectedAppId(null);
   if (!isLatestRender(generation)) return;
   if (!panelPlaceholder) return;
@@ -176,7 +183,7 @@ const resolveManifest = async (entry: RegistryEntry): Promise<ManifestCacheEntry
   return payload;
 };
 
-const renderMiniAppByEntry = async (entry: RegistryEntry): Promise<void> => {
+const renderMiniAppByEntry = async (entry: RegistryEntry, generation: number): Promise<void> => {
   attachDom();
   try {
     clearError();
@@ -185,11 +192,12 @@ const renderMiniAppByEntry = async (entry: RegistryEntry): Promise<void> => {
     closeButton?.removeAttribute('hidden');
 
     const payload = await resolveManifest(entry);
-    if (getSelectedAppId() !== entry.id) return;
+    if (!isLatestRender(generation) || getSelectedAppId() !== entry.id) return;
 
-    applyPanelHeader(payload.manifest.name ?? entry.name, payload.manifest.version
-      ? `Versão ${payload.manifest.version}`
-      : 'MiniApp carregado');
+    applyPanelHeader(
+      payload.manifest.name ?? entry.name,
+      payload.manifest.version ? `Versão ${payload.manifest.version}` : 'MiniApp carregado',
+    );
     if (frame) {
       frame.hidden = false;
       if (frame.src !== payload.entryUrl) {
@@ -221,7 +229,7 @@ export function renderShell(): void {
     renderCatalogLocked('Disponível após autenticação master.');
     clearError();
   } else if (catalogContainer) {
-    catalogContainer.disabled = false;
+    unlockCatalog();
     renderCatalog(catalogContainer, visibleEntries, selectedId);
   }
 
@@ -244,12 +252,13 @@ export function renderShell(): void {
   }
 
   if (!selectedId) {
-    if (visibleEntries.length === 1) {
-      const singleEntry = visibleEntries[0];
-      if (!singleEntry) return;
-      setSelectedAppId(singleEntry.id);
-      setRouteForSelection(singleEntry.id);
-      return;
+    if (masterAuthenticated && visibleEntries.length === 1) {
+      const [singleEntry] = visibleEntries;
+      if (singleEntry) {
+        setSelectedAppId(singleEntry.id);
+        setRouteForSelection(singleEntry.id);
+        return;
+      }
     }
 
     clearError();
@@ -260,6 +269,7 @@ export function renderShell(): void {
         ? 'Escolha um MiniApp para abrir no painel central'
         : 'Autentique-se para visualizar todos os MiniApps',
     );
+
     if (masterAuthenticated) {
       if (visibleEntries.length) {
         showPlaceholder();
@@ -270,6 +280,7 @@ export function renderShell(): void {
       renderCatalogLocked('Autentique-se para visualizar o catálogo.');
       showPlaceholder('Faça login como master para liberar o catálogo.');
     }
+
     setTitle();
     closeButton?.setAttribute('hidden', '');
     return;
@@ -288,5 +299,5 @@ export function renderShell(): void {
     return;
   }
 
-  void renderMiniAppByEntry(entry);
+  void renderMiniAppByEntry(entry, generation);
 }

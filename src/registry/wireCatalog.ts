@@ -1,15 +1,22 @@
-import { setSelectedAppId, setRouteForSelection } from '../app/router.js';
+import { getSelectedAppId, setSelectedAppId, setRouteForSelection } from '../app/router.js';
 
-export function wireCatalog(selector: HTMLSelectElement): () => void {
-  const handleChange = () => {
-    const value = selector.value.trim();
-    const next = value.length ? value : null;
+export function wireCatalog(container: HTMLElement): () => void {
+  const handleClick = (event: Event) => {
+    const target = event.target as HTMLElement | null;
+    const card = target?.closest<HTMLElement>('[data-app-id]');
+    if (!card) return;
+
+    const id = card.getAttribute('data-app-id');
+    if (!id) return;
+
+    const isActive = getSelectedAppId() === id;
+    const next = isActive ? null : id;
     setSelectedAppId(next);
     setRouteForSelection(next);
   };
 
-  selector.addEventListener('change', handleChange);
+  container.addEventListener('click', handleClick);
   return () => {
-    selector.removeEventListener('change', handleChange);
+    container.removeEventListener('click', handleClick);
   };
 }

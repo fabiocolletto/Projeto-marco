@@ -6,7 +6,7 @@ import { wireCatalog } from '../registry/wireCatalog.js';
 import { ensureMasterGate } from '../auth/gate.js';
 import { initStatusBar, scheduleStatusBarUpdate } from './statusBar.js';
 
-let catalogContainer: HTMLSelectElement | null = null;
+let catalogContainer: HTMLElement | null = null;
 let panelSubtitle: HTMLSpanElement | null = null;
 let disposeCatalogListener: (() => void) | null = null;
 let detachGlobalListeners: (() => void) | null = null;
@@ -47,8 +47,8 @@ const clearError = () => {
   delete banner.dataset.visible;
 };
 
-const ensureCatalogWired = (): HTMLSelectElement | null => {
-  const nextContainer = document.querySelector<HTMLSelectElement>('#app-selector');
+const ensureCatalogWired = (): HTMLElement | null => {
+  const nextContainer = document.querySelector<HTMLElement>('#catalog-cards');
   if (nextContainer !== catalogContainer) {
     disposeCatalogListener?.();
     catalogContainer = nextContainer;
@@ -67,7 +67,13 @@ const ensurePanelSubtitle = (): HTMLSpanElement | null => {
 const setCatalogLoadingState = (loading: boolean): void => {
   const catalog = ensureCatalogWired();
   if (catalog) {
-    catalog.disabled = loading;
+    if (loading) {
+      catalog.dataset.loading = 'true';
+      catalog.setAttribute('aria-busy', 'true');
+    } else {
+      delete catalog.dataset.loading;
+      catalog.removeAttribute('aria-busy');
+    }
   }
 
   const subtitleElement = ensurePanelSubtitle();
@@ -180,7 +186,11 @@ export async function bootstrap(): Promise<void> {
   const config = parseConfig();
   setAppConfig(config);
 
-  await ensureMasterGate();
+  const gate = await ensureMasterGate();
+  if (!gate.allowed) {
+    setCatalogLoadingState(false);
+    return;
+  }
 
   setCatalogLoadingState(true);
   try {
