@@ -225,12 +225,20 @@ export function renderShell(): void {
   const visibleEntries = filterVisibleEntries(entries, masterAuthenticated);
   const selectedId = getSelectedAppId();
 
-  if (routeMode !== 'catalog') {
-    renderCatalogLocked('Disponível após autenticação master.');
-    clearError();
-  } else if (catalogContainer) {
-    unlockCatalog();
-    renderCatalog(catalogContainer, visibleEntries, selectedId);
+  if (catalogContainer) {
+    if (visibleEntries.length === 0) {
+      const lockMessage = masterAuthenticated
+        ? 'Nenhum MiniApp disponível no momento.'
+        : 'Autentique-se para visualizar o catálogo.';
+      renderCatalogLocked(lockMessage);
+      clearError();
+    } else {
+      unlockCatalog();
+      renderCatalog(catalogContainer, visibleEntries, selectedId);
+      if (routeMode !== 'catalog') {
+        clearError();
+      }
+    }
   }
 
   if (routeMode === 'setupMaster') {
@@ -277,8 +285,14 @@ export function renderShell(): void {
         showPlaceholder('Nenhum MiniApp disponível no momento.');
       }
     } else {
-      renderCatalogLocked('Autentique-se para visualizar o catálogo.');
-      showPlaceholder('Faça login como master para liberar o catálogo.');
+      if (visibleEntries.length === 0) {
+        showPlaceholder('Faça login como master para liberar o catálogo.');
+      } else {
+        unlockCatalog();
+        showPlaceholder(
+          'MiniApps públicos estão disponíveis. Autentique-se para acessar conteúdos privados.',
+        );
+      }
     }
 
     setTitle();
