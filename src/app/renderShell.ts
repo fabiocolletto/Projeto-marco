@@ -207,9 +207,9 @@ const renderMiniAppByEntry = async (entry: RegistryEntry, generation: number): P
     setTitle(payload.manifest.name ?? entry.name);
   } catch (error) {
     console.error(error);
-    showError('Falha ao carregar o MiniApp selecionado. Tente novamente.');
+    showError('Falha ao carregar o MiniApp selecionado. Verifique a configuração e tente novamente.');
     resetFrame();
-    showPlaceholder('Não foi possível carregar o MiniApp selecionado.');
+    showPlaceholder('Não foi possível carregar o MiniApp selecionado. Verifique a configuração.');
     closeButton?.removeAttribute('hidden');
     setTitle();
   }
