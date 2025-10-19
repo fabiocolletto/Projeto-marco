@@ -1,6 +1,13 @@
 {
   "miniapps": [
     {
+      "id": "miniapp-data-cleanup",
+      "name": "Limpeza de Dados do Dispositivo",
+      "path": "miniapps/DataCleanup/manifest.json",
+      "adminOnly": true,
+      "visible": true
+    },
+    {
       "id": "admin-panel-1",
       "name": "Painel Administrativo 1",
       "path": "miniapps/AdminPanel/manifest.json",
