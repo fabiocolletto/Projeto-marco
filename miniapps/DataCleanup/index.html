@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="title">Limpeza de Dados</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="cleanup" data-cleanup-root>
+      <header class="cleanup__header">
+        <span class="cleanup__badge" data-i18n="badge">MiniApp</span>
+        <h1 data-i18n="title">Limpeza de Dados do Dispositivo</h1>
+        <p data-i18n="description">
+          Remova todo o conteúdo armazenado pelo AppBase neste dispositivo.
+        </p>
+      </header>
+      <section class="cleanup__status" data-status-panel hidden>
+        <strong data-status-message></strong>
+        <p data-status-details></p>
+      </section>
+      <section class="cleanup__actions">
+        <article class="cleanup__warning">
+          <h2 data-i18n="warning.title">Atenção</h2>
+          <p data-i18n="warning.text">
+            Esta ação é irreversível. Todos os perfis, configurações, registros de telemetria e sessões
+            autenticadas serão removidos. Após a limpeza você precisará configurar o aplicativo novamente.
+          </p>
+        </article>
+        <button type="button" class="cleanup__button" data-cleanup-button>
+          <span data-i18n="button.label">Limpar dados do dispositivo</span>
+        </button>
+      </section>
+      <footer class="cleanup__footer" data-i18n="footer">
+        Recomendamos exportar um backup antes de realizar a limpeza.
+      </footer>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

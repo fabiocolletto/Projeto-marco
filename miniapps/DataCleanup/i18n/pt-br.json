@@ -1,0 +1,27 @@
+{
+  "badge": "MiniApp",
+  "title": "Limpeza de Dados do Dispositivo",
+  "description": "Remova todo o conteúdo armazenado pelo AppBase neste dispositivo.",
+  "warning": {
+    "title": "Atenção",
+    "text": "Esta ação é irreversível. Todos os perfis, configurações, telemetria e sessões autenticadas serão removidos."
+  },
+  "button": {
+    "label": "Limpar dados do dispositivo",
+    "confirm": "Tem certeza? Esta ação removerá permanentemente todos os dados locais.",
+    "working": "Limpando dados…",
+    "done": "Limpeza concluída"
+  },
+  "status": {
+    "working": "Limpando dados locais…",
+    "success": "Dados removidos com sucesso.",
+    "error": "Não foi possível concluir a limpeza."
+  },
+  "details": {
+    "working": "Aguarde enquanto removemos bancos, caches e credenciais.",
+    "success": "Reabra o AppBase para iniciar uma nova configuração.",
+    "error": "Revise se há outras guias do AppBase abertas e repita a operação.",
+    "blocked": "Feche outros painéis ou guias do AppBase e tente novamente."
+  },
+  "footer": "Recomendamos exportar um backup antes de realizar a limpeza."
+}
