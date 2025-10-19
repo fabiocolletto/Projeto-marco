@@ -1,7 +1,18 @@
 import router from "./router.js";
 
+const REGISTRY_URL = new URL("./market/registry.json", import.meta.url);
+
+function buildMiniAppPath(id) {
+  if (!id) {
+    return location.pathname;
+  }
+  const target = new URL(`../../miniapps/${id}/`, window.location.href);
+  return `${target.pathname}${target.search}${target.hash}`;
+}
+
 export async function mountMarket(root=document.querySelector("#app")){
-  const { apps } = await (await fetch("/appbase/market/registry.json")).json();
+  const response = await fetch(REGISTRY_URL);
+  const { apps } = await response.json();
   root.innerHTML = `<section class="grid" id="market-grid"></section>`;
   const grid = root.querySelector("#market-grid");
 
@@ -25,7 +36,7 @@ export async function mountMarket(root=document.querySelector("#app")){
         <p>${app.summary || ""}</p>
       </div>
     `;
-    el.querySelector("button").onclick = () => router.navigate(`#/miniapps/${app.id}`);
+    el.querySelector("button").onclick = () => router.navigate(buildMiniAppPath(app.id));
     grid.appendChild(el);
   }
 }

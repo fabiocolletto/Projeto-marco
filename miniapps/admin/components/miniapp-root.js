@@ -1,7 +1,7 @@
 import {
   getSessionPreferences,
   subscribeToSessionPreferences,
-} from "/appbase/shell/session.js";
+} from "../../../appbase/shell/session.js";
 import {
   createTranslator,
   getMessages,
@@ -10,9 +10,12 @@ import {
 import { renderCatalog } from "../views/catalog.js";
 import { renderUsers } from "../views/users.js";
 
+const tokensCssUrl = new URL("../../../packages/ui/tokens.css", import.meta.url);
+const componentsCssUrl = new URL("../../../packages/ui/components.css", import.meta.url);
+
 const baseStyles = `
-  @import "/packages/ui/tokens.css";
-  @import "/packages/ui/components.css";
+  @import "${tokensCssUrl.pathname}";
+  @import "${componentsCssUrl.pathname}";
   :host { display: block; }
   .admin-app { display: flex; flex-direction: column; gap: 1.25rem; }
   .admin-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }

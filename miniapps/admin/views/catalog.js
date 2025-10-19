@@ -34,6 +34,8 @@ function updateVisibility(list, index) {
   return next;
 }
 
+const REGISTRY_URL = new URL("../../../appbase/market/registry.json", import.meta.url);
+
 export async function renderCatalog(root, { t, locale }) {
   root.innerHTML = `
     <section class="catalog-view">
@@ -47,7 +49,7 @@ export async function renderCatalog(root, { t, locale }) {
   }
   let apps = [];
   try {
-    const response = await fetch("/appbase/market/registry.json");
+    const response = await fetch(REGISTRY_URL);
     const payload = await response.json();
     if (payload && Array.isArray(payload.apps)) {
       apps = payload.apps.map(cloneApp);
