@@ -19,6 +19,9 @@ Shell responsivo com cabeçalho, barra lateral recolhível e painel central expa
 5. Use o menu de usuário para acessar o painel e gerenciar contas registradas.
 6. Acesse o item “Mini-apps” na barra lateral para abrir o catálogo, selecione “Mini-app 1” ou “Mini-app 2” e visualize o skeleton correspondente enquanto o conteúdo é carregado.
 
+### Comportamento offline
+- Abra `miniapps/base_shell/index.html` diretamente via `file://` para validar o modo offline. O shell usa dicionários embutidos para carregar as traduções base e manter os botões de login/cadastro operacionais mesmo sem servidor.
+
 ### Verificação visual rápida
 Após subir o servidor de desenvolvimento, abra `http://localhost:4173/` em um navegador.
 Você deve visualizar:
