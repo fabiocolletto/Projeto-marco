@@ -160,6 +160,59 @@ describe('Master auth flow', () => {
     expect(window.location.hash).toBe('#/login/master');
   });
 
+  it('mantém MiniApps públicos visíveis quando o master não está autenticado', async () => {
+    mountShellDom();
+
+    const { setRegistryEntries } = await import('../../src/app/state.js');
+    const { renderShell } = await import('../../src/app/renderShell.js');
+
+    setRegistryEntries([
+      { id: 'public', name: 'Público', path: './public', adminOnly: false },
+      { id: 'privado', name: 'Privado', path: './privado', adminOnly: true },
+    ]);
+
+    const { setRouteMode } = await import('../../src/app/router.js');
+    setRouteMode('catalog');
+    renderShell();
+
+    const catalog = document.querySelector<HTMLDivElement>('#catalog-cards');
+    expect(catalog?.dataset.locked).toBeUndefined();
+
+    const cards = Array.from(
+      catalog?.querySelectorAll<HTMLButtonElement>('[data-app-id]') ?? [],
+    );
+    expect(cards).toHaveLength(1);
+    expect(cards[0]?.dataset.appId).toBe('public');
+
+    const placeholder = document.querySelector<HTMLDivElement>('#panel-placeholder');
+    expect(placeholder?.textContent ?? '').toContain('MiniApps públicos estão disponíveis');
+  });
+
+  it('mantém cards públicos visíveis na tela de login master', async () => {
+    mountShellDom();
+
+    const { setRegistryEntries } = await import('../../src/app/state.js');
+    const { renderShell } = await import('../../src/app/renderShell.js');
+    const { setRouteMode } = await import('../../src/app/router.js');
+
+    setRegistryEntries([
+      { id: 'public', name: 'Público', path: './public', adminOnly: false },
+      { id: 'privado', name: 'Privado', path: './privado', adminOnly: true },
+    ]);
+
+    setRouteMode('loginMaster');
+    renderShell();
+
+    const catalog = document.querySelector<HTMLDivElement>('#catalog-cards');
+    expect(catalog?.dataset.locked).toBeUndefined();
+
+    const cards = Array.from(
+      catalog?.querySelectorAll<HTMLButtonElement>('[data-app-id]') ?? [],
+    );
+    expect(cards).toHaveLength(1);
+    expect(cards[0]?.dataset.appId).toBe('public');
+  });
+
   it('keeps full catalog available after restart when master authenticated', async () => {
     mountShellDom();
     const { ensureMasterGate } = await import('../../src/auth/gate.js');

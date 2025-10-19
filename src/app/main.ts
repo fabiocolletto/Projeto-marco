@@ -186,20 +186,21 @@ export async function bootstrap(): Promise<void> {
   const config = parseConfig();
   setAppConfig(config);
 
-  const gate = await ensureMasterGate();
-  if (!gate.allowed) {
-    setCatalogLoadingState(false);
-    return;
-  }
-
   setCatalogLoadingState(true);
+  const gate = await ensureMasterGate();
   try {
     const registry = await fetchRegistry();
     setRegistryEntries(registry);
-    restoreLastSelection(registry, config);
+    if (gate.allowed) {
+      restoreLastSelection(registry, config);
+    }
+
     renderShell();
-    normalizeQuery(registry);
-    applyRouteFromLocation();
+
+    if (gate.allowed) {
+      normalizeQuery(registry);
+      applyRouteFromLocation();
+    }
   } catch (error) {
     console.error(error);
     setRegistryEntries([]);
