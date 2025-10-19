@@ -1,4 +1,5 @@
 import { renderShell } from './renderShell.js';
+import { normalizeRegistryId } from './registryNormalizer.js';
 
 const LAST_SELECTED_STORAGE_KEY = 'appbase:last-selected-miniapp';
 
@@ -66,7 +67,8 @@ export function applyRouteFromLocation(): void {
   const match = hash.match(/^#\/app\/(.+)$/);
   const rawId = match?.[1];
   const decodedId = typeof rawId === 'string' ? decodeURIComponent(rawId) : null;
-  setSelectedAppId(decodedId);
+  const normalizedId = decodedId ? normalizeRegistryId(decodedId) : null;
+  setSelectedAppId(normalizedId);
   setRouteMode('catalog');
   renderShell();
 }
