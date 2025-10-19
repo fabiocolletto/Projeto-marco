@@ -12,6 +12,7 @@ import {
   getTheme,
   onThemeChange
 } from '../../packages/base.theme/theme.js';
+import { EMBEDDED_DICTIONARIES } from './i18n/embedded.js';
 import {
   register,
   login,
@@ -74,6 +75,25 @@ function resolveSupportedLang(candidate) {
     return PRIMARY_LANG_RESOURCE_MAP.get(primary);
   }
   return null;
+}
+
+function getEmbeddedDictionary(lang) {
+  if (!lang) return undefined;
+  const resolved = resolveSupportedLang(lang) || lang;
+  if (resolved && Object.prototype.hasOwnProperty.call(EMBEDDED_DICTIONARIES, resolved)) {
+    return EMBEDDED_DICTIONARIES[resolved];
+  }
+  const normalized = normalizeLangVariant(resolved);
+  if (normalized && NORMALIZED_LANG_RESOURCE_MAP.has(normalized)) {
+    const canonical = NORMALIZED_LANG_RESOURCE_MAP.get(normalized);
+    if (canonical && Object.prototype.hasOwnProperty.call(EMBEDDED_DICTIONARIES, canonical)) {
+      return EMBEDDED_DICTIONARIES[canonical];
+    }
+  }
+  if (Object.prototype.hasOwnProperty.call(EMBEDDED_DICTIONARIES, lang)) {
+    return EMBEDDED_DICTIONARIES[lang];
+  }
+  return undefined;
 }
 
 function detectPreferredLanguage() {
@@ -400,12 +420,57 @@ async function bootstrap() {
 }
 
 async function loadDictionaries() {
-  await Promise.all(
+  const results = await Promise.allSettled(
     LANG_RESOURCES.map(async resource => {
-      const dictionary = await readDictionary(resource);
-      registerDictionary(resource.lang, dictionary);
+      try {
+        const dictionary = await readDictionary(resource);
+        return { resource, dictionary };
+      } catch (error) {
+        throw { resource, error };
+      }
     })
   );
+
+  const registered = new Set();
+  const failures = [];
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      const { resource, dictionary } = result.value;
+      registerDictionary(resource.lang, dictionary);
+      registered.add(resource.lang);
+    } else {
+      const { resource, error } = result.reason;
+      const fallback = getEmbeddedDictionary(resource.lang);
+      if (fallback) {
+        console.warn('i18n: registering embedded dictionary fallback', resource.lang, error);
+        registerDictionary(resource.lang, fallback);
+        registered.add(resource.lang);
+      } else {
+        failures.push({ resource, error });
+      }
+    }
+  }
+
+  for (const resource of LANG_RESOURCES) {
+    if (!registered.has(resource.lang)) {
+      const fallback = getEmbeddedDictionary(resource.lang);
+      if (fallback) {
+        console.warn('i18n: ensuring embedded dictionary registration', resource.lang);
+        registerDictionary(resource.lang, fallback);
+        registered.add(resource.lang);
+      } else {
+        failures.push({ resource, error: new Error(`i18n: missing embedded dictionary for ${resource.lang}`) });
+      }
+    }
+  }
+
+  if (failures.length) {
+    throw new AggregateError(
+      failures.map(entry => entry.error),
+      'i18n: unable to register dictionaries'
+    );
+  }
 }
 
 async function loadRevisionInfo() {
@@ -630,12 +695,26 @@ async function readDictionary(resource) {
     }
     return await response.json();
   } catch (error) {
+    const reasons = [error];
+    if (error instanceof TypeError) {
+      const embedded = getEmbeddedDictionary(resource.lang);
+      if (embedded) {
+        console.warn('i18n: using embedded dictionary due to network failure', resource.lang, error);
+        return embedded;
+      }
+    }
     try {
       const module = await import(/* @vite-ignore */ url.href, { assert: { type: 'json' } });
-      return module.default;
+      return module?.default ?? module;
     } catch (fallbackError) {
-      console.error('i18n: unable to load dictionary', resource.lang, error, fallbackError);
-      throw error;
+      reasons.push(fallbackError);
+      const embedded = getEmbeddedDictionary(resource.lang);
+      if (embedded) {
+        console.warn('i18n: falling back to embedded dictionary', resource.lang, ...reasons);
+        return embedded;
+      }
+      console.error('i18n: unable to load dictionary', resource.lang, ...reasons);
+      throw new AggregateError(reasons, `i18n: unable to load dictionary for ${resource.lang}`);
     }
   }
 }
