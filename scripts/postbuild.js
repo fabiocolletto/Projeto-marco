@@ -13,20 +13,23 @@ await fs.copy(path.join(rootDir, 'miniapps'), path.join(distDir, 'miniapps'), {
   overwrite: true,
 });
 
-const vendorSource = path.join(rootDir, 'node_modules', 'idb', 'build');
-const vendorTarget = path.join(distDir, 'vendor', 'idb');
-if (await fs.pathExists(vendorSource)) {
-  await fs.ensureDir(vendorTarget);
-  await fs.copy(vendorSource, vendorTarget, { overwrite: true });
+const vendorSourceFile = path.join(rootDir, 'node_modules', 'idb', 'build', 'index.js');
+const vendorTargetFile = path.join(distDir, 'vendor', 'idb', 'index.js');
+if (await fs.pathExists(vendorSourceFile)) {
+  await fs.ensureDir(path.dirname(vendorTargetFile));
+  await fs.copyFile(vendorSourceFile, vendorTargetFile);
 }
 
 const indexPath = path.join(distDir, 'index.html');
 if (await fs.pathExists(indexPath)) {
   const html = await fs.readFile(indexPath, 'utf-8');
-  const nextHtml = html.replace(
-    './node_modules/idb/build/index.js',
-    './vendor/idb/index.js',
-  );
+  const hasImportMap = /<script type="importmap">[\s\S]*?"idb"/m.test(html);
+  const nextHtml = hasImportMap
+    ? html
+    : html.replace(
+        '</head>',
+        `  <script type="importmap">\n    {\n      "imports": {\n        "idb": "./vendor/idb/index.js"\n      }\n    }\n  </script>\n</head>`,
+      );
   if (nextHtml !== html) {
     await fs.writeFile(indexPath, nextHtml, 'utf-8');
   }
