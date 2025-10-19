@@ -269,6 +269,13 @@ body:focus-within .app-shell:focus {
   }
 }
 
+@supports (height: 100svh) {
+  .app-shell {
+    min-height: 100svh;
+    height: 100svh;
+  }
+}
+
 @supports (height: 100dvh) {
   .app-shell {
     height: 100dvh;
