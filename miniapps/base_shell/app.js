@@ -158,6 +158,7 @@ const SHELL_APP_ID = 'base.shell';
 const USER_PANEL_EMBED_ROUTE = './auth/profile.html?embed=panel';
 const USER_PANEL_STANDALONE_ROUTE = './auth/profile.html';
 const USER_PANEL_URL = new URL(USER_PANEL_STANDALONE_ROUTE, import.meta.url);
+const SHELL_HOME_URL = new URL('./index.html', import.meta.url);
 const USER_PANEL_MINI_APP_ID = 'base.shell.user-panel';
 const USER_PANEL_MINI_APP = {
   id: USER_PANEL_MINI_APP_ID,
@@ -193,6 +194,10 @@ const REGISTER_PANEL_MINI_APP = {
 const LOGIN_URL = new URL('./auth/login.html', import.meta.url);
 const REGISTER_URL = new URL('./auth/register.html', import.meta.url);
 const HOME_REDIRECT_DELAY = 500;
+const SHELL_NAVIGATION_MESSAGE_TYPE = 'miniapp.shell.navigate';
+const SHELL_NAVIGATION_ACTIONS = Object.freeze({
+  OPEN_HOME: 'open-home'
+});
 
 const DEFERRED_FEEDBACK_KEY = 'miniapp.base.deferredFeedback';
 
@@ -392,6 +397,7 @@ async function bootstrap() {
   document.addEventListener('click', handleDocumentClick);
   document.addEventListener('keydown', handleKeydown);
   window.addEventListener('popstate', handleHistoryNavigation);
+  window.addEventListener('message', handleShellMessage);
   onLanguageChange(lang => {
     document.documentElement.lang = lang;
     updateRevisionMetadata();
@@ -1938,17 +1944,6 @@ function setupUserPanelShortcut() {
   });
 }
 
-function showUserPanelShortcut(options = {}) {
-  const button = document.getElementById('btnUserPanel');
-  const trigger = document.getElementById('btnUser');
-  const menu = document.getElementById('user-menu');
-  if (!button || !trigger || !menu) return;
-  openMenu(trigger, menu);
-  if (options.focus !== false && typeof button.focus === 'function') {
-    window.requestAnimationFrame(() => button.focus());
-  }
-}
-
 function handleUserPanelShortcutClick() {
   return false;
 }
@@ -2461,6 +2456,34 @@ function formatDecimal(value, fractionDigits = 1) {
   }
 }
 
+function handleShellMessage(event) {
+  if (!event || event.origin !== window.location.origin) {
+    return;
+  }
+  const data = event.data;
+  if (!data || typeof data !== 'object') {
+    return;
+  }
+  if (data.type !== SHELL_NAVIGATION_MESSAGE_TYPE) {
+    return;
+  }
+  const payload = data.payload || {};
+  const action = payload.action || data.action;
+  if (action === SHELL_NAVIGATION_ACTIONS.OPEN_HOME) {
+    closeMiniAppMenu();
+    setActiveMiniApp(null, { skipHistory: true });
+    focusPanel();
+    if (payload.highlight !== false) {
+      window.requestAnimationFrame(() => {
+        highlightElement(document.getElementById('panel'));
+      });
+    }
+    window.requestAnimationFrame(() => {
+      displayDeferredFeedback();
+    });
+  }
+}
+
 function handleDocumentClick(event) {
   if (adminGatewayControls && adminGatewayControls.overlay && !adminGatewayControls.overlay.hidden) {
     const { overlay, panel } = adminGatewayControls;
@@ -2626,8 +2649,9 @@ function setupAuthForms() {
           },
           { remember }
         );
-        announceTo(feedback, t('auth.feedback.loggedIn', { name: user.name }));
-        showUserPanelShortcut({ focus: true });
+        const successMessage = t('auth.feedback.loggedIn', { name: user.name });
+        announceTo(feedback, successMessage);
+        navigateToShellHome({ feedbackMessage: successMessage });
       } catch (error) {
         const message = error.message === 'auth:invalid-credentials'
           ? t('auth.feedback.invalid')
@@ -2795,7 +2819,9 @@ function setupAuthForms() {
           phoneRegionField.value = 'BR';
         }
         window.setTimeout(() => {
-          window.location.replace(USER_PANEL_URL.href);
+          navigateToShellHome({
+            feedbackMessage: successMessage
+          });
         }, 300);
       } catch (error) {
         const message = error.message === 'auth:user-exists'
@@ -3467,5 +3493,40 @@ function highlightElement(element) {
     highlightTimers.delete(element);
   }, PANEL_HIGHLIGHT_DURATION);
   highlightTimers.set(element, timeout);
+}
+
+function navigateToShellHome({ feedbackMessage, highlight = true } = {}) {
+  if (feedbackMessage) {
+    storeDeferredFeedback(feedbackMessage);
+  }
+  let notifiedParent = false;
+  if (window.top && window.top !== window.self) {
+    let canNotifyParent = false;
+    try {
+      canNotifyParent = window.top.location?.origin === window.location.origin;
+    } catch (error) {
+      canNotifyParent = false;
+    }
+    if (canNotifyParent) {
+      try {
+        window.top.postMessage(
+          {
+            type: SHELL_NAVIGATION_MESSAGE_TYPE,
+            payload: {
+              action: SHELL_NAVIGATION_ACTIONS.OPEN_HOME,
+              highlight: highlight !== false
+            }
+          },
+          window.location.origin
+        );
+        notifiedParent = true;
+      } catch (error) {
+        console.warn('app: unable to notify parent shell after navigation', error);
+      }
+    }
+  }
+  if (!notifiedParent) {
+    window.location.replace(SHELL_HOME_URL.href);
+  }
 }
 

@@ -60,6 +60,7 @@
   "auth.register.terms.suffix": "available on the 5Horas website.",
   "auth.register.showPassword": "Show password",
   "auth.register.hidePassword": "Hide password",
+  "auth.register.haveAccount": "I already have an account",
   "auth.register.panelTitle": "Initial registration",
   "auth.register.panelMessage": "Complete the form to create the first owner account.",
   "auth.profile.title": "Profile",
