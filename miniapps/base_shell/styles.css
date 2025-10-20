@@ -219,6 +219,21 @@ body.auth-login .panel-content {
   text-decoration: underline;
 }
 
+.auth-register__login-link {
+  margin-top: 0.75rem;
+  text-align: center;
+}
+
+.auth-register__login-link-anchor {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.auth-register__login-link-anchor:hover,
+.auth-register__login-link-anchor:focus {
+  text-decoration: underline;
+}
+
 .auth-login__links {
   margin-top: 0.25rem;
   display: flex;
