@@ -1,66 +1,404 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>MiniApp Base • Shell</title>
-    <link rel="stylesheet" href="../../packages/ui/base.css" />
-    <link rel="stylesheet" href="../../packages/ui/components.css" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>MiniApp Base Shell • AppBase</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="../../packages/base.theme/theme.css" />
+    <style>
+      .app-footer{display:flex;justify-content:flex-end;align-items:center;padding:.5rem 1rem;font:12px/1.4 system-ui,sans-serif;opacity:.9}
+      .app-footer .footer-content{margin-right:auto}
+      #mem-status{padding:.15rem .5rem;border-radius:.5rem;border:1px solid transparent}
+      #mem-status.ok{border-color:#0a0}
+      #mem-status.warn{border-color:#c90}
+      #mem-status.crit{border-color:#c00}
+      #mem-status.off{border-color:#666}
+    </style>
   </head>
   <body>
-    <header class="toolbar" data-role="shell-header">
-      <div class="left header-brand">
-        <img
-          id="logo"
-          class="brand"
-          src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
-          alt="MiniApp Base"
-        />
-        <strong>MiniApp Base</strong>
+    <div class="app-shell" data-state="ready">
+      <header class="app-header" role="banner">
+        <button id="btnMenu" class="ghost" aria-label="Menu" aria-expanded="false">
+          <span aria-hidden="true">☰</span>
+        </button>
+        <div id="nav-overlay-root"></div>
+        <button
+          class="brand-button"
+          type="button"
+          data-admin-trigger
+          aria-haspopup="dialog"
+          aria-expanded="false"
+        >
+          <span class="sr-only" data-i18n="app.title">MiniApp Base</span>
+          <img
+            id="logo"
+            class="brand"
+            src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+            alt=""
+            aria-hidden="true"
+            data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+            data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
+          />
+        </button>
+        <h1 id="page-title" data-i18n="app.title">MiniApp Base</h1>
+        <div class="toolbar" role="group" aria-label="Global actions">
+          <div class="user-menu" role="group" aria-label="User menu">
+            <button
+              id="btnUser"
+              class="ghost"
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="user-menu"
+            >
+              <span class="user-avatar" aria-hidden="true">☰</span>
+              <span id="current-user" class="sr-only">--</span>
+            </button>
+          </div>
+        </div>
+      </header>
+      <div class="layout">
+        <main id="panel" class="panel" role="main" tabindex="-1">
+          <section class="panel-content">
+            <div class="stage-fallback" data-stage-fallback>
+              <h2 data-miniapp-title data-i18n="panel.welcomeTitle">Bem-vindo(a)!</h2>
+              <p data-miniapp-message data-i18n="panel.welcomeMessage">
+                Selecione uma opção no menu para começar a explorar seu miniaplicativo.
+              </p>
+            </div>
+            <div class="stage-host" data-stage-host aria-live="polite" aria-busy="false"></div>
+            <div class="cta-group">
+              <button class="cta" type="button" data-action="open-login" data-i18n="panel.actions.login">
+                Acessar
+              </button>
+              <button
+                class="cta secondary"
+                type="button"
+                data-action="open-register"
+                data-register-guard
+                data-i18n="panel.actions.register"
+              >
+                Criar conta
+              </button>
+            </div>
+          </section>
+        </main>
       </div>
-      <nav class="right" aria-label="Atalhos do shell">
-        <a class="btn ghost" href="../../">Marketplace</a>
-        <a
-          class="btn ghost"
-          href="../../miniapps/admin#create"
-          data-admin-only
-          hidden
-        >Criar MiniApp</a>
-        <a
-          class="btn ghost"
-          href="../../miniapps/admin#catalog"
-          data-admin-only
-          hidden
-        >Editar/Ordenar Market</a>
-        <a
-          class="btn primary"
-          href="../../miniapps/admin"
-          data-admin-only
-          hidden
-        >Admin</a>
-        <button
-          type="button"
-          class="btn ghost"
-          id="theme-toggle"
-          aria-live="polite"
+      <footer id="app-footer" class="app-footer" role="contentinfo">
+        <div class="footer-content">
+          <small class="footer-copy">
+            &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+          </small>
+          <small class="footer-revision">
+            <span data-revision data-i18n="footer.revisionFallback">
+              MiniApp Base · Revisão indisponível
+            </span>
+            <a
+              class="footer-revision-log"
+              href="../../miniapps/base_shell/REVISION_LOG.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              data-i18n="footer.revisionLog"
+            >
+              Log de revisões
+            </a>
+          </small>
+        </div>
+        <span id="mem-status" role="status" aria-live="polite">Memória: verificando…</span>
+      </footer>
+    </div>
+    <div
+      id="user-menu"
+      class="menu-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-menu-title"
+      hidden
+    >
+      <div class="menu-overlay__panel" role="document" data-user-menu-panel>
+        <header class="menu-overlay__header">
+          <h2 id="user-menu-title" class="menu-overlay__title" data-i18n="settings.userMenuTitle">
+            Menu do usuário
+          </h2>
+          <button type="button" class="ghost icon-only menu-overlay__close" data-user-menu-close>
+            <span class="sr-only" data-i18n="actions.close">Fechar</span>
+            <span aria-hidden="true">✕</span>
+          </button>
+        </header>
+        <ul class="menu">
+          <li>
+            <button id="btnLang" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
+              <span class="menu-text" data-i18n="settings.language">Idioma</span>
+              <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
+              <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
+              <span class="menu-text" data-i18n="settings.theme">Tema</span>
+              <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnUserPanel" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true">👤</span>
+              <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
+              <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
+            </button>
+          </li>
+          <li class="menu-divider" role="separator" aria-hidden="true"></li>
+          <li>
+            <button class="menu-item" type="button" data-action="profile">
+              <span class="menu-icon" aria-hidden="true">🔐</span>
+              <span class="menu-text" data-i18n="actions.profile">Perfil</span>
+            </button>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="reset-data">
+              <span class="menu-icon" aria-hidden="true">🗑️</span>
+              <span class="menu-text" data-i18n="actions.resetData">Excluir todos os dados</span>
+            </button>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="logout">
+              <span class="menu-icon" aria-hidden="true">🚪</span>
+              <span class="menu-text" data-i18n="actions.logout">Sair</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div
+      id="language-dialog"
+      class="language-dialog-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="language-dialog-title"
+      aria-describedby="language-dialog-description"
+      hidden
+    >
+      <div class="language-dialog__panel" role="document">
+        <h2
+          id="language-dialog-title"
+          class="language-dialog__title"
+          data-i18n="language.dialog.title"
         >
-          <span aria-hidden="true" data-theme-icon>☀️</span>
-          <span data-theme-label>Tema</span>
-          <span class="sr-only" data-theme-description>Alternar tema</span>
-        </button>
-        <button
-          type="button"
-          class="btn ghost"
-          id="language-toggle"
+          Preferências de idioma
+        </h2>
+        <p
+          id="language-dialog-description"
+          class="language-dialog__description"
+          data-i18n="language.dialog.description"
         >
-          <span aria-hidden="true" data-language-icon>🇧🇷</span>
-          <span data-language-label>Idioma</span>
-          <span class="sr-only" data-language-description>Alternar idioma</span>
-        </button>
-      </nav>
-    </header>
-    <main id="app" class="app-shell" role="main"></main>
-    <footer id="status">Conectado ao hub principal.</footer>
-    <script type="module" src="./main.js"></script>
+          Escolha o idioma da interface. As alterações são aplicadas imediatamente.
+        </p>
+        <div
+          class="language-dialog__options"
+          role="group"
+          data-language-options
+        ></div>
+        <div class="language-dialog__actions">
+          <button
+            type="button"
+            class="ghost"
+            data-language-cancel
+            data-i18n="actions.cancel"
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="admin-gateway"
+      data-admin-gateway
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-gateway-label"
+      hidden
+    >
+      <div class="admin-gateway__panel" data-admin-gateway-panel>
+        <label
+          id="admin-gateway-label"
+          class="sr-only"
+          for="admin-gateway-input"
+          data-i18n="admin.gateway.inputLabel"
+        >
+          Código administrativo
+        </label>
+        <input
+          id="admin-gateway-input"
+          class="admin-gateway__input"
+          type="password"
+          inputmode="text"
+          autocomplete="off"
+          spellcheck="false"
+          data-admin-gateway-input
+        />
+      </div>
+    </div>
+    <div
+      class="admin-dashboard"
+      data-admin-dashboard
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-dashboard-title"
+      hidden
+    >
+      <div class="admin-dashboard__panel" data-admin-dashboard-panel role="document">
+        <header class="admin-dashboard__header">
+          <div>
+            <p class="admin-dashboard__kicker" data-i18n="admin.dashboard.kicker">Modo manutenção</p>
+            <h2
+              id="admin-dashboard-title"
+              class="admin-dashboard__title"
+              data-i18n="admin.dashboard.title"
+            >
+              Central de comando
+            </h2>
+            <p class="admin-dashboard__subtitle" data-i18n="admin.dashboard.subtitle">
+              Visão consolidada para manter o shell saudável e previsível.
+            </p>
+          </div>
+          <button type="button" class="ghost icon-only" data-admin-dashboard-close>
+            <span class="sr-only" data-i18n="actions.close">Fechar</span>
+            <span aria-hidden="true">✕</span>
+          </button>
+        </header>
+        <div class="admin-dashboard__badges">
+          <span class="admin-dashboard__badge" data-admin-status="language"></span>
+          <span class="admin-dashboard__badge" data-admin-status="theme"></span>
+          <span class="admin-dashboard__badge" data-admin-status="miniapps"></span>
+        </div>
+        <section class="admin-dashboard__section">
+          <h3 class="admin-dashboard__section-title" data-i18n="admin.dashboard.section.overview">
+            Visão geral
+          </h3>
+          <div class="admin-dashboard__grid">
+            <article class="admin-dashboard__card" data-admin-metric="users">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">👥</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.users">
+                  Usuários cadastrados
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="owners">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">🛡️</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.owners">
+                  Administradores
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="miniapps">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">🧭</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.miniapps">
+                  Mini-apps ativos
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="uptime">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">📶</span>
+                <h4 class="admin-dashboard__card-title" data-i18n="admin.dashboard.metric.uptime">
+                  Disponibilidade
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+            <article class="admin-dashboard__card" data-admin-metric="satisfaction">
+              <header class="admin-dashboard__card-header">
+                <span class="admin-dashboard__card-icon" aria-hidden="true">💬</span>
+                <h4
+                  class="admin-dashboard__card-title"
+                  data-i18n="admin.dashboard.metric.satisfaction"
+                >
+                  Satisfação
+                </h4>
+              </header>
+              <p class="admin-dashboard__metric-value" data-admin-value>0</p>
+              <p class="admin-dashboard__metric-trend" data-admin-trend></p>
+            </article>
+          </div>
+        </section>
+        <section class="admin-dashboard__section admin-dashboard__section--split">
+          <div class="admin-dashboard__stack">
+            <h3 class="admin-dashboard__section-title" data-i18n="admin.dashboard.section.health">
+              Saúde operacional
+            </h3>
+            <div class="admin-dashboard__surface">
+              <h4 class="admin-dashboard__surface-title" data-i18n="admin.dashboard.health.incidents">
+                Incidentes
+              </h4>
+              <p
+                class="admin-dashboard__surface-text"
+                data-i18n="admin.dashboard.health.incidents.none"
+              >
+                Nenhum incidente registrado nas últimas 48 horas.
+              </p>
+            </div>
+            <div class="admin-dashboard__surface" data-admin-health="capacity">
+              <h4 class="admin-dashboard__surface-title" data-i18n="admin.dashboard.health.capacity">
+                Capacidade
+              </h4>
+              <div
+                class="admin-dashboard__progress"
+                role="img"
+                aria-live="polite"
+                data-admin-capacity-aria
+              >
+                <span class="admin-dashboard__progress-bar" data-admin-capacity-bar></span>
+              </div>
+              <p class="admin-dashboard__surface-text" data-admin-capacity-label></p>
+            </div>
+          </div>
+          <div class="admin-dashboard__stack">
+            <h3 class="admin-dashboard__section-title" data-i18n="admin.dashboard.section.activity">
+              Atividades recentes
+            </h3>
+            <ul class="admin-dashboard__list" data-admin-activity></ul>
+            <div class="admin-dashboard__actions">
+              <button
+                type="button"
+                class="admin-dashboard__action"
+                data-admin-action="refresh"
+                data-i18n="admin.dashboard.action.refresh"
+              >
+                Atualizar métricas
+              </button>
+              <button
+                type="button"
+                class="admin-dashboard__action"
+                data-admin-action="logs"
+                data-i18n="admin.dashboard.action.openLogs"
+              >
+                Abrir logs
+              </button>
+              <button
+                type="button"
+                class="admin-dashboard__action"
+                data-admin-action="miniapps"
+                data-i18n="admin.dashboard.action.manageApps"
+              >
+                Gerenciar mini-apps
+              </button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <script defer type="module" src="../../miniapps/base_shell/sys/memory-status.js"></script>
+    <script defer type="module" src="./app/main.js"></script>
   </body>
 </html>

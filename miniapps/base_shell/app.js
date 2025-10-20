@@ -156,7 +156,8 @@ const ADMIN_UPTIME_PERCENT = 99.97;
 const SHELL_APP_ID = 'base.shell';
 
 const USER_PANEL_EMBED_ROUTE = './auth/profile.html?embed=panel';
-const USER_PANEL_URL = new URL(USER_PANEL_EMBED_ROUTE, import.meta.url);
+const USER_PANEL_STANDALONE_ROUTE = './auth/profile.html';
+const USER_PANEL_URL = new URL(USER_PANEL_STANDALONE_ROUTE, import.meta.url);
 const USER_PANEL_MINI_APP_ID = 'base.shell.user-panel';
 const USER_PANEL_MINI_APP = {
   id: USER_PANEL_MINI_APP_ID,
@@ -315,8 +316,13 @@ export function evaluatePasswordStrength(password) {
   const hasSymbol = /[^A-Za-z0-9]/.test(value);
 
   let score = 0;
-  if (length >= 8) score += 1;
-  if (length >= 12) score += 1;
+  if (length >= 12) {
+    score += 2;
+  } else if (length >= 8) {
+    score += 1;
+  } else if (length >= 6) {
+    score += 1;
+  }
   if (hasLower && hasUpper) score += 1;
   if (hasNumber) score += 1;
   if (hasSymbol) score += 1;
@@ -338,8 +344,14 @@ async function bootstrap() {
   initTheme(getTheme().mode);
   await loadDictionaries();
   const storedLanguage = readStoredLanguagePreference();
-  const preferredLanguage = storedLanguage ? null : detectPreferredLanguage();
-  const initialLang = initI18n(storedLanguage || preferredLanguage || 'en-US');
+  let initialLanguageCandidate = storedLanguage;
+  if (!initialLanguageCandidate) {
+    const detectedLanguage = detectPreferredLanguage();
+    if (detectedLanguage && detectedLanguage !== 'en-US') {
+      initialLanguageCandidate = detectedLanguage;
+    }
+  }
+  const initialLang = initI18n(initialLanguageCandidate || 'pt-BR');
   document.documentElement.lang = initialLang;
   revisionInfo = await loadRevisionInfo();
   updateRevisionMetadata();
@@ -895,7 +907,7 @@ function setupNavigationOverlay() {
     previousFocus: null
   };
 
-  miniAppMenuControls = { list: miniAppList, section: miniAppSection };
+  miniAppMenuControls = { list: miniAppList, section: miniAppSection, title: miniAppTitle };
 
   renderNavigationItems();
   applyTranslations();
@@ -1089,19 +1101,33 @@ function setupMiniAppMenu(items) {
 
 function renderMiniAppMenu() {
   if (!miniAppMenuControls) return;
-  const { list, section } = miniAppMenuControls;
+  const { list, section, title } = miniAppMenuControls;
   if (!list || !section) return;
   const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
   const visibleItems = items.filter(item => !item?.hidden);
   list.innerHTML = '';
   if (!visibleItems.length) {
+    if (title) {
+      title.hidden = true;
+      title.setAttribute('aria-hidden', 'true');
+    }
+    list.hidden = true;
+    list.setAttribute('aria-hidden', 'true');
     section.hidden = true;
     section.setAttribute('aria-hidden', 'true');
+    section.style.display = 'none';
     refreshSidebarNavigationLabels();
     return;
   }
+  if (title) {
+    title.hidden = false;
+    title.removeAttribute('aria-hidden');
+  }
+  list.hidden = false;
+  list.removeAttribute('aria-hidden');
   section.hidden = false;
-  section.setAttribute('aria-hidden', 'false');
+  section.removeAttribute('aria-hidden');
+  section.style.display = '';
   visibleItems.forEach(item => {
     const listItem = document.createElement('li');
     listItem.className = 'navigation-overlay__miniapp-item';
@@ -1399,11 +1425,6 @@ function getInitialMiniAppId(items) {
     }
   } catch (error) {
     console.warn('mini-app stage: unable to read location', error);
-  }
-  const allowRegistration = shouldAllowPublicRegistration();
-  const hasRegisterMiniApp = list.some(item => item.id === REGISTER_PANEL_MINI_APP_ID);
-  if (!currentUser() && allowRegistration && hasRegisterMiniApp) {
-    return REGISTER_PANEL_MINI_APP_ID;
   }
   return null;
 }
@@ -2072,8 +2093,7 @@ function handleUserAction(action) {
       announce(successMessage);
     }
     window.setTimeout(() => {
-      const targetUrl = shouldAllowPublicRegistration() ? REGISTER_URL.href : LOGIN_URL.href;
-      window.location.href = targetUrl;
+      window.location.href = LOGIN_URL.href;
     }, HOME_REDIRECT_DELAY);
     return;
   }
@@ -2128,17 +2148,26 @@ function redirectIfAuthenticationRequired(user) {
   const registerForm = document.getElementById('register-form');
   const allowRegistration = shouldAllowPublicRegistration();
   const registerMiniAppAvailable = allowRegistration && hasRegisterMiniApp();
+  let registerMiniAppRequested = false;
+  if (registerMiniAppAvailable) {
+    if (miniAppState.activeId === REGISTER_PANEL_MINI_APP_ID) {
+      registerMiniAppRequested = true;
+    } else {
+      try {
+        const url = new URL(window.location.href);
+        registerMiniAppRequested = url.searchParams.get('miniapp') === REGISTER_PANEL_MINI_APP_ID;
+      } catch (error) {
+        console.warn('auth: unable to inspect mini-app location', error);
+      }
+    }
+  }
   if (registerForm && allowRegistration) {
     return;
   }
-  if (registerMiniAppAvailable) {
+  if (registerMiniAppRequested) {
     return;
   }
   if (allowRegistration && window.location.href === REGISTER_URL.href) {
-    return;
-  }
-  if (allowRegistration) {
-    window.location.replace(REGISTER_URL.href);
     return;
   }
   if (window.location.href === LOGIN_URL.href) {
@@ -2677,6 +2706,7 @@ function setupAuthForms() {
     applyPasswordStrength(registerState.passwordLevel);
 
     let registerPasswordToggle = null;
+    const emailField = registerForm.querySelector('#register-email');
     if (passwordField) {
       registerPasswordToggle = setupPasswordToggle({
         input: passwordField,
@@ -2712,6 +2742,17 @@ function setupAuthForms() {
     }
 
     let isProcessingRegistration = false;
+    registerForm.addEventListener('submit', () => {
+      window.requestAnimationFrame(() => {
+        if (!feedback || (feedback.textContent && feedback.textContent.trim())) {
+          return;
+        }
+        if (emailField?.classList.contains('is-invalid')) {
+          announceFeedback(t('auth.feedback.invalidEmail'), 'error');
+        }
+      });
+    });
+
     registerForm.addEventListener('register:completed', event => {
       if (event.target !== registerForm) {
         return;
@@ -2741,7 +2782,11 @@ function setupAuthForms() {
           role: 'owner',
           phoneRegion: phoneRegionValue
         });
-        announceFeedback(t('auth.feedback.registered'));
+        const successMessage = t('auth.feedback.registered');
+        announceFeedback(successMessage, 'success');
+        if (feedback) {
+          feedback.textContent = successMessage;
+        }
         updateUserDisplay(user);
         registerForm.reset();
         registerPasswordToggle?.setVisibility(false);
@@ -3198,7 +3243,7 @@ function openUserManagementForm(mode, user) {
     ownerOption.hidden = !isOwner;
   }
   roleField.value = isOwner ? 'owner' : 'member';
-  roleField.disabled = mode !== 'edit' || isOwner;
+  roleField.disabled = isOwner;
   phoneField.required = true;
   passwordField.required = mode !== 'edit';
   passwordField.placeholder = mode === 'edit'
