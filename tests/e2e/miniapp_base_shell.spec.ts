@@ -470,4 +470,32 @@ test.describe('MiniApp Base shell', () => {
       .toBe('pt-br');
     await expect.poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.theme'))).toBeNull();
   });
+
+  test('rodapé expande e recolhe informações extras', async ({ page }) => {
+    await page.goto(`${baseURL}/miniapps/base_shell/auth/login.html`);
+
+    const footer = page.locator('#app-footer');
+    const toggle = footer.locator('[data-footer-toggle]');
+    const extras = footer.locator('[data-footer-extra]');
+    const revision = extras.locator('[data-revision]');
+    const memStatus = extras.locator('#mem-status');
+
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(extras).toHaveAttribute('hidden', '');
+    await expect(extras).toHaveJSProperty('hidden', true);
+
+    await toggle.click();
+
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+    await expect(extras).not.toHaveAttribute('hidden');
+    await expect(extras).toBeVisible();
+    await expect(revision).toBeVisible();
+    await expect(memStatus).toBeVisible();
+
+    await toggle.click();
+
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await expect(extras).toHaveAttribute('hidden', '');
+    await expect(extras).toHaveJSProperty('hidden', true);
+  });
 });
