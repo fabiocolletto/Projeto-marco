@@ -1,0 +1,23 @@
+{
+  "name": "MiniApp Base",
+  "short_name": "MiniApp",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "https://5horas.com.br/wp-content/uploads/2025/10/Icone-Light-Claro-500x500px.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://5horas.com.br/wp-content/uploads/2025/10/Icone-Light-Claro-500x500px.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
