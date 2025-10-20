@@ -2790,21 +2790,29 @@ function setupAuthForms() {
       const name = String(userDetail.fullName || userDetail.name || '').trim();
       const email = String(userDetail.email || '').trim();
       const phoneNumber = String(userDetail.phoneNumber || userDetail.phone || '').trim();
+      const phoneCountry = String(detail.phoneCountry || userDetail.countryCode || '').replace(/\D+/g, '');
       const password = String(credentials.password || '');
-      if (!name || !email || !phoneNumber || !password) {
+      if (!phoneNumber || !password) {
         return;
       }
+
+      const normalizedDigits = phoneNumber.replace(/\D+/g, '');
+      const fallbackEmail = email
+        || (normalizedDigits ? `${normalizedDigits}@phone.local` : '');
+      const resolvedEmail = fallbackEmail || `user_${Date.now()}@phone.local`;
+      const resolvedName = name || phoneNumber;
 
       isProcessingRegistration = true;
       try {
         const phoneRegionValue = detail.phoneRegion === 'INTL' ? 'INTL' : 'BR';
         const user = register({
-          name,
-          email,
+          name: resolvedName,
+          email: resolvedEmail,
           phone: phoneNumber,
           password,
           role: 'owner',
-          phoneRegion: phoneRegionValue
+          phoneRegion: phoneRegionValue,
+          phoneCountry: phoneCountry || null
         });
         const successMessage = t('auth.feedback.registered');
         announceFeedback(successMessage, 'success');
@@ -2817,6 +2825,10 @@ function setupAuthForms() {
         setPasswordStrength('');
         if (phoneRegionField) {
           phoneRegionField.value = 'BR';
+        }
+        const phoneCountryInput = registerForm.querySelector('#register-phone-country');
+        if (phoneCountryInput) {
+          phoneCountryInput.value = '55';
         }
         window.setTimeout(() => {
           navigateToShellHome({

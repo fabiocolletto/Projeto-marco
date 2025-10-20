@@ -55,34 +55,26 @@
           </div>
           <form id="register-form" class="auth-login__form" novalidate>
             <h1 id="page-title" data-i18n="auth.register.title">Criar conta</h1>
-            <div class="field">
-              <label for="register-name" data-i18n="auth.form.fullName">Nome completo</label>
-              <input
-                id="register-name"
-                name="name"
-                type="text"
-                required
-                autocomplete="name"
-                placeholder="Ex.: Ana Maria Silva"
-                data-i18n="auth.form.fullName.placeholder"
-              />
-            </div>
-            <div class="field">
-              <label for="register-email" data-i18n="auth.form.email">E-mail</label>
-              <input id="register-email" name="email" type="email" required autocomplete="email" />
-            </div>
             <div class="field auth-register__phone-field" data-phone-field>
               <label for="register-phone" data-i18n="auth.form.phone">Celular</label>
               <div class="auth-register__phone-controls" data-phone-controls>
-                <select
-                  id="register-phone-region"
-                  name="phoneRegion"
-                  data-phone-region
-                  autocomplete="tel-country-code"
-                >
-                  <option value="BR" selected data-i18n="auth.form.phone.region.br">Brasil (+55)</option>
-                  <option value="INTL" data-i18n="auth.form.phone.region.intl">Número internacional</option>
-                </select>
+                <div class="auth-register__phone-country">
+                  <label for="register-phone-country" class="sr-only" data-i18n="auth.form.phone.countryCode">
+                    Código do país
+                  </label>
+                  <input
+                    id="register-phone-country"
+                    name="phoneCountry"
+                    type="text"
+                    inputmode="numeric"
+                    pattern="\\d{2}"
+                    maxlength="2"
+                    required
+                    data-phone-country
+                    value="55"
+                  />
+                </div>
+                <input type="hidden" name="phoneRegion" value="BR" data-phone-region />
                 <input
                   id="register-phone"
                   name="phone"
@@ -93,9 +85,6 @@
                   data-phone-input
                 />
               </div>
-              <p class="form-hint" data-i18n="auth.form.phone.hint">
-                Selecione Brasil (+55) para formatar automaticamente ou informe o código do país em números internacionais.
-              </p>
             </div>
             <div class="field auth-register__password-field">
               <label for="register-password" data-i18n="auth.form.password">Senha</label>
@@ -158,7 +147,6 @@
                   >
                     termos legais
                   </a>
-                  <span data-i18n="auth.register.terms.suffix">disponíveis no site da 5Horas.</span>
                 </span>
               </label>
             </div>

@@ -170,27 +170,53 @@ export function currentUser() {
 }
 
 export function register(
-  { name, email, password, role = 'member', phone = '', phoneRegion = null },
+  { name, email, password, role = 'member', phone = '', phoneRegion = null, phoneCountry = null },
   options = {}
 ) {
   const { autoLogin = true } = options;
   const users = listUsers();
-  if (users.some(user => user.email === email)) {
-    throw new Error('auth:user-exists');
+  const normalizedEmail = typeof email === 'string' ? email.trim() : '';
+  const normalizedPhone = typeof phone === 'string' ? phone.trim() : '';
+  const phoneDigits = normalizedPhone.replace(/\D+/g, '');
+  const candidateId = generateId();
+  let resolvedEmail = normalizedEmail;
+  if (normalizedEmail) {
+    const emailLower = normalizedEmail.toLowerCase();
+    if (users.some(user => (user.email || '').toLowerCase() === emailLower)) {
+      throw new Error('auth:user-exists');
+    }
+  } else {
+    resolvedEmail = phoneDigits ? `${phoneDigits}@phone.local` : `${candidateId}@user.local`;
   }
+
+  if (!normalizedEmail) {
+    const [local, domain] = resolvedEmail.split('@');
+    const baseLocal = local || 'user';
+    const safeDomain = domain || 'user.local';
+    let uniqueEmail = `${baseLocal}@${safeDomain}`.toLowerCase();
+    let counter = 1;
+    while (users.some(user => (user.email || '').toLowerCase() === uniqueEmail)) {
+      uniqueEmail = `${baseLocal}+${counter}@${safeDomain}`;
+      counter += 1;
+    }
+    resolvedEmail = uniqueEmail;
+  }
+
   const normalizedRole = normalizeRole(role);
   if (normalizedRole === 'owner' && users.some(user => user.role === 'owner')) {
     throw new Error('auth:owner-exists');
   }
-  const normalizedPhoneRegion = derivePhoneRegion(phoneRegion ?? undefined, phone);
+  const normalizedPhoneRegion = derivePhoneRegion(phoneRegion ?? undefined, normalizedPhone);
+  const resolvedName = typeof name === 'string' && name.trim() ? name.trim() : normalizedPhone || 'Usuário';
   const newUser = {
-    id: generateId(),
-    name,
-    email,
+    id: candidateId,
+    name: resolvedName,
+    email: resolvedEmail,
     password,
     role: normalizedRole,
-    phone,
+    phone: normalizedPhone,
     phoneRegion: normalizedPhoneRegion,
+    phoneCountry: typeof phoneCountry === 'string' && phoneCountry.trim() ? phoneCountry.trim() : undefined,
     createdAt: new Date().toISOString()
   };
   users.push(newUser);
@@ -206,7 +232,23 @@ export function register(
 export function login({ email, password }, options = {}) {
   const { remember = true } = options;
   const users = listUsers();
-  const user = users.find(candidate => candidate.email === email && candidate.password === password);
+  const identifier = typeof email === 'string' ? email.trim() : '';
+  const identifierLower = identifier.toLowerCase();
+  const identifierDigits = identifier.replace(/\D+/g, '');
+  const user = users.find(candidate => {
+    if (candidate.password !== password) {
+      return false;
+    }
+    const candidateEmail = (candidate.email || '').trim();
+    if (candidateEmail && candidateEmail.toLowerCase() === identifierLower) {
+      return true;
+    }
+    if (!identifierDigits) {
+      return false;
+    }
+    const storedDigits = (candidate.phone || '').replace(/\D+/g, '');
+    return Boolean(storedDigits) && storedDigits === identifierDigits;
+  });
   if (!user) {
     throw new Error('auth:invalid-credentials');
   }
