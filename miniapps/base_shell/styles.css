@@ -246,7 +246,7 @@ body.auth-login .panel-content {
   align-items: center;
 }
 
-.auth-login__link-group::after {
+.auth-login__link-group:not(:last-child)::after {
   content: '';
   display: inline-block;
   width: 0.375rem;
@@ -1836,12 +1836,18 @@ body.is-admin-dashboard-open {
 .auth-register__phone-controls {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: minmax(140px, 1fr) minmax(0, 2fr);
+  grid-template-columns: minmax(120px, 0.75fr) minmax(0, 2.25fr);
   align-items: center;
 }
 
-.auth-register__phone-field .form-hint {
-  margin-top: -0.25rem;
+.auth-register__phone-country {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.auth-register__phone-country input {
+  width: 100%;
 }
 
 .field input,
@@ -1880,6 +1886,10 @@ body.is-admin-dashboard-open {
 @media (max-width: 560px) {
   .auth-register__phone-controls {
     grid-template-columns: 1fr;
+  }
+
+  .auth-register__phone-country {
+    width: 100%;
   }
 }
 

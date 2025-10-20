@@ -134,14 +134,18 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#user-menu a[href$="register.html"]');
     await expect(page).toHaveURL(/register\.html$/);
 
-    await page.fill('#register-name', 'Alice Owner');
-    await page.fill('#register-email', 'alice@invalid');
-    await page.fill('#register-phone', '+55 11 99999-9999');
+    const ownerPhoneCountry = page.locator('#register-phone-country');
+    const ownerPhoneInput = page.locator('#register-phone');
+    await expect(ownerPhoneCountry).toHaveValue('55');
+    await ownerPhoneInput.fill('11999999999');
+    await expect(ownerPhoneInput).toHaveValue('(11) 99999-9999');
+    await ownerPhoneCountry.fill('44');
+    await ownerPhoneInput.fill('7700900123');
+    await expect(ownerPhoneInput).toHaveValue('7700900123');
+    await ownerPhoneCountry.fill('55');
+    await ownerPhoneInput.fill('11999999999');
+    await expect(ownerPhoneInput).toHaveValue('(11) 99999-9999');
     await page.fill('#register-password', 'secret1');
-    await page.check('#register-terms');
-    await page.click('#register-form .cta');
-    await expect(page.locator('#register-feedback')).toHaveText('Ingresa un correo electrónico válido.');
-    await page.fill('#register-email', 'alice@example.com');
     await page.click('#register-form .cta');
     await expect(page.locator('#register-feedback')).toHaveText(
       'Solicitud de registro enviada para procesamiento.'
@@ -160,7 +164,7 @@ test.describe('MiniApp Base shell', () => {
     await expect(page.locator('#user-management-feedback')).toHaveText(
       'Usuario Bruno Member creado correctamente.'
     );
-    await expect(page.locator('#user-management-list')).toContainText('Alice Owner');
+    await expect(page.locator('#user-management-list')).toContainText(ownerPhoneE164);
     await expect(page.locator('#user-management-list')).toContainText('Bruno Member');
 
     await openUserMenu();
@@ -178,6 +182,8 @@ test.describe('MiniApp Base shell', () => {
     const rememberCheckbox = page.locator('#login-remember');
     const forgotPassword = page.locator('#user-menu [data-action="forgot-password"]');
     const switchUser = page.locator('#user-menu [data-action="switch-user"]');
+    const ownerPhoneE164 = '+5511999999999';
+    const ownerPhoneDigits = '5511999999999';
 
     await expect(rememberCheckbox).not.toBeChecked();
     await expect(togglePasswordLabel).toHaveText('Mostrar contraseña');
@@ -286,11 +292,11 @@ test.describe('MiniApp Base shell', () => {
       .poll(async () => page.evaluate(() => window.sessionStorage.getItem('miniapp.base.session')))
       .toBe('null');
 
-    await page.fill('#login-email', 'alice@example.com');
+    await page.fill('#login-email', ownerPhoneDigits);
     await page.fill('#login-password', 'secret1');
     await page.check('#login-remember');
     await page.click('#login-form .cta');
-    await expect(page.locator('#login-feedback')).toHaveText('Sesión iniciada como Alice Owner.');
+    await expect(page.locator('#login-feedback')).toHaveText(`Sesión iniciada como ${ownerPhoneE164}.`);
     await expect
       .poll(async () => page.evaluate(() => window.localStorage.getItem('miniapp.base.session')))
       .not.toBe('null');

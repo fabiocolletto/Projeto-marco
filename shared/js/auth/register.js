@@ -34,6 +34,8 @@ const SELECTORS = Object.freeze({
     '#user_password, [name="user_password"], #register-password, [name="password"], [data-field="password"]',
   phone:
     '#user_phoneNumber, [name="user_phoneNumber"], #register-phone, [name="phone"], [data-field="phone"]',
+  phoneCountry:
+    '#register-phone-country, [name="phoneCountry"], [data-phone-country]',
   terms: '#terms_accept, [name="terms_accept"], #register-terms, [name="terms"], [data-field="terms"]',
   button: '#btn-register, button[data-action="register"], button[type="submit"]',
   feedback: '#register-feedback, [data-register-feedback]'
@@ -104,35 +106,6 @@ export function applyPhoneMask(input, { digits: digitsOverride, updateInput = tr
   }
   const e164 = digits.length >= 10 ? `+55${digits}` : '';
   return { masked, raw: digits, e164 };
-}
-
-function normalizeInternationalInput(value, { ensurePlus = false } = {}) {
-  const raw = String(value || '').trim();
-  if (!raw) {
-    return '';
-  }
-  const filtered = raw.replace(/[^0-9+]/g, '');
-  let digits = '';
-  let hasPlus = false;
-  for (const char of filtered) {
-    if (char === '+') {
-      if (!hasPlus) {
-        hasPlus = true;
-      }
-      continue;
-    }
-    if (digits.length >= 15) {
-      continue;
-    }
-    digits += char;
-  }
-  if (!digits) {
-    return hasPlus && !ensurePlus ? '+' : '';
-  }
-  if (hasPlus || ensurePlus) {
-    return `+${digits}`;
-  }
-  return digits;
 }
 
 let hasInitialized = false;
@@ -402,65 +375,84 @@ export function initRegisterForm() {
   const emailField = form.querySelector(SELECTORS.email);
   const passwordField = form.querySelector(SELECTORS.password);
   const phoneField = form.querySelector(SELECTORS.phone);
+  const phoneCountryField = form.querySelector(SELECTORS.phoneCountry);
   const phoneRegionField = form.querySelector('[data-phone-region]');
-  const phoneHint = form.querySelector('[data-phone-field] .form-hint');
   const termsField = form.querySelector(SELECTORS.terms);
   const submitButton = form.querySelector(SELECTORS.button);
   const feedbackElement = document.querySelector(SELECTORS.feedback);
 
-  const updatePhonePlaceholder = region => {
-    if (!phoneField) return;
-    phoneField.placeholder = region === 'INTL' ? '+447700900123' : '(11) 98888-7777';
+  const sanitizeCountryCode = value => String(value || '')
+    .replace(/\D+/g, '')
+    .slice(0, 2);
+
+  const getPhoneCountryCode = () => {
+    if (!phoneCountryField) return '55';
+    const digits = sanitizeCountryCode(phoneCountryField.value || '55');
+    return digits || '55';
   };
 
-  const syncPhoneHintRegion = region => {
-    if (!phoneHint) return;
-    phoneHint.dataset.phoneRegion = region;
+  const setPhoneCountryCode = value => {
+    if (!phoneCountryField) return;
+    const digits = sanitizeCountryCode(value);
+    phoneCountryField.value = digits;
+  };
+
+  const updatePhonePlaceholder = region => {
+    if (!phoneField) return;
+    phoneField.placeholder = region === 'INTL' ? '900000000' : '(11) 98888-7777';
+  };
+
+  const updatePhoneRegionField = region => {
+    if (!phoneRegionField) return;
+    phoneRegionField.value = region;
   };
 
   const getPhoneRegion = () => {
-    const rawValue = phoneRegionField ? String(phoneRegionField.value || '').trim().toUpperCase() : '';
-    return rawValue === 'INTL' ? 'INTL' : 'BR';
+    const countryCode = getPhoneCountryCode();
+    return countryCode === '55' ? 'BR' : 'INTL';
   };
 
   const enableBrazilPhoneMask = digits => {
     if (!phoneField) return;
     applyPhoneMask(phoneField, { digits });
     updatePhonePlaceholder('BR');
-    syncPhoneHintRegion('BR');
+    updatePhoneRegionField('BR');
   };
 
-  const enableInternationalPhoneInput = ({ ensurePlus = false } = {}) => {
+  const getInternationalMaxLength = () => {
+    const countryCode = getPhoneCountryCode();
+    const remaining = 15 - countryCode.length;
+    return remaining > 0 ? remaining : 0;
+  };
+
+  const enableInternationalPhoneInput = () => {
     if (!phoneField) return;
-    const { raw, e164 } = applyPhoneMask(phoneField, { updateInput: false });
-    let nextValue = phoneField.value;
-    if (raw) {
-      const masked = formatBrazilPhoneDigits(raw);
-      if (!nextValue || nextValue === masked) {
-        nextValue = e164;
-      }
-    }
-    const normalized = normalizeInternationalInput(nextValue, { ensurePlus });
-    phoneField.value = normalized;
+    const maxLength = getInternationalMaxLength();
+    const digits = String(phoneField.value || '')
+      .replace(/\D+/g, '')
+      .slice(0, maxLength || undefined);
+    phoneField.value = digits;
     delete phoneField.dataset.rawValue;
     updatePhonePlaceholder('INTL');
-    syncPhoneHintRegion('INTL');
+    updatePhoneRegionField('INTL');
   };
 
-  const syncPhoneInputOnRegionChange = ({ ensurePlus = false } = {}) => {
+  const syncPhoneInputOnCountryChange = () => {
     const region = getPhoneRegion();
     if (region === 'BR') {
       enableBrazilPhoneMask();
-    } else {
-      enableInternationalPhoneInput({ ensurePlus });
+      return;
     }
+    enableInternationalPhoneInput();
   };
 
   const clearFieldErrors = () => {
-    [fullNameField, emailField, passwordField, phoneField, termsField].forEach(clearFieldError);
+    [fullNameField, emailField, passwordField, phoneField, termsField, phoneCountryField]
+      .filter(Boolean)
+      .forEach(clearFieldError);
   };
 
-  [fullNameField, emailField, passwordField, phoneField].forEach(field => {
+  [fullNameField, emailField, passwordField, phoneField, phoneCountryField].forEach(field => {
     if (!field) return;
     field.addEventListener('input', () => clearFieldError(field));
     field.addEventListener('blur', () => {
@@ -484,21 +476,35 @@ export function initRegisterForm() {
 
   if (phoneField) {
     phoneField.addEventListener('input', () => {
-      syncPhoneInputOnRegionChange();
+      syncPhoneInputOnCountryChange();
     });
     phoneField.addEventListener('blur', () => {
-      syncPhoneInputOnRegionChange({ ensurePlus: true });
+      if (getPhoneRegion() === 'BR') {
+        enableBrazilPhoneMask();
+      }
     });
   }
 
-  if (phoneRegionField) {
-    phoneRegionField.addEventListener('change', () => {
-      syncPhoneInputOnRegionChange({ ensurePlus: true });
+  if (phoneCountryField) {
+    setPhoneCountryCode(phoneCountryField.value || '55');
+    phoneCountryField.addEventListener('input', () => {
+      const previousRegion = getPhoneRegion();
+      setPhoneCountryCode(phoneCountryField.value);
+      const nextRegion = getPhoneRegion();
+      if (previousRegion !== nextRegion) {
+        clearFieldError(phoneField);
+      }
+      syncPhoneInputOnCountryChange();
     });
-    syncPhoneInputOnRegionChange();
-  } else if (phoneField) {
-    syncPhoneInputOnRegionChange();
+    phoneCountryField.addEventListener('blur', () => {
+      setPhoneCountryCode(phoneCountryField.value);
+      syncPhoneInputOnCountryChange();
+    });
+  } else {
+    syncPhoneInputOnCountryChange();
   }
+
+  syncPhoneInputOnCountryChange();
 
   let submitting = false;
 
@@ -512,32 +518,46 @@ export function initRegisterForm() {
     const fullName = String(getFieldValue(fullNameField)).trim();
     const email = String(getFieldValue(emailField)).trim();
     const phoneRegion = getPhoneRegion();
+    const phoneCountry = getPhoneCountryCode();
     const rawPhoneValue = String(getFieldValue(phoneField));
     let sanitizedPhone = '';
     if (phoneRegion === 'BR') {
       const { e164 } = applyPhoneMask(phoneField);
       sanitizedPhone = e164;
     } else {
-      const normalizedInternational = normalizeInternationalInput(rawPhoneValue, { ensurePlus: true });
+      const maxLength = getInternationalMaxLength();
+      const localDigits = rawPhoneValue.replace(/\D+/g, '').slice(0, maxLength || undefined);
       if (phoneField) {
-        phoneField.value = normalizedInternational;
+        phoneField.value = localDigits;
         delete phoneField.dataset.rawValue;
       }
-      sanitizedPhone = sanitizePhone(normalizedInternational);
+      const combinedDigits = `${phoneCountry}${localDigits}`.replace(/\D+/g, '');
+      sanitizedPhone = combinedDigits ? sanitizePhone(`+${combinedDigits}`) : '';
     }
     let password = String(getFieldValue(passwordField));
     const termsAccepted = termsField ? termsField.checked : true;
 
     const invalidFields = [];
 
-    if (fullName.length < 3) {
+    if (fullNameField && fullName.length < 3) {
       setFieldError(fullNameField, translate('auth.feedback.fullNameRequired', 'Informe um nome com pelo menos 3 caracteres.'));
       invalidFields.push(fullNameField);
     }
 
-    if (!EMAIL_REGEX.test(email)) {
+    if (emailField && !EMAIL_REGEX.test(email)) {
       setFieldError(emailField, translate('auth.feedback.invalidEmail', 'Informe um e-mail válido.'));
       invalidFields.push(emailField);
+    }
+
+    if (phoneCountryField) {
+      const countryDigits = sanitizeCountryCode(phoneCountryField.value);
+      if (!countryDigits || countryDigits.length !== 2) {
+        setFieldError(
+          phoneCountryField,
+          translate('auth.feedback.invalidCountryCode', 'Informe um código de país com dois dígitos.')
+        );
+        invalidFields.push(phoneCountryField);
+      }
     }
 
     if (!PHONE_E164_REGEX.test(sanitizedPhone)) {
@@ -572,18 +592,31 @@ export function initRegisterForm() {
       const timestamp = new Date().toISOString();
       const userIdSource = `${sanitizedPhone}${timestamp}`;
       let userId = await sha256Hex(userIdSource);
+      const sanitizedDigits = sanitizedPhone.replace(/\D+/g, '');
+      const fallbackFullName = fullNameField ? fullName : sanitizedPhone || sanitizedDigits;
+      const fallbackEmail = emailField ? email : sanitizedDigits ? `${sanitizedDigits}@phone.local` : '';
+
+      const registrationPayload = {
+        user_id: userId,
+        user_password: password,
+        user_phoneNumber: sanitizedPhone,
+        user_role: 'proprietario'
+      };
+      if (fullNameField) {
+        registrationPayload.user_fullName = fullName;
+      }
+      if (emailField) {
+        registrationPayload.user_email = email;
+      }
+      if (phoneCountryField) {
+        registrationPayload.user_phoneCountry = phoneCountry;
+      }
+
       const payload = {
         event: 'user.register',
         source: 'miniapp-base',
         version: 'r1',
-        registration: {
-          user_id: userId,
-          user_fullName: fullName,
-          user_email: email,
-          user_password: password,
-          user_phoneNumber: sanitizedPhone,
-          user_role: 'proprietario'
-        },
+        registration: registrationPayload,
         logs: {
           user_registerLog: { ts: timestamp, channel: 'web', result: 'pending' },
           user_accessLog: [],
@@ -618,27 +651,38 @@ export function initRegisterForm() {
 
       const dispatchSummary = summarizeDispatchResult(dispatchResponse);
 
-      persistUser({
+      const persistedUser = {
         user_id: userId,
-        user_fullName: fullName,
-        user_email: email,
         user_phoneNumber: sanitizedPhone,
         user_role: 'proprietario'
-      });
+      };
+      if (fallbackFullName) {
+        persistedUser.user_fullName = fallbackFullName;
+      }
+      if (fallbackEmail) {
+        persistedUser.user_email = fallbackEmail;
+      }
+      if (phoneCountryField) {
+        persistedUser.user_phoneCountry = phoneCountry;
+      }
+
+      persistUser(persistedUser);
 
       const registrationDetail = {
         user: {
           id: userId,
-          fullName,
-          email,
+          fullName: fallbackFullName || undefined,
+          email: fallbackEmail || undefined,
           phoneNumber: sanitizedPhone,
-          role: 'proprietario'
+          role: 'proprietario',
+          countryCode: phoneCountryField ? phoneCountry : undefined
         },
         credentials: {
           password: credentialPassword
         },
         termsAccepted: Boolean(termsAccepted),
         phoneRegion,
+        phoneCountry,
         timestamp,
         dispatch: {
           endpoint: DISPATCH_ENDPOINT,
@@ -670,7 +714,10 @@ export function initRegisterForm() {
       if (form) {
         form.reset();
         clearFieldErrors();
-        syncPhoneInputOnRegionChange();
+        if (phoneCountryField) {
+          setPhoneCountryCode(phoneCountryField.value || '55');
+        }
+        syncPhoneInputOnCountryChange();
       }
       submitting = false;
       setButtonState(submitButton, 'idle');
