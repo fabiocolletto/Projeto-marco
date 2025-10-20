@@ -1,5 +1,9 @@
 # MiniApp Base Shell – Log de Revisões
 
+## R4 · 2025-10-20
+- Sincronizado o manifesto com a versão sequencial `4` e criado o log central de versões do projeto.
+- Garantido que o rodapé destaque a nova versão numérica em todas as traduções do shell.
+
 ## R3 · 2025-10-15
 - Adicionados o menu de mini-apps e skeletons para preparar a navegação entre experiências.
 
