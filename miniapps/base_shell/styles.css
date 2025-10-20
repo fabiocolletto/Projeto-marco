@@ -22,9 +22,7 @@ body {
 }
 
 body.auth-login {
-  display: grid;
-  place-items: center;
-  padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.5rem);
+  padding: 0;
   background: var(--color-surface);
   background-image: radial-gradient(
       circle at top,
@@ -38,6 +36,20 @@ body.auth-login {
     );
   background-repeat: no-repeat;
   background-attachment: fixed;
+}
+
+.layout--auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.5rem);
+  width: 100%;
+  height: 100%;
+}
+
+html[data-embed-mode='panel'] .layout--auth {
+  display: block;
+  padding: 0;
 }
 
 body.auth-login .panel {
@@ -352,6 +364,17 @@ html[data-embed-mode='panel'] .auth-login__card-footer {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.app-header__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  pointer-events: none;
 }
 
 .brand-button {
@@ -999,16 +1022,18 @@ button:focus-visible,
   background: var(--color-surface-raised);
   border-top: 1px solid var(--color-border);
   padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .app-footer .footer-content {
   width: min(100%, 1200px);
-  margin: 0 auto;
+  margin: 0 auto 0 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 1rem;
+  flex-wrap: nowrap;
   padding: 0.75rem 0;
   padding-bottom: calc(0.75rem + var(--viewport-safe-area-bottom));
 }
@@ -1022,6 +1047,7 @@ button:focus-visible,
   align-items: center;
   gap: 0.75rem;
   font-weight: 600;
+  margin-left: auto;
 }
 
 .app-footer .footer-revision-log {
@@ -1034,6 +1060,11 @@ button:focus-visible,
 .app-footer .footer-revision-log:hover,
 .app-footer .footer-revision-log:focus {
   text-decoration: underline;
+}
+
+#mem-status {
+  margin-left: auto;
+  color: var(--color-text-muted);
 }
 
 .admin-gateway {
