@@ -38,6 +38,17 @@ body.auth-login {
   background-attachment: fixed;
 }
 
+body.auth-login .app-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+body.auth-login .layout {
+  flex: 1;
+  display: flex;
+}
+
 .layout--auth {
   display: flex;
   align-items: center;
@@ -45,6 +56,10 @@ body.auth-login {
   padding: clamp(2rem, 6vw, 3rem) clamp(1.5rem, 5vw, 2.5rem);
   width: 100%;
   height: 100%;
+}
+
+body.auth-login .layout--auth {
+  padding: clamp(1.5rem, 6vw, 2.75rem) clamp(1.25rem, 6vw, 2.25rem);
 }
 
 html[data-embed-mode='panel'] .layout--auth {
@@ -66,12 +81,76 @@ body.auth-login .panel-content {
   justify-items: center;
 }
 
+body.auth-login .app-header {
+  position: static;
+  justify-content: center;
+  padding: clamp(0.75rem, 4vw, 1rem) clamp(1rem, 6vw, 1.25rem);
+  background: transparent;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+body.auth-login .app-header #btnMenu,
+body.auth-login .app-header .toolbar,
+body.auth-login .app-header .brand-button {
+  display: none;
+}
+
+body.auth-login .app-header__title {
+  position: static;
+  transform: none;
+  pointer-events: auto;
+  font-size: clamp(1.1rem, 5vw, 1.35rem);
+}
+
+body.auth-login .app-footer {
+  position: static;
+  background: transparent;
+  border-top: none;
+  padding: 1rem clamp(1.25rem, 6vw, 1.75rem) calc(1rem + var(--viewport-safe-area-bottom));
+  justify-content: center;
+}
+
+body.auth-login .app-footer .footer-content {
+  margin: 0;
+  text-align: center;
+  justify-items: center;
+  gap: 0.5rem;
+}
+
+body.auth-login .app-footer__toggle {
+  justify-content: center;
+}
+
+body.auth-login .app-footer__toggle .footer-copy {
+  text-align: center;
+}
+
+body.auth-login .app-footer__toggle-icon {
+  margin-left: 0.5rem;
+}
+
+body.auth-login .app-footer .footer-extra {
+  justify-items: center;
+  text-align: center;
+}
+
+body.auth-login .app-footer .footer-revision {
+  justify-content: center;
+}
+
 .auth-login__card {
   position: relative;
   width: min(100%, 420px);
   padding: clamp(2rem, 5vw, 2.75rem);
   gap: clamp(1.5rem, 3vw, 2.25rem);
   justify-items: center;
+}
+
+body.auth-login .auth-login__card {
+  padding: clamp(1.75rem, 6vw, 2.25rem);
+  border-radius: 22px;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
 }
 
 .auth-login__actions {
@@ -98,6 +177,13 @@ body.auth-login .panel-content {
 .auth-login__form > h1 {
   margin: 0;
   text-align: center;
+}
+
+.auth-login__intro {
+  margin: 0;
+  text-align: center;
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
 }
 
 .auth-login__field-password {
@@ -274,6 +360,39 @@ body.auth-login .panel-content {
 
 .auth-login__link {
   font-weight: 500;
+}
+
+@media (max-width: 520px) {
+  body.auth-login .layout--auth {
+    padding: clamp(1.25rem, 6vw, 2rem) clamp(1rem, 6vw, 1.75rem);
+  }
+
+  body.auth-login .auth-login__card {
+    width: min(100%, 360px);
+    padding: clamp(1.5rem, 7vw, 2rem);
+  }
+
+  body.auth-login .auth-login__form {
+    gap: clamp(1rem, 5vw, 1.75rem);
+  }
+
+  .auth-login__intro {
+    font-size: 0.9rem;
+  }
+
+  .auth-login__links {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .auth-login__link-group {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .auth-login__link-group:not(:last-child)::after {
+    display: none;
+  }
 }
 
 body:focus-within .app-shell:focus {
@@ -1023,23 +1142,75 @@ button:focus-visible,
   border-top: 1px solid var(--color-border);
   padding: 0 1.5rem;
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  justify-content: center;
 }
 
 .app-footer .footer-content {
   width: min(100%, 1200px);
-  margin: 0 auto 0 0;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: nowrap;
+  margin: 0 auto;
+  display: grid;
+  gap: 0.75rem;
+  align-items: start;
   padding: 0.75rem 0;
   padding-bottom: calc(0.75rem + var(--viewport-safe-area-bottom));
 }
 
+.app-footer__toggle {
+  appearance: none;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.app-footer__toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+.app-footer__toggle .footer-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.app-footer__toggle-icon {
+  margin-left: auto;
+  display: inline-flex;
+  transition: transform 0.2s ease;
+}
+
+.app-footer__toggle[aria-expanded='true'] .app-footer__toggle-icon {
+  transform: rotate(180deg);
+}
+
+.app-footer__toggle-hint--collapse {
+  display: none;
+}
+
+.app-footer__toggle[aria-expanded='true'] .app-footer__toggle-hint--collapse {
+  display: inline;
+}
+
+.app-footer__toggle[aria-expanded='true'] .app-footer__toggle-hint--expand {
+  display: none;
+}
+
 .app-footer .footer-copy {
   color: var(--color-text-muted);
+}
+
+.app-footer .footer-extra {
+  display: grid;
+  gap: 0.5rem;
 }
 
 .app-footer .footer-revision {
@@ -1047,7 +1218,6 @@ button:focus-visible,
   align-items: center;
   gap: 0.75rem;
   font-weight: 600;
-  margin-left: auto;
 }
 
 .app-footer .footer-revision-log {
@@ -1063,8 +1233,8 @@ button:focus-visible,
 }
 
 #mem-status {
-  margin-left: auto;
   color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .admin-gateway {

@@ -81,6 +81,9 @@
             <div class="card auth-login__card">
               <form id="login-form" class="auth-login__form" novalidate>
                 <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
+                <p class="auth-login__intro" data-i18n="auth.login.intro">
+                  Entre com seu e-mail ou celular para continuar explorando a plataforma.
+                </p>
                 <div class="field">
                   <label for="login-email" data-i18n="auth.form.loginIdentifier">E-mail ou celular</label>
                   <input id="login-email" name="email" type="text" required autocomplete="username" />
@@ -156,25 +159,49 @@
       </div>
       <footer id="app-footer" class="app-footer" role="contentinfo">
         <div class="footer-content">
-          <small class="footer-copy">
-            &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
-          </small>
-          <small class="footer-revision">
-            <span data-revision data-i18n="footer.revisionFallback">
-              MiniApp Base · Revisão indisponível
-            </span>
-            <a
-              class="footer-revision-log"
-              href="../REVISION_LOG.md"
-              target="_blank"
-              rel="noopener noreferrer"
-              data-i18n="footer.revisionLog"
+          <button
+            type="button"
+            class="app-footer__toggle"
+            data-footer-toggle
+            aria-expanded="false"
+          >
+            <small class="footer-copy">
+              &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+            </small>
+            <span class="app-footer__toggle-icon" aria-hidden="true">▾</span>
+            <span
+              class="sr-only app-footer__toggle-hint app-footer__toggle-hint--expand"
+              data-i18n="footer.toggle.expand"
             >
-              Log de revisões
-            </a>
-          </small>
+              Mostrar informações adicionais do rodapé
+            </span>
+            <span
+              class="sr-only app-footer__toggle-hint app-footer__toggle-hint--collapse"
+              data-i18n="footer.toggle.collapse"
+            >
+              Ocultar informações adicionais do rodapé
+            </span>
+          </button>
+          <div class="footer-extra" data-footer-extra hidden>
+            <small class="footer-revision">
+              <span data-revision data-i18n="footer.revisionFallback">
+                MiniApp Base · Revisão indisponível
+              </span>
+              <a
+                class="footer-revision-log"
+                href="../REVISION_LOG.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-i18n="footer.revisionLog"
+              >
+                Log de revisões
+              </a>
+            </small>
+            <span id="mem-status" role="status" aria-live="polite">
+              Memória: verificando…
+            </span>
+          </div>
         </div>
-        <span id="mem-status" role="status" aria-live="polite">Memória: verificando…</span>
       </footer>
     </div>
     <div
@@ -258,6 +285,29 @@
         </ul>
       </div>
     </div>
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        const footer = document.getElementById('app-footer');
+        if (!footer) return;
+        const toggle = footer.querySelector('[data-footer-toggle]');
+        const extras = footer.querySelectorAll('[data-footer-extra]');
+        if (!toggle || extras.length === 0) return;
+
+        toggle.addEventListener('click', () => {
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          const next = !expanded;
+          toggle.setAttribute('aria-expanded', String(next));
+          footer.classList.toggle('is-expanded', next);
+          extras.forEach(extra => {
+            if (next) {
+              extra.removeAttribute('hidden');
+            } else {
+              extra.setAttribute('hidden', '');
+            }
+          });
+        });
+      });
+    </script>
     <script type="module" src="../app.js"></script>
   </body>
 </html>
