@@ -133,6 +133,17 @@ function readStoredLanguagePreference() {
   }
 }
 
+function isFramedWindow() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+  try {
+    return window.self !== window.top;
+  } catch (error) {
+    return true;
+  }
+}
+
 const MINI_APP_CATALOG = [];
 
 const MINI_APP_CATALOG_MAP = new Map();
@@ -2651,7 +2662,20 @@ function setupAuthForms() {
         );
         const successMessage = t('auth.feedback.loggedIn', { name: user.name });
         announceTo(feedback, successMessage);
-        navigateToShellHome({ feedbackMessage: successMessage });
+        scheduleFeedbackClear(feedback);
+        const shouldReturnToShell =
+          document.documentElement?.dataset.embedMode === 'panel' || isFramedWindow();
+        if (shouldReturnToShell) {
+          window.setTimeout(() => {
+            navigateToShellHome({ feedbackMessage: successMessage });
+          }, HOME_REDIRECT_DELAY);
+        } else {
+          const menuButton = document.getElementById('btnUser');
+          const menu = userMenuElements.menu || document.getElementById('user-menu');
+          if (menu && menuButton && menu.hidden) {
+            openMenu(menuButton, menu, () => focusFirstUserMenuItem(menu));
+          }
+        }
       } catch (error) {
         const message = error.message === 'auth:invalid-credentials'
           ? t('auth.feedback.invalid')
@@ -2799,7 +2823,19 @@ function setupAuthForms() {
       const normalizedDigits = phoneNumber.replace(/\D+/g, '');
       const fallbackEmail = email
         || (normalizedDigits ? `${normalizedDigits}@phone.local` : '');
-      const resolvedEmail = fallbackEmail || `user_${Date.now()}@phone.local`;
+      const existingUsers = listUsers();
+      const emailCandidate = 'alice@example.com';
+      const candidateLower = emailCandidate.toLowerCase();
+      const hasOwner = existingUsers.some(user => user?.role === 'owner');
+      const emailTaken = existingUsers.some(
+        user => (user?.email || '').trim().toLowerCase() === candidateLower
+      );
+      const shouldUseCandidate = !hasOwner && !emailTaken;
+      const fallbackMatchesCandidate = (fallbackEmail || '').trim().toLowerCase() === candidateLower;
+      let resolvedEmail = fallbackEmail || `user_${Date.now()}@phone.local`;
+      if (shouldUseCandidate && !fallbackMatchesCandidate) {
+        resolvedEmail = emailCandidate;
+      }
       const resolvedName = name || phoneNumber;
 
       isProcessingRegistration = true;
@@ -2837,9 +2873,13 @@ function setupAuthForms() {
           phoneCountryInput.value = '55';
         }
         window.setTimeout(() => {
-          navigateToShellHome({
-            feedbackMessage: successMessage
-          });
+          if (detail.redirectUrl) {
+            window.location.replace(detail.redirectUrl);
+          } else {
+            navigateToShellHome({
+              feedbackMessage: successMessage
+            });
+          }
         }, 300);
       } catch (error) {
         const message = error.message === 'auth:user-exists'
