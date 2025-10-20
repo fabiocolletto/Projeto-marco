@@ -149,6 +149,24 @@ details:not([open]) .details-wrap{ display:none; }
   border:1px solid var(--border); background:var(--surface); color:var(--text);
   border-radius:10px; padding:4px 8px; cursor:pointer; line-height:1;
 }
+.edit-btn[data-toggle="provider"]{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:180px;
+  font-weight:600;
+}
+.edit-btn[data-toggle="provider"][data-state="on"]{
+  background:var(--accent-600);
+  color:#ffffff;
+  border-color:var(--accent-600);
+}
+.edit-btn[data-toggle="provider"][data-state="on"]:hover{
+  box-shadow:0 0 0 3px rgba(11,101,194,.18) inset;
+}
+.edit-btn[data-toggle="provider"][data-degraded="true"]{
+  box-shadow:0 0 0 2px rgba(255,154,62,.45) inset;
+}
 .btn:focus,.edit-btn:focus{ outline:2px solid var(--focus); outline-offset:2px; }
 
 .pill{ display:inline-block; border-radius:999px; padding:4px 10px; font-size:.85rem; }
