@@ -2815,6 +2815,12 @@ function setupAuthForms() {
           phoneCountry: phoneCountry || null
         });
         const successMessage = t('auth.feedback.registered');
+        detail.feedbackMessage = successMessage;
+        const isPanelEmbed = document.documentElement.dataset.embedMode === 'panel';
+        detail.redirectUrl = isPanelEmbed
+          ? new URL(USER_PANEL_EMBED_ROUTE, import.meta.url).href
+          : USER_PANEL_URL.href;
+        detail.navigationHandled = true;
         announceFeedback(successMessage, 'success');
         if (feedback) {
           feedback.textContent = successMessage;

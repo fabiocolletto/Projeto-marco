@@ -3,6 +3,7 @@ import { t } from '../../../../packages/base.i18n/i18n.js';
 const DISPATCH_ENDPOINT = '/api/github/dispatch';
 const DISPATCH_ACTION = 'user.register';
 const REQUEST_TIMEOUT_MS = 20_000;
+const DEFERRED_FEEDBACK_STORAGE_KEY = 'miniapp.base.deferredFeedback';
 const DEFAULT_SUCCESS_MESSAGE = 'Cadastro enviado para processamento.';
 const DEFAULT_FAILURE_MESSAGE = 'Não foi possível enviar seu cadastro para processamento. Tente novamente.';
 const DEFAULT_TIMEOUT_MESSAGE = 'Tempo limite de envio excedido. Verifique sua conexão e tente novamente.';
@@ -694,6 +695,8 @@ export function initRegisterForm() {
         registrationDetail.dispatch.summary = dispatchSummary;
       }
 
+      registrationDetail.navigationHandled = false;
+
       const successFeedbackMessage = extractDetailMessage(dispatchResponse) || SUCCESS_MESSAGE;
       setFeedback(feedbackElement, successFeedbackMessage, 'success');
       if (form) {
@@ -704,6 +707,12 @@ export function initRegisterForm() {
             detail: registrationDetail
           })
         );
+      }
+      if (!registrationDetail.navigationHandled) {
+        scheduleFallbackNavigation({
+          detail: registrationDetail,
+          message: successFeedbackMessage
+        });
       }
       window.dispatchEvent(
         new CustomEvent('user:registered', { detail: { user_id: userId } })
@@ -736,3 +745,48 @@ export function initRegisterForm() {
 }
 
 export default initRegisterForm;
+
+function scheduleFallbackNavigation(result) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  const target = resolveFallbackNavigationTarget(result?.detail);
+  if (!target) {
+    return;
+  }
+  window.setTimeout(() => {
+    if (result?.message) {
+      try {
+        const storage = window.sessionStorage;
+        storage?.setItem(DEFERRED_FEEDBACK_STORAGE_KEY, result.message);
+      } catch (error) {
+        console.warn('register: unable to persist fallback feedback', error);
+      }
+    }
+    try {
+      window.location.href = target;
+    } catch (error) {
+      console.warn('register: fallback navigation failed', error);
+    }
+  }, 600);
+}
+
+function resolveFallbackNavigationTarget(detail) {
+  if (detail?.redirectUrl) {
+    return detail.redirectUrl;
+  }
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  try {
+    const current = new URL(window.location.href);
+    const target = new URL('./profile.html', current);
+    if (current.searchParams.has('embed')) {
+      target.searchParams.set('embed', current.searchParams.get('embed'));
+    }
+    return target.href;
+  } catch (error) {
+    console.warn('register: unable to resolve fallback navigation target', error);
+    return null;
+  }
+}
