@@ -184,6 +184,28 @@
   border-color:var(--brand-600);
 }
 
+.ac .edit-btn[data-toggle="provider"]{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:180px;
+  font-weight:600;
+}
+
+.ac .edit-btn[data-toggle="provider"][data-state="on"]{
+  background:var(--brand-600);
+  color:#ffffff;
+  border-color:var(--brand-600);
+}
+
+.ac .edit-btn[data-toggle="provider"][data-state="on"]:hover{
+  box-shadow:0 0 0 3px rgba(11,101,194,.18) inset;
+}
+
+.ac .edit-btn[data-toggle="provider"][data-degraded="true"]{
+  box-shadow:0 0 0 2px rgba(255,154,62,.45) inset;
+}
+
 .ac .pill{
   border-radius:999px;
   padding:2px 10px;

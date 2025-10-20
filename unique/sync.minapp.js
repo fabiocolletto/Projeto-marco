@@ -174,6 +174,27 @@ const Google = {
     if(r.status===401) throw new Error("G_AUTH");
     if(!r.ok) throw new Error("G_DEL_"+r.status);
     return true;
+  },
+  async signOut(){
+    try{
+      if(this._token && window.google?.accounts?.oauth2?.revoke){
+        await new Promise((resolve)=>{
+          window.google.accounts.oauth2.revoke(this._token, ()=>resolve());
+        });
+      }else if(this._token){
+        try{
+          await fetch("https://oauth2.googleapis.com/revoke", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "token="+encodeURIComponent(this._token)
+          });
+        }catch(err){ console.warn("[SYNC] Google revoke fallback falhou", err); }
+      }
+    }catch(err){
+      console.warn("[SYNC] Google signOut error", err);
+    }finally{
+      this._token = null;
+    }
   }
 };
 
@@ -237,6 +258,26 @@ const MS = {
     if(r.status===404) return true;
     if(!r.ok) throw new Error("MS_DEL_"+r.status);
     return true;
+  },
+  async signOut(){
+    try{
+      await this.ensureLib();
+    }catch(err){
+      this._token = null; this._account = null; return;
+    }
+    if(!this._app){ this._token=null; this._account=null; return; }
+    try{
+      if(this._account){
+        await this._app.logoutPopup({ account:this._account });
+      }else{
+        await this._app.logoutPopup();
+      }
+    }catch(err){
+      console.warn("[SYNC] MS signOut error", err);
+    }finally{
+      this._token = null;
+      this._account = null;
+    }
   }
 };
 
@@ -267,10 +308,32 @@ function setStatus(ui, mode, detail){
   setText(ui.statusEl, mode); setText(ui.detailEl, detail || "—");
   ui.card?.dispatchEvent?.(new CustomEvent("sync-status", { detail:{ mode, detail } }));
 }
+function toggleVisual(btn, label, flags){
+  if(!btn) return;
+  const isOn = !!flags.on;
+  btn.dataset.state = isOn ? "on" : "off";
+  if(flags.degraded) btn.dataset.degraded = "true"; else delete btn.dataset.degraded;
+  btn.classList.toggle("is-on", isOn);
+  btn.setAttribute("aria-pressed", isOn ? "true" : "false");
+  const statusTxt = isOn ? "ativo" : "inativo";
+  btn.textContent = `${label} · ${statusTxt}`;
+  const actionTxt = isOn ? "Desativar" : "Ativar";
+  btn.setAttribute("aria-label", `${actionTxt} ${label}`);
+  btn.title = `${actionTxt} ${label}`;
+}
+
 function markProvider(ui, name, flags){
-  const el = name==="google" ? ui.gStatus : ui.mStatus; if(!el) return;
-  const parts = []; if(flags.on) parts.push("Conectado"); else parts.push("Desconectado"); if(flags.degraded) parts.push("Degradado"); if(flags.espelhando) parts.push("Espelhando");
-  setText(el, parts.join(" · ") || "—");
+  const statusEl = name==="google" ? ui.gStatus : ui.mStatus; if(statusEl){
+    const parts = [];
+    parts.push(flags.on ? "Ativo" : "Inativo");
+    parts.push(flags.on ? "Clique para desativar quando quiser" : "Clique para ativar quando quiser");
+    if(flags.degraded) parts.push("Reautenticar");
+    if(flags.espelhando) parts.push("Espelhando");
+    setText(statusEl, parts.join(" · ") || "—");
+  }
+  const btn = name==="google" ? ui.gBtn : ui.mBtn;
+  const label = name==="google" ? "Google Drive" : "OneDrive";
+  toggleVisual(btn, label, flags);
 }
 
 // =================== Polling / Standby ===================
@@ -304,13 +367,40 @@ async function doPush(ui){
 
     // Google
     if(State.googleOn){
-      try{ const f = await Google.listAppFile(); const res = await Google.createOrUpdate(payload, f?.id); State.google.has=true; State.google.modifiedTime = res.modifiedTime || new Date().toISOString(); State.google.degraded=false; }
-      catch(err){ if(String(err).includes("G_AUTH")){ setStatus(ui, "Atenção", "Google: reautenticar"); State.google.degraded=true; } else { State.google.degraded=true; } }
+      try{
+        const f = await Google.listAppFile();
+        const res = await Google.createOrUpdate(payload, f?.id);
+        State.google.has=true;
+        State.google.modifiedTime = res.modifiedTime || new Date().toISOString();
+        State.google.degraded=false;
+        markProvider(ui, "google", { on:true });
+      }catch(err){
+        if(String(err).includes("G_AUTH")){
+          setStatus(ui, "Atenção", "Google: reautenticar");
+        }
+        State.google.degraded=true;
+        markProvider(ui, "google", { on:true, degraded:true });
+      }
     }
     // OneDrive
     if(State.msOn){
-      try{ const meta = await MS.getMeta(); const et = meta?.eTag; const res = await MS.putContent(payload, et || undefined); State.ms.has=true; State.ms.etag = res.eTag || res["@microsoft.graph.downloadUrl"] || null; State.ms.degraded=false; }
-      catch(err){ if(String(err).includes("MS_AUTH")){ setStatus(ui, "Atenção", "OneDrive: reautenticar"); State.ms.degraded=true; } else if(String(err).includes("MS_PRECOND")){ setStatus(ui, "Espelhando", "Alterado em outro dispositivo"); } else { State.ms.degraded=true; } }
+      try{
+        const meta = await MS.getMeta();
+        const et = meta?.eTag;
+        const res = await MS.putContent(payload, et || undefined);
+        State.ms.has=true;
+        State.ms.etag = res.eTag || res["@microsoft.graph.downloadUrl"] || null;
+        State.ms.degraded=false;
+        markProvider(ui, "ms", { on:true });
+      }catch(err){
+        if(String(err).includes("MS_AUTH")){
+          setStatus(ui, "Atenção", "OneDrive: reautenticar");
+        }else if(String(err).includes("MS_PRECOND")){
+          setStatus(ui, "Espelhando", "Alterado em outro dispositivo");
+        }
+        State.ms.degraded=true;
+        markProvider(ui, "ms", { on:true, degraded:true });
+      }
     }
     setStatus(ui, "Atualizado", "Sincronizado"); _lastPush = nowTs();
   }catch(err){
@@ -323,8 +413,41 @@ async function doPush(ui){
 
 async function pullIfChanged(ui, { quick=false }={}){
   const metas = [];
-  if(State.googleOn){ try{ const f = await Google.listAppFile(); if(f){ metas.push({ who:"google", when:+new Date(f.modifiedTime), id:f.id }); State.google.has=true; State.google.id=f.id; State.google.modifiedTime=f.modifiedTime; } }catch(err){ if(String(err).includes("G_AUTH")){ State.google.degraded=true; setStatus(ui,"Atenção","Google: reautenticar"); } } }
-  if(State.msOn){ try{ const m = await MS.getMeta(); if(m){ const when = +new Date(m.lastModifiedDateTime || m.fileSystemInfo?.lastModifiedDateTime || Date.now()); metas.push({ who:"ms", when, etag:m.eTag }); State.ms.has=true; State.ms.etag=m.eTag; } }catch(err){ if(String(err).includes("MS_AUTH")){ State.ms.degraded=true; setStatus(ui,"Atenção","OneDrive: reautenticar"); } } }
+  if(State.googleOn){
+    try{
+      const f = await Google.listAppFile();
+      if(f){
+        metas.push({ who:"google", when:+new Date(f.modifiedTime), id:f.id });
+        State.google.has=true; State.google.id=f.id; State.google.modifiedTime=f.modifiedTime;
+      }
+      State.google.degraded=false;
+      markProvider(ui, "google", { on:true });
+    }catch(err){
+      if(String(err).includes("G_AUTH")){
+        setStatus(ui,"Atenção","Google: reautenticar");
+      }
+      State.google.degraded=true;
+      markProvider(ui, "google", { on:true, degraded:true });
+    }
+  }
+  if(State.msOn){
+    try{
+      const m = await MS.getMeta();
+      if(m){
+        const when = +new Date(m.lastModifiedDateTime || m.fileSystemInfo?.lastModifiedDateTime || Date.now());
+        metas.push({ who:"ms", when, etag:m.eTag });
+        State.ms.has=true; State.ms.etag=m.eTag;
+      }
+      State.ms.degraded=false;
+      markProvider(ui, "ms", { on:true });
+    }catch(err){
+      if(String(err).includes("MS_AUTH")){
+        setStatus(ui,"Atenção","OneDrive: reautenticar");
+      }
+      State.ms.degraded=true;
+      markProvider(ui, "ms", { on:true, degraded:true });
+    }
+  }
   if(metas.length===0) return; // nada
   metas.sort((a,b)=>b.when - a.when); const newest = metas[0]; const newerThanLocal = (newest.when > (State.lastSnapshotMeta.updatedAt||0));
   if(!newerThanLocal && quick) return;
@@ -389,12 +512,17 @@ async function toggleGoogle(ui){
   if(!State.kdf && (!State.phone || !State._passCache)){ revealCreds(ui, "Informe telefone e senha para continuar com o Google Drive."); return; }
   if(!State.googleOn){
     try{
-      await Google.tokenInteractive(); State.googleOn = true; markProvider(ui,"google",{on:true});
-      setStatus(ui, State.mode==="Desativado"?"Espelhando":State.mode, "Google conectado");
+      await Google.tokenInteractive();
+      State.googleOn = true; State.google.degraded = false;
+      markProvider(ui,"google",{on:true});
+      setStatus(ui, State.mode==="Desativado"?"Espelhando":State.mode, "Google Drive ativo. Os backups usarão a conta conectada.");
       try{ const f = await Google.listAppFile(); if(f){ State.google.has=true; State.google.id=f.id; } }catch{}
     }catch(e){ setStatus(ui, "Atenção", "Google: não foi possível conectar"); }
   }else{
-    State.googleOn = false; markProvider(ui,"google",{on:false}); setStatus(ui, "Atualizado", "Google desconectado deste Mini‑App");
+    try{ await Google.signOut(); }catch(err){ console.warn("[SYNC] Falha ao desconectar Google", err); }
+    State.googleOn = false; State.google.has=false; State.google.id=null; State.google.degraded=false;
+    markProvider(ui,"google",{on:false});
+    setStatus(ui, "Atualizado", "Google Drive desativado. Nenhum dado será enviado ao serviço.");
   }
 }
 
@@ -402,12 +530,17 @@ async function toggleMS(ui){
   if(!State.kdf && (!State.phone || !State._passCache)){ revealCreds(ui, "Informe telefone e senha para continuar com o OneDrive."); return; }
   if(!State.msOn){
     try{
-      await MS.tokenInteractive(); State.msOn = true; markProvider(ui,"ms",{on:true});
-      setStatus(ui, State.mode==="Desativado"?"Espelhando":State.mode, "OneDrive conectado");
+      await MS.tokenInteractive();
+      State.msOn = true; State.ms.degraded=false;
+      markProvider(ui,"ms",{on:true});
+      setStatus(ui, State.mode==="Desativado"?"Espelhando":State.mode, "OneDrive ativo. Os backups usarão a conta conectada.");
       try{ const m = await MS.getMeta(); if(m){ State.ms.has=true; } }catch{}
     }catch(e){ setStatus(ui, "Atenção", "OneDrive: não foi possível conectar"); }
   }else{
-    State.msOn = false; markProvider(ui,"ms",{on:false}); setStatus(ui, "Atualizado", "OneDrive desconectado deste Mini‑App");
+    try{ await MS.signOut(); }catch(err){ console.warn("[SYNC] Falha ao desconectar OneDrive", err); }
+    State.msOn = false; State.ms.has=false; State.ms.etag=null; State.ms.degraded=false;
+    markProvider(ui,"ms",{on:false});
+    setStatus(ui, "Atualizado", "OneDrive desativado. Nenhum dado será enviado ao serviço.");
   }
 }
 
@@ -417,12 +550,13 @@ export function mountSyncMiniApp(host, ctx){
 
   // Layout (herda CSS do app)
   const statusRow = el("div", { class:"hbar-legend" }, el("span", { id:"sync_status" }, "Desativado"), el("span", { id:"sync_detail", class:"muted" }, "—") );
-  const providersRow = el("div", { style:"display:flex; gap:8px; align-items:center; margin-top:8px" },
-    ui.gBtn = el("button", { class:"edit-btn", title:"Google Drive", onclick:()=>toggleGoogle(ui) }, "Google Drive"),
+  const providersRow = el("div", { style:"display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap" },
+    ui.gBtn = el("button", { class:"edit-btn", title:"Google Drive", 'data-toggle':"provider", 'aria-pressed':"false", type:"button", onclick:()=>toggleGoogle(ui) }, "Google Drive"),
     ui.gStatus = el("span", { class:"small muted" }, "—"), el("span", { style:"width:12px" }),
-    ui.mBtn = el("button", { class:"edit-btn", title:"OneDrive", onclick:()=>toggleMS(ui) }, "OneDrive"),
+    ui.mBtn = el("button", { class:"edit-btn", title:"OneDrive", 'data-toggle':"provider", 'aria-pressed':"false", type:"button", onclick:()=>toggleMS(ui) }, "OneDrive"),
     ui.mStatus = el("span", { class:"small muted" }, "—")
   );
+  const optinNote = el("p", { class:"small muted", style:"margin-top:4px; max-width:480px" }, "Ao ativar um serviço você confirma o uso da conta já conectada no aplicativo instalado (Google Drive ou OneDrive). Desative quando quiser interromper o envio.");
   const actionsRow = el("div", { style:"display:flex; gap:8px; align-items:center; margin-top:8px" },
     ui.takeBtn = el("button", { class:"edit-btn", title:"Tomar controle", onclick:()=>takeControl(ui) }, "Tomar controle"),
     el("button", { class:"edit-btn", title:"Sincronizar agora", onclick:()=>doPush(ui) }, "Sincronizar agora")
@@ -437,7 +571,7 @@ export function mountSyncMiniApp(host, ctx){
     ui.lockErr = el("div", { class:"small", style:"color:#b00020; margin-top:6px; display:none" }, "")
   );
 
-  host.appendChild(statusRow); host.appendChild(providersRow); host.appendChild(actionsRow); host.appendChild(lockBox);
+  host.appendChild(statusRow); host.appendChild(providersRow); host.appendChild(optinNote); host.appendChild(actionsRow); host.appendChild(lockBox);
   ui.statusEl = statusRow.querySelector('#sync_status'); ui.detailEl = statusRow.querySelector('#sync_detail'); ui.lockWrap = lockBox;
 
   // Estado inicial
