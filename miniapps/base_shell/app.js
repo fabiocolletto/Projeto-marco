@@ -3507,35 +3507,53 @@ function highlightElement(element) {
   highlightTimers.set(element, timeout);
 }
 
+function notifyShellNavigation(targetWindow, payload) {
+  if (!targetWindow || targetWindow === window) {
+    return false;
+  }
+  let sameOrigin = false;
+  try {
+    sameOrigin = targetWindow.location?.origin === window.location.origin;
+  } catch (error) {
+    sameOrigin = false;
+  }
+  if (!sameOrigin) {
+    return false;
+  }
+  try {
+    targetWindow.postMessage(
+      {
+        type: SHELL_NAVIGATION_MESSAGE_TYPE,
+        payload
+      },
+      window.location.origin
+    );
+    return true;
+  } catch (error) {
+    console.warn('app: unable to notify parent shell after navigation', error);
+    return false;
+  }
+}
+
 function navigateToShellHome({ feedbackMessage, highlight = true } = {}) {
   if (feedbackMessage) {
     storeDeferredFeedback(feedbackMessage);
   }
+  const payload = {
+    action: SHELL_NAVIGATION_ACTIONS.OPEN_HOME,
+    highlight: highlight !== false
+  };
   let notifiedParent = false;
-  if (window.top && window.top !== window.self) {
-    let canNotifyParent = false;
-    try {
-      canNotifyParent = window.top.location?.origin === window.location.origin;
-    } catch (error) {
-      canNotifyParent = false;
-    }
-    if (canNotifyParent) {
-      try {
-        window.top.postMessage(
-          {
-            type: SHELL_NAVIGATION_MESSAGE_TYPE,
-            payload: {
-              action: SHELL_NAVIGATION_ACTIONS.OPEN_HOME,
-              highlight: highlight !== false
-            }
-          },
-          window.location.origin
-        );
-        notifiedParent = true;
-      } catch (error) {
-        console.warn('app: unable to notify parent shell after navigation', error);
-      }
-    }
+  if (window.parent && window.parent !== window) {
+    notifiedParent = notifyShellNavigation(window.parent, payload);
+  }
+  if (
+    !notifiedParent &&
+    window.top &&
+    window.top !== window &&
+    window.top !== window.parent
+  ) {
+    notifiedParent = notifyShellNavigation(window.top, payload);
   }
   if (!notifiedParent) {
     window.location.replace(SHELL_HOME_URL.href);
