@@ -136,6 +136,8 @@ test.describe('MiniApp Base shell', () => {
 
     const ownerPhoneCountry = page.locator('#register-phone-country');
     const ownerPhoneInput = page.locator('#register-phone');
+    const ownerPhoneE164 = '+5511999999999';
+    const ownerPhoneDigits = '5511999999999';
     await expect(ownerPhoneCountry).toHaveValue('55');
     await ownerPhoneInput.fill('11999999999');
     await expect(ownerPhoneInput).toHaveValue('(11) 99999-9999');
@@ -182,8 +184,6 @@ test.describe('MiniApp Base shell', () => {
     const rememberCheckbox = page.locator('#login-remember');
     const forgotPassword = page.locator('#user-menu [data-action="forgot-password"]');
     const switchUser = page.locator('#user-menu [data-action="switch-user"]');
-    const ownerPhoneE164 = '+5511999999999';
-    const ownerPhoneDigits = '5511999999999';
 
     await expect(rememberCheckbox).not.toBeChecked();
     await expect(togglePasswordLabel).toHaveText('Mostrar contraseña');
