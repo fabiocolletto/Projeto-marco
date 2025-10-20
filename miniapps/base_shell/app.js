@@ -2610,7 +2610,9 @@ function setupAuthForms() {
     const passwordInput = loginForm.querySelector('#login-password');
     const togglePasswordButton = loginForm.querySelector('[data-action="toggle-password"]');
     const rememberCheckbox = loginForm.querySelector('#login-remember');
-    const forgotPasswordButton = document.querySelector('[data-action="forgot-password"]');
+    const forgotPasswordButtons = Array.from(
+      document.querySelectorAll('[data-action="forgot-password"]')
+    );
     const switchUserButton = document.querySelector('[data-action="switch-user"]');
     const loginPasswordToggle = setupPasswordToggle({
       input: passwordInput,
@@ -2619,8 +2621,8 @@ function setupAuthForms() {
       hideLabelKey: 'auth.login.hidePassword'
     });
 
-    if (forgotPasswordButton) {
-      forgotPasswordButton.addEventListener('click', () => {
+    if (forgotPasswordButtons.length > 0) {
+      const handleForgotPassword = () => {
         closeActiveMenu();
         const emailField = loginForm.querySelector('#login-email');
         const email = String(emailField?.value || '').trim();
@@ -2631,6 +2633,10 @@ function setupAuthForms() {
         if (typeof window !== 'undefined' && typeof window.alert === 'function') {
           window.alert(message);
         }
+      };
+
+      forgotPasswordButtons.forEach(button => {
+        button.addEventListener('click', handleForgotPassword);
       });
     }
 

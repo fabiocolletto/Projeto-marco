@@ -68,8 +68,14 @@
               aria-expanded="false"
               aria-controls="user-menu"
             >
-              <span class="user-avatar" aria-hidden="true">☰</span>
-              <span id="current-user" class="sr-only">--</span>
+              <span class="user-avatar" aria-hidden="true">👤</span>
+              <span
+                id="current-user"
+                class="sr-only"
+                data-i18n="actions.openUserMenu"
+              >
+                Abrir menu do usuário
+              </span>
             </button>
           </div>
         </div>
@@ -126,6 +132,14 @@
                     <input id="login-remember" name="remember" type="checkbox" />
                     <span data-i18n="auth.login.remember">Lembrar-me</span>
                   </label>
+                  <button
+                    type="button"
+                    class="auth-login__forgot"
+                    data-action="forgot-password"
+                    data-i18n="auth.login.forgot"
+                  >
+                    Esqueci minha senha
+                  </button>
                 </div>
                 <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
                 <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
@@ -163,6 +177,7 @@
             class="app-footer__toggle"
             data-footer-toggle
             aria-expanded="false"
+            aria-controls="app-footer-extra"
           >
             <small class="footer-copy">
               &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
@@ -181,7 +196,12 @@
               Ocultar informações adicionais do rodapé
             </span>
           </button>
-          <div class="footer-extra" data-footer-extra hidden>
+          <div
+            id="app-footer-extra"
+            class="footer-extra"
+            data-footer-extra
+            hidden
+          >
             <small class="footer-revision">
               <span data-revision data-i18n="footer.revisionFallback">
                 MiniApp Base · Revisão indisponível
