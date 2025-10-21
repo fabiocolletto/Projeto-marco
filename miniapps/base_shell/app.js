@@ -2699,6 +2699,15 @@ function redirectIfAuthenticationRequired(user) {
   if (window.location.href === LOGIN_URL.href) {
     return;
   }
+  const standaloneProfileEmpty = document.querySelector('[data-profile-empty]');
+  if (standaloneProfileEmpty) {
+    standaloneProfileEmpty.hidden = false;
+    const standaloneProfileContent = document.querySelector('[data-profile-content]');
+    if (standaloneProfileContent) {
+      standaloneProfileContent.hidden = true;
+    }
+    return;
+  }
   window.location.replace(LOGIN_URL.href);
 }
 
@@ -3609,13 +3618,24 @@ function updateProfileView(user) {
   const statsTotal = document.querySelector('[data-profile-total-users]');
   const statsDependents = document.querySelector('[data-profile-dependent-users]');
   const statsOwnerSince = document.querySelector('[data-profile-owner-since]');
+  const profileEmptyState = document.querySelector('[data-profile-empty]');
+  const profileContent = document.querySelector('[data-profile-content]');
+  const isAuthenticated = Boolean(user);
+
+  if (profileEmptyState) {
+    profileEmptyState.hidden = isAuthenticated;
+  }
+
+  if (profileContent) {
+    profileContent.hidden = !isAuthenticated;
+  }
 
   if (profileForm) {
     const nameField = profileForm.querySelector('#profile-name');
     const emailField = profileForm.querySelector('#profile-email');
     const roleField = profileForm.querySelector('#profile-role');
     const profileButtons = profileForm.querySelectorAll('button');
-    const enabled = Boolean(user);
+    const enabled = isAuthenticated;
     if (nameField) {
       nameField.disabled = !enabled;
       nameField.value = enabled ? user.name : '';
@@ -3641,7 +3661,7 @@ function updateProfileView(user) {
 
   if (passwordForm) {
     const passwordFields = passwordForm.querySelectorAll('input, button');
-    const enabled = Boolean(user);
+    const enabled = isAuthenticated;
     passwordFields.forEach(field => {
       field.disabled = !enabled;
     });
@@ -3654,11 +3674,11 @@ function updateProfileView(user) {
   }
 
   if (logoutButton) {
-    logoutButton.disabled = !user;
+    logoutButton.disabled = !isAuthenticated;
   }
 
   if (deleteButton) {
-    deleteButton.disabled = !user;
+    deleteButton.disabled = !isAuthenticated;
   }
 
   const users = listUsers();
@@ -3687,7 +3707,7 @@ function updateProfileView(user) {
     statsOwnerSince.textContent = user && user.createdAt ? formatUserDate(user.createdAt) : '—';
   }
 
-  if (!user && !isRedirectingHome) {
+  if (!isAuthenticated && !isRedirectingHome) {
     const generalFeedback = document.getElementById('profile-feedback');
     if (generalFeedback) {
       announceTo(generalFeedback, '');

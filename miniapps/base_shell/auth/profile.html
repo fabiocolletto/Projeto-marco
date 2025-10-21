@@ -79,7 +79,18 @@
         <main id="panel" class="panel" role="main" tabindex="-1">
           <h1 class="sr-only" data-i18n="auth.profile.title">Perfil</h1>
           <section class="panel-content">
-            <div class="profile-layout">
+            <section class="card profile-empty" data-profile-empty hidden>
+              <header class="card-header">
+                <h2 data-i18n="auth.profile.panelTitle">Painel do usuário</h2>
+                <p class="card-description" data-i18n="auth.profile.userPanelLoginRequired">
+                  Faça login para acessar seu painel.
+                </p>
+              </header>
+              <div class="form-actions">
+                <a class="cta" href="./login.html" data-i18n="panel.actions.login">Acessar</a>
+              </div>
+            </section>
+            <div class="profile-layout" data-profile-content>
               <div class="profile-main">
                 <article class="card profile-overview" aria-labelledby="profile-overview-title">
                   <header class="profile-identity">
