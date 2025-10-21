@@ -49,7 +49,7 @@
   "miniapps.systemDashboard.message": "",
   "miniapps.userDashboard.label": "User panel",
   "miniapps.userDashboard.title": "User Panel MiniApp",
-  "miniapps.userDashboard.message": "",
+  "miniapps.userDashboard.message": "Manage personal data, preferences, and trusted devices without leaving the shell.",
   "auth.login.title": "Sign in",
   "auth.login.submit": "Sign in",
   "auth.login.remember": "Remember me",

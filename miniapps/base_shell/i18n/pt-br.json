@@ -49,7 +49,7 @@
   "miniapps.systemDashboard.message": "",
   "miniapps.userDashboard.label": "Painel do usuário",
   "miniapps.userDashboard.title": "MiniApp Painel do Usuário",
-  "miniapps.userDashboard.message": "",
+  "miniapps.userDashboard.message": "Gerencie dados pessoais, preferências e dispositivos confiáveis sem sair do shell.",
   "footer.copyright": "© {year} {company}",
   "footer.section.legal": "Informações legais",
   "footer.section.support": "Suporte e assinaturas",

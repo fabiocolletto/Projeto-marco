@@ -3492,6 +3492,7 @@ function setupAuthForms() {
 function updateUserDisplay(user) {
   const display = document.getElementById('current-user');
   const button = document.getElementById('btnUser');
+  const avatars = document.querySelectorAll('[data-user-avatar]');
   const hasName = Boolean(user && user.name);
   const baseLabel = t('actions.openUserMenu');
   let label = baseLabel;
@@ -3507,6 +3508,21 @@ function updateUserDisplay(user) {
     button.setAttribute('aria-label', label);
     button.title = label;
   }
+  const fallbackSymbol = '👤';
+  let initial = '';
+  if (hasName && typeof user.name === 'string') {
+    const trimmed = user.name.trim();
+    initial = trimmed.charAt(0).toUpperCase();
+  }
+  const glyph = initial || fallbackSymbol;
+  avatars.forEach(node => {
+    node.textContent = glyph;
+    if (glyph !== fallbackSymbol) {
+      node.dataset.initial = glyph;
+    } else {
+      delete node.dataset.initial;
+    }
+  });
 }
 
 function updateNavigationVisibility(user) {

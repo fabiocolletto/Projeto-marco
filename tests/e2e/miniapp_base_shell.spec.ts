@@ -124,5 +124,18 @@ test.describe('MiniApp Base shell', () => {
     await page.goto(`${baseURL}/miniapps/base_shell/index.html`);
     await expect(page.locator('.app-header__menu-button')).toHaveText('menu');
     await expect(page.locator('#panel')).toBeVisible();
+
+    const userTrigger = page.locator('#btnUser');
+    await expect(userTrigger).toBeVisible();
+    await userTrigger.click();
+
+    const userPanelButton = page.locator('#btnUserPanel');
+    await expect(userPanelButton).toBeVisible();
+    await userPanelButton.click();
+
+    const userPanelFrame = page.frameLocator('iframe[data-miniapp-id="base.shell.panel.user"]');
+    await expect(userPanelFrame.locator('h1')).toHaveText(/Painel do usuário/i);
+    await expect(userPanelFrame.locator('[data-summary-name]')).toHaveText('Bruno Partner');
+    await expect(userPanelFrame.locator('[data-summary-notifications]')).toHaveText(/\d+ de \d+ ativas/);
   });
 });

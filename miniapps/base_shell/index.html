@@ -21,7 +21,24 @@
   <body>
     <div class="app-shell" data-state="ready">
       <header class="app-header" role="banner">
-        <button id="btnQuickLinks" class="app-header__menu-button" type="button">menu</button>
+        <div class="app-header__actions">
+          <button id="btnQuickLinks" class="app-header__menu-button" type="button">menu</button>
+          <div class="user-menu">
+            <button
+              id="btnUser"
+              class="user-menu__trigger"
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="user-menu"
+            >
+              <span class="user-menu__avatar" aria-hidden="true" data-user-avatar>👤</span>
+              <span id="current-user" class="sr-only" data-i18n="actions.openUserMenu">
+                Abrir menu do usuário
+              </span>
+            </button>
+          </div>
+        </div>
       </header>
       <div class="layout">
         <main id="panel" class="panel" role="main" tabindex="-1">
