@@ -156,6 +156,7 @@ body.auth-login .app-footer__toggle {
 }
 
 body.auth-login .app-footer__toggle .footer-copy {
+  justify-content: center;
   text-align: center;
 }
 
@@ -394,6 +395,7 @@ body.auth-login .auth-login__card {
 .auth-login__link-group {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2xs);
 }
 
 .auth-login__link-group:not(:last-child)::after {
@@ -1324,6 +1326,15 @@ button:focus-visible,
   width: 100%;
 }
 
+.app-footer.is-expanded .app-footer__toggle {
+  align-items: flex-start;
+}
+
+.app-footer.is-expanded .app-footer__toggle .footer-copy {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
 .app-footer__toggle:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 4px;
@@ -1332,7 +1343,31 @@ button:focus-visible,
 .app-footer__toggle .footer-copy {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-3xs);
+  gap: var(--space-2xs);
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.app-footer__toggle .footer-copy__text {
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-footer.is-expanded .app-footer__toggle .footer-copy__text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.app-footer__brand-image {
+  height: clamp(18px, 4vw, 24px);
+  width: auto;
+  flex-shrink: 0;
 }
 
 .app-footer__toggle-icon {
