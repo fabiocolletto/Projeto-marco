@@ -45,6 +45,17 @@ const LANG_ICON_SOURCE_MAP = {
   'es-419': new URL('./assets/flags/es-419.svg', import.meta.url).href
 };
 
+const FOOTER_COMPLIANCE = {
+  companyName: '5Horas Tecnologia Ltda.',
+  companyDocument: 'CNPJ 48.321.654/0001-10',
+  companyAddress: 'Av. Paulista, 1000 - São Paulo, Brasil',
+  supportEmail: 'suporte@5horas.com.br',
+  dpoEmail: 'privacidade@5horas.com.br',
+  supportHours: 'Seg–Sex, das 9h às 18h (BRT)',
+  appStoreUrl: 'https://5horas.com.br/app-store',
+  googlePlayUrl: 'https://5horas.com.br/google-play'
+};
+
 const I18N_STORAGE_KEY = 'miniapp.base.lang';
 
 const NORMALIZED_LANG_RESOURCE_MAP = new Map();
@@ -839,7 +850,71 @@ function parseI18nParams(rawParams) {
   }
 }
 
+function updateFooterComplianceMetadata() {
+  const year = String(new Date().getFullYear());
+  const footer = document.getElementById('app-footer');
+  if (!footer) return;
+
+  const footerParams = {
+    year,
+    company: FOOTER_COMPLIANCE.companyName,
+    document: FOOTER_COMPLIANCE.companyDocument,
+    address: FOOTER_COMPLIANCE.companyAddress,
+    hours: FOOTER_COMPLIANCE.supportHours
+  };
+
+  footer.querySelectorAll('[data-footer-copyright]').forEach(node => {
+    node.dataset.i18n = 'footer.copyright';
+    node.dataset.i18nParams = JSON.stringify({
+      year,
+      company: FOOTER_COMPLIANCE.companyName
+    });
+  });
+
+  footer.querySelectorAll('[data-footer-param]').forEach(node => {
+    const rawKeys = node.dataset.footerParam;
+    if (!rawKeys) return;
+    const keys = rawKeys
+      .split(',')
+      .map(key => key.trim())
+      .filter(Boolean);
+    if (!keys.length) return;
+    const params = parseI18nParams(node.dataset.i18nParams) || {};
+    let changed = false;
+    keys.forEach(key => {
+      if (footerParams[key]) {
+        params[key] = footerParams[key];
+        changed = true;
+      }
+    });
+    if (changed) {
+      node.dataset.i18nParams = JSON.stringify(params);
+    }
+  });
+
+  footer.querySelectorAll('[data-footer-support-email]').forEach(node => {
+    node.textContent = FOOTER_COMPLIANCE.supportEmail;
+    node.setAttribute('href', `mailto:${FOOTER_COMPLIANCE.supportEmail}`);
+  });
+
+  footer.querySelectorAll('[data-footer-dpo-email]').forEach(node => {
+    node.textContent = FOOTER_COMPLIANCE.dpoEmail;
+    node.setAttribute('href', `mailto:${FOOTER_COMPLIANCE.dpoEmail}`);
+  });
+
+  footer.querySelectorAll('[data-footer-store]').forEach(anchor => {
+    const store = anchor.dataset.footerStore;
+    if (store === 'app-store') {
+      anchor.setAttribute('href', FOOTER_COMPLIANCE.appStoreUrl);
+    }
+    if (store === 'google-play') {
+      anchor.setAttribute('href', FOOTER_COMPLIANCE.googlePlayUrl);
+    }
+  });
+}
+
 function updateRevisionMetadata() {
+  updateFooterComplianceMetadata();
   const nodes = document.querySelectorAll('[data-revision]');
   if (!nodes.length) return;
   let appName = t('app.title');
