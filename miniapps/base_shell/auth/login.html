@@ -312,6 +312,34 @@
         const extras = footer.querySelectorAll('[data-footer-extra]');
         if (!toggle || extras.length === 0) return;
 
+        const root = document.documentElement;
+        const getSafeAreaBottom = () => {
+          const value = getComputedStyle(root).getPropertyValue(
+            '--viewport-safe-area-bottom'
+          );
+          const numeric = Number.parseFloat(value);
+          return Number.isNaN(numeric) ? 0 : numeric;
+        };
+
+        const updateFooterOffset = () => {
+          const safeAreaBottom = getSafeAreaBottom();
+          const offset = Math.max(0, footer.offsetHeight - safeAreaBottom);
+          root.style.setProperty('--footer-offset', `${offset}px`);
+        };
+
+        const scheduleFooterOffsetUpdate = () => {
+          window.requestAnimationFrame(updateFooterOffset);
+        };
+
+        updateFooterOffset();
+
+        if ('ResizeObserver' in window) {
+          const resizeObserver = new ResizeObserver(scheduleFooterOffsetUpdate);
+          resizeObserver.observe(footer);
+        }
+
+        window.addEventListener('resize', scheduleFooterOffsetUpdate);
+
         toggle.addEventListener('click', () => {
           const expanded = toggle.getAttribute('aria-expanded') === 'true';
           const next = !expanded;
@@ -324,6 +352,7 @@
               extra.setAttribute('hidden', '');
             }
           });
+          scheduleFooterOffsetUpdate();
         });
       });
     </script>

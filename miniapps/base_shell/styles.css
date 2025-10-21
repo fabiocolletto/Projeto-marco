@@ -5,6 +5,7 @@
   --footer-height: clamp(48px, 12vw, 64px);
   --sidebar-width: min(100%, clamp(280px, 78vw, 360px));
   --viewport-safe-area-bottom: var(--safe-area-bottom);
+  --footer-offset: calc(var(--footer-height) + (var(--space-xs) * 2));
   --shell-inline-padding: clamp(1rem, 4vw, 1.75rem);
   --shell-separator-color: color-mix(
     in srgb,
@@ -48,17 +49,23 @@ body.auth-login {
     );
   background-repeat: no-repeat;
   background-attachment: fixed;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 body.auth-login .app-shell {
   min-height: 100dvh;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 body.auth-login .layout {
   flex: 1;
   display: flex;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .layout--auth {
@@ -94,6 +101,20 @@ body.auth-login .panel-content {
   padding-inline: var(--shell-inline-padding);
   gap: clamp(1.5rem, 4vw, 2.5rem);
   justify-items: center;
+}
+
+body.auth-login #panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+body.auth-login #panel::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 body.auth-login .app-header {
@@ -500,7 +521,7 @@ body:focus-within .app-shell:focus {
   min-height: 100dvh;
   background: var(--color-surface);
   padding: calc(var(--safe-area-top) + var(--header-height) + (var(--space-xs) * 2)) 0
-    calc(var(--viewport-safe-area-bottom) + var(--footer-height) + (var(--space-xs) * 2));
+    calc(var(--viewport-safe-area-bottom) + var(--footer-offset));
   gap: 0;
 }
 
@@ -509,15 +530,16 @@ html[data-embed-mode='panel'] body {
 }
 
 html[data-embed-mode='panel'] .app-shell {
-  display: block;
-  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
   height: auto;
-  padding: 0;
+  padding: calc(var(--safe-area-top) + var(--header-height) + (var(--space-xs) * 2)) 0
+    calc(var(--viewport-safe-area-bottom) + var(--footer-offset));
+  gap: 0;
 }
 
-html[data-embed-mode='panel'] .app-header,
 html[data-embed-mode='panel'] .sidebar,
-html[data-embed-mode='panel'] .app-footer,
 html[data-embed-mode='panel'] .navigation-overlay,
 html[data-embed-mode='panel'] .menu-overlay {
   display: none !important;
@@ -526,7 +548,7 @@ html[data-embed-mode='panel'] .menu-overlay {
 html[data-embed-mode='panel'] .layout {
   height: auto;
   min-height: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 
 html[data-embed-mode='panel'] .auth-login__actions {
