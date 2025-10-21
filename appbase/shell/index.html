@@ -21,10 +21,6 @@
   <body>
     <div class="app-shell" data-state="ready">
       <header class="app-header" role="banner">
-        <button id="btnMenu" class="ghost" aria-label="Menu" aria-expanded="false">
-          <span aria-hidden="true">☰</span>
-        </button>
-        <div id="nav-overlay-root"></div>
         <button
           class="brand-button"
           type="button"
@@ -45,6 +41,20 @@
         </button>
         <h1 id="page-title" data-i18n="app.title">MiniApp Base</h1>
         <div class="toolbar" role="group" aria-label="Global actions">
+          <div class="miniapp-menu" role="group" aria-label="Miniapps">
+            <button
+              id="btnMiniapps"
+              class="ghost icon-only"
+              type="button"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="navigation-overlay"
+            >
+              <span class="sr-only" data-i18n="actions.openMiniappMenu">Abrir menu de miniapps</span>
+              <span class="miniapp-menu__icon" aria-hidden="true">🧩</span>
+            </button>
+            <div id="nav-overlay-root"></div>
+          </div>
           <div class="user-menu" role="group" aria-label="User menu">
             <button
               id="btnUser"
