@@ -90,6 +90,53 @@ body {
   box-shadow: 0 4px 10px color-mix(in srgb, var(--color-border-strong) 16%, transparent);
 }
 
+.quick-links-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  background: color-mix(in srgb, rgba(15, 23, 42, 0.75) 65%, transparent);
+  backdrop-filter: blur(14px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-emphasis, 0.24s ease);
+}
+
+.quick-links-overlay[hidden] {
+  display: none;
+}
+
+.quick-links-overlay:not([hidden]) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.quick-links__panel {
+  position: relative;
+  width: min(100%, 540px);
+  padding: clamp(1.75rem, 4vw, 2.5rem);
+  border-radius: 28px;
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 60%, transparent);
+  background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+  box-shadow: 0 32px 64px rgba(15, 23, 42, 0.16);
+  display: grid;
+  gap: clamp(1rem, 3vw, 1.5rem);
+}
+
+.quick-links__close {
+  position: absolute;
+  top: clamp(0.75rem, 2vw, 1rem);
+  inset-inline-end: clamp(0.75rem, 2vw, 1rem);
+}
+
+.quick-links__content {
+  min-height: clamp(6rem, 18vw, 10rem);
+  display: grid;
+  gap: 1rem;
+}
+
 .cta {
   display: inline-flex;
   align-items: center;

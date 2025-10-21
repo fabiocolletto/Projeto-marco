@@ -449,6 +449,7 @@ async function bootstrap() {
   if (initialMiniAppId) {
     updateMiniAppHistory(initialMiniAppId, { replace: true });
   }
+  setupQuickLinksCard();
   setupUserMenu();
   setupAuthForms();
   setupUserManagement();
@@ -1045,6 +1046,182 @@ function setupNavigationOverlay() {
   renderNavigationItems();
   applyTranslations();
   refreshSidebarNavigationLabels();
+}
+
+function setupQuickLinksCard() {
+  const header = document.querySelector('.app-header');
+  if (!header) {
+    return;
+  }
+
+  let triggerButton = null;
+  let menu = null;
+  let closeButton = null;
+
+  function createQuickLinksOverlay() {
+    const overlay = document.createElement('div');
+    overlay.id = 'quick-links';
+    overlay.className = 'quick-links-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.setAttribute('aria-label', 'Links rápidos');
+    overlay.hidden = true;
+
+    const panel = document.createElement('div');
+    panel.className = 'quick-links__panel';
+    panel.setAttribute('role', 'document');
+    panel.dataset.quickLinksPanel = 'true';
+
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'ghost icon-only quick-links__close';
+    close.dataset.quickLinksClose = '';
+
+    const srOnly = document.createElement('span');
+    srOnly.className = 'sr-only';
+    srOnly.dataset.i18n = 'actions.close';
+    srOnly.textContent = 'Fechar';
+
+    const icon = document.createElement('span');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = '✕';
+
+    close.append(srOnly, icon);
+
+    const content = document.createElement('div');
+    content.className = 'quick-links__content';
+    content.dataset.quickLinksContent = 'true';
+
+    panel.append(close, content);
+    overlay.append(panel);
+
+    const userMenu = document.getElementById('user-menu');
+    if (userMenu && userMenu.parentNode) {
+      userMenu.parentNode.insertBefore(overlay, userMenu.nextSibling);
+    } else {
+      document.body.append(overlay);
+    }
+
+    return overlay;
+  }
+
+  function handleCloseClick() {
+    const currentMenu = ensureMenuPresence();
+    closeMenu(triggerButton, currentMenu, { restoreFocus: true });
+  }
+
+  function handleMenuBackdrop(event) {
+    if (event.target === menu) {
+      handleCloseClick();
+    }
+  }
+
+  function attachToMenu(nextMenu) {
+    if (!nextMenu) {
+      return;
+    }
+    if (menu && menu !== nextMenu) {
+      menu.removeEventListener('click', handleMenuBackdrop);
+    }
+    const isNewMenu = menu !== nextMenu;
+    menu = nextMenu;
+    if (isNewMenu && !menu.dataset.quickLinksReady) {
+      menu.hidden = true;
+      menu.setAttribute('aria-hidden', 'true');
+      menu.dataset.quickLinksReady = 'true';
+    }
+    menu.addEventListener('click', handleMenuBackdrop);
+    const nextCloseButton = menu.querySelector('[data-quick-links-close]');
+    if (closeButton && closeButton !== nextCloseButton) {
+      closeButton.removeEventListener('click', handleCloseClick);
+    }
+    closeButton = nextCloseButton || null;
+    if (closeButton) {
+      closeButton.addEventListener('click', handleCloseClick);
+    }
+  }
+
+  function ensureMenuPresence() {
+    if (menu && menu.isConnected) {
+      return menu;
+    }
+    const existing = document.getElementById('quick-links');
+    if (existing) {
+      attachToMenu(existing);
+      return menu;
+    }
+    const created = createQuickLinksOverlay();
+    attachToMenu(created);
+    return menu;
+  }
+
+  function ensureButtonAttributes(button) {
+    const currentMenu = ensureMenuPresence();
+    if (!button || !currentMenu) {
+      return;
+    }
+    button.id = 'btnQuickLinks';
+    button.setAttribute('aria-haspopup', 'dialog');
+    button.setAttribute('aria-controls', currentMenu.id);
+    button.setAttribute('aria-expanded', currentMenu.hidden ? 'false' : 'true');
+  }
+
+  function handleButtonClick(event) {
+    event.stopPropagation();
+    const currentMenu = ensureMenuPresence();
+    if (!triggerButton || !currentMenu) {
+      return;
+    }
+    toggleMenu(triggerButton, currentMenu, renderQuickLinks);
+  }
+
+  function attachToButton(button) {
+    if (!button) {
+      return;
+    }
+    if (triggerButton && triggerButton !== button) {
+      triggerButton.removeEventListener('click', handleButtonClick);
+    }
+    triggerButton = button;
+    ensureButtonAttributes(triggerButton);
+    triggerButton.addEventListener('click', handleButtonClick, { once: false });
+  }
+
+  ensureMenuPresence();
+  attachToButton(document.getElementById('btnQuickLinks') || header.querySelector('.app-header__menu-button'));
+
+  const headerObserver = new MutationObserver(() => {
+    if (triggerButton && !triggerButton.isConnected) {
+      triggerButton.removeEventListener('click', handleButtonClick);
+      triggerButton = null;
+    }
+    const latestButton = document.getElementById('btnQuickLinks') || header.querySelector('.app-header__menu-button');
+    if (latestButton && latestButton !== triggerButton) {
+      attachToButton(latestButton);
+    } else if (latestButton) {
+      ensureButtonAttributes(latestButton);
+    }
+    ensureMenuPresence();
+  });
+  headerObserver.observe(header, { childList: true, subtree: true });
+
+  const bodyObserver = new MutationObserver(() => {
+    ensureMenuPresence();
+  });
+  bodyObserver.observe(document.body, { childList: true });
+}
+
+function renderQuickLinks(menu) {
+  if (!menu) {
+    return;
+  }
+  const content = menu.querySelector('[data-quick-links-content]');
+  if (!content) {
+    return;
+  }
+  if (!content.hasAttribute('data-quick-links-initialized')) {
+    content.dataset.quickLinksInitialized = 'true';
+  }
 }
 
 function renderNavigationItems() {
