@@ -144,9 +144,32 @@ function isFramedWindow() {
   }
 }
 
-const MINI_APP_CATALOG = [];
+const SYSTEM_DASHBOARD_MINI_APP_ID = 'base.shell.panel.system';
+const SYSTEM_DASHBOARD_MINI_APP = {
+  id: SYSTEM_DASHBOARD_MINI_APP_ID,
+  labelKey: 'miniapps.systemDashboard.label',
+  welcomeTitleKey: 'miniapps.systemDashboard.title',
+  welcomeMessageKey: 'miniapps.systemDashboard.message',
+  icon: '🖥️',
+  route: './sys/system-panel.html'
+};
 
-const MINI_APP_CATALOG_MAP = new Map();
+const USER_DASHBOARD_MINI_APP_ID = 'base.shell.panel.user';
+const USER_DASHBOARD_MINI_APP = {
+  id: USER_DASHBOARD_MINI_APP_ID,
+  labelKey: 'miniapps.userDashboard.label',
+  welcomeTitleKey: 'miniapps.userDashboard.title',
+  welcomeMessageKey: 'miniapps.userDashboard.message',
+  icon: '👤',
+  route: './sys/user-panel.html'
+};
+
+const MINI_APP_CATALOG = [
+  { ...SYSTEM_DASHBOARD_MINI_APP, order: 10 },
+  { ...USER_DASHBOARD_MINI_APP, order: 20 }
+];
+
+const MINI_APP_CATALOG_MAP = new Map(MINI_APP_CATALOG.map(item => [item.id, item]));
 
 const NAVIGATION_ITEMS = [
   { id: 'nav-home', labelKey: 'nav.dashboard', icon: '🏠', action: 'home' },
@@ -379,6 +402,7 @@ async function bootstrap() {
   updateThemeToggle();
   setupAdminDashboard();
   setupAdminGateway();
+  setupSystemPanelShortcut();
   setupUserPanelShortcut();
   updateUserPanelShortcut();
   updateUserDisplay(currentUser());
@@ -1205,6 +1229,61 @@ function setActiveMiniApp(id, options = {}) {
   updateAdminDashboardActivity();
 }
 
+function getMiniAppDefinition(id) {
+  if (!id) return null;
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  const existing = items.find(item => item && item.id === id);
+  if (existing) {
+    return existing;
+  }
+  if (MINI_APP_CATALOG_MAP.has(id)) {
+    return MINI_APP_CATALOG_MAP.get(id);
+  }
+  return null;
+}
+
+function ensureMiniAppEntry(id) {
+  if (!id) return null;
+  const items = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  if (items.some(item => item && item.id === id)) {
+    return items.find(item => item && item.id === id) || null;
+  }
+  const fallback = MINI_APP_CATALOG_MAP.get(id);
+  if (!fallback) {
+    return null;
+  }
+  const nextItems = [...items, { ...fallback }];
+  miniAppState.items = withShellMiniApps(nextItems);
+  const updatedItems = Array.isArray(miniAppState.items) ? miniAppState.items : [];
+  return updatedItems.find(item => item && item.id === id) || { ...fallback };
+}
+
+function activateMiniAppShortcut(id, options = {}) {
+  if (!id) return false;
+  const controls = getStageHost();
+  if (!controls || !controls.host) {
+    const definition = getMiniAppDefinition(id);
+    if (definition) {
+      const url = resolveMiniAppStageUrl(definition);
+      if (url) {
+        window.location.href = url;
+        return true;
+      }
+    }
+    return false;
+  }
+  const definition = ensureMiniAppEntry(id);
+  if (!definition) {
+    return false;
+  }
+  const historyOptions = options.skipHistory ? { skipHistory: true } : {};
+  setActiveMiniApp(id, historyOptions);
+  if (options.focus !== false) {
+    focusPanel();
+  }
+  return true;
+}
+
 function activateUserPanelMiniApp(options = {}) {
   const controls = getStageHost();
   if (!controls || !controls.host) {
@@ -1942,6 +2021,16 @@ function setupRegisterPanelShortcut() {
   });
 }
 
+function setupSystemPanelShortcut() {
+  const button = document.getElementById('btnSystemPanel');
+  if (!button) return;
+  button.addEventListener('click', () => {
+    activateMiniAppShortcut(SYSTEM_DASHBOARD_MINI_APP_ID);
+    closeActiveMenu();
+    closeMiniAppMenu();
+  });
+}
+
 function setupUserPanelShortcut() {
   const button = document.getElementById('btnUserPanel');
   if (!button) return;
@@ -1956,7 +2045,7 @@ function setupUserPanelShortcut() {
 }
 
 function handleUserPanelShortcutClick() {
-  return false;
+  return activateMiniAppShortcut(USER_DASHBOARD_MINI_APP_ID);
 }
 
 function displayDeferredFeedback() {
@@ -2056,7 +2145,7 @@ function refreshUserMenu() {
   const profileButton = menu.querySelector('button[data-action="profile"]');
   const logoutButton = menu.querySelector('button[data-action="logout"]');
   const divider = menu.querySelector('.menu-divider');
-  setMenuItemVisibility(userPanelButton, isAuthenticated);
+  setMenuItemVisibility(userPanelButton, true);
   setMenuItemVisibility(profileButton, isAuthenticated);
   setMenuItemVisibility(logoutButton, isAuthenticated);
   if (divider) {
