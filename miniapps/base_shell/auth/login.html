@@ -35,7 +35,11 @@
   <body class="auth-login">
     <div class="app-shell" data-state="ready">
       <header class="app-header" role="banner">
-        <button class="app-header__menu-button" type="button">menu</button>
+        <button id="btnQuickLinks" class="app-header__menu-button" type="button">
+          <span class="app-header__menu-icon" aria-hidden="true">☰</span>
+          <span class="app-header__menu-label" data-i18n="actions.quickLinksTrigger">Menu</span>
+          <span class="sr-only" data-i18n="actions.openQuickLinks">Abrir menu principal</span>
+        </button>
       </header>
       <div class="layout layout--auth">
         <main id="panel" class="panel panel--auth" role="main" tabindex="-1">
