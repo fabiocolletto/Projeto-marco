@@ -41,8 +41,7 @@ body {
   z-index: 40;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
+  justify-content: flex-end;
   flex-wrap: nowrap;
   min-height: var(--header-height);
   padding: calc(var(--space-xs) + var(--safe-area-top)) var(--shell-inline-padding)
@@ -52,56 +51,43 @@ body {
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
-.app-header__title,
-.app-header > h1 {
-  margin: 0;
-  font-size: clamp(1.05rem, 3vw, 1.35rem);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  text-align: left;
-  flex: 1 1 auto;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.app-header .toolbar {
+.app-header__menu-button {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xs);
-  flex-wrap: nowrap;
-}
-
-.app-header .panel-trigger {
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  border: none;
-  background: none;
-  padding: 0;
+  gap: var(--space-2xs);
+  padding: 0.65rem 1.35rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--color-border-strong) 70%, transparent);
+  background: color-mix(in srgb, var(--color-surface-raised) 85%, transparent);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
   cursor: pointer;
-  color: inherit;
+  transition: background var(--transition-default),
+    color var(--transition-default),
+    box-shadow var(--transition-emphasis),
+    transform var(--transition-emphasis);
 }
 
-.app-header .panel-trigger:focus-visible {
+.app-header__menu-button:hover,
+.app-header__menu-button:focus-visible {
+  background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+  box-shadow: 0 8px 16px color-mix(in srgb, var(--color-border-strong) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+.app-header__menu-button:focus-visible {
   outline: 3px solid var(--color-accent);
-  outline-offset: 4px;
-  border-radius: var(--radius-sm);
+  outline-offset: 3px;
 }
 
-.app-header .panel-trigger__icon {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.app-header .ghost {
-  border-radius: var(--radius-sm);
-}
-
-.app-header .user-avatar {
-  font-size: 1.35rem;
+.app-header__menu-button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--color-border-strong) 16%, transparent);
 }
 
 .cta {
@@ -287,31 +273,15 @@ body.auth-login #panel::-webkit-scrollbar {
 
 body.auth-login .app-header {
   position: static;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-sm);
+  justify-content: flex-end;
   padding: clamp(2.5rem, 7vw, 3.25rem) var(--shell-inline-padding) var(--space-sm);
   background: transparent;
   border-bottom: none;
   box-shadow: none;
 }
 
-body.auth-login .app-header .miniapp-menu,
-body.auth-login .app-header #btnMiniapps {
-  display: none;
-}
-
-body.auth-login .app-header__title {
-  position: static;
-  transform: none;
-  pointer-events: auto;
-  font-size: clamp(1.1rem, 5vw, 1.35rem);
-}
-
-body.auth-login .toolbar {
-  margin-left: var(--space-sm);
+body.auth-login .app-header__menu-button {
+  border-color: color-mix(in srgb, var(--color-border-strong) 35%, transparent);
 }
 
 .app-footer {
