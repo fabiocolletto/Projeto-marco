@@ -1,6 +1,6 @@
 export const EMBEDDED_DICTIONARIES = Object.freeze({
   "pt-BR": {
-    "app.title": "MiniApp Base",
+    "app.title": "MiniAppBase",
     "actions.language": "Idioma",
     "actions.theme": "Tema",
     "actions.toggleTheme": "Alternar tema",
@@ -240,7 +240,7 @@ export const EMBEDDED_DICTIONARIES = Object.freeze({
     "admin.dashboard.status.miniapps": "Mini-apps visíveis: {count}"
   },
   "en-US": {
-    "app.title": "MiniApp Base",
+    "app.title": "MiniAppBase",
     "actions.language": "Language",
     "actions.theme": "Theme",
     "actions.toggleTheme": "Toggle theme",
@@ -480,7 +480,7 @@ export const EMBEDDED_DICTIONARIES = Object.freeze({
     "admin.dashboard.status.miniapps": "Visible mini-apps: {count}"
   },
   "es-419": {
-    "app.title": "MiniApp Base",
+    "app.title": "MiniAppBase",
     "actions.language": "Idioma",
     "actions.theme": "Tema",
     "actions.toggleTheme": "Cambiar tema",

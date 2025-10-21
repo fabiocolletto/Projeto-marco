@@ -919,7 +919,7 @@ function updateRevisionMetadata() {
   if (!nodes.length) return;
   let appName = t('app.title');
   if (!appName || appName === 'app.title') {
-    appName = (revisionInfo && revisionInfo.name) || 'MiniApp Base';
+    appName = (revisionInfo && revisionInfo.name) || 'MiniAppBase';
   }
   if (revisionInfo && (revisionInfo.revision || revisionInfo.version)) {
     const revisionLabel = String(revisionInfo.revision || revisionInfo.version || '—');
