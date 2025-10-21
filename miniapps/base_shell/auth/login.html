@@ -175,45 +175,63 @@
       </div>
       <footer id="app-footer" class="app-footer" role="contentinfo">
         <div class="footer-content">
-          <button
-            type="button"
-            class="app-footer__toggle"
-            data-footer-toggle
-            aria-expanded="false"
-            aria-controls="app-footer-extra"
-          >
-            <small class="footer-copy">
-              <span class="footer-copy__text">
-                &copy;
-                <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+          <div class="app-footer__top">
+            <button
+              type="button"
+              class="app-footer__toggle"
+              data-footer-toggle
+              aria-expanded="false"
+              aria-controls="app-footer-extra"
+            >
+              <small class="footer-copy">
+                <span class="footer-copy__text">
+                  <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+                  <span aria-hidden="true" class="app-footer__separator">•</span>
+                  <span class="app-footer__brand-text">5Horas</span>
+                </span>
+                <img
+                  class="app-footer__brand-image"
+                  src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+                  alt="5Horas"
+                  data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+                  data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
+                />
+              </small>
+              <span class="app-footer__toggle-icon" aria-hidden="true">▾</span>
+              <span
+                class="sr-only app-footer__toggle-hint app-footer__toggle-hint--expand"
+                data-i18n="footer.toggle.expand"
+              >
+                Mostrar informações adicionais do rodapé
               </span>
-              <img
-                class="app-footer__brand-image"
-                src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-                alt="5Horas"
-                data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-                data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
-              />
-            </small>
-            <span class="app-footer__toggle-icon" aria-hidden="true">▾</span>
-            <span
-              class="sr-only app-footer__toggle-hint app-footer__toggle-hint--expand"
-              data-i18n="footer.toggle.expand"
-            >
-              Mostrar informações adicionais do rodapé
-            </span>
-            <span
-              class="sr-only app-footer__toggle-hint app-footer__toggle-hint--collapse"
-              data-i18n="footer.toggle.collapse"
-            >
-              Ocultar informações adicionais do rodapé
-            </span>
-          </button>
+              <span
+                class="sr-only app-footer__toggle-hint app-footer__toggle-hint--collapse"
+                data-i18n="footer.toggle.collapse"
+              >
+                Ocultar informações adicionais do rodapé
+              </span>
+            </button>
+            <div class="app-footer__summary" data-footer-condensed>
+              <span class="app-footer__summary-text" data-revision data-i18n="footer.revisionFallback">
+                MiniApp Base · Revisão indisponível
+              </span>
+              <a
+                class="app-footer__summary-link"
+                href="../REVISION_LOG.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-i18n="footer.revisionLog"
+              >
+                Log de revisões
+              </a>
+            </div>
+          </div>
           <div
             id="app-footer-extra"
             class="footer-extra"
             data-footer-extra
             hidden
+            aria-hidden="true"
           >
             <small class="footer-revision">
               <span data-revision data-i18n="footer.revisionFallback">
@@ -317,6 +335,7 @@
         </ul>
       </div>
     </div>
+    <script defer type="module" src="../sys/memory-status.js"></script>
     <script type="module" src="../app.js"></script>
   </body>
 </html>

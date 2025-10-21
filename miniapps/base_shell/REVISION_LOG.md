@@ -1,5 +1,10 @@
 # MiniApp Base Shell – Log de Revisões
 
+## R5 · 2025-10-30
+- Rodapé redesenhado com visão condensada e painel expandido para metadados, preservando o controle de versão com melhor acessibilidade.
+- Aplicado ajuste responsivo no layout e nas interações do rodapé, com cálculo dinâmico do espaço seguro e sumário recolhido.
+- Carregado o monitor de memória nas telas de autenticação para manter o status atualizado em todo o fluxo.
+
 ## R4 · 2025-10-20
 - Sincronizado o manifesto com a versão sequencial `4` e criado o log central de versões do projeto.
 - Garantido que o rodapé destaque a nova versão numérica em todas as traduções do shell.

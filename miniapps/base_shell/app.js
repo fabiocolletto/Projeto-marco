@@ -840,8 +840,8 @@ function parseI18nParams(rawParams) {
 }
 
 function updateRevisionMetadata() {
-  const node = document.querySelector('[data-revision]');
-  if (!node) return;
+  const nodes = document.querySelectorAll('[data-revision]');
+  if (!nodes.length) return;
   let appName = t('app.title');
   if (!appName || appName === 'app.title') {
     appName = (revisionInfo && revisionInfo.name) || 'MiniApp Base';
@@ -849,15 +849,19 @@ function updateRevisionMetadata() {
   if (revisionInfo && (revisionInfo.revision || revisionInfo.version)) {
     const revisionLabel = String(revisionInfo.revision || revisionInfo.version || '—');
     const versionLabel = String(revisionInfo.version || revisionInfo.revision || '—');
-    node.dataset.i18n = 'footer.revision';
-    node.dataset.i18nParams = JSON.stringify({
-      appName,
-      revision: revisionLabel,
-      version: versionLabel
+    nodes.forEach(node => {
+      node.dataset.i18n = 'footer.revision';
+      node.dataset.i18nParams = JSON.stringify({
+        appName,
+        revision: revisionLabel,
+        version: versionLabel
+      });
     });
   } else {
-    node.dataset.i18n = 'footer.revisionFallback';
-    node.dataset.i18nParams = JSON.stringify({ appName });
+    nodes.forEach(node => {
+      node.dataset.i18n = 'footer.revisionFallback';
+      node.dataset.i18nParams = JSON.stringify({ appName });
+    });
   }
 }
 
@@ -1588,6 +1592,7 @@ function setupFooterToggle() {
   const root = document.documentElement;
   const toggle = footer.querySelector('[data-footer-toggle]');
   const extras = footer.querySelectorAll('[data-footer-extra]');
+  const condensed = footer.querySelectorAll('[data-footer-condensed]');
 
   const getSafeAreaBottom = () => {
     const value = getComputedStyle(root).getPropertyValue('--viewport-safe-area-bottom');
@@ -1624,8 +1629,17 @@ function setupFooterToggle() {
     extras.forEach(extra => {
       if (next) {
         extra.removeAttribute('hidden');
+        extra.setAttribute('aria-hidden', 'false');
       } else {
         extra.setAttribute('hidden', '');
+        extra.setAttribute('aria-hidden', 'true');
+      }
+    });
+    condensed.forEach(summary => {
+      if (next) {
+        summary.setAttribute('hidden', '');
+      } else {
+        summary.removeAttribute('hidden');
       }
     });
   };
