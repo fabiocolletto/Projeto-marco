@@ -22,7 +22,11 @@
     <div class="app-shell" data-state="ready">
       <header class="app-header" role="banner">
         <div class="app-header__actions">
-          <button id="btnQuickLinks" class="app-header__menu-button" type="button">menu</button>
+          <button id="btnQuickLinks" class="app-header__menu-button" type="button">
+            <span class="app-header__menu-icon" aria-hidden="true">☰</span>
+            <span class="app-header__menu-label" data-i18n="actions.quickLinksTrigger">Menu</span>
+            <span class="sr-only" data-i18n="actions.openQuickLinks">Abrir menu principal</span>
+          </button>
           <div class="user-menu">
             <button
               id="btnUser"
