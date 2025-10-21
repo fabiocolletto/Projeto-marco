@@ -1219,9 +1219,61 @@ function renderQuickLinks(menu) {
   if (!content) {
     return;
   }
-  if (!content.hasAttribute('data-quick-links-initialized')) {
-    content.dataset.quickLinksInitialized = 'true';
-  }
+  const items = [
+    {
+      id: 'quick-link-user-panel',
+      icon: '👤',
+      labelKey: 'settings.userPanel',
+      srLabelKey: 'actions.openUserPanel',
+      href: USER_PANEL_URL.href
+    }
+  ];
+
+  content.innerHTML = '';
+
+  const list = document.createElement('ul');
+  list.className = 'quick-links__list';
+  list.dataset.quickLinksList = 'true';
+
+  items.forEach(item => {
+    const listItem = document.createElement('li');
+    listItem.className = 'quick-links__item';
+    listItem.id = item.id;
+
+    const link = document.createElement('a');
+    link.className = 'quick-links__action';
+    link.href = item.href;
+
+    const icon = document.createElement('span');
+    icon.className = 'quick-links__icon';
+    icon.setAttribute('aria-hidden', 'true');
+    icon.textContent = item.icon;
+
+    const label = document.createElement('span');
+    label.className = 'quick-links__label';
+    label.dataset.i18n = item.labelKey;
+    label.textContent = t(item.labelKey);
+
+    const srOnly = document.createElement('span');
+    srOnly.className = 'sr-only';
+    srOnly.dataset.i18n = item.srLabelKey;
+    srOnly.textContent = t(item.srLabelKey);
+
+    link.append(icon, label, srOnly);
+
+    link.addEventListener('click', () => {
+      if (activeMenu?.menu === menu) {
+        closeMenu(activeMenu.button, menu, { restoreFocus: false });
+      }
+    });
+
+    listItem.append(link);
+    list.append(listItem);
+  });
+
+  content.append(list);
+  content.dataset.quickLinksInitialized = 'true';
+  applyTranslations();
 }
 
 function renderNavigationItems() {
