@@ -142,43 +142,38 @@
                 Ocultar informações adicionais do rodapé
               </span>
             </button>
-            <div class="app-footer__summary" data-footer-condensed>
-              <span class="app-footer__summary-text" data-revision data-i18n="footer.revisionFallback">
-                MiniApp Base · Revisão indisponível
-              </span>
-              <a
-                class="app-footer__summary-link"
-                href="./REVISION_LOG.md"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-i18n="footer.revisionLog"
-              >
-                Log de revisões
-              </a>
+            <div
+              class="app-footer__summary"
+              data-footer-condensed
+              data-footer-revision-target="condensed"
+            >
+              <small class="footer-revision">
+                <span data-revision data-i18n="footer.revisionFallback">
+                  MiniApp Base · Revisão indisponível
+                </span>
+                <a
+                  class="footer-revision__link"
+                  href="./REVISION_LOG.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-i18n="footer.revisionLog"
+                >
+                  Log de revisões
+                </a>
+              </small>
             </div>
           </div>
           <div
             id="app-footer-extra"
             class="footer-extra"
             data-footer-extra
+            data-footer-revision-target="expanded"
             hidden
             aria-hidden="true"
           >
-            <small class="footer-revision">
-              <span data-revision data-i18n="footer.revisionFallback">
-                MiniApp Base · Revisão indisponível
-              </span>
-              <a
-                class="footer-revision-log"
-                href="./REVISION_LOG.md"
-                target="_blank"
-                rel="noopener noreferrer"
-                data-i18n="footer.revisionLog"
-              >
-                Log de revisões
-              </a>
-            </small>
-            <span id="mem-status" role="status" aria-live="polite">Memória: verificando…</span>
+            <span id="mem-status" role="status" aria-live="polite">
+              Memória: verificando…
+            </span>
           </div>
         </div>
       </footer>

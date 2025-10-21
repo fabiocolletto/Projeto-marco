@@ -1593,6 +1593,11 @@ function setupFooterToggle() {
   const toggle = footer.querySelector('[data-footer-toggle]');
   const extras = footer.querySelectorAll('[data-footer-extra]');
   const condensed = footer.querySelectorAll('[data-footer-condensed]');
+  const revisionNode = footer.querySelector('.footer-revision');
+  const revisionTargets = {
+    condensed: footer.querySelector('[data-footer-revision-target="condensed"]'),
+    expanded: footer.querySelector('[data-footer-revision-target="expanded"]')
+  };
 
   const getSafeAreaBottom = () => {
     const value = getComputedStyle(root).getPropertyValue('--viewport-safe-area-bottom');
@@ -1623,7 +1628,27 @@ function setupFooterToggle() {
     return;
   }
 
+  const moveRevisionTo = targetKey => {
+    if (!revisionNode) return;
+    const target = revisionTargets[targetKey];
+    if (!target) return;
+    if (typeof target.prepend === 'function') {
+      target.prepend(revisionNode);
+      return;
+    }
+    const firstChild = target.firstChild;
+    if (firstChild && typeof target.insertBefore === 'function') {
+      target.insertBefore(revisionNode, firstChild);
+      return;
+    }
+    if (typeof target.appendChild === 'function') {
+      target.appendChild(revisionNode);
+    }
+  };
+
   const setExpanded = next => {
+    const targetKey = next ? 'expanded' : 'condensed';
+    moveRevisionTo(targetKey);
     toggle.setAttribute('aria-expanded', String(next));
     footer.classList.toggle('is-expanded', next);
     extras.forEach(extra => {
