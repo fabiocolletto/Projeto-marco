@@ -14,6 +14,8 @@
   "actions.openUserPanelWithName": "Abrir panel de usuario de {name}",
   "actions.openSystemPanel": "Abrir panel del sistema",
   "actions.openMiniappMenu": "Abrir menú de miniapps",
+  "actions.quickLinksTrigger": "Menú",
+  "actions.openQuickLinks": "Abrir menú principal",
   "actions.close": "Cerrar",
   "actions.toggleSidebar": "Alternar barra lateral",
   "actions.save": "Guardar",
