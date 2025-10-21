@@ -35,25 +35,7 @@
   <body class="auth-login">
     <div class="app-shell" data-state="ready">
       <header class="app-header" role="banner">
-        <button
-          class="brand-button"
-          type="button"
-          data-admin-trigger
-          aria-haspopup="dialog"
-          aria-expanded="false"
-        >
-          <span class="sr-only" data-i18n="app.title">MiniApp Base</span>
-          <img
-            id="logo"
-            class="brand"
-            src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-            alt=""
-            aria-hidden="true"
-            data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-            data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
-          />
-        </button>
-        <h1 class="app-header__title" data-i18n="app.title">MiniApp Base</h1>
+        <h1 class="app-header__title" data-i18n="app.title">MiniAppBase</h1>
         <div class="toolbar" role="group" aria-label="Global actions">
           <div class="miniapp-menu" role="group" aria-label="Miniapps">
             <button
@@ -88,6 +70,16 @@
               </span>
             </button>
           </div>
+          <button
+            class="ghost icon-only panel-trigger"
+            type="button"
+            data-admin-trigger
+            aria-haspopup="dialog"
+            aria-expanded="false"
+          >
+            <span class="sr-only" data-i18n="actions.openSystemPanel">Abrir painel do sistema</span>
+            <span class="panel-trigger__icon" aria-hidden="true">🛠️</span>
+          </button>
         </div>
       </header>
       <div class="layout layout--auth">
