@@ -13,6 +13,7 @@
   "actions.openUserPanel": "Open user panel",
   "actions.openUserPanelWithName": "Open user panel for {name}",
   "actions.openSystemPanel": "Open system panel",
+  "actions.openMiniappMenu": "Open mini-app menu",
   "actions.close": "Close",
   "actions.toggleSidebar": "Toggle sidebar",
   "actions.save": "Save",

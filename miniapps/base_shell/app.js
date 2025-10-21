@@ -173,6 +173,18 @@ const MINI_APP_CATALOG_MAP = new Map(MINI_APP_CATALOG.map(item => [item.id, item
 
 const NAVIGATION_ITEMS = [
   { id: 'nav-home', labelKey: 'nav.dashboard', icon: '🏠', action: 'home' },
+  {
+    id: 'nav-system-panel',
+    labelKey: 'settings.systemPanel',
+    icon: '🖥️',
+    action: 'system-panel'
+  },
+  {
+    id: 'nav-user-panel',
+    labelKey: 'settings.userPanel',
+    icon: '👤',
+    action: 'user-panel'
+  },
   { id: 'nav-activity', labelKey: 'nav.activity', icon: '🗂', action: 'placeholder' },
   { id: 'nav-analytics', labelKey: 'nav.analytics', icon: '📊', action: 'placeholder' }
 ];
@@ -849,7 +861,7 @@ function updateRevisionMetadata() {
 }
 
 function setupNavigationOverlay() {
-  const trigger = document.getElementById('btnMenu');
+  const trigger = document.getElementById('btnMiniapps');
   const host = document.getElementById('nav-overlay-root');
   if (!trigger || !host) {
     navigationOverlayControls = null;
@@ -1010,6 +1022,22 @@ function handleNavigationAction(action) {
     closeNavigationOverlay({ restoreFocus: false });
     if (wasActive) {
       focusPanel();
+    }
+    return;
+  }
+  if (action === 'system-panel') {
+    closeNavigationOverlay({ restoreFocus: false });
+    const handled = activateMiniAppShortcut(SYSTEM_DASHBOARD_MINI_APP_ID);
+    if (!handled) {
+      focusPanel();
+    }
+    return;
+  }
+  if (action === 'user-panel') {
+    closeNavigationOverlay({ restoreFocus: false });
+    const handled = handleUserPanelShortcutClick();
+    if (!handled) {
+      handleUserAction('profile');
     }
     return;
   }
@@ -2621,7 +2649,7 @@ function handleDocumentClick(event) {
   }
   if (!activeMenu) return;
   const { button, menu } = activeMenu;
-  const navTrigger = document.getElementById('btnMenu');
+  const navTrigger = document.getElementById('btnMiniapps');
   if (navTrigger && navTrigger.contains(event.target)) {
     return;
   }
@@ -3132,7 +3160,7 @@ function updateUserDisplay(user) {
 
 function updateNavigationVisibility(user) {
   const isAuthenticated = Boolean(user);
-  const trigger = navigationOverlayControls?.trigger || document.getElementById('btnMenu');
+  const trigger = navigationOverlayControls?.trigger || document.getElementById('btnMiniapps');
   if (trigger) {
     trigger.hidden = !isAuthenticated;
     if (!isAuthenticated) {

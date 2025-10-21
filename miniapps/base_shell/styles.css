@@ -125,7 +125,8 @@ body.auth-login .app-header {
   box-shadow: none;
 }
 
-body.auth-login .app-header #btnMenu,
+body.auth-login .app-header .miniapp-menu,
+body.auth-login .app-header #btnMiniapps,
 body.auth-login .app-header .brand-button {
   display: none;
 }
@@ -648,6 +649,17 @@ html[data-embed-mode='panel'] .auth-login__card-footer {
   gap: var(--space-xs);
   align-items: center;
   position: relative;
+}
+
+.miniapp-menu {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.miniapp-menu__icon {
+  font-size: clamp(1.35rem, 4vw, 1.65rem);
+  line-height: 1;
 }
 
 .user-menu {

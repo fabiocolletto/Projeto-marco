@@ -60,7 +60,7 @@ test.describe('MiniApp Base shell', () => {
 
     await expect(page).toHaveURL(/auth\/login\.html$/);
 
-    const navigationTrigger = page.locator('#btnMenu');
+    const navigationTrigger = page.locator('#btnMiniapps');
     const navigationOverlay = page.locator('#navigation-overlay');
     const miniAppTitle = page.locator('[data-miniapp-title]');
     const miniAppMessage = page.locator('[data-miniapp-message]');
