@@ -35,52 +35,7 @@
   <body class="auth-login">
     <div class="app-shell" data-state="ready">
       <header class="app-header" role="banner">
-        <h1 class="app-header__title" data-i18n="app.title">MiniAppBase</h1>
-        <div class="toolbar" role="group" aria-label="Global actions">
-          <div class="miniapp-menu" role="group" aria-label="Miniapps">
-            <button
-              id="btnMiniapps"
-              class="ghost icon-only"
-              type="button"
-              aria-haspopup="dialog"
-              aria-expanded="false"
-              aria-controls="navigation-overlay"
-            >
-              <span class="sr-only" data-i18n="actions.openMiniappMenu">Abrir menu de miniapps</span>
-              <span class="miniapp-menu__icon" aria-hidden="true">🧩</span>
-            </button>
-            <div id="nav-overlay-root"></div>
-          </div>
-          <div class="user-menu" role="group" aria-label="User menu">
-            <button
-              id="btnUser"
-              class="ghost"
-              type="button"
-              aria-haspopup="dialog"
-              aria-expanded="false"
-              aria-controls="user-menu"
-            >
-              <span class="user-avatar" aria-hidden="true">👤</span>
-              <span
-                id="current-user"
-                class="sr-only"
-                data-i18n="actions.openUserMenu"
-              >
-                Abrir menu do usuário
-              </span>
-            </button>
-          </div>
-          <button
-            class="ghost icon-only panel-trigger"
-            type="button"
-            data-admin-trigger
-            aria-haspopup="dialog"
-            aria-expanded="false"
-          >
-            <span class="sr-only" data-i18n="actions.openSystemPanel">Abrir painel do sistema</span>
-            <span class="panel-trigger__icon" aria-hidden="true">🛠️</span>
-          </button>
-        </div>
+        <button class="app-header__menu-button" type="button">menu</button>
       </header>
       <div class="layout layout--auth">
         <main id="panel" class="panel panel--auth" role="main" tabindex="-1">
