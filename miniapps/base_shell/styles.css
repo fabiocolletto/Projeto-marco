@@ -1438,8 +1438,21 @@ button:focus-visible,
 }
 
 .app-footer .footer-extra {
+  display: block;
+}
+
+.app-footer .footer-extra__items {
   display: grid;
   gap: var(--space-2xs);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.app-footer .footer-extra__item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
 .app-footer__summary {
