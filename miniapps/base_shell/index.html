@@ -116,7 +116,7 @@
             >
               <small class="footer-copy">
                 <span class="footer-copy__text">
-                  <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+                  <span data-footer-copyright>© 2024 5Horas Tecnologia Ltda.</span>
                   <span aria-hidden="true" class="app-footer__separator">•</span>
                   <span class="app-footer__brand-text">5Horas</span>
                 </span>
@@ -142,23 +142,27 @@
                 Ocultar informações adicionais do rodapé
               </span>
             </button>
-            <div
-              class="app-footer__summary"
-              data-footer-condensed
-              data-footer-revision-target="condensed"
-            >
-              <small class="footer-revision">
-                <span data-revision data-i18n="footer.revisionFallback">
-                  MiniApp Base · Revisão indisponível
-                </span>
-                <a
-                  class="footer-revision__link"
-                  href="./REVISION_LOG.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-i18n="footer.revisionLog"
-                >
-                  Log de revisões
+            <div class="app-footer__summary" data-footer-condensed>
+              <div class="app-footer__summary-content" data-footer-revision-target="condensed">
+                <small class="footer-revision">
+                  <span data-revision data-i18n="footer.revisionFallback">
+                    MiniApp Base · Revisão indisponível
+                  </span>
+                  <a
+                    class="footer-revision__link footer-link"
+                    href="./REVISION_LOG.md"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-i18n="footer.revisionLog"
+                  >
+                    Log de revisões
+                  </a>
+                </small>
+              </div>
+              <small class="app-footer__contact">
+                <span class="footer-links__label" data-i18n="footer.support.shortLabel">Suporte:</span>
+                <a class="footer-link" data-footer-support-email href="mailto:suporte@5horas.com.br">
+                  suporte@5horas.com.br
                 </a>
               </small>
             </div>
@@ -170,14 +174,176 @@
             hidden
             aria-hidden="true"
           >
-            <ul class="footer-extra__items">
-              <li class="footer-extra__item" data-footer-revision-target="expanded"></li>
-              <li class="footer-extra__item">
-                <span id="mem-status" role="status" aria-live="polite">
-                  Memória: verificando…
-                </span>
-              </li>
-            </ul>
+            <div class="footer-extra__grid">
+              <section
+                class="footer-section footer-section--legal"
+                aria-labelledby="footer-legal-title"
+                data-footer-section="legal"
+              >
+                <h2 id="footer-legal-title" class="footer-section__title" data-i18n="footer.section.legal">
+                  Informações legais
+                </h2>
+                <p
+                  class="footer-section__description"
+                  data-i18n="footer.legal.summary"
+                  data-footer-param="company,document,address"
+                >
+                  Operado por 5Horas Tecnologia Ltda. • CNPJ 00.000.000/0000-00 • Sede em São Paulo, Brasil
+                </p>
+                <ul class="footer-links">
+                  <li class="footer-links__item">
+                    <a
+                      class="footer-link"
+                      href="https://5horas.com.br/politica-de-privacidade"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-i18n="footer.links.privacy"
+                    >
+                      Política de Privacidade
+                    </a>
+                  </li>
+                  <li class="footer-links__item">
+                    <a
+                      class="footer-link"
+                      href="https://5horas.com.br/termos-de-uso"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-i18n="footer.links.terms"
+                    >
+                      Termos de Uso
+                    </a>
+                  </li>
+                </ul>
+              </section>
+              <section
+                class="footer-section footer-section--support"
+                aria-labelledby="footer-support-title"
+                data-footer-section="support"
+              >
+                <h2 id="footer-support-title" class="footer-section__title" data-i18n="footer.section.support">
+                  Suporte e assinaturas
+                </h2>
+                <ul class="footer-links">
+                  <li class="footer-links__item">
+                    <span class="footer-links__label" data-i18n="footer.support.contactLabel">Atendimento:</span>
+                    <a class="footer-link" data-footer-support-email href="mailto:suporte@5horas.com.br">
+                      suporte@5horas.com.br
+                    </a>
+                  </li>
+                  <li class="footer-links__item">
+                    <span
+                      class="footer-links__label"
+                      data-i18n="footer.support.hoursLabel"
+                      data-footer-param="hours"
+                    >
+                      Horário de atendimento: seg–sex, 9h às 18h (BRT)
+                    </span>
+                  </li>
+                  <li class="footer-links__item">
+                    <span class="footer-links__label" data-i18n="footer.support.dpoLabel">Encarregado de dados:</span>
+                    <a class="footer-link" data-footer-dpo-email href="mailto:privacidade@5horas.com.br">
+                      privacidade@5horas.com.br
+                    </a>
+                  </li>
+                  <li class="footer-links__item">
+                    <a
+                      class="footer-link"
+                      href="https://5horas.com.br/suporte"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      data-i18n="footer.links.supportCenter"
+                    >
+                      Central de suporte
+                    </a>
+                  </li>
+                  <li class="footer-links__item footer-links__item--stacked">
+                    <span class="footer-links__label" data-i18n="footer.support.manageLabel">Gerenciar assinatura:</span>
+                    <div class="footer-link-group">
+                      <a
+                        class="footer-link"
+                        href="https://support.apple.com/HT202039"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-i18n="footer.links.manageSubscriptionApple"
+                      >
+                        Orientações para App Store
+                      </a>
+                      <a
+                        class="footer-link"
+                        href="https://support.google.com/googleplay/answer/7018481"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        data-i18n="footer.links.manageSubscriptionGoogle"
+                      >
+                        Orientações para Google Play
+                      </a>
+                    </div>
+                  </li>
+                </ul>
+              </section>
+              <section
+                class="footer-section footer-section--transparency"
+                aria-labelledby="footer-transparency-title"
+                data-footer-section="transparency"
+              >
+                <h2
+                  id="footer-transparency-title"
+                  class="footer-section__title"
+                  data-i18n="footer.section.transparency"
+                >
+                  Transparência
+                </h2>
+                <div class="footer-transparency">
+                  <div
+                    class="footer-transparency__item footer-transparency__item--revision"
+                    data-footer-revision-target="expanded"
+                  ></div>
+                  <div class="footer-transparency__item footer-transparency__item--status">
+                    <span class="footer-links__label" data-i18n="footer.transparency.memoryLabel">
+                      Status de memória:
+                    </span>
+                    <span id="mem-status" role="status" aria-live="polite">Memória: verificando…</span>
+                  </div>
+                </div>
+              </section>
+              <section
+                class="footer-section footer-section--stores"
+                aria-labelledby="footer-stores-title"
+                data-footer-section="channels"
+              >
+                <h2 id="footer-stores-title" class="footer-section__title" data-i18n="footer.section.channels">
+                  Canais oficiais
+                </h2>
+                <p
+                  class="footer-section__description"
+                  data-i18n="footer.channels.description"
+                >
+                  Instale o app oficial nas lojas digitais.
+                </p>
+                <div class="footer-store-badges">
+                  <a
+                    class="store-badge store-badge--apple"
+                    data-footer-store="app-store"
+                    href="https://5horas.com.br/app-store"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span class="store-badge__subtitle" data-i18n="footer.badges.downloadOn">Baixar na</span>
+                    <span class="store-badge__title" data-i18n="footer.badges.appStore">App Store</span>
+                  </a>
+                  <a
+                    class="store-badge store-badge--google"
+                    data-footer-store="google-play"
+                    href="https://5horas.com.br/google-play"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <span class="store-badge__subtitle" data-i18n="footer.badges.getItOn">Disponível no</span>
+                    <span class="store-badge__title" data-i18n="footer.badges.googlePlay">Google Play</span>
+                  </a>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
       </footer>

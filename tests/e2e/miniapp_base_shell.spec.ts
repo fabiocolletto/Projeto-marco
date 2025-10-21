@@ -479,6 +479,10 @@ test.describe('MiniApp Base shell', () => {
     const extras = footer.locator('[data-footer-extra]');
     const revision = extras.locator('[data-revision]');
     const memStatus = extras.locator('#mem-status');
+    const legalSection = extras.locator('[data-footer-section="legal"]');
+    const supportSection = extras.locator('[data-footer-section="support"]');
+    const transparencySection = extras.locator('[data-footer-section="transparency"]');
+    const storeSection = extras.locator('[data-footer-section="channels"]');
 
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
     await expect(extras).toHaveAttribute('hidden', '');
@@ -491,6 +495,25 @@ test.describe('MiniApp Base shell', () => {
     await expect(extras).toBeVisible();
     await expect(revision).toBeVisible();
     await expect(memStatus).toBeVisible();
+    await expect(legalSection.locator('a[href="https://5horas.com.br/politica-de-privacidade"]')).toBeVisible();
+    await expect(legalSection.locator('a[href="https://5horas.com.br/termos-de-uso"]')).toBeVisible();
+    await expect(supportSection.locator('a[href="mailto:suporte@5horas.com.br"]')).toHaveCount(1);
+    await expect(supportSection.locator('a[href="mailto:privacidade@5horas.com.br"]')).toHaveCount(1);
+    await expect(
+      supportSection.locator('a[href="https://support.apple.com/HT202039"]')
+    ).toBeVisible();
+    await expect(
+      supportSection.locator('a[href="https://support.google.com/googleplay/answer/7018481"]')
+    ).toBeVisible();
+    await expect(transparencySection.locator('#mem-status')).toBeVisible();
+    await expect(storeSection.locator('[data-footer-store="app-store"]')).toHaveAttribute(
+      'href',
+      'https://5horas.com.br/app-store'
+    );
+    await expect(storeSection.locator('[data-footer-store="google-play"]')).toHaveAttribute(
+      'href',
+      'https://5horas.com.br/google-play'
+    );
 
     await toggle.click();
 

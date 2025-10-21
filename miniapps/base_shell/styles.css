@@ -1437,44 +1437,163 @@ button:focus-visible,
   color: var(--color-text-muted);
 }
 
+
 .app-footer .footer-extra {
   display: block;
 }
 
-.app-footer .footer-extra__items {
+.app-footer .footer-extra__grid {
+  display: grid;
+  gap: clamp(var(--space-sm), 2vw, var(--space-md));
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  padding-block: var(--space-xs);
+}
+
+.footer-section {
+  display: grid;
+  gap: var(--space-xs);
+  align-content: start;
+}
+
+.footer-section__title {
+  font-size: var(--font-size-base);
+  margin: 0;
+}
+
+.footer-section__description {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.footer-links {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: grid;
   gap: var(--space-2xs);
-  padding: 0;
-  margin: 0;
-  list-style: none;
 }
 
-.app-footer .footer-extra__item {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
+.footer-links__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3xs) var(--space-xs);
 }
 
-.app-footer__summary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  font-size: var(--font-size-sm);
+.footer-links__item--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+}
+
+.footer-links__label {
+  font-weight: 600;
   color: var(--color-text-muted);
-  margin-left: auto;
 }
 
-.app-footer .footer-revision__link {
-  font-weight: 500;
+.footer-link {
   color: var(--color-accent);
+  font-weight: 500;
   text-decoration: none;
   transition: color var(--transition-default),
     text-decoration-color var(--transition-default);
 }
 
-.app-footer .footer-revision__link:hover,
-.app-footer .footer-revision__link:focus {
+.footer-link:hover,
+.footer-link:focus {
   text-decoration: underline;
+}
+
+.footer-link-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3xs) var(--space-sm);
+}
+
+.app-footer__summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  margin-left: auto;
+}
+
+.app-footer__summary-content {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.app-footer__contact {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3xs);
+  color: var(--color-text-muted);
+}
+
+.app-footer .footer-revision__link {
+  font-weight: 600;
+}
+
+
+.footer-transparency {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.footer-transparency__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.footer-transparency__item--status {
+  flex-wrap: wrap;
+}
+
+.footer-store-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.store-badge {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-4xs);
+  padding: var(--space-3xs) var(--space-sm);
+  border-radius: 0.75rem;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  min-width: 9.5rem;
+  text-align: center;
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  transition: transform var(--transition-default),
+    box-shadow var(--transition-default),
+    border-color var(--transition-default);
+}
+
+.store-badge:hover,
+.store-badge:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1.25rem rgba(15, 23, 42, 0.1);
+  border-color: var(--color-accent);
+}
+
+.store-badge__subtitle {
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.store-badge__title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
 }
 
 .app-footer.is-expanded .app-footer__summary {
@@ -1865,6 +1984,22 @@ body.is-admin-dashboard-open {
     text-align: center;
   }
 
+  .app-footer .footer-extra__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-footer__summary {
+    align-items: center;
+  }
+
+  .app-footer__summary-content {
+    justify-content: center;
+  }
+
+  .app-footer__contact {
+    justify-content: center;
+  }
+
   .app-footer .footer-revision {
     width: 100%;
     justify-content: center;
@@ -1872,6 +2007,14 @@ body.is-admin-dashboard-open {
 
   .app-footer .footer-revision__link {
     font-weight: 600;
+  }
+
+  .footer-link-group {
+    justify-content: center;
+  }
+
+  .footer-store-badges {
+    justify-content: center;
   }
 }
 
