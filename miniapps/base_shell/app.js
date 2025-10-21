@@ -408,6 +408,7 @@ async function bootstrap() {
   updateRevisionMetadata();
   applyTranslations();
   updateEmbeddedAuthLayout();
+  setupFooterToggle();
   setupLanguageToggle();
   updateLanguageToggle();
   setupThemeToggle();
@@ -1578,6 +1579,65 @@ function focusPanel() {
   if (panel && typeof panel.focus === 'function') {
     panel.focus();
   }
+}
+
+function setupFooterToggle() {
+  const footer = document.getElementById('app-footer');
+  if (!footer) return;
+
+  const root = document.documentElement;
+  const toggle = footer.querySelector('[data-footer-toggle]');
+  const extras = footer.querySelectorAll('[data-footer-extra]');
+
+  const getSafeAreaBottom = () => {
+    const value = getComputedStyle(root).getPropertyValue('--viewport-safe-area-bottom');
+    const numeric = Number.parseFloat(value);
+    return Number.isNaN(numeric) ? 0 : numeric;
+  };
+
+  const updateFooterOffset = () => {
+    const safeAreaBottom = getSafeAreaBottom();
+    const offset = Math.max(0, footer.offsetHeight - safeAreaBottom);
+    root.style.setProperty('--footer-offset', `${offset}px`);
+  };
+
+  const scheduleFooterOffsetUpdate = () => {
+    window.requestAnimationFrame(updateFooterOffset);
+  };
+
+  updateFooterOffset();
+
+  if ('ResizeObserver' in window) {
+    const resizeObserver = new ResizeObserver(scheduleFooterOffsetUpdate);
+    resizeObserver.observe(footer);
+  }
+
+  window.addEventListener('resize', scheduleFooterOffsetUpdate);
+
+  if (!toggle || extras.length === 0) {
+    return;
+  }
+
+  const setExpanded = next => {
+    toggle.setAttribute('aria-expanded', String(next));
+    footer.classList.toggle('is-expanded', next);
+    extras.forEach(extra => {
+      if (next) {
+        extra.removeAttribute('hidden');
+      } else {
+        extra.setAttribute('hidden', '');
+      }
+    });
+  };
+
+  setExpanded(toggle.getAttribute('aria-expanded') === 'true');
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    const next = !expanded;
+    setExpanded(next);
+    scheduleFooterOffsetUpdate();
+  });
 }
 
 function setupLanguageToggle() {
