@@ -167,13 +167,17 @@
             id="app-footer-extra"
             class="footer-extra"
             data-footer-extra
-            data-footer-revision-target="expanded"
             hidden
             aria-hidden="true"
           >
-            <span id="mem-status" role="status" aria-live="polite">
-              Memória: verificando…
-            </span>
+            <ul class="footer-extra__items">
+              <li class="footer-extra__item" data-footer-revision-target="expanded"></li>
+              <li class="footer-extra__item">
+                <span id="mem-status" role="status" aria-live="polite">
+                  Memória: verificando…
+                </span>
+              </li>
+            </ul>
           </div>
         </div>
       </footer>
