@@ -143,6 +143,8 @@
                 </div>
                 <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
                 <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
+              </form>
+              <footer class="auth-login__card-footer" aria-label="Cadastro">
                 <div class="auth-login__links">
                   <div class="auth-login__link-group" data-register-guard>
                     <span data-i18n="auth.login.noAccount">Novo por aqui?</span>
@@ -156,15 +158,6 @@
                     </a>
                   </div>
                 </div>
-              </form>
-              <footer class="auth-login__card-footer" aria-label="5Horas">
-                <img
-                  class="brand auth-login__brand-image"
-                  src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-                  alt="5Horas"
-                  data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
-                  data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
-                />
               </footer>
             </div>
           </section>
@@ -180,7 +173,17 @@
             aria-controls="app-footer-extra"
           >
             <small class="footer-copy">
-              &copy; <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+              <span class="footer-copy__text">
+                &copy;
+                <span data-i18n="footer.copyright">2024 Organização Exemplo</span>
+              </span>
+              <img
+                class="app-footer__brand-image"
+                src="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+                alt="5Horas"
+                data-brand-light="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Light-Transparente-2000x500px.webp"
+                data-brand-dark="https://5horas.com.br/wp-content/uploads/2025/10/Logo-Dark-Transparente-2000x500px.png"
+              />
             </small>
             <span class="app-footer__toggle-icon" aria-hidden="true">▾</span>
             <span
