@@ -104,6 +104,98 @@ body {
   font-size: 1.35rem;
 }
 
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 65%, transparent);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 88%, #1d4ed8 12%),
+    color-mix(in srgb, var(--color-accent) 65%, #1e3a8a 35%)
+  );
+  color: color-mix(in srgb, var(--color-accent-contrast) 85%, #ffffff 15%);
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 18px 36px color-mix(in srgb, var(--color-accent) 24%, transparent);
+  transition: transform var(--transition-emphasis),
+    box-shadow var(--transition-emphasis),
+    background var(--transition-emphasis),
+    color var(--transition-default);
+}
+
+.cta:hover,
+.cta:focus-visible {
+  transform: translateY(-1px);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 95%, #1d4ed8 5%),
+    color-mix(in srgb, var(--color-accent) 72%, #1e3a8a 28%)
+  );
+  box-shadow: 0 24px 48px color-mix(in srgb, var(--color-accent) 28%, transparent);
+}
+
+.cta:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 55%, #ffffff 45%);
+  outline-offset: 4px;
+}
+
+.cta:active {
+  transform: translateY(0);
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--color-accent) 24%, transparent);
+}
+
+.cta:disabled,
+.cta[aria-disabled='true'] {
+  opacity: 0.65;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.cta.secondary {
+  background: color-mix(in srgb, var(--color-surface-raised) 92%, var(--color-accent) 8%);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  color: color-mix(in srgb, var(--color-accent) 88%, #1d4ed8 12%);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.cta.secondary:hover,
+.cta.secondary:focus-visible {
+  background: color-mix(in srgb, var(--color-surface-raised) 85%, var(--color-accent) 15%);
+  color: color-mix(in srgb, var(--color-accent) 92%, #1d4ed8 8%);
+}
+
+.cta.danger {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  border-color: color-mix(in srgb, #ef4444 65%, transparent);
+  color: #ffffff;
+  box-shadow: 0 18px 36px rgba(239, 68, 68, 0.35);
+}
+
+.cta.danger:hover,
+.cta.danger:focus-visible {
+  background: linear-gradient(135deg, #f87171, #b91c1c);
+  box-shadow: 0 24px 48px rgba(239, 68, 68, 0.45);
+}
+
+.cta:disabled.cta.secondary,
+.cta:disabled.cta.danger,
+.cta[aria-disabled='true'].cta.secondary,
+.cta[aria-disabled='true'].cta.danger {
+  background: color-mix(in srgb, var(--color-surface-raised) 90%, var(--color-border) 10%);
+  color: color-mix(in srgb, var(--color-text-muted) 80%, #ffffff 20%);
+  border-color: color-mix(in srgb, var(--color-border-strong) 50%, transparent);
+}
+
 body.auth-login {
   padding: 0;
   background-color: #0b1220;
