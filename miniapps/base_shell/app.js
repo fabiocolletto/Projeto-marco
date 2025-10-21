@@ -214,6 +214,7 @@ const SHELL_APP_ID = 'base.shell';
 
 const USER_PANEL_EMBED_ROUTE = './auth/profile.html?embed=panel';
 const USER_PANEL_STANDALONE_ROUTE = './auth/profile.html';
+const SYSTEM_PANEL_URL = new URL('./sys/system-panel.html', import.meta.url);
 const USER_PANEL_URL = new URL(USER_PANEL_STANDALONE_ROUTE, import.meta.url);
 const SHELL_HOME_URL = new URL('./index.html', import.meta.url);
 const USER_PANEL_MINI_APP_ID = 'base.shell.user-panel';
@@ -1221,6 +1222,13 @@ function renderQuickLinks(menu) {
   }
   const items = [
     {
+      id: 'quick-link-system-panel',
+      icon: '🖥️',
+      labelKey: 'settings.systemPanel',
+      srLabelKey: 'actions.openSystemPanel',
+      href: SYSTEM_PANEL_URL.href
+    },
+    {
       id: 'quick-link-user-panel',
       icon: '👤',
       labelKey: 'settings.userPanel',
@@ -1599,14 +1607,6 @@ function activateMiniAppShortcut(id, options = {}) {
   if (!id) return false;
   const controls = getStageHost();
   if (!controls || !controls.host) {
-    const definition = getMiniAppDefinition(id);
-    if (definition) {
-      const url = resolveMiniAppStageUrl(definition);
-      if (url) {
-        window.location.href = url;
-        return true;
-      }
-    }
     return false;
   }
   const definition = ensureMiniAppEntry(id);
