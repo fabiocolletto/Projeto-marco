@@ -1,6 +1,10 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.4] - 2025-10-22
+### Fixed
+- Atualizada a política do service worker para buscar primeiro no servidor as páginas HTML, garantindo que o painel do usuário receba os estilos mais recentes.
+
 ## [v0.1.3] - 2025-10-22
 ### Fixed
 - Ocultada a navegação lateral do painel do usuário para evitar itens redundantes na interface.
