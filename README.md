@@ -7,6 +7,7 @@ Este R1 inclui o MiniApp **Gestor de Tarefas** para validação.
 1. Habilite o Pages na branch `main` (diretório `/`).
 2. Acesse a URL do Pages exibida no deploy.
 3. Use o catálogo para abrir o **Gestor de Tarefas**.
+4. Clique em “Entrar” no AppBase e confirme o código enviado por e-mail; apenas usuários autenticados podem gravar dados.
 
 ## Estrutura
 - `appbase/`: shell, i18n e CSS
