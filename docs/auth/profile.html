@@ -35,47 +35,14 @@
   <body>
     <div class="app-shell">
       <header class="app-header" role="banner">
-        <button class="app-header__menu-button" type="button">menu</button>
+        <p class="app-header__title" data-i18n="auth.profile.panelTitle">Painel do usuário</p>
+        <button class="app-header__menu-button" type="button">
+          <span class="app-header__menu-icon" aria-hidden="true">☰</span>
+          <span class="app-header__menu-label" data-i18n="actions.quickLinksTrigger">Menu</span>
+          <span class="sr-only" data-i18n="actions.openQuickLinks">Abrir menu principal</span>
+        </button>
       </header>
       <div class="layout">
-        <aside id="sidebar" class="sidebar" aria-label="Navegação principal">
-          <nav>
-            <ul>
-              <li>
-                <a href="../index.html" title="Dashboard">
-                  <span class="icon" aria-hidden="true">🏠</span>
-                  <span class="label" data-i18n="nav.dashboard">Início</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" title="Atividades">
-                  <span class="icon" aria-hidden="true">🗂</span>
-                  <span class="label" data-i18n="nav.activity">Atividades</span>
-                </a>
-              </li>
-              <li>
-                <a href="#" title="Análises">
-                  <span class="icon" aria-hidden="true">📊</span>
-                  <span class="label" data-i18n="nav.analytics">Análises</span>
-                </a>
-              </li>
-              <li class="has-submenu">
-                <button
-                  id="miniapp-toggle"
-                  class="submenu-toggle"
-                  type="button"
-                  aria-expanded="false"
-                  aria-controls="miniapp-submenu"
-                >
-                  <span class="icon" aria-hidden="true">🧩</span>
-                  <span class="label" data-i18n="nav.miniapps">Mini-apps</span>
-                  <span class="submenu-caret" aria-hidden="true">▾</span>
-                </button>
-                <ul id="miniapp-submenu" class="submenu" hidden data-miniapp-menu></ul>
-              </li>
-            </ul>
-          </nav>
-        </aside>
         <main id="panel" class="panel" role="main" tabindex="-1">
           <h1 class="sr-only" data-i18n="auth.profile.title">Perfil</h1>
           <section class="panel-content">
