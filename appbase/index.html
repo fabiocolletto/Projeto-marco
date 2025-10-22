@@ -16,7 +16,7 @@
 <body class="u-col" style="gap:var(--ac-space-6);padding:var(--ac-space-6)">
   <header class="u-row" style="justify-content:space-between;align-items:center">
     <div class="u-row" style="gap:var(--ac-space-4)">
-      <strong>5 Horas — AppBase</strong>
+      <strong data-i18n="app.header.title">5 Horas — AppBase</strong>
       <span class="u-muted">R1.10</span>
     </div>
     <div class="u-row" style="gap:var(--ac-space-2)">
@@ -25,19 +25,19 @@
         <option value="en-us">EN</option>
         <option value="es-419">ES</option>
       </select>
-      <button class="c-btn" id="toggle-theme">Tema</button>
+      <button class="c-btn" id="toggle-theme" data-i18n="app.header.themeToggle">Tema</button>
     </div>
   </header>
 
   <main class="u-row" style="gap:var(--ac-space-6)">
     <aside class="u-card" style="min-width:260px">
-      <h3 style="margin-top:0">MiniApps</h3>
+      <h3 style="margin-top:0" data-i18n="app.catalog.title">MiniApps</h3>
       <div id="catalog"></div>
     </aside>
     <section id="viewport" class="u-col u-gap-4" style="flex:1">
       <div class="u-card">
-        <h2>Bem-vindo</h2>
-        <p class="u-muted">Abra o MiniApp Gestor de Tarefas para testar.</p>
+        <h2 data-i18n="app.viewport.welcome.title">Bem-vindo</h2>
+        <p class="u-muted" data-i18n="app.viewport.welcome.subtitle">Abra o MiniApp Gestor de Tarefas para testar.</p>
       </div>
     </section>
   </main>
@@ -48,34 +48,76 @@
 
     const viewport = document.getElementById('viewport');
     const catalog = document.getElementById('catalog');
+    const baseTitle = document.title;
 
     // Estado
     const miniapps = [
-      { id: 'gestor-de-tarefas', name: 'Gestor de Tarefas', manifest: '../miniapps/gestor-de-tarefas/manifest.json', entry: '../miniapps/gestor-de-tarefas/app.html', snippet: '../miniapps/gestor-de-tarefas/i18n-snippet.json' }
+      {
+        id: 'gestor-de-tarefas',
+        name: 'Gestor de Tarefas',
+        labelKey: 'app.catalog.items.gestor-de-tarefas',
+        manifest: '../miniapps/gestor-de-tarefas/manifest.json',
+        entry: '../miniapps/gestor-de-tarefas/app.html',
+        snippet: '../miniapps/gestor-de-tarefas/i18n-snippet.json'
+      }
     ];
 
     // i18n base
     await loadBaseI18n('pt-br');
+    renderCatalog();
+    applyBaseTranslations();
 
     // UI catálogo
-    miniapps.forEach(m => {
-      const btn = document.createElement('button');
-      btn.className = 'c-btn c-btn--primary';
-      btn.textContent = m.name;
-      btn.onclick = async () => {
-        await loadMiniSnippet(m.snippet);
-        const html = await (await fetch(m.entry)).text();
-        viewport.innerHTML = html;
-        // i18n placeholders simples: {{ t('key') }}
-        viewport.innerHTML = viewport.innerHTML.replace(/\{\{\s*t\('([^']+)'\)\s*\}\}/g, (_, key) => i18n.t(key));
-        attachTaskTableHandlers();
-      };
-      catalog.appendChild(btn);
-    });
+    function renderCatalog(){
+      catalog.innerHTML = '';
+      miniapps.forEach(m => {
+        const btn = document.createElement('button');
+        btn.className = 'c-btn c-btn--primary';
+        btn.textContent = m.name;
+        if (m.labelKey) {
+          btn.dataset.i18n = m.labelKey;
+        }
+        btn.onclick = async () => {
+          await loadMiniSnippet(m.snippet);
+          const html = await (await fetch(m.entry)).text();
+          viewport.innerHTML = html;
+          // i18n placeholders simples: {{ t('key') }}
+          viewport.innerHTML = viewport.innerHTML.replace(/\{\{\s*t\('([^']+)'\)\s*\}\}/g, (_, key) => i18n.t(key));
+          attachTaskTableHandlers();
+        };
+        catalog.appendChild(btn);
+      });
+    }
+
+    function translateKey(key, fallback){
+      const translated = i18n.t(key);
+      return translated === key ? fallback : translated;
+    }
+
+    function applyBaseTranslations(){
+      document.documentElement.lang = i18n.locale;
+      document.title = translateKey('app.meta.title', baseTitle);
+      const localeSelect = document.getElementById('locale');
+      localeSelect.value = i18n.locale;
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        const fallback = el.dataset.i18nFallback ?? el.textContent;
+        if (!el.dataset.i18nFallback && fallback) {
+          el.dataset.i18nFallback = fallback;
+        }
+        const value = translateKey(key, fallback);
+        if (el instanceof HTMLInputElement) {
+          el.value = value;
+        } else {
+          el.textContent = value;
+        }
+      });
+    }
 
     // Troca de idioma
     document.getElementById('locale').addEventListener('change', async (e) => {
       await loadBaseI18n(e.target.value);
+      applyBaseTranslations();
       // Re-render mínimo: recarrega o MiniApp aberto
       if (viewport.querySelector('[data-miniapp]')) {
         catalog.querySelector('button').click();
