@@ -1,4 +1,4 @@
-const CACHE_NAME = 'projeto-marco-shell-v1';
+const CACHE_NAME = 'projeto-marco-shell-v2';
 const OFFLINE_URL = './index.html';
 
 const ASSETS = [
@@ -30,30 +30,42 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', event => {
   const { request } = event;
   if (request.method !== 'GET') {
     return;
   }
 
+  const isDocumentRequest = request.mode === 'navigate' || request.destination === 'document';
+
+  if (isDocumentRequest) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          return response;
+        })
+        .catch(() =>
+          caches.match(request).then(cached => cached || caches.match(OFFLINE_URL))
+        )
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
+    caches.match(request).then(cachedResponse => {
       if (cachedResponse) {
         return cachedResponse;
       }
 
       return fetch(request)
-        .then((response) => {
+        .then(response => {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
           return response;
         })
-        .catch(() => {
-          if (request.mode === 'navigate' || request.destination === 'document') {
-            return caches.match(OFFLINE_URL);
-          }
-          return new Response('Offline', { status: 503, statusText: 'Offline' });
-        });
+        .catch(() => new Response('Offline', { status: 503, statusText: 'Offline' }));
     })
   );
 });
