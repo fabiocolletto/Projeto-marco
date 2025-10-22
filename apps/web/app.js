@@ -212,10 +212,10 @@ const ADMIN_UPTIME_PERCENT = 99.97;
 
 const SHELL_APP_ID = 'base.shell';
 
-const USER_PANEL_EMBED_ROUTE = './auth/profile.html?embed=panel';
-const USER_PANEL_STANDALONE_ROUTE = './auth/profile.html';
+const USER_PANEL_EMBED_ROUTE = './sys/user-panel.html?embed=panel';
+const USER_PANEL_SHELL_ROUTE = './index.html?miniapp=base.shell.user-panel';
 const SYSTEM_PANEL_URL = new URL('./sys/system-panel.html', import.meta.url);
-const USER_PANEL_URL = new URL(USER_PANEL_STANDALONE_ROUTE, import.meta.url);
+const USER_PANEL_SHELL_URL = new URL(USER_PANEL_SHELL_ROUTE, import.meta.url);
 const SHELL_HOME_URL = new URL('./index.html', import.meta.url);
 const USER_PANEL_MINI_APP_ID = 'base.shell.user-panel';
 const USER_PANEL_MINI_APP = {
@@ -1233,7 +1233,7 @@ function renderQuickLinks(menu) {
       icon: '👤',
       labelKey: 'settings.userPanel',
       srLabelKey: 'actions.openUserPanel',
-      href: USER_PANEL_URL.href
+      href: USER_PANEL_SHELL_URL.href
     }
   ];
 
@@ -2625,7 +2625,10 @@ function handleUserAction(action) {
   }
   if (action === 'profile') {
     closeActiveMenu();
-    window.location.href = USER_PANEL_URL.href;
+    const activated = activateUserPanelMiniApp();
+    if (!activated) {
+      window.location.href = USER_PANEL_SHELL_URL.href;
+    }
     return;
   }
   if (action === 'logout') {
@@ -3317,7 +3320,7 @@ function setupAuthForms() {
     if (!allowRegistration) {
       const owner = currentUser();
       if (owner && owner.role === 'owner') {
-        window.location.replace(USER_PANEL_URL.href);
+        window.location.replace(USER_PANEL_SHELL_URL.href);
       } else {
         window.location.replace(LOGIN_URL.href);
       }
@@ -3390,7 +3393,7 @@ function setupAuthForms() {
         const isPanelEmbed = document.documentElement.dataset.embedMode === 'panel';
         detail.redirectUrl = isPanelEmbed
           ? new URL(USER_PANEL_EMBED_ROUTE, import.meta.url).href
-          : USER_PANEL_URL.href;
+          : USER_PANEL_SHELL_URL.href;
         detail.navigationHandled = true;
         announceFeedback(successMessage, 'success');
         if (feedback) {

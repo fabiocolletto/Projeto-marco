@@ -1,6 +1,11 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.9] - 2025-10-22
+### Fixed
+- Corrigido o atalho do painel do usuário para apontar para o novo layout em `sys/user-panel.html`, evitando que o shell exibisse
+  a versão antiga da tela após login ou registro.
+
 ## [v0.1.8] - 2025-10-22
 ### Changed
 - Reposicionado o bloco de metadados do shell antes do widget de serviços para destacar a versão, canal e auditoria no painel do sistema.
