@@ -24,14 +24,34 @@ export async function loadBaseI18n(locale){
   i18n.locale = locale;
   const bases = ['pt-br','en-us','es-419'];
   for (const loc of bases){
-    const res = await fetch(`./i18n/${loc}.json`);
-    i18n.dict[loc] = await res.json();
+    const previous = i18n.dict[loc] || {};
+    try {
+      const res = await fetch(`./i18n/${loc}.json`);
+      if (!res.ok) {
+        console.warn('[i18n] Falha ao carregar base', loc, res.status);
+        i18n.dict[loc] = previous;
+        continue;
+      }
+      i18n.dict[loc] = await res.json();
+    } catch (error) {
+      console.error('[i18n] Erro ao carregar base', loc, error);
+      i18n.dict[loc] = previous;
+    }
   }
 }
 
 export async function loadMiniSnippet(snippetPath){
-  const sn = await (await fetch(snippetPath)).json();
-  for(const loc of Object.keys(sn)){
-    i18n.dict[loc] = deepMerge(i18n.dict[loc] || {}, sn[loc]);
+  try {
+    const response = await fetch(snippetPath);
+    if (!response.ok) {
+      console.warn('[i18n] Snippet indisponível', snippetPath, response.status);
+      return;
+    }
+    const sn = await response.json();
+    for(const loc of Object.keys(sn)){
+      i18n.dict[loc] = deepMerge(i18n.dict[loc] || {}, sn[loc]);
+    }
+  } catch (error) {
+    console.error('[i18n] Erro ao carregar snippet', snippetPath, error);
   }
 }
