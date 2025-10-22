@@ -6,6 +6,7 @@ Este documento registra, em ordem cronológica decrescente, o histórico de muda
 
 | Versão | Data       | Descrição                                                                 | Status      |
 |--------|------------|----------------------------------------------------------------------------|-------------|
+| 011    | 2025-10-27 | Login obrigatório com Supabase, RLS reforçada e tarefas em tempo real.   | operational |
 | 010    | 2025-10-26 | Integrado AppBase com Supabase para catálogo dinâmico e tarefas online. | operational |
 | 009    | 2025-10-25 | Migrado catálogo e registro de alterações para Supabase com políticas RLS. | operational |
 | 008    | 2025-10-24 | Configurado Supabase CLI, migrações iniciais e deploy automatizado via GitHub Actions. | operational |

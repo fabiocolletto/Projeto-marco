@@ -75,7 +75,7 @@
     import { i18n, loadBaseI18n, loadMiniSnippet } from './scripts/i18n-loader.js';
     import { initVersionStatus, refreshVersionTranslations } from './scripts/version-status.js';
     import { fetchMiniappsCatalog } from './scripts/data-sources.js';
-    import { getSupabaseClient, ensureAnonymousSession } from './scripts/supabaseClient.js';
+    import { getSupabaseClient } from './scripts/supabaseClient.js';
     import { projectStore } from './scripts/projectStore.js';
 
     const viewport = document.getElementById('viewport');
@@ -222,63 +222,224 @@
 
       const miniappId = miniapp.id;
       let tasks = [];
-      let session = null;
+      let activeSession = null;
+      let realtimeChannel = null;
       const supabase = getSupabaseClient();
+      const isSupabaseAvailable = Boolean(supabase);
 
       addBtn.disabled = true;
 
-      function renderRows(list){
+      const header = viewport.querySelector('header');
+      const authNotice = document.createElement('p');
+      authNotice.className = 'u-muted';
+      authNotice.dataset.role = 'auth-alert';
+      authNotice.hidden = true;
+      header?.appendChild(authNotice);
+
+      const mapRow = (row) => {
+        if (!row) return null;
+        return {
+          id: row.id,
+          miniappId: row.miniapp_id ?? row.miniappId ?? miniappId,
+          title: row.title ?? '',
+          status: row.status ?? 'pending',
+          createdAt: row.created_at ?? row.createdAt ?? null
+        };
+      };
+
+      const sortTasks = (list) =>
+        list
+          .filter(Boolean)
+          .slice()
+          .sort((a, b) => {
+            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            if (aTime !== bTime) return aTime - bTime;
+            return (a.title || '').localeCompare(b.title || '');
+          });
+
+      const getCell = (row, field) => row.querySelector(`[data-field="${field}"]`);
+
+      function applyRowPermissions(row, enabled){
+        row.querySelectorAll('[data-field]').forEach((cell) => {
+          cell.contentEditable = enabled ? 'true' : 'false';
+          if (!enabled) {
+            cell.blur?.();
+          }
+        });
+        const deleteBtn = row.querySelector('[data-action="delete"]');
+        if (deleteBtn) {
+          deleteBtn.disabled = !enabled;
+        }
+        row.dataset.authLocked = enabled ? 'false' : 'true';
+      }
+
+      function updateAuthNotice(enabled){
+        if (!authNotice) return;
+        if (!isSupabaseAvailable) {
+          authNotice.hidden = true;
+          authNotice.textContent = '';
+          return;
+        }
+        if (enabled) {
+          authNotice.hidden = true;
+          authNotice.textContent = '';
+        } else {
+          authNotice.hidden = false;
+          authNotice.textContent = translateKey(
+            'miniapps.gestor-de-tarefas.avisoLogin',
+            'Faça login para editar as tarefas.'
+          );
+        }
+      }
+
+      function setInteractivity(enabled){
+        addBtn.disabled = !enabled;
+        tbody.querySelectorAll('tr').forEach((row) => {
+          applyRowPermissions(row, enabled);
+        });
+        updateAuthNotice(enabled);
+      }
+
+      function renderRows(){
         tbody.innerHTML = '';
-        list.forEach(task => {
+        tasks.forEach((task) => {
           const row = createRow(task);
           tbody.appendChild(row);
         });
+        setInteractivity(!isSupabaseAvailable || Boolean(activeSession));
       }
 
-      function getCell(row, field){
-        return row.querySelector(`[data-field="${field}"]`);
+      function syncTasks(nextList){
+        const normalized = Array.isArray(nextList) ? nextList.map(mapRow).filter(Boolean) : [];
+        tasks = sortTasks(normalized);
+        persistCachedTasks(miniappId, tasks);
+        renderRows();
       }
 
-      async function ensureSession(){
-        if (!supabase) return null;
-        if (session) return session;
-        session = await ensureAnonymousSession();
-        if (!session) {
-          console.warn('[tasks] Sessão anônima indisponível');
+      function teardownRealtime(){
+        if (realtimeChannel && supabase) {
+          supabase.removeChannel(realtimeChannel);
+          realtimeChannel = null;
         }
-        return session;
+      }
+
+      function handleRealtimeChange(payload){
+        if (!payload) return;
+        const eventType = payload.eventType;
+        if (eventType === 'DELETE') {
+          const targetId = payload.old?.id;
+          if (!targetId) return;
+          const next = tasks.filter((item) => item.id !== targetId);
+          syncTasks(next);
+          MarcoBus.emit('tasks:realtime', { miniappId, eventType, id: targetId });
+          return;
+        }
+        const mapped = mapRow(payload.new);
+        if (!mapped || mapped.miniappId !== miniappId) return;
+        const next = tasks.slice();
+        const index = next.findIndex((item) => item.id === mapped.id);
+        if (index >= 0) {
+          next[index] = { ...next[index], ...mapped };
+        } else {
+          next.push(mapped);
+        }
+        syncTasks(next);
+        MarcoBus.emit('tasks:realtime', { miniappId, eventType, id: mapped.id });
+      }
+
+      function ensureRealtimeSubscription(){
+        if (!supabase) return;
+        teardownRealtime();
+        if (!activeSession) return;
+        realtimeChannel = supabase
+          .channel(`task_items_${miniappId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'task_items',
+              filter: `miniapp_id=eq.${miniappId}`
+            },
+            handleRealtimeChange
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              MarcoBus.emit('tasks:realtime:ready', { miniappId });
+            }
+          });
+      }
+
+      async function refreshSession(){
+        if (!supabase) {
+          activeSession = null;
+          setInteractivity(true);
+          return null;
+        }
+        try {
+          const { data, error } = await supabase.auth.getSession();
+          if (error) {
+            console.warn('[tasks] Não foi possível recuperar sessão', error);
+            activeSession = null;
+          } else {
+            activeSession = data?.session ?? null;
+          }
+        } catch (error) {
+          console.warn('[tasks] Falha ao obter sessão', error);
+          activeSession = null;
+        }
+        if (activeSession) {
+          ensureRealtimeSubscription();
+        } else {
+          teardownRealtime();
+        }
+        setInteractivity(!isSupabaseAvailable ? true : Boolean(activeSession));
+        return activeSession;
+      }
+
+      if (supabase) {
+        supabase.auth.onAuthStateChange((event, session) => {
+          activeSession = session;
+          setInteractivity(!isSupabaseAvailable ? true : Boolean(activeSession));
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+            ensureRealtimeSubscription();
+            hydrateTasks();
+          }
+          if (event === 'SIGNED_OUT') {
+            teardownRealtime();
+            syncTasks([]);
+          }
+        });
       }
 
       async function hydrateTasks(){
         if (!supabase) {
-          tasks = loadCachedTasks(miniappId);
-          renderRows(tasks);
+          syncTasks(loadCachedTasks(miniappId));
           return;
         }
-        const activeSession = await ensureSession();
-        if (!activeSession) {
-          tasks = loadCachedTasks(miniappId);
-          renderRows(tasks);
+        const session = await refreshSession();
+        if (!session) {
+          tasks = sortTasks(loadCachedTasks(miniappId));
+          renderRows();
           return;
         }
         try {
           const { data, error } = await supabase
             .from('task_items')
-            .select('id,title,status,created_at')
+            .select('id,title,status,created_at,miniapp_id')
             .eq('miniapp_id', miniappId)
             .order('created_at', { ascending: true });
           if (error) {
             throw error;
           }
-          tasks = Array.isArray(data)
-            ? data.map(row => ({ id: row.id, title: row.title, status: row.status }))
-            : [];
-          persistCachedTasks(miniappId, tasks);
-          renderRows(tasks);
+          const mapped = Array.isArray(data) ? data.map(mapRow).filter(Boolean) : [];
+          syncTasks(mapped);
+          MarcoBus.emit('tasks:sync', { miniappId, source: 'supabase', count: mapped.length });
         } catch (error) {
           console.warn('[tasks] Falha ao carregar tarefas', error);
-          tasks = loadCachedTasks(miniappId);
-          renderRows(tasks);
+          tasks = sortTasks(loadCachedTasks(miniappId));
+          renderRows();
         }
       }
 
@@ -290,7 +451,7 @@
         const statusValue = normalizeStatus(statusCell?.textContent ?? '');
 
         if (!titleValue) {
-          const existing = tasks.find(item => item.id === row.dataset.taskId);
+          const existing = tasks.find((item) => item.id === row.dataset.taskId);
           if (existing) {
             if (titleCell) titleCell.textContent = existing.title;
             if (statusCell) statusCell.textContent = existing.status;
@@ -301,58 +462,76 @@
         }
 
         if (!supabase) {
-          const id = row.dataset.taskId;
-          if (!id) {
-            row.dataset.taskId = `local-${Date.now()}`;
-          }
-          const existingIndex = tasks.findIndex(item => item.id === row.dataset.taskId);
-          const payload = { id: row.dataset.taskId, title: titleValue, status: statusValue };
+          const existingId = row.dataset.taskId ?? `local-${Date.now()}`;
+          const existingIndex = tasks.findIndex((item) => item.id === existingId);
+          const createdAt = existingIndex >= 0 ? tasks[existingIndex].createdAt : new Date().toISOString();
+          const payload = {
+            id: existingId,
+            miniappId,
+            title: titleValue,
+            status: statusValue,
+            createdAt
+          };
+          row.dataset.taskId = existingId;
+          row.dataset.createdAt = createdAt;
+          const next = tasks.slice();
           if (existingIndex >= 0) {
-            tasks[existingIndex] = payload;
+            next[existingIndex] = payload;
           } else {
-            tasks.push(payload);
+            next.push(payload);
           }
-          persistCachedTasks(miniappId, tasks);
+          row.classList.remove('u-border-danger');
+          syncTasks(next);
           return;
         }
 
-        const activeSession = await ensureSession();
         if (!activeSession) {
+          updateAuthNotice(false);
+          row.classList.add('u-border-danger');
           return;
         }
 
         row.dataset.syncing = 'true';
         try {
           if (row.dataset.taskId) {
-            const { error } = await supabase
-              .from('task_items')
-              .update({ title: titleValue, status: statusValue })
-              .eq('id', row.dataset.taskId);
-            if (error) {
-              throw error;
-            }
-            const index = tasks.findIndex(item => item.id === row.dataset.taskId);
-            if (index >= 0) {
-              tasks[index] = { ...tasks[index], title: titleValue, status: statusValue };
-            }
-          } else {
             const { data, error } = await supabase
               .from('task_items')
-              .insert({ miniapp_id: miniappId, title: titleValue, status: statusValue })
-              .select('id,title,status')
+              .update({ title: titleValue, status: statusValue })
+              .eq('id', row.dataset.taskId)
+              .select('id,title,status,created_at,miniapp_id')
               .single();
             if (error) {
               throw error;
             }
-            row.dataset.taskId = data.id;
-            tasks.push({ id: data.id, title: data.title, status: data.status });
+            const mapped = mapRow(data);
+            const next = tasks.slice();
+            const index = next.findIndex((item) => item.id === mapped.id);
+            if (index >= 0) {
+              next[index] = { ...next[index], ...mapped };
+            }
+            row.dataset.createdAt = mapped?.createdAt ?? row.dataset.createdAt ?? new Date().toISOString();
+            row.classList.remove('u-border-danger');
+            syncTasks(next);
+          } else {
+            const { data, error } = await supabase
+              .from('task_items')
+              .insert({ miniapp_id: miniappId, title: titleValue, status: statusValue })
+              .select('id,title,status,created_at,miniapp_id')
+              .single();
+            if (error) {
+              throw error;
+            }
+            const mapped = mapRow(data);
+            row.dataset.taskId = mapped.id;
+            row.dataset.createdAt = mapped.createdAt ?? new Date().toISOString();
+            row.classList.remove('u-border-danger');
+            syncTasks([...tasks, mapped]);
           }
-          persistCachedTasks(miniappId, tasks);
         } catch (error) {
           console.warn('[tasks] Falha ao sincronizar linha', error);
           row.classList.add('u-border-danger');
         } finally {
-          row.dataset.syncing = 'false';
+          delete row.dataset.syncing;
         }
       }
 
@@ -360,32 +539,28 @@
         const id = row.dataset.taskId;
         if (!id) {
           row.remove();
+          syncTasks(tasks.filter((item) => item.id));
           return;
         }
 
         if (!supabase) {
           row.remove();
-          tasks = tasks.filter(item => item.id !== id);
-          persistCachedTasks(miniappId, tasks);
+          syncTasks(tasks.filter((item) => item.id !== id));
           return;
         }
 
-        const activeSession = await ensureSession();
         if (!activeSession) {
+          updateAuthNotice(false);
           return;
         }
 
         try {
-          const { error } = await supabase
-            .from('task_items')
-            .delete()
-            .eq('id', id);
+          const { error } = await supabase.from('task_items').delete().eq('id', id);
           if (error) {
             throw error;
           }
           row.remove();
-          tasks = tasks.filter(item => item.id !== id);
-          persistCachedTasks(miniappId, tasks);
+          syncTasks(tasks.filter((item) => item.id !== id));
         } catch (error) {
           console.warn('[tasks] Falha ao remover linha', error);
         }
@@ -395,6 +570,9 @@
         const tr = document.createElement('tr');
         if (task?.id) {
           tr.dataset.taskId = task.id;
+        }
+        if (task?.createdAt) {
+          tr.dataset.createdAt = task.createdAt;
         }
 
         const titleCell = document.createElement('td');
@@ -411,7 +589,10 @@
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'c-btn';
         deleteBtn.dataset.action = 'delete';
-        deleteBtn.textContent = i18n.t('miniapps.gestor-de-tarefas.tabela.excluir');
+        deleteBtn.textContent = translateKey(
+          'miniapps.gestor-de-tarefas.tabela.excluir',
+          'Excluir'
+        );
         actionsCell.appendChild(deleteBtn);
 
         tr.appendChild(titleCell);
@@ -423,10 +604,15 @@
         statusCell.addEventListener('blur', syncRow);
         deleteBtn.addEventListener('click', () => removeRow(tr));
 
+        applyRowPermissions(tr, !isSupabaseAvailable || Boolean(activeSession));
         return tr;
       }
 
       addBtn.onclick = () => {
+        if (addBtn.disabled) {
+          updateAuthNotice(false);
+          return;
+        }
         const row = createRow({ title: '', status: 'pending' });
         tbody.prepend(row);
         const titleCell = getCell(row, 'title');
@@ -434,7 +620,7 @@
       };
 
       await hydrateTasks();
-      addBtn.disabled = false;
+      setInteractivity(!isSupabaseAvailable || Boolean(activeSession));
     }
   </script>
 </body>

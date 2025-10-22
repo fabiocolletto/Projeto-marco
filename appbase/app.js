@@ -88,6 +88,151 @@ function updateKpi(service, isActive) {
   }
 }
 
+const sessionFeedbackTarget =
+  document.querySelector('.js-session-feedback') ?? document.querySelector('[data-auth-status]');
+let supabaseClientPromise = null;
+
+function readSupabaseMeta(name) {
+  return document.querySelector(`meta[name="${name}"]`)?.getAttribute('content')?.trim() ?? null;
+}
+
+function resolveSupabaseConfig() {
+  const globalConfig = window.__APPBASE_SUPABASE__ ?? {};
+  const url = globalConfig?.url?.trim?.() ?? readSupabaseMeta('supabase-url');
+  const anonKey = globalConfig?.anonKey?.trim?.() ?? readSupabaseMeta('supabase-anon-key');
+  const schema = globalConfig?.schema?.trim?.() ?? readSupabaseMeta('supabase-schema');
+  if (!url || !anonKey) {
+    return null;
+  }
+  return { url, anonKey, schema: schema || 'public' };
+}
+
+async function getSupabaseAuthClient() {
+  if (supabaseClientPromise) {
+    return supabaseClientPromise;
+  }
+  const config = resolveSupabaseConfig();
+  if (!config) {
+    return null;
+  }
+  supabaseClientPromise = import('https://esm.sh/@supabase/supabase-js@2')
+    .then(({ createClient }) =>
+      createClient(config.url, config.anonKey, {
+        auth: {
+          persistSession: true,
+          storageKey: 'appbase.supabase.auth'
+        },
+        db: { schema: config.schema }
+      })
+    )
+    .catch((error) => {
+      console.warn('[auth] Não foi possível inicializar o Supabase', error);
+      supabaseClientPromise = null;
+      return null;
+    });
+  return supabaseClientPromise;
+}
+
+function setSessionFeedback(status, message, session = null) {
+  const payload = {
+    status,
+    message,
+    email: session?.user?.email ?? null,
+    updatedAt: new Date().toISOString()
+  };
+  Store.set('auth.session', payload);
+  if (sessionFeedbackTarget) {
+    sessionFeedbackTarget.textContent = message;
+    sessionFeedbackTarget.dataset.status = status;
+  }
+  MarcoBus.emit('auth:session', { status, session });
+}
+
+function updateServiceStatesForSession(session) {
+  const isAuthenticated = Boolean(session);
+  const now = new Date().toISOString();
+  const toggles = [
+    { key: 'sync', button: document.querySelector('.js-toggle-sync') },
+    { key: 'backup', button: document.querySelector('.js-toggle-backup') }
+  ];
+
+  toggles.forEach(({ key, button }) => {
+    if (!button) return;
+    const serviceKey = `services.${key}`;
+    const previous = Store.get(serviceKey) ?? {};
+    if (isAuthenticated) {
+      button.toggleAttribute('disabled', false);
+      const pressed = button.getAttribute('aria-pressed') === 'true';
+      updateKpi(key, pressed);
+      Store.set(serviceKey, {
+        ...previous,
+        enabled: pressed,
+        updatedAt: pressed ? now : null,
+        userId: session?.user?.id ?? null
+      });
+      button.classList.remove('is-disabled');
+    } else {
+      button.setAttribute('aria-pressed', 'false');
+      button.toggleAttribute('disabled', true);
+      updateKpi(key, false);
+      Store.set(serviceKey, {
+        ...previous,
+        enabled: false,
+        updatedAt: null,
+        reason: 'auth-required'
+      });
+      button.classList.add('is-disabled');
+    }
+  });
+}
+
+function applySessionState(session) {
+  const isAuthenticated = Boolean(session);
+  const email = session?.user?.email ?? null;
+  const message = isAuthenticated
+    ? email
+      ? `Sessão ativa (${email})`
+      : 'Sessão ativa.'
+    : 'Sessão não autenticada.';
+
+  updateServiceStatesForSession(session);
+  setSessionFeedback(isAuthenticated ? 'signed_in' : 'signed_out', message, session);
+  if (!isAuthenticated) {
+    toggleLoginOverlay(false);
+  }
+}
+
+async function bootstrapAuthWatcher() {
+  updateServiceStatesForSession(null);
+  const client = await getSupabaseAuthClient();
+  if (!client) {
+    setSessionFeedback('unavailable', 'Sessão indisponível. Configure o Supabase para autenticar.');
+    return;
+  }
+  try {
+    const { data, error } = await client.auth.getSession();
+    if (error) {
+      console.warn('[auth] Falha ao recuperar sessão', error);
+      setSessionFeedback('error', 'Não foi possível verificar a sessão.');
+    } else {
+      applySessionState(data?.session ?? null);
+    }
+  } catch (error) {
+    console.warn('[auth] Erro inesperado ao recuperar sessão', error);
+  }
+
+  client.auth.onAuthStateChange((event, session) => {
+    applySessionState(session);
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      const email = session?.user?.email ?? null;
+      setSessionFeedback('signed_in', email ? `Sessão ativa (${email}).` : 'Sessão ativa.', session);
+    }
+    if (event === 'SIGNED_OUT') {
+      setSessionFeedback('signed_out', 'Sessão encerrada.', session);
+    }
+  });
+}
+
 function handleToggle(button, serviceKey) {
   if (!button) return;
   button.addEventListener('click', () => {
@@ -194,46 +339,185 @@ const dialog = overlay?.querySelector('.ac-dialog');
 const closeControls = overlay ? Array.from(overlay.querySelectorAll('.js-close')) : [];
 const openLoginButton = document.querySelector('.js-open-login');
 const resetAppButton = document.querySelector('.js-reset-app');
+const loginForm = overlay?.querySelector('form');
+const emailInput =
+  overlay?.querySelector('[data-auth-email]') ?? overlay?.querySelector('input[type="email"]');
+const otpInput =
+  overlay?.querySelector('[data-auth-token]') ?? overlay?.querySelector('input[name="otp"]');
+const overlayMessage = overlay?.querySelector('.js-login-feedback');
+const signOutButtons = Array.from(document.querySelectorAll('.js-sign-out'));
+const loginSubmitButton = loginForm?.querySelector('[type="submit"]');
 let lastFocus = null;
 
-function openOverlay() {
+function toggleLoginOverlay(isVisible) {
   if (!overlay || !dialog) return;
-  lastFocus = document.activeElement;
-  overlay.hidden = false;
-  requestAnimationFrame(() => {
-    dialog.focus();
-  });
-  MarcoBus.emit('overlay:open');
-  Store.set('ui.loginOverlay', { open: true });
-}
-
-function closeOverlay() {
-  if (!overlay || !dialog) return;
-  overlay.hidden = true;
-  if (lastFocus && typeof lastFocus.focus === 'function') {
-    lastFocus.focus();
+  if (isVisible) {
+    lastFocus = document.activeElement;
+    overlay.hidden = false;
+    requestAnimationFrame(() => {
+      dialog.focus?.();
+    });
+    MarcoBus.emit('overlay:open');
+  } else {
+    overlay.hidden = true;
+    if (lastFocus && typeof lastFocus.focus === 'function') {
+      lastFocus.focus();
+    }
+    MarcoBus.emit('overlay:close');
   }
-  MarcoBus.emit('overlay:close');
-  Store.set('ui.loginOverlay', { open: false });
+  Store.set('ui.loginOverlay', { open: Boolean(isVisible) });
 }
 
-openLoginButton?.addEventListener('click', openOverlay);
+function resetLoginForm() {
+  loginForm?.reset?.();
+  if (overlayMessage) {
+    overlayMessage.textContent = '';
+    delete overlayMessage.dataset.tone;
+  }
+}
+
+function focusLoginEmail() {
+  if (emailInput && typeof emailInput.focus === 'function') {
+    requestAnimationFrame(() => emailInput.focus());
+  }
+}
+
+function setOverlayFeedback(message, tone = 'info') {
+  if (!overlayMessage) return;
+  overlayMessage.textContent = message;
+  if (message) {
+    overlayMessage.dataset.tone = tone;
+  } else {
+    delete overlayMessage.dataset.tone;
+  }
+}
+
+async function handleLoginSubmit(event) {
+  event?.preventDefault?.();
+  const client = await getSupabaseAuthClient();
+  if (!client) {
+    setOverlayFeedback('Configuração Supabase indisponível.', 'error');
+    setSessionFeedback('unavailable', 'Sessão indisponível.');
+    return;
+  }
+
+  let email = emailInput?.value?.trim?.() ?? '';
+  if (!email) {
+    email = window.prompt('Informe seu e-mail para login:')?.trim?.() ?? '';
+  }
+  if (!email) {
+    setOverlayFeedback('Informe um e-mail válido para continuar.', 'error');
+    focusLoginEmail();
+    return;
+  }
+
+  const token = otpInput?.value?.trim?.() ?? '';
+  if (loginSubmitButton) {
+    loginSubmitButton.disabled = true;
+  }
+  setOverlayFeedback('Processando…', 'info');
+
+  try {
+    if (token) {
+      const { data, error } = await client.auth.verifyOtp({ type: 'email', email, token });
+      if (error) {
+        throw error;
+      }
+      setOverlayFeedback('Sessão confirmada com sucesso.', 'success');
+      if (otpInput) {
+        otpInput.value = '';
+      }
+      const session = data?.session ?? null;
+      if (session) {
+        applySessionState(session);
+      }
+      setSessionFeedback('signed_in', `Sessão ativa (${email}).`, session);
+      toggleLoginOverlay(false);
+    } else {
+      const { error } = await client.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          emailRedirectTo: window.location.href
+        }
+      });
+      if (error) {
+        throw error;
+      }
+      setOverlayFeedback('Enviamos um código para o seu e-mail. Verifique a caixa de entrada.', 'info');
+      setSessionFeedback('pending', `Verifique o código enviado para ${email}.`);
+    }
+  } catch (error) {
+    console.warn('[auth] Falha ao autenticar', error);
+    const message = error?.message ? String(error.message) : 'Não foi possível iniciar a autenticação.';
+    setOverlayFeedback(message, 'error');
+    setSessionFeedback('error', message);
+  } finally {
+    if (loginSubmitButton) {
+      loginSubmitButton.disabled = false;
+    }
+  }
+}
+
+async function handleLogout(event) {
+  event?.preventDefault?.();
+  const client = await getSupabaseAuthClient();
+  if (!client) {
+    toggleLoginOverlay(false);
+    return;
+  }
+  try {
+    const { error } = await client.auth.signOut();
+    if (error) {
+      throw error;
+    }
+    setOverlayFeedback('Sessão encerrada.', 'info');
+    setSessionFeedback('signed_out', 'Sessão encerrada.');
+    toggleLoginOverlay(false);
+  } catch (error) {
+    console.warn('[auth] Falha ao encerrar sessão', error);
+    const message = error?.message ? String(error.message) : 'Não foi possível encerrar a sessão.';
+    setOverlayFeedback(message, 'error');
+    setSessionFeedback('error', message);
+  }
+}
+
+openLoginButton?.addEventListener('click', (event) => {
+  event?.preventDefault?.();
+  resetLoginForm();
+  setOverlayFeedback('', 'info');
+  toggleLoginOverlay(true);
+  focusLoginEmail();
+});
 
 closeControls.forEach((control) => {
-  control.addEventListener('click', closeOverlay);
+  control.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (control.dataset.authAction === 'sign-out') {
+      handleLogout(event);
+      return;
+    }
+    toggleLoginOverlay(false);
+  });
 });
+
+signOutButtons.forEach((button) => {
+  button.addEventListener('click', handleLogout);
+});
+
+loginForm?.addEventListener('submit', handleLoginSubmit);
 
 overlay?.addEventListener('click', (event) => {
   const target = event.target;
   if (target instanceof HTMLElement && target.dataset.overlayDismiss === 'true') {
-    closeOverlay();
+    toggleLoginOverlay(false);
   }
 });
 
 document.addEventListener('keydown', (event) => {
   if (event.key === 'Escape' && !overlay?.hidden) {
     event.preventDefault();
-    closeOverlay();
+    toggleLoginOverlay(false);
   }
 });
 
@@ -326,7 +610,5 @@ window.addEventListener('DOMContentLoaded', () => {
   if (activeButton) {
     setActivePanel(activeButton.dataset.target, activeButton.textContent.trim());
   }
-
-  updateKpi('sync', false);
-  updateKpi('backup', false);
+  bootstrapAuthWatcher();
 });

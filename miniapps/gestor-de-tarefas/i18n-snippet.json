@@ -3,6 +3,7 @@
     "miniapps": {
       "gestor-de-tarefas": {
         "titulo": "Gestor de Tarefas",
+        "avisoLogin": "Faça login para editar as tarefas.",
         "tabela": {
           "tarefa": "Tarefa",
           "status": "Status",
@@ -16,6 +17,7 @@
     "miniapps": {
       "gestor-de-tarefas": {
         "titulo": "Task Manager",
+        "avisoLogin": "Sign in to edit tasks.",
         "tabela": {
           "tarefa": "Task",
           "status": "Status",
@@ -29,6 +31,7 @@
     "miniapps": {
       "gestor-de-tarefas": {
         "titulo": "Gestor de Tareas",
+        "avisoLogin": "Inicia sesión para editar las tareas.",
         "tabela": {
           "tarefa": "Tarea",
           "status": "Estado",
