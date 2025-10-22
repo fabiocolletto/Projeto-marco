@@ -25,3 +25,8 @@ Este R1 inclui o MiniApp **Gestor de Tarefas** para validação.
 5. Os workflows `pages.yml` (produção) e `preview.yml` (staging) executam automaticamente `supabase db push` e `supabase functions deploy` antes de publicar o artefato Pages.
 6. Estruture cada função Edge em um diretório dentro de `supabase/functions/` para que o job de deploy faça o loop e publique todas as funções encontradas.
 7. Atualize `docs/registro-log.md` e `VERSION` sempre que novas migrações forem adicionadas ou quando o fluxo de deploy for alterado.
+
+## Catálogo e registro via Supabase
+- O catálogo de MiniApps (`miniapps` e `miniapp_translations`) e o registro de lançamentos (`release_log`) agora residem no Supabase com RLS habilitado. As migrações em `supabase/migrations/` populam os dados iniciais.
+- Views utilitárias (`miniapps_catalog_v1`, `release_log_latest_v1`) ficam versionadas em `supabase/functions/` e são expostas via REST.
+- O AppBase tenta consumir essas views usando os metadados `supabase-url`, `supabase-anon-key` (ou o objeto global `window.__APPBASE_SUPABASE__`). Caso nenhuma credencial esteja configurada, os arquivos estáticos em `docs/` e `miniapps/` funcionam como fallback temporário.
