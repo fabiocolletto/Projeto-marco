@@ -1,21 +1,29 @@
 {
-  "name": "MiniApp Base Shell",
-  "short_name": "MiniApp",
+  "name": "Projeto Marco",
+  "short_name": "Marco",
+  "description": "Shell base do Projeto Marco com suporte a miniapps e experiência PWA.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0f172a",
+  "orientation": "any",
+  "background_color": "#FDF7ED",
+  "theme_color": "#E9C182",
   "icons": [
     {
-      "src": "https://5horas.com.br/wp-content/uploads/2025/10/Icone-Light-Claro-500x500px.png",
-      "sizes": "500x500",
+      "src": "../../apps/web/icons/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://5horas.com.br/wp-content/uploads/2025/10/Icone-Light-Claro-500x500px.png",
-      "sizes": "500x500",
+      "src": "../../apps/web/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../../apps/web/icons/icon-512-maskable.png",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }

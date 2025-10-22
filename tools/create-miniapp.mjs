@@ -7,7 +7,7 @@ if (!id || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(id)) {
   console.error("Uso: npm run miniapp:create <id-kebab> (ex.: compras-supermercado)");
   process.exit(1);
 }
-const base = path.resolve("miniapps", id);
+const base = path.resolve("apps", id);
 const tplDir = path.resolve("appbase/templates/miniapp-structure");
 
 async function copyDir(src, dst) {
@@ -40,9 +40,9 @@ if (!reg.apps.find(a => a.id === id)) {
   reg.apps.push({
     id,
     name: { "pt-BR": id, "en-US": id, "es-419": id },
-    icon: `/miniapps/${id}/icon-128.png`,
+    icon: `/apps/${id}/icon-128.png`,
     summary: "MiniApp gerado via scaffold",
-    entry: `/miniapps/${id}/index.js`
+    entry: `/apps/${id}/index.js`
   });
   await fs.writeFile(regPath, JSON.stringify(reg, null, 2));
   console.log(`📦 Registrado no Market: ${id}`);
@@ -50,4 +50,4 @@ if (!reg.apps.find(a => a.id === id)) {
   console.log(`ℹ Já existe no Market: ${id}`);
 }
 
-console.log(`✅ MiniApp criado em miniapps/${id}`);
+console.log(`✅ MiniApp criado em apps/${id}`);

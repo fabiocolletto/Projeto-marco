@@ -19,7 +19,7 @@ Os valores foram atualizados para um design *mobile-first*, com tipografia fluid
 ## Como usar
 
 1. **Importe o tema** com `@import url('../../packages/base.theme/theme.css');`
-   na folha específica do miniapp (como `miniapps/base_shell/styles.css`).
+   na folha específica do shell (como `apps/web/styles.css`).
 2. **Consuma apenas tokens** nas folhas locais. Quando precisar de um novo
    espaçamento, cor ou raio, declare primeiro no tema e só depois utilize.
 3. **Lembre do modo escuro:** ao definir novas cores, ofereça equivalentes

@@ -1,40 +1,64 @@
 # Projeto Marco
 
-Este repositório contém ferramentas e módulos compartilhados utilizados pelos widgets de gestão de convidados.
+O Projeto Marco entrou na Fase PWA. Nesta etapa o foco está em manter o shell web instalável, acessível e pronto para evoluir
+para os aplicativos nativos planejados para a Fase 2.
 
-## Estrutura
-- `shared/`: módulos JavaScript e estilos compartilhados.
-- `tools/`: ferramentas e widgets específicos do domínio.
+## Visão geral
+- Shell web servindo como hub de miniapps, com suporte offline via Service Worker e manifest.
+- Estrutura unificada que centraliza assets compartilhados, políticas e documentação pública.
+- Placeholders para Android/iOS permanecerão até a próxima fase.
 
-## Fluxo de trabalho
-1. Revise os arquivos `LOG.md` de cada pasta antes de iniciar uma tarefa para relembrar o histórico.
-2. Crie branches de trabalho a partir da `main` e siga as instruções específicas em `AGENTS.md` quando existirem.
-3. Execute os testes listados na seção de testes do widget antes de enviar alterações.
+## Estrutura de pastas
+```
+/apps
+  /web              # Shell PWA principal
+  /android          # Placeholder Fase 2
+  /ios              # Placeholder Fase 2
+/shared             # Assets compartilhados (ícones, marcas, fontes)
+/policies           # Termos e políticas públicos
+/docs               # Saída publicada no GitHub Pages
+```
 
-## Nova etapa do shell base
-- **Menu de mini-apps**: o shell exibe um catálogo lateral com entrada dedicada para cada mini-app priorizado, permitindo navegação entre os módulos embarcados.
-- **Skeletons carregáveis**: cada item carrega um skeleton específico enquanto o conteúdo remoto é obtido, garantindo feedback imediato.
-- **Integração via webhook**: o catálogo será sincronizado com o backend através de um webhook; ao implementar, mantenha alinhados loader, traduções e testes end-to-end.
+Consulte também [`agente.md`](agente.md) para o guia operacional do repositório.
 
-## Testes automatizados
-Para garantir que `npm test` seja executado com sucesso no ambiente local ou na sandbox do repositório, siga os passos abaixo na primeira vez que configurar o projeto (ou sempre que atualizar a versão do Playwright):
-
-1. Instale as dependências do projeto: `npm install`.
-2. Baixe os navegadores utilizados pelo Playwright (inclui as dependências do sistema operacional): `npx playwright install --with-deps`.
-   - Caso o ambiente tenha restrições de proxy e o passo acima retorne erro 403, utilize a sequência `npx playwright install chromium` seguido de `npx playwright install-deps chromium` para completar a configuração.
-3. Execute a suíte de testes: `npm test`.
-
-Caso algum passo falhe, ajuste o ambiente de acordo com a mensagem de erro e repita os comandos até que o teste finalize com sucesso.
+## Executando localmente
+1. Instale as dependências se necessário: `npm install`.
+2. Inicie um servidor estático apontando para `apps/web`:
+   ```bash
+   npx serve apps/web
+   ```
+3. Acesse `http://localhost:3000/apps/web/` (ou a URL exibida) e valide que o PWA é instalável.
 
 ## Publicação
-- O GitHub Pages do projeto aponta para `index.html`, que redireciona automaticamente para `miniapps/base_shell/`.
-- Em caso de problemas no redirecionamento automático, acesse manualmente `https://<org>.github.io/Projeto-marco/miniapps/base_shell/`.
+O deploy é feito por GitHub Pages utilizando o workflow [`deploy-pages.yml`](.github/workflows/deploy-pages.yml). A pipeline:
+1. Copia `apps/web`, `shared` e `policies` para `docs/`.
+2. Publica o artefato com `actions/deploy-pages@v4`.
 
-## Convenções
-- Utilize módulos ES (`type="module"`) para novos scripts.
-- Prefira imports relativos locais e utilize os CDNs somente como fallback.
-- Documente decisões relevantes no arquivo de log da pasta correspondente.
+Após o merge na `main`, confirme no painel do repositório que o Pages está configurado como **GitHub Actions** e que a URL está
+atualizada neste arquivo.
 
-## Documentação adicional
-- [SECURITY.md](SECURITY.md): práticas para proteger os segredos de produção, aprovações de ambiente e cabeçalhos exigidos pelo webhook.
-- [OPERATIONS.md](OPERATIONS.md): guia operacional para disparar o workflow `dispatch-post-make.yml`, exemplos de payload, testes e troubleshooting.
+## Checklist PWA
+- Manifest (`apps/web/manifest.json`) referencia ícones locais, tema `#E9C182` e start URL `./`.
+- Service Worker (`apps/web/sw.js`) em cache com fallback offline.
+- Ícone maskable presente (`apps/web/icons/icon-512-maskable.png`).
+- Cabeçalho fixo sem sobrepor o conteúdo principal.
+- Links do rodapé apontam para `policies/privacy.pt-BR.md` e `policies/terms.pt-BR.md`.
+- Lighthouse PWA ≥ 90 (anexar resultado ao PR).
+
+## CHANGELOG obrigatório
+Toda alteração deve atualizar [`CHANGELOG.md`](CHANGELOG.md) seguindo SemVer `v0.x.y`. PRs sem atualização do changelog serão
+bloqueados pelo workflow de guarda.
+
+## Roadmap Fase 2
+- **Android** (`apps/android`): publicação planejada na Play Store.
+- **iOS** (`apps/ios`): publicação planejada na App Store.
+- Notificações push, integrações nativas e automações móveis serão detalhadas após a consolidação da Fase PWA.
+
+## Testes automatizados
+- Configure o Playwright com `npm install` + `npx playwright install --with-deps`.
+- Execute `npm test` para validar a suíte E2E.
+
+## Documentação complementar
+- [`agente.md`](agente.md): passo a passo para agentes, incluindo leitura obrigatória do `CHANGELOG` antes de iniciar qualquer
+  tarefa.
+- [`SECURITY.md`](SECURITY.md) e [`OPERATIONS.md`](OPERATIONS.md) permanecem válidos para integrações e execuções manuais.

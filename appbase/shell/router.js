@@ -23,7 +23,8 @@ export async function resolve() {
     outlet = document.querySelector("#app");
   }
   const segments = location.pathname.split("/").filter(Boolean);
-  if (segments[0] === "miniapps" && segments[1]) {
+  const routePrefixes = ["apps", "miniapps"];
+  if (routePrefixes.includes(segments[0]) && segments[1]) {
     if (typeof miniAppHandler === "function") {
       await miniAppHandler({ id: segments[1], outlet });
       return;

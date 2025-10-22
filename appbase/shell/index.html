@@ -4,18 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>MiniApp Base Shell • AppBase</title>
-    <link rel="manifest" href="./app.webmanifest" />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="500x500"
-      href="https://5horas.com.br/wp-content/uploads/2025/10/Icone-Light-Claro-500x500px.png"
-    />
-    <link
-      rel="apple-touch-icon"
-      sizes="500x500"
-      href="https://5horas.com.br/wp-content/uploads/2025/10/Icone-Light-Claro-500x500px.png"
-    />
+    <link rel="manifest" href="../../apps/web/manifest.json" />
+    <meta name="theme-color" content="#E9C182" />
+    <link rel="apple-touch-icon" href="../../apps/web/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="icon" type="image/png" sizes="192x192" href="../../apps/web/icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="../../apps/web/icons/icon-512.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -352,7 +347,8 @@
         </section>
       </div>
     </div>
-    <script defer type="module" src="../../miniapps/base_shell/sys/memory-status.js"></script>
+    <script src="../../apps/web/register-sw.js"></script>
+    <script defer type="module" src="../../apps/web/sys/memory-status.js"></script>
     <script defer type="module" src="./app/main.js"></script>
   </body>
 </html>

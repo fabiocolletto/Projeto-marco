@@ -1,15 +1,15 @@
 {
   "apps": [
     {
-      "id": "example",
+      "id": "web",
       "name": {
-        "pt-BR": "example",
-        "en-US": "example",
-        "es-419": "example"
+        "pt-BR": "Shell PWA",
+        "en-US": "PWA Shell",
+        "es-419": "Shell PWA"
       },
-      "icon": "/miniapps/example/icon-128.png",
-      "summary": "MiniApp gerado via scaffold",
-      "entry": "/miniapps/example/index.js"
+      "icon": "/apps/web/icons/icon-192.png",
+      "summary": "Shell PWA base do Projeto Marco.",
+      "entry": "/apps/web/index.html"
     }
   ]
 }

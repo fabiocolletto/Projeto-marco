@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Projeto Marco</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="refresh" content="0; url=./miniapps/base_shell/" />
+    <meta http-equiv="refresh" content="0; url=./apps/web/" />
     <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
@@ -15,7 +15,7 @@
         Caso nada aconteça, utilize o link abaixo.
       </p>
       <p>
-        <a id="shell-link" href="./miniapps/base_shell/">Abrir shell base</a>
+        <a id="shell-link" href="./apps/web/">Abrir shell base</a>
       </p>
       <noscript>
         <p>
@@ -27,7 +27,7 @@
     <script>
       (function redirectToShell() {
         const anchor = document.getElementById('shell-link');
-        const targetUrl = new URL('./miniapps/base_shell/', window.location.href);
+        const targetUrl = new URL('./apps/web/', window.location.href);
 
         if (anchor) {
           anchor.href = `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`;

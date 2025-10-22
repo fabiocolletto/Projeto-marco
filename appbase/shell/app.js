@@ -1,1 +1,1 @@
-import '../../miniapps/base_shell/app.js';
+import '../../apps/web/app.js';

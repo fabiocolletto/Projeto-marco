@@ -28,7 +28,7 @@
 
 ## 2025-10-19
 - Arquivadas as pastas `Assistentes/`, `docs/`, `reports/`, `scripts/`, `shared/`, `tools/`, `unique/` e os mini-apps `miniapps/mini_app_1` e `miniapps/mini_app_2` em `archive/`, seguindo a política de preservar apenas o shell base ativo.
-- Atualizado o fallback do catálogo em `miniapps/base_shell/app.js` e o `appbase/registry.json` para refletirem a remoção dos mini-apps temporários.
+- Atualizado o fallback do catálogo em `apps/web/app.js` e o `appbase/registry.json` para refletirem a remoção dos mini-apps temporários.
 - Registrados os itens movidos no `archive/MANIFEST.json` e adicionadas instruções de restauração nos READMEs dos mini-apps arquivados.
 
 ## 2025-10-20

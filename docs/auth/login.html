@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="auth.login.title">Acessar conta</title>
+    <script>
+      (function () {
+        const root = document.documentElement;
+        let mode = 'panel';
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const embed = params.get('embed');
+          if (embed && embed.toLowerCase() === 'inline') {
+            mode = null;
+          } else if (embed && embed.toLowerCase() === 'panel') {
+            mode = 'panel';
+          } else if (window.self === window.top) {
+            mode = null;
+          }
+        } catch (error) {
+          if (window.self === window.top) {
+            mode = null;
+          }
+        }
+        if (mode === 'panel') {
+          root.dataset.embedMode = 'panel';
+        } else {
+          delete root.dataset.embedMode;
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="auth-login">
+    <div class="app-shell" data-state="ready">
+      <header class="app-header" role="banner">
+        <button id="btnQuickLinks" class="app-header__menu-button" type="button">
+          <span class="app-header__menu-icon" aria-hidden="true">☰</span>
+          <span class="app-header__menu-label" data-i18n="actions.quickLinksTrigger">Menu</span>
+          <span class="sr-only" data-i18n="actions.openQuickLinks">Abrir menu principal</span>
+        </button>
+      </header>
+      <div class="layout layout--auth">
+        <main id="panel" class="panel panel--auth" role="main" tabindex="-1">
+          <section class="panel-content auth-login__content">
+            <div class="card auth-login__card">
+              <form id="login-form" class="auth-login__form" novalidate>
+                <h1 id="page-title" data-i18n="auth.login.title">Acessar conta</h1>
+                <p class="auth-login__intro" data-i18n="auth.login.intro">
+                  Entre com seu e-mail ou celular para continuar explorando a plataforma.
+                </p>
+                <div class="field">
+                  <label for="login-email" data-i18n="auth.form.loginIdentifier">E-mail ou celular</label>
+                  <input id="login-email" name="email" type="text" required autocomplete="username" />
+                </div>
+                <div class="field auth-login__field-password">
+                  <label for="login-password" data-i18n="auth.form.password">Senha</label>
+                  <div class="auth-password-wrapper">
+                    <input
+                      id="login-password"
+                      name="password"
+                      type="password"
+                      required
+                      autocomplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      class="auth-toggle-password"
+                      data-action="toggle-password"
+                      aria-controls="login-password"
+                      aria-pressed="false"
+                      aria-labelledby="login-password-toggle-label"
+                    >
+                      <span
+                        class="auth-toggle-password-icon"
+                        aria-hidden="true"
+                        data-password-visibility-icon
+                      >👁️</span>
+                      <span
+                        id="login-password-toggle-label"
+                        class="sr-only"
+                        data-password-visibility-label
+                        data-i18n="auth.login.showPassword"
+                      >
+                        Mostrar senha
+                      </span>
+                    </button>
+                  </div>
+                </div>
+                <div class="field auth-login__field-actions">
+                  <label class="auth-login__remember" for="login-remember">
+                    <input id="login-remember" name="remember" type="checkbox" />
+                    <span data-i18n="auth.login.remember">Lembrar-me</span>
+                  </label>
+                  <button
+                    type="button"
+                    class="auth-login__forgot"
+                    data-action="forgot-password"
+                    data-i18n="auth.login.forgot"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
+                <button type="submit" class="cta" data-i18n="auth.login.submit">Entrar</button>
+                <p id="login-feedback" class="feedback" role="status" aria-live="polite"></p>
+              </form>
+              <footer class="auth-login__card-footer" aria-label="Cadastro">
+                <div class="auth-login__links">
+                  <div class="auth-login__link-group" data-register-guard>
+                    <span data-i18n="auth.login.noAccount">Novo por aqui?</span>
+                    <a
+                      class="auth-login__link"
+                      href="./register.html"
+                      data-action="open-register"
+                      data-i18n="auth.login.createAccount"
+                    >
+                      Criar conta
+                    </a>
+                  </div>
+                </div>
+              </footer>
+            </div>
+          </section>
+        </main>
+      </div>
+      <footer id="app-footer" class="app-footer" role="contentinfo">
+        <div class="footer-content">
+          <img
+            class="app-footer__logo"
+            src="../../../shared/brand/logo-light.svg"
+            alt="5Horas"
+            data-brand-light="../../../shared/brand/logo-light.svg"
+            data-brand-dark="../../../shared/brand/logo-dark.svg"
+          />
+        </div>
+      </footer>
+    </div>
+    <div
+      id="user-menu"
+      class="menu-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-menu-title"
+      hidden
+    >
+      <div class="menu-overlay__panel" role="document" data-user-menu-panel>
+        <header class="menu-overlay__header">
+          <h2 id="user-menu-title" class="menu-overlay__title" data-i18n="settings.userMenuTitle">
+            Menu do usuário
+          </h2>
+          <button type="button" class="ghost icon-only menu-overlay__close" data-user-menu-close>
+            <span class="sr-only" data-i18n="actions.close">Fechar</span>
+            <span aria-hidden="true">✕</span>
+          </button>
+        </header>
+        <ul class="menu">
+          <li>
+            <button id="btnLang" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
+              <span class="menu-text" data-i18n="settings.language">Idioma</span>
+              <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
+              <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
+              <span class="menu-text" data-i18n="settings.theme">Tema</span>
+              <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnUserPanel" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true">👤</span>
+              <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
+              <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
+            </button>
+          </li>
+          <li class="menu-divider" role="separator" aria-hidden="true"></li>
+          <li>
+            <button class="menu-item" type="button" data-action="forgot-password">
+              <span class="menu-icon" aria-hidden="true">❓</span>
+              <span class="menu-text" data-i18n="auth.login.forgot">Esqueci minha senha</span>
+            </button>
+          </li>
+          <li data-register-guard>
+            <a class="menu-item" href="./register.html">
+              <span class="menu-icon" aria-hidden="true">🆕</span>
+              <span class="menu-text" data-i18n="panel.actions.register">Criar conta</span>
+            </a>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="switch-user">
+              <span class="menu-icon" aria-hidden="true">🔄</span>
+              <span class="menu-text" data-i18n="auth.login.switchUser">Trocar usuário</span>
+            </button>
+          </li>
+          <li class="menu-divider" role="separator" aria-hidden="true"></li>
+          <li>
+            <button class="menu-item" type="button" data-action="profile">
+              <span class="menu-icon" aria-hidden="true">🔐</span>
+              <span class="menu-text" data-i18n="actions.profile">Perfil</span>
+            </button>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="reset-data">
+              <span class="menu-icon" aria-hidden="true">🗑️</span>
+              <span class="menu-text" data-i18n="actions.resetData">Excluir todos os dados</span>
+            </button>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="logout">
+              <span class="menu-icon" aria-hidden="true">🚪</span>
+              <span class="menu-text" data-i18n="actions.logout">Sair</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <script defer type="module" src="../sys/memory-status.js"></script>
+    <script type="module" src="../app.js"></script>
+  </body>
+</html>
