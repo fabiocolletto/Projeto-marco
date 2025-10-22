@@ -116,6 +116,7 @@ select {
 }
 
 .dashboard__meta {
+  margin: 0;
   flex: 0 0 auto;
   min-width: min(320px, 100%);
   padding: clamp(1rem, 3vw, 1.5rem);
@@ -175,14 +176,44 @@ select {
     align-items: start;
   }
 
-  .card--profile,
-  .card--devices,
-  .card--automations {
-    grid-column: 1 / -1;
-  }
-
   .card--summary {
     grid-row: span 2;
+  }
+}
+
+@media (min-width: 720px) {
+  .dashboard:not(.dashboard--system) .card--profile,
+  .dashboard:not(.dashboard--system) .card--devices,
+  .dashboard:not(.dashboard--system) .card--automations {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard--system .dashboard__layout {
+    grid-template-columns: minmax(360px, 1.05fr) minmax(320px, 0.95fr);
+    grid-template-areas:
+      "summary meta"
+      "summary services"
+      "summary audit";
+    grid-auto-flow: row;
+  }
+
+  .dashboard--system .card--summary {
+    grid-area: summary;
+    grid-row: auto;
+  }
+
+  .dashboard--system .dashboard__meta {
+    grid-area: meta;
+  }
+
+  .dashboard--system .card--profile {
+    grid-area: services;
+  }
+
+  .dashboard--system .card--automations {
+    grid-area: audit;
   }
 }
 
@@ -193,7 +224,11 @@ select {
 }
 
 @media (min-width: 1024px) and (orientation: landscape) {
-  .dashboard__layout {
+  .dashboard--system .dashboard__layout {
+    grid-template-columns: minmax(400px, 1.12fr) minmax(320px, 0.88fr);
+  }
+
+  .dashboard:not(.dashboard--system) .dashboard__layout {
     grid-template-columns: repeat(3, minmax(280px, 1fr));
   }
 }
