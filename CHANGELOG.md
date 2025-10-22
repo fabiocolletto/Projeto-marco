@@ -1,6 +1,11 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.5] - 2025-10-22
+### Changed
+- Ajustado o layout do painel do usuário para reduzir os espaçamentos entre widgets e distribuir melhor os cartões em telas maiores.
+- Garantido que a seção de dados pessoais ocupe a largura total da grade para manter foco no formulário principal.
+
 ## [v0.1.4] - 2025-10-22
 ### Fixed
 - Atualizada a política do service worker para buscar primeiro no servidor as páginas HTML, garantindo que o painel do usuário receba os estilos mais recentes.
