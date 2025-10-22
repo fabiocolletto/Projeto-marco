@@ -1,28 +1,318 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-shell-version="1.0.1">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>MiniApp Painel de Sistema</title>
-    <style>
-      :root {
-        color-scheme: light dark;
-      }
-      body {
-        margin: 0;
-        padding: 2rem;
-        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: transparent;
-        color: inherit;
-      }
-      h1 {
-        margin: 0;
-        font-size: clamp(2rem, 4vw, 2.75rem);
-        font-weight: 600;
-      }
-    </style>
+    <link rel="manifest" href="../manifest.json" />
+    <meta name="theme-color" content="#E9C182" />
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="../icons/icon-512.png" />
+    <link rel="stylesheet" href="./panel.css" />
   </head>
   <body>
-    <h1>MiniApp Painel de Sistema</h1>
+    <div class="dashboard dashboard--system" data-panel-root>
+      <header class="dashboard__header">
+        <div class="dashboard__intro">
+          <p class="dashboard__eyebrow">Monitoramento do shell</p>
+          <h1 class="dashboard__title">Painel do sistema</h1>
+          <p class="dashboard__lead">
+            Acompanhe a integridade do shell base, valide recursos críticos e confirme se o ambiente atende aos
+            requisitos para tablets em modo paisagem ou vertical.
+          </p>
+        </div>
+        <dl class="dashboard__meta">
+          <div>
+            <dt>Versão do shell</dt>
+            <dd data-system-version>—</dd>
+          </div>
+          <div>
+            <dt>Canal ativo</dt>
+            <dd data-system-build>—</dd>
+          </div>
+          <div>
+            <dt>Última auditoria</dt>
+            <dd data-system-sync>—</dd>
+          </div>
+        </dl>
+      </header>
+      <main class="dashboard__content">
+        <div class="dashboard__layout">
+          <section class="card card--summary" aria-labelledby="system-summary-title">
+            <header class="card__header">
+              <div>
+                <h2 id="system-summary-title" class="card__title">Resumo operacional</h2>
+                <p class="card__subtitle">
+                  Contexto do host atual, instalação do PWA e recursos detectados diretamente no dispositivo.
+                </p>
+              </div>
+              <span id="mem-status" class="status-pill off" aria-live="polite">Memória: avaliando…</span>
+            </header>
+            <dl class="summary-details" aria-label="Detalhes de ambiente">
+              <div>
+                <dt>Modo de instalação</dt>
+                <dd data-system-installation>—</dd>
+              </div>
+              <div>
+                <dt>Fuso horário</dt>
+                <dd data-system-timezone>—</dd>
+              </div>
+              <div>
+                <dt>Idioma</dt>
+                <dd data-system-language>—</dd>
+              </div>
+              <div>
+                <dt>Tema preferido</dt>
+                <dd data-system-theme>—</dd>
+              </div>
+            </dl>
+            <dl class="summary-metrics" aria-label="Métricas do dispositivo">
+              <div>
+                <dt>Navegador</dt>
+                <dd data-system-useragent>—</dd>
+              </div>
+              <div>
+                <dt>Plataforma</dt>
+                <dd data-system-platform>—</dd>
+              </div>
+              <div>
+                <dt>Núcleos lógicos</dt>
+                <dd data-system-cores>—</dd>
+              </div>
+              <div>
+                <dt>Memória física</dt>
+                <dd data-system-memory>—</dd>
+              </div>
+            </dl>
+            <div class="summary-list" aria-label="Status de conectividade">
+              <div class="summary-list-item">
+                <span>Conectividade</span>
+                <span data-system-online>—</span>
+              </div>
+              <div class="summary-list-item">
+                <span>Rede</span>
+                <span data-system-connection>—</span>
+              </div>
+              <div class="summary-list-item">
+                <span>Armazenamento persistente</span>
+                <span data-system-storage>—</span>
+              </div>
+            </div>
+          </section>
+          <section class="card card--profile" aria-labelledby="system-services-title">
+            <header class="card__header">
+              <div>
+                <h2 id="system-services-title" class="card__title">Serviços do shell</h2>
+                <p class="card__subtitle">
+                  Disponibilidade das APIs que mantêm o shell instalável, sincronizado e pronto para notificações.
+                </p>
+              </div>
+            </header>
+            <dl class="metric-list" aria-label="APIs críticas">
+              <div>
+                <dt>Service Worker</dt>
+                <dd data-system-sw>—</dd>
+              </div>
+              <div>
+                <dt>Push Manager</dt>
+                <dd data-system-push>—</dd>
+              </div>
+              <div>
+                <dt>Background Sync</dt>
+                <dd data-system-syncmanager>—</dd>
+              </div>
+              <div>
+                <dt>IndexedDB</dt>
+                <dd data-system-indexeddb>—</dd>
+              </div>
+              <div>
+                <dt>File System Access</dt>
+                <dd data-system-files>—</dd>
+              </div>
+            </dl>
+          </section>
+          <section class="card card--automations" aria-labelledby="system-audit-title">
+            <header class="card__header">
+              <div>
+                <h2 id="system-audit-title" class="card__title">Integridade e auditoria</h2>
+                <p class="card__subtitle">
+                  Confirme se o catálogo de miniapps, logs e atualizações estão sincronizados com o shell hospedado.
+                </p>
+              </div>
+            </header>
+            <div class="status-grid">
+              <article class="status-item">
+                <span class="status-pill" data-system-catalog>—</span>
+                <p class="status-item__title">Catálogo de miniapps</p>
+                <p class="status-item__description">Sincronização e quantidade de miniapps disponíveis para o usuário.</p>
+              </article>
+              <article class="status-item">
+                <span class="status-pill" data-system-audit>—</span>
+                <p class="status-item__title">Relatórios recentes</p>
+                <p class="status-item__description">Último diagnóstico executado para monitorar o shell e o serviço de SW.</p>
+              </article>
+              <article class="status-item">
+                <span class="status-pill" data-system-updates>—</span>
+                <p class="status-item__title">Atualizações aplicadas</p>
+                <p class="status-item__description">Resumo das alterações identificadas nas últimas 24 horas de operação.</p>
+              </article>
+            </div>
+          </section>
+        </div>
+      </main>
+      <p class="dashboard__footnote">
+        Dados coletados em tempo real no dispositivo. Utilize este painel para validar cenários em tablets na horizontal e
+        vertical.
+      </p>
+    </div>
+    <script src="../register-sw.js"></script>
+    <script type="module" src="./memory-status.js"></script>
+    <script type="module">
+      const formatDateTime = () =>
+        new Intl.DateTimeFormat('pt-BR', {
+          dateStyle: 'short',
+          timeStyle: 'short'
+        }).format(new Date());
+
+      const setText = (selector, text) => {
+        const el = document.querySelector(selector);
+        if (el) el.textContent = text;
+      };
+
+      const boolLabel = (value, { trueLabel = 'Disponível', falseLabel = 'Indisponível' } = {}) =>
+        value ? trueLabel : falseLabel;
+
+      const version = document.documentElement.dataset.shellVersion || '1.0.1';
+      setText('[data-system-version]', `v${version}`);
+
+      const channel = location.hostname.includes('localhost') ? 'Desenvolvimento local' : 'Produção web';
+      setText('[data-system-build]', channel);
+      setText('[data-system-sync]', formatDateTime());
+
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setText('[data-system-theme]', prefersDark ? 'Escuro' : 'Claro');
+
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      setText('[data-system-installation]', standalone ? 'Instalado (PWA)' : 'Navegador');
+
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      setText('[data-system-timezone]', tz || '—');
+      const languages = navigator.languages && navigator.languages.length > 0 ? navigator.languages : [navigator.language];
+      setText('[data-system-language]', languages.filter(Boolean).join(', '));
+      setText('[data-system-useragent]', navigator.userAgent || '—');
+      setText('[data-system-platform]', navigator.platform || navigator.userAgentData?.platform || '—');
+
+      const cores = navigator.hardwareConcurrency;
+      setText('[data-system-cores]', cores ? `${cores} threads` : 'Indisponível');
+      const deviceMemory = navigator.deviceMemory;
+      setText('[data-system-memory]', deviceMemory ? `${deviceMemory} GB` : 'Indisponível');
+
+      const updateOnlineStatus = () => {
+        setText('[data-system-online]', navigator.onLine ? 'Online' : 'Offline');
+      };
+      updateOnlineStatus();
+      window.addEventListener('online', updateOnlineStatus);
+      window.addEventListener('offline', updateOnlineStatus);
+
+      const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      const mapConnection = (type) =>
+        ({
+          'slow-2g': '2G muito lenta',
+          '2g': '2G',
+          '3g': '3G',
+          '4g': '4G/5G',
+          'wifi': 'Wi-Fi',
+          'ethernet': 'Ethernet'
+        })[type] || type;
+      const updateConnection = () => {
+        if (!connection) {
+          setText('[data-system-connection]', 'Indisponível');
+          return;
+        }
+        const type = mapConnection(connection.effectiveType || connection.type || 'Indefinido');
+        const downlink = connection.downlink ? `${connection.downlink.toFixed(1)} Mbps` : null;
+        setText('[data-system-connection]', downlink ? `${type} · ${downlink}` : type);
+      };
+      updateConnection();
+      if (connection) connection.addEventListener('change', updateConnection);
+
+      const persistStatusEl = document.querySelector('[data-system-storage]');
+      if (persistStatusEl && navigator.storage?.persisted) {
+        navigator.storage.persisted().then((persisted) => {
+          persistStatusEl.textContent = boolLabel(persisted, {
+            trueLabel: 'Persistente',
+            falseLabel: 'Best effort'
+          });
+        });
+      } else {
+        setText('[data-system-storage]', 'Indisponível');
+      }
+
+      setText('[data-system-indexeddb]', boolLabel('indexedDB' in window));
+      setText('[data-system-sw]', boolLabel('serviceWorker' in navigator));
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .getRegistration()
+          .then((registration) => {
+            if (!registration) return;
+            const scope = registration.scope?.replace(location.origin, '').replace(/\/$/, '') || '/';
+            setText('[data-system-sw]', `Registrado · ${scope || '/'}`);
+          })
+          .catch(() => {
+            /* ignore */
+          });
+      }
+
+      setText('[data-system-push]', boolLabel('PushManager' in window));
+      setText('[data-system-syncmanager]', boolLabel('SyncManager' in window));
+      setText('[data-system-files]', boolLabel('showOpenFilePicker' in window));
+
+      const catalogEl = document.querySelector('[data-system-catalog]');
+      const auditEl = document.querySelector('[data-system-audit]');
+      const updatesEl = document.querySelector('[data-system-updates]');
+
+      const resetPill = (el) => el?.classList.remove('ok', 'warn', 'crit', 'off');
+
+      let catalog = [];
+      try {
+        const source = window.top?.MINI_APP_CATALOG ?? window.parent?.MINI_APP_CATALOG ?? [];
+        catalog = Array.isArray(source) ? source : [];
+      } catch (error) {
+        catalog = [];
+      }
+
+      resetPill(catalogEl);
+      if (catalog.length > 0) {
+        catalogEl?.classList.add('ok');
+        catalogEl.textContent = `${catalog.length} miniapps`;
+      } else {
+        catalogEl?.classList.add('warn');
+        catalogEl.textContent = 'Catálogo indisponível';
+      }
+
+      const logMessage = localStorage.getItem('miniapp.base.audit.log');
+      resetPill(auditEl);
+      if (logMessage) {
+        auditEl?.classList.add('ok');
+        auditEl.textContent = formatDateTime();
+      } else {
+        auditEl?.classList.add('warn');
+        auditEl.textContent = 'Nenhum log recente';
+      }
+
+      const history = JSON.parse(localStorage.getItem('miniapp.base.update.history') || '[]');
+      resetPill(updatesEl);
+      if (Array.isArray(history) && history.length > 0) {
+        updatesEl?.classList.add('ok');
+        const recent = history[0];
+        updatesEl.textContent = recent?.title ? recent.title : `${history.length} alterações`;
+      } else {
+        updatesEl?.classList.add('off');
+        updatesEl.textContent = 'Sem alterações registradas';
+      }
+    </script>
   </body>
 </html>
