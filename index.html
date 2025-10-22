@@ -1,18 +1,14 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Marco · Redirecionando</title>
-    <link rel="canonical" href="appbase/" />
-    <script type="module">
-      const destination = new URL('appbase/', window.location.href);
-      window.location.replace(destination);
-    </script>
-  </head>
-  <body>
-    <p>
-      Redirecionando para o <a href="appbase/">painel inicial</a>…
-    </p>
-  </body>
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="refresh" content="0; url=appbase/index.html">
+  <title>Projeto Marco</title>
+  <script>
+    // fallback JS redirect
+    location.replace("appbase/index.html");
+  </script>
+</head>
+<body></body>
 </html>

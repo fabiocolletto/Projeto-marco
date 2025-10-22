@@ -1,17 +1,18 @@
-# Projeto Marco
+# Projeto Marco — AppBase (R1)
 
-Este repositório contém ferramentas e módulos compartilhados utilizados pelos widgets de gestão de convidados.
+Monorepo com **AppBase** (i18n + CSS centralizados) e **MiniApps** plugáveis.
+Este R1 inclui o MiniApp **Gestor de Tarefas** para validação.
+
+## Como testar (GitHub Pages)
+1. Habilite o Pages na branch `main` (diretório `/`).
+2. Acesse a URL do Pages exibida no deploy.
+3. Use o catálogo para abrir o **Gestor de Tarefas**.
 
 ## Estrutura
-- `shared/`: módulos JavaScript e estilos compartilhados.
-- `tools/`: ferramentas e widgets específicos do domínio.
+- `appbase/`: shell, i18n e CSS
+- `miniapps/gestor-de-tarefas/`: exemplo **sem CSS próprio**
+- `.github/workflows/`: Pages + Preview + CI leve
 
-## Fluxo de trabalho
-1. Revise os arquivos `LOG.md` de cada pasta antes de iniciar uma tarefa para relembrar o histórico.
-2. Crie branches de trabalho a partir da `main` e siga as instruções específicas em `AGENTS.md` quando existirem.
-3. Execute os testes listados na seção de testes do widget antes de enviar alterações.
-
-## Convenções
-- Utilize módulos ES (`type="module"`) para novos scripts.
-- Prefira imports relativos locais e utilize os CDNs somente como fallback.
-- Documente decisões relevantes no arquivo de log da pasta correspondente.
+## Políticas
+- **Sem segredos** no repo. Integrações via Make.com.
+- **Sem CSS nos MiniApps**. Use tokens/utilitários do AppBase.

@@ -1,0 +1,16 @@
+name: Preview Pages (staging)
+on:
+  push:
+    branches: [ staging ]
+permissions: { contents: read, pages: write, id-token: write }
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4
+    environment: { name: staging, url: ${{ steps.deployment.outputs.page_url }} }

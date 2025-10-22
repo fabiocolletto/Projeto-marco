@@ -1,0 +1,35 @@
+{
+  "pt-br": {
+    "miniapps.gestor_tarefas": {
+      "titulo": "Gestor de Tarefas",
+      "tabela": {
+        "tarefa": "Tarefa",
+        "status": "Status",
+        "novo": "Nova linha",
+        "excluir": "Excluir"
+      }
+    }
+  },
+  "en-us": {
+    "miniapps.gestor_tarefas": {
+      "titulo": "Task Manager",
+      "tabela": {
+        "tarefa": "Task",
+        "status": "Status",
+        "novo": "New row",
+        "excluir": "Delete"
+      }
+    }
+  },
+  "es-419": {
+    "miniapps.gestor_tarefas": {
+      "titulo": "Gestor de Tareas",
+      "tabela": {
+        "tarefa": "Tarea",
+        "status": "Estado",
+        "novo": "Nueva fila",
+        "excluir": "Eliminar"
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+:root {
+  /* Cores base */
+  --ac-bg: #ffffff;
+  --ac-surface: #f7f7f8;
+  --ac-ink: #111213;
+  --ac-ink-muted: #5b5f66;
+
+  /* Marca */
+  --ac-primary: #3b82f6;   /* azul 5 Horas */
+  --ac-accent:  #22c55e;   /* verde ação/êxito */
+  --ac-warning: #f59e0b;
+  --ac-danger:  #ef4444;
+  --ac-info:    #06b6d4;
+
+  /* Bordas e elevação */
+  --ac-border: rgba(17,18,19,.1);
+  --ac-shadow-1: 0 2px 10px rgba(0,0,0,.06);
+  --ac-shadow-2: 0 6px 24px rgba(0,0,0,.08);
+
+  /* Tipografia */
+  --ac-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  --ac-text-xs: .8125rem;
+  --ac-text-sm: .875rem;
+  --ac-text-base: 1rem;
+  --ac-text-lg: 1.125rem;
+  --ac-text-xl: 1.25rem;
+  --ac-text-2xl: 1.5rem;
+
+  /* Espaçamento e raios */
+  --ac-space-1: .25rem;
+  --ac-space-2: .5rem;
+  --ac-space-3: .75rem;
+  --ac-space-4: 1rem;
+  --ac-space-6: 1.5rem;
+  --ac-space-8: 2rem;
+  --ac-radius-sm: 10px;
+  --ac-radius-lg: 16px;
+}
+
+:root[data-theme="dark"] {
+  --ac-bg: #0b0c0d;
+  --ac-surface: #151719;
+  --ac-ink: #eaecef;
+  --ac-ink-muted: #a9aeb4;
+  --ac-primary: #60a5fa;
+  --ac-accent:  #34d399;
+  --ac-border: rgba(234,236,239,.14);
+}
