@@ -11,8 +11,8 @@
     try {
       const scriptUrl = new URL(script.src, window.location.href);
       const baseUrl = new URL('./', scriptUrl);
-      swUrl = new URL('sw.js', baseUrl).pathname;
-      scope = baseUrl.pathname;
+      swUrl = new URL('sw.js', baseUrl).href;
+      scope = baseUrl.pathname.endsWith('/') ? baseUrl.pathname : `${baseUrl.pathname}/`;
     } catch (error) {
       console.warn('[PWA] Não foi possível resolver a URL do service worker', error);
     }
