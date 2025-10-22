@@ -1,6 +1,10 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.3] - 2025-10-22
+### Fixed
+- Ocultada a navegação lateral do painel do usuário para evitar itens redundantes na interface.
+
 ## [v0.1.2] - 2025-10-22
 ### Fixed
 - Corrigido o menu do usuário no cabeçalho flutuante para telas pequenas, garantindo que os botões respondam a toques.
