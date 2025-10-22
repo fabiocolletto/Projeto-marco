@@ -1,6 +1,14 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.8] - 2025-10-22
+### Changed
+- Reposicionado o bloco de metadados do shell antes do widget de serviços para destacar a versão, canal e auditoria no painel do sistema.
+
+## [v0.1.7] - 2025-10-22
+### Changed
+- Reorganizado o layout do painel do sistema para posicionar os widgets de serviços e auditoria ao lado do resumo operacional em telas amplas.
+
 ## [v0.1.6] - 2025-10-22
 ### Added
 - Novo layout compartilhado (`apps/web/sys/panel.css`) para alinhar os painéis do sistema e do usuário, garantindo consistência visual em tablets na horizontal e vertical.
