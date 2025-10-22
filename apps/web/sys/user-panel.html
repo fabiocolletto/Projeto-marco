@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>MiniApp Painel do Usuário</title>
+    <link rel="manifest" href="../manifest.json" />
+    <meta name="theme-color" content="#E9C182" />
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="../icons/icon-512.png" />
     <style>
       :root {
         color-scheme: light dark;
@@ -785,6 +792,7 @@
         Preferências armazenadas localmente. Alterações no perfil sincronizam com os demais fluxos do shell base.
       </p>
     </div>
+    <script src="../register-sw.js"></script>
     <script type="module">
       import {
         currentUser,
