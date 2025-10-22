@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pt-br", "en-us", "es-419"],
+  "properties": {
+    "pt-br": {"type": "object"},
+    "en-us": {"type": "object"},
+    "es-419": {"type": "object"}
+  }
+}

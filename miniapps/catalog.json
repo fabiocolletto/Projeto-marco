@@ -1,0 +1,9 @@
+[
+  {
+    "id": "gestor-de-tarefas",
+    "name": "Gestor de Tarefas",
+    "entry": "miniapps/gestor-de-tarefas/app.html",
+    "manifest": "miniapps/gestor-de-tarefas/manifest.json",
+    "snippet": "miniapps/gestor-de-tarefas/i18n-snippet.json"
+  }
+]

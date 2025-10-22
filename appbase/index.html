@@ -79,17 +79,15 @@
     const catalog = document.getElementById('catalog');
     const baseTitle = document.title;
 
+    const ensureRelativePath = (path) => path.startsWith('../') ? path : `../${path}`;
+
     // Estado
-    const miniapps = [
-      {
-        id: 'gestor-de-tarefas',
-        name: 'Gestor de Tarefas',
-        labelKey: 'app.catalog.items.gestor-de-tarefas',
-        manifest: '../miniapps/gestor-de-tarefas/manifest.json',
-        entry: '../miniapps/gestor-de-tarefas/app.html',
-        snippet: '../miniapps/gestor-de-tarefas/i18n-snippet.json'
-      }
-    ];
+    const miniapps = (await (await fetch('../miniapps/catalog.json')).json()).map(miniapp => ({
+      ...miniapp,
+      entry: ensureRelativePath(miniapp.entry),
+      manifest: ensureRelativePath(miniapp.manifest),
+      snippet: ensureRelativePath(miniapp.snippet)
+    }));
 
     // i18n base
     await loadBaseI18n('pt-br');
@@ -104,9 +102,9 @@
         const btn = document.createElement('button');
         btn.className = 'c-btn c-btn--primary';
         btn.textContent = m.name;
-        if (m.labelKey) {
-          btn.dataset.i18n = m.labelKey;
-        }
+        const labelKey = `app.catalog.items.${m.id}`;
+        btn.dataset.i18n = labelKey;
+        btn.dataset.i18nFallback = m.name;
         btn.onclick = async () => {
           await loadMiniSnippet(m.snippet);
           const html = await (await fetch(m.entry)).text();

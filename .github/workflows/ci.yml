@@ -11,9 +11,15 @@ jobs:
       - name: Estrutura mínima
         run: |
           test -d appbase && test -d miniapps/gestor-de-tarefas && test -f README.md
-      - name: Valida i18n-snippet
-        run: |
-          jq empty miniapps/gestor-de-tarefas/i18n-snippet.json
       - name: Proíbe CSS nos MiniApps
         run: |
           ! find miniapps -name '*.css' | grep -q . || (echo 'MiniApps não podem conter CSS próprio' && exit 1)
+      - name: Validar manifest.json via JSON Schema
+        run: |
+          npx --yes ajv-cli validate --spec=draft2020 -s schemas/manifest.schema.json -d "miniapps/**/manifest.json"
+      - name: Validar i18n-snippet.json via JSON Schema
+        run: |
+          npx --yes ajv-cli validate --spec=draft2020 -s schemas/i18n-snippet.schema.json -d "miniapps/**/i18n-snippet.json"
+      - name: Chaves i18n usadas existem (Gestor de Tarefas)
+        run: |
+          node -e "const fs=require('fs');const s=JSON.parse(fs.readFileSync('miniapps/gestor-de-tarefas/i18n-snippet.json','utf8'));['pt-br','en-us','es-419'].forEach(l=>{if(!s[l]?.['miniapps.gestor_tarefas']){throw new Error('Faltam chaves em '+l);}})"
