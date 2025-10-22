@@ -6,6 +6,7 @@ Este documento registra, em ordem cronológica decrescente, o histórico de muda
 
 | Versão | Data       | Descrição                                                                 | Status      |
 |--------|------------|----------------------------------------------------------------------------|-------------|
+| 012    | 2025-10-28 | Relatórios via Edge Function, bucket público de leitura e alertas de quota configurados. | operational |
 | 011    | 2025-10-27 | Login obrigatório com Supabase, RLS reforçada e tarefas em tempo real.   | operational |
 | 010    | 2025-10-26 | Integrado AppBase com Supabase para catálogo dinâmico e tarefas online. | operational |
 | 009    | 2025-10-25 | Migrado catálogo e registro de alterações para Supabase com políticas RLS. | operational |
@@ -17,3 +18,9 @@ Este documento registra, em ordem cronológica decrescente, o histórico de muda
 | 003    | 2024-04-10 | Preparada estrutura declarativa de MiniApps, catálogo e validações R1.11. | operational |
 | 002    | 2024-04-09 | Criados rodapé persistente, modal de status e rotina de registro sequencial. | operational |
 | 001    | 2024-04-08 | Adicionados arquivos iniciais de documentação e convenções de importação. | operational |
+
+## Procedimento ao habilitar novos recursos
+
+- Registrar no painel do Supabase os alertas de quota relacionados ao recurso habilitado (Storage, Auth, Edge Functions e banco de dados) imediatamente após a ativação.
+- Documentar no `docs/registro-log.md` a habilitação do recurso, incluindo data, responsável e ajustes de alerta aplicados.
+- Atualizar a linha correspondente na tabela `release_log` para manter a paridade entre o painel e o repositório.

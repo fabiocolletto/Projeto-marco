@@ -32,6 +32,10 @@ Este R1 inclui o MiniApp **Gestor de Tarefas** para validação.
 - Views utilitárias (`miniapps_catalog_v1`, `release_log_latest_v1`) ficam versionadas em `supabase/functions/` e são expostas via REST.
 - O AppBase tenta consumir essas views usando os metadados `supabase-url`, `supabase-anon-key` (ou o objeto global `window.__APPBASE_SUPABASE__`). Caso nenhuma credencial esteja configurada, os arquivos estáticos em `docs/` e `miniapps/` funcionam como fallback temporário.
 
+## Testes
+- Use `scripts/test-edge-functions.sh` para executar um smoke test das Edge Functions em modo *dry-run* com `supabase functions serve`.
+- O script depende do Supabase CLI (executado via `npx supabase@latest`), do arquivo de ambiente `supabase/.env.test` e de um ambiente com Docker disponível.
+
 ## Configuração de credenciais Supabase
 - O AppBase consome os metadados `supabase-url` e `supabase-anon-key` para inicializar o cliente web. Preencha-os usando as variáveis de ambiente:
   - `SUPABASE_URL`: URL base do projeto (ex.: `https://xxxxx.supabase.co`).

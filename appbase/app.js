@@ -310,27 +310,81 @@ function tableToCsv(tableElement) {
   const rows = Array.from(tableElement.querySelectorAll('tr'));
   return rows
     .map((row) =>
-      Array.from(row.children)
+      Array.from(row.querySelectorAll('th, td'))
         .map((cell) => `"${cell.textContent.trim().replace(/"/g, '""')}"`)
         .join(',')
     )
     .join('\n');
 }
 
+function tableToRows(tableElement) {
+  return Array.from(tableElement.querySelectorAll('tr')).map((row) =>
+    Array.from(row.querySelectorAll('th, td')).map((cell) => cell.textContent.trim())
+  );
+}
+
+function downloadCsv(filename, csvContent) {
+  const blob = new Blob(['\ufeff', csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 const exportButton = document.querySelector('.js-export');
 if (exportButton && table) {
-  exportButton.addEventListener('click', () => {
-    const csvContent = tableToCsv(table);
-    const blob = new Blob(['\ufeff', csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'eventos.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    MarcoBus.emit('table:export', { rows: table.querySelectorAll('tbody tr').length });
+  exportButton.addEventListener('click', async () => {
+    const rows = tableToRows(table);
+    const fallback = () => {
+      const csvContent = tableToCsv(table);
+      downloadCsv('eventos.csv', csvContent);
+      MarcoBus.emit('table:export', {
+        rows: table.querySelectorAll('tbody tr').length,
+        mode: 'fallback'
+      });
+    };
+
+    exportButton.toggleAttribute('aria-busy', true);
+    exportButton.setAttribute('disabled', 'disabled');
+
+    try {
+      const supabaseClient = await getSupabaseAuthClient();
+      if (!supabaseClient) {
+        console.warn('[export] Supabase client indisponível, usando fallback local');
+        fallback();
+        return;
+      }
+
+      const { data, error } = await supabaseClient.functions.invoke('generate-task-report', {
+        body: { rows }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      const publicUrl = data?.url;
+      if (!publicUrl) {
+        throw new Error('Edge Function did not return a URL');
+      }
+
+      window.open(publicUrl, '_blank', 'noopener');
+      MarcoBus.emit('table:export', {
+        rows: table.querySelectorAll('tbody tr').length,
+        mode: 'edge-function',
+        url: publicUrl
+      });
+    } catch (error) {
+      console.error('[export] Falha ao gerar relatório via Edge Function', error);
+      fallback();
+    } finally {
+      exportButton.toggleAttribute('aria-busy', false);
+      exportButton.removeAttribute('disabled');
+    }
   });
 }
 
