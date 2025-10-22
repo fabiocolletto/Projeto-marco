@@ -23,3 +23,5 @@ jobs:
       - name: Chaves i18n usadas existem (Gestor de Tarefas)
         run: |
           node -e "const fs=require('fs');const s=JSON.parse(fs.readFileSync('miniapps/gestor-de-tarefas/i18n-snippet.json','utf8'));['pt-br','en-us','es-419'].forEach(l=>{if(!s[l]?.['miniapps.gestor_tarefas']){throw new Error('Faltam chaves em '+l);}})"
+      - name: Testar Edge Functions (dry-run)
+        run: scripts/test-edge-functions.sh
