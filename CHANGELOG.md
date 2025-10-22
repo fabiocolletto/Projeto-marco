@@ -1,6 +1,11 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.1] - 2025-10-22
+### Fixed
+- Ajustado o registro do service worker para funcionar em rotas aninhadas e manter o escopo correto em builds PWA.
+- Atualizado o painel do usuário em `/docs` com manifest e script compartilhados para instalação standalone.
+
 ## [v0.1.0] - YYYY-MM-DD
 ### Added
 - Estrutura unificada (/apps, /shared, /policies, /docs).
