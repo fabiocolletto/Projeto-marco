@@ -1,7 +1,23 @@
 {
   "app": {
-    "bemvindo": "Welcome",
-    "abrir": "Open",
-    "fechar": "Close"
+    "meta": {
+      "title": "AppBase • 5 Horas"
+    },
+    "header": {
+      "title": "5 Horas — AppBase",
+      "themeToggle": "Theme"
+    },
+    "catalog": {
+      "title": "MiniApps",
+      "items": {
+        "gestor-de-tarefas": "Task Manager"
+      }
+    },
+    "viewport": {
+      "welcome": {
+        "title": "Welcome",
+        "subtitle": "Open the Task Manager MiniApp to try it out."
+      }
+    }
   }
 }

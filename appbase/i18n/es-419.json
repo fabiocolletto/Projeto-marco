@@ -1,7 +1,23 @@
 {
   "app": {
-    "bemvindo": "Bienvenido",
-    "abrir": "Abrir",
-    "fechar": "Cerrar"
+    "meta": {
+      "title": "AppBase • 5 Horas"
+    },
+    "header": {
+      "title": "5 Horas — AppBase",
+      "themeToggle": "Tema"
+    },
+    "catalog": {
+      "title": "MiniApps",
+      "items": {
+        "gestor-de-tarefas": "Gestor de Tareas"
+      }
+    },
+    "viewport": {
+      "welcome": {
+        "title": "Bienvenido",
+        "subtitle": "Abre el MiniApp Gestor de Tareas para probarlo."
+      }
+    }
   }
 }
