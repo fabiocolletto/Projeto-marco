@@ -1,66 +1,12 @@
-import { resolveSupabaseConfig } from './supabase-config.js';
+import { getSupabaseClient } from './supabaseClient.js';
+import { projectStore } from './projectStore.js';
 
-function buildSupabaseHeaders(config){
-  const headers = new Headers();
-  headers.set('apikey', config.anonKey);
-  headers.set('Authorization', `Bearer ${config.anonKey}`);
-  headers.set('Accept', 'application/json');
-  headers.set('Content-Type', 'application/json');
-  if (config.schema) {
-    headers.set('Accept-Profile', config.schema);
-  }
-  return headers;
-}
-
-async function fetchFromSupabase(path, { search } = {}){
-  const config = resolveSupabaseConfig();
-  if (!config) {
-    return null;
-  }
-
-  try {
-    const url = new URL(`${config.url}/rest/v1/${path}`);
-    if (search) {
-      Object.entries(search).forEach(([key, value]) => {
-        if (value != null) {
-          url.searchParams.set(key, value);
-        }
-      });
-    }
-    if (!url.searchParams.has('select')) {
-      url.searchParams.set('select', '*');
-    }
-
-    const response = await fetch(url.toString(), {
-      headers: buildSupabaseHeaders(config)
-    });
-    if (!response.ok) {
-      console.warn(`[data] Supabase request ${path} failed`, response.status);
-      return null;
-    }
-    const data = await response.json();
-    return { config, data };
-  } catch (error) {
-    console.warn(`[data] Supabase request ${path} failed`, error);
-    return null;
-  }
-}
-
-async function fetchJson(path){
-  try {
-    const response = await fetch(path);
-    if (!response.ok) {
-      return null;
-    }
-    return await response.json();
-  } catch (error) {
-    console.warn(`[data] Fallback request failed for ${path}`, error);
-    return null;
-  }
-}
+const CATALOG_CACHE_KEY = 'appbase.catalog.latest';
+const RELEASE_CACHE_KEY = 'appbase.release.latest';
+const FEATURE_FLAGS_CACHE_KEY = 'appbase.feature_flags.latest';
 
 function normalizeMiniappRow(row){
-  const translations = row.translations && typeof row.translations === 'object' ? row.translations : null;
+  const translations = row && typeof row.translations === 'object' ? row.translations : null;
   const inlineSnippets = translations
     ? Object.fromEntries(Object.entries(translations).map(([locale, payload]) => [locale, payload?.snippet ?? {}]))
     : null;
@@ -80,28 +26,45 @@ function normalizeMiniappRow(row){
   };
 }
 
+function cacheValue(key, value){
+  try {
+    projectStore.set(key, value);
+  } catch (error) {
+    console.warn('[data] Falha ao salvar cache', key, error);
+  }
+}
+
+function readCache(key){
+  try {
+    return projectStore.get(key, null);
+  } catch (error) {
+    console.warn('[data] Falha ao ler cache', key, error);
+    return null;
+  }
+}
+
 export async function fetchMiniappsCatalog(){
-  const supabaseResult = await fetchFromSupabase('miniapps_catalog_v1');
-  if (supabaseResult && Array.isArray(supabaseResult.data) && supabaseResult.data.length){
-    const normalized = supabaseResult.data.map(normalizeMiniappRow).filter(item => item.isActive);
-    if (normalized.length){
-      return { source: 'supabase', items: normalized };
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('miniapps_catalog_v1')
+        .select('id,name,entry_path,manifest_path,snippet_path,translations,is_active,updated_at');
+      if (error) {
+        console.warn('[data] Falha ao consultar catálogo no Supabase', error);
+      } else if (Array.isArray(data)) {
+        const normalized = data.map(normalizeMiniappRow).filter(item => item.isActive);
+        cacheValue(CATALOG_CACHE_KEY, normalized);
+        return { source: 'supabase', items: normalized };
+      }
+    } catch (error) {
+      console.warn('[data] Erro inesperado ao consultar catálogo', error);
     }
   }
 
-  const fallback = await fetchJson('../miniapps/catalog.json');
-  if (Array.isArray(fallback) && fallback.length){
-    const normalized = fallback.map(item => ({
-      id: item.id,
-      name: item.name,
-      entry: item.entry,
-      manifest: item.manifest,
-      snippetSource: item.snippet,
-      snippetPath: item.snippet,
-      displayNames: null,
-      isActive: true
-    }));
-    return { source: 'fallback', items: normalized };
+  const cached = readCache(CATALOG_CACHE_KEY);
+  if (Array.isArray(cached)) {
+    return { source: 'cache', items: cached };
   }
 
   return { source: 'empty', items: [] };
@@ -142,23 +105,40 @@ async function fetchFallbackReleaseEntry(){
 }
 
 export async function getLatestReleaseEntry(){
-  const supabaseResult = await fetchFromSupabase('release_log_latest_v1');
-  if (supabaseResult && Array.isArray(supabaseResult.data) && supabaseResult.data.length){
-    const row = supabaseResult.data[0];
-    return {
-      source: 'supabase',
-      entry: {
-        version: row.version,
-        date: row.release_date,
-        description: row.description,
-        status: row.status ?? '',
-        metadata: row.metadata ?? null
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('release_log_latest_v1')
+        .select('version,release_date,description,status,metadata')
+        .limit(1);
+      if (error) {
+        console.warn('[data] Falha ao consultar release log', error);
+      } else if (Array.isArray(data) && data.length) {
+        const row = data[0];
+        const payload = {
+          version: row.version,
+          date: row.release_date,
+          description: row.description,
+          status: row.status ?? '',
+          metadata: row.metadata ?? null
+        };
+        cacheValue(RELEASE_CACHE_KEY, payload);
+        return { source: 'supabase', entry: payload };
       }
-    };
+    } catch (error) {
+      console.warn('[data] Erro inesperado ao consultar release log', error);
+    }
+  }
+
+  const cached = readCache(RELEASE_CACHE_KEY);
+  if (cached) {
+    return { source: 'cache', entry: cached };
   }
 
   const fallback = await fetchFallbackReleaseEntry();
   if (fallback){
+    cacheValue(RELEASE_CACHE_KEY, fallback);
     return { source: 'fallback', entry: fallback };
   }
 
@@ -166,16 +146,29 @@ export async function getLatestReleaseEntry(){
 }
 
 export async function fetchFeatureFlags(){
-  const supabaseResult = await fetchFromSupabase('feature_flags', {
-    search: { select: 'flag_key,is_enabled,description,rollout' }
-  });
-  if (supabaseResult && Array.isArray(supabaseResult.data)){
-    return supabaseResult.data.map(row => ({
-      key: row.flag_key,
-      enabled: !!row.is_enabled,
-      description: row.description ?? '',
-      rollout: row.rollout ?? {}
-    }));
+  const supabase = getSupabaseClient();
+  if (supabase) {
+    try {
+      const { data, error } = await supabase
+        .from('feature_flags')
+        .select('flag_key,is_enabled,description,rollout');
+      if (error) {
+        console.warn('[data] Falha ao consultar feature flags', error);
+      } else if (Array.isArray(data)) {
+        const flags = data.map(row => ({
+          key: row.flag_key,
+          enabled: !!row.is_enabled,
+          description: row.description ?? '',
+          rollout: row.rollout ?? {}
+        }));
+        cacheValue(FEATURE_FLAGS_CACHE_KEY, flags);
+        return flags;
+      }
+    } catch (error) {
+      console.warn('[data] Erro inesperado ao consultar feature flags', error);
+    }
   }
-  return null;
+
+  const cached = readCache(FEATURE_FLAGS_CACHE_KEY);
+  return Array.isArray(cached) ? cached : null;
 }
