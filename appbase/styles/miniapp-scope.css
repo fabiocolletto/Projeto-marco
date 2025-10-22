@@ -1,0 +1,2 @@
+[data-miniapp]{color:var(--ac-ink);background:transparent}
+body :where([data-miniapp]) *{box-sizing:border-box}

@@ -1,0 +1,18 @@
+<section data-miniapp="gestor-de-tarefas" class="u-card u-col u-gap-4">
+  <header class="u-col u-gap-2">
+    <h2>{{ t('miniapps.gestor_tarefas.titulo') }}</h2>
+    <div class="u-row u-gap-2">
+      <button class="c-btn c-btn--primary" data-action="add-row">{{ t('miniapps.gestor_tarefas.tabela.novo') }}</button>
+    </div>
+  </header>
+  <table class="u-table">
+    <thead>
+      <tr>
+        <th>{{ t('miniapps.gestor_tarefas.tabela.tarefa') }}</th>
+        <th>{{ t('miniapps.gestor_tarefas.tabela.status') }}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="gt-rows"><!-- linhas dinâmicas --></tbody>
+  </table>
+</section>

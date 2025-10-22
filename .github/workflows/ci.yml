@@ -1,0 +1,19 @@
+name: CI (fast)
+on:
+  pull_request:
+    branches: [ staging, main ]
+permissions: read-all
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Estrutura mínima
+        run: |
+          test -d appbase && test -d miniapps/gestor-de-tarefas && test -f README.md
+      - name: Valida i18n-snippet
+        run: |
+          jq empty miniapps/gestor-de-tarefas/i18n-snippet.json
+      - name: Proíbe CSS nos MiniApps
+        run: |
+          ! find miniapps -name '*.css' | grep -q . || (echo 'MiniApps não podem conter CSS próprio' && exit 1)
