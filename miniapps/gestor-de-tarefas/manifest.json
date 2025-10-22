@@ -2,5 +2,5 @@
   "id": "gestor-de-tarefas",
   "name": "Gestor de Tarefas",
   "version": "1.0.0",
-  "i18nNamespace": "miniapps.gestor_tarefas"
+  "i18nNamespace": "miniapps.gestor-de-tarefas"
 }

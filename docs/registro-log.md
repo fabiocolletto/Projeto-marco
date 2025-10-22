@@ -4,6 +4,7 @@ Este documento registra, em ordem cronológica decrescente, o histórico de muda
 
 | Versão | Data       | Descrição                                                                 | Status      |
 |--------|------------|----------------------------------------------------------------------------|-------------|
+| 006    | 2025-10-22 | Corrigido namespace i18n do MiniApp Gestor de Tarefas para carregar textos. | operational |
 | 005    | 2025-10-22 | Ajustada responsividade do AppBase e tabela do MiniApp em telas menores.    | operational |
 | 004    | 2024-04-11 | Corrigida rotina de troca de idioma no AppBase para reaplicar traduções.    | operational |
 | 003    | 2024-04-10 | Preparada estrutura declarativa de MiniApps, catálogo e validações R1.11. | operational |
