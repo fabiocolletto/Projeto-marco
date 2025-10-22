@@ -4,6 +4,7 @@ Este documento registra, em ordem cronológica decrescente, o histórico de muda
 
 | Versão | Data       | Descrição                                                                 | Status      |
 |--------|------------|----------------------------------------------------------------------------|-------------|
+| 005    | 2025-10-22 | Ajustada responsividade do AppBase e tabela do MiniApp em telas menores.    | operational |
 | 004    | 2024-04-11 | Corrigida rotina de troca de idioma no AppBase para reaplicar traduções.    | operational |
 | 003    | 2024-04-10 | Preparada estrutura declarativa de MiniApps, catálogo e validações R1.11. | operational |
 | 002    | 2024-04-09 | Criados rodapé persistente, modal de status e rotina de registro sequencial. | operational |

@@ -8,3 +8,5 @@
 .c-btn--ghost{background:transparent;border-color:var(--ac-border)}
 .u-table{width:100%;border-collapse:collapse}
 .u-table th,.u-table td{padding:var(--ac-space-2);border:1px solid var(--ac-border)}
+.u-scroll-x{overflow-x:auto;width:100%}
+.u-scroll-x>.u-table{min-width:420px}

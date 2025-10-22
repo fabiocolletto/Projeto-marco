@@ -5,14 +5,16 @@
       <button class="c-btn c-btn--primary" data-action="add-row">{{ t('miniapps.gestor_tarefas.tabela.novo') }}</button>
     </div>
   </header>
-  <table class="u-table">
-    <thead>
-      <tr>
-        <th>{{ t('miniapps.gestor_tarefas.tabela.tarefa') }}</th>
-        <th>{{ t('miniapps.gestor_tarefas.tabela.status') }}</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="gt-rows"><!-- linhas dinâmicas --></tbody>
-  </table>
+  <div class="u-scroll-x">
+    <table class="u-table">
+      <thead>
+        <tr>
+          <th>{{ t('miniapps.gestor_tarefas.tabela.tarefa') }}</th>
+          <th>{{ t('miniapps.gestor_tarefas.tabela.status') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="gt-rows"><!-- linhas dinâmicas --></tbody>
+    </table>
+  </div>
 </section>
