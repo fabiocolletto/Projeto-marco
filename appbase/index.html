@@ -13,12 +13,12 @@
   <link rel="stylesheet" href="styles/miniapp-scope.css">
   <style>body{background:var(--ac-bg);color:var(--ac-ink);font-family:var(--ac-font-sans)}</style>
 </head>
-<body class="u-col" style="gap:var(--ac-space-6);padding:var(--ac-space-6);padding-bottom:calc(var(--ac-space-6) + 56px)">
-  <header class="u-row" style="justify-content:space-between;align-items:center">
-    <div class="u-row" style="gap:var(--ac-space-4)">
+<body class="u-col app-body">
+  <header class="u-row app-header">
+    <div class="u-row app-header__branding">
       <strong data-i18n="app.header.title">5 Horas — AppBase</strong>
     </div>
-    <div class="u-row" style="gap:var(--ac-space-2)">
+    <div class="u-row app-header__actions">
       <select id="locale">
         <option value="pt-br">PT-BR</option>
         <option value="en-us">EN</option>
@@ -28,12 +28,12 @@
     </div>
   </header>
 
-  <main class="u-row" style="gap:var(--ac-space-6)">
-    <aside class="u-card" style="min-width:260px">
+  <main class="u-row app-shell">
+    <aside class="u-card app-shell__rail">
       <h3 style="margin-top:0" data-i18n="app.catalog.title">MiniApps</h3>
-      <div id="catalog"></div>
+      <div id="catalog" class="app-catalog"></div>
     </aside>
-    <section id="viewport" class="u-col u-gap-4" style="flex:1">
+    <section id="viewport" class="u-col u-gap-4 app-shell__content">
       <div class="u-card">
         <h2 data-i18n="app.viewport.welcome.title">Bem-vindo</h2>
         <p class="u-muted" data-i18n="app.viewport.welcome.subtitle">Abra o MiniApp Gestor de Tarefas para testar.</p>
