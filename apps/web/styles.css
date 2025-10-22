@@ -179,6 +179,15 @@ body {
     pointer-events: none;
   }
 
+  .app-header__actions > * {
+    pointer-events: auto;
+  }
+
+  .user-menu,
+  .user-menu__trigger {
+    pointer-events: auto;
+  }
+
   .app-header__menu-button {
     width: clamp(3rem, 16vw, 3.5rem);
     height: clamp(3rem, 16vw, 3.5rem);
