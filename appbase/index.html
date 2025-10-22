@@ -88,6 +88,7 @@
       manifest: ensureRelativePath(miniapp.manifest),
       snippet: ensureRelativePath(miniapp.snippet)
     }));
+    let activeMiniapp = null;
 
     // i18n base
     await loadBaseI18n('pt-br');
@@ -106,15 +107,20 @@
         btn.dataset.i18n = labelKey;
         btn.dataset.i18nFallback = m.name;
         btn.onclick = async () => {
-          await loadMiniSnippet(m.snippet);
-          const html = await (await fetch(m.entry)).text();
-          viewport.innerHTML = html;
-          // i18n placeholders simples: {{ t('key') }}
-          viewport.innerHTML = viewport.innerHTML.replace(/\{\{\s*t\('([^']+)'\)\s*\}\}/g, (_, key) => i18n.t(key));
-          attachTaskTableHandlers();
+          await openMiniapp(m);
         };
         catalog.appendChild(btn);
       });
+    }
+
+    async function openMiniapp(miniapp){
+      activeMiniapp = miniapp;
+      await loadMiniSnippet(miniapp.snippet);
+      const html = await (await fetch(miniapp.entry)).text();
+      viewport.innerHTML = html;
+      // i18n placeholders simples: {{ t('key') }}
+      viewport.innerHTML = viewport.innerHTML.replace(/\{\{\s*t\('([^']+)'\)\s*\}\}/g, (_, key) => i18n.t(key));
+      attachTaskTableHandlers();
     }
 
     function translateKey(key, fallback){
@@ -144,12 +150,13 @@
     }
 
     // Troca de idioma
-    document.getElementById('locale').addEventListener('change', async (e) => {
+    const localeSelect = document.getElementById('locale');
+    localeSelect.addEventListener('change', async (e) => {
       await loadBaseI18n(e.target.value);
       applyBaseTranslations();
       // Re-render mínimo: recarrega o MiniApp aberto
-      if (viewport.querySelector('[data-miniapp]')) {
-        catalog.querySelector('button').click();
+      if (activeMiniapp) {
+        await openMiniapp(activeMiniapp);
       }
     });
 
