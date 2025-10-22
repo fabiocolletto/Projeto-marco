@@ -1,6 +1,10 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.2] - 2025-10-22
+### Fixed
+- Corrigido o menu do usuário no cabeçalho flutuante para telas pequenas, garantindo que os botões respondam a toques.
+
 ## [v0.1.1] - 2025-10-22
 ### Fixed
 - Ajustado o registro do service worker para funcionar em rotas aninhadas e manter o escopo correto em builds PWA.
