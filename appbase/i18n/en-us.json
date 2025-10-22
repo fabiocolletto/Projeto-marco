@@ -18,6 +18,22 @@
         "title": "Welcome",
         "subtitle": "Open the Task Manager MiniApp to try it out."
       }
+    },
+    "footer": {
+      "prefix": "Version"
+    },
+    "statusModal": {
+      "title": "System status",
+      "fields": {
+        "version": "Version",
+        "date": "Date",
+        "description": "Description",
+        "status": "Status"
+      },
+      "close": "Close",
+      "states": {
+        "operational": "Operational"
+      }
     }
   }
 }
