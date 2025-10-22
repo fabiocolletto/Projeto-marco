@@ -13,11 +13,10 @@
   <link rel="stylesheet" href="styles/miniapp-scope.css">
   <style>body{background:var(--ac-bg);color:var(--ac-ink);font-family:var(--ac-font-sans)}</style>
 </head>
-<body class="u-col" style="gap:var(--ac-space-6);padding:var(--ac-space-6)">
+<body class="u-col" style="gap:var(--ac-space-6);padding:var(--ac-space-6);padding-bottom:calc(var(--ac-space-6) + 56px)">
   <header class="u-row" style="justify-content:space-between;align-items:center">
     <div class="u-row" style="gap:var(--ac-space-4)">
       <strong data-i18n="app.header.title">5 Horas — AppBase</strong>
-      <span class="u-muted">R1.10</span>
     </div>
     <div class="u-row" style="gap:var(--ac-space-2)">
       <select id="locale">
@@ -42,9 +41,39 @@
     </section>
   </main>
 
+  <footer id="app-footer" class="app-footer">
+    <button type="button" id="version-trigger" class="app-footer__button" aria-haspopup="dialog" aria-controls="version-modal"></button>
+  </footer>
+
+  <div id="version-overlay" class="status-overlay" hidden>
+    <div id="version-modal" class="status-modal" role="dialog" aria-modal="true" aria-labelledby="status-modal-title">
+      <button type="button" id="version-modal-close" class="status-modal__close" aria-label="Fechar">×</button>
+      <h2 id="status-modal-title" data-i18n="app.statusModal.title">Status do sistema</h2>
+      <dl class="status-modal__details">
+        <div class="status-modal__row">
+          <dt data-i18n="app.statusModal.fields.version">Versão</dt>
+          <dd id="status-modal-version"></dd>
+        </div>
+        <div class="status-modal__row">
+          <dt data-i18n="app.statusModal.fields.date">Data</dt>
+          <dd id="status-modal-date"></dd>
+        </div>
+        <div class="status-modal__row">
+          <dt data-i18n="app.statusModal.fields.description">Descrição</dt>
+          <dd id="status-modal-description"></dd>
+        </div>
+        <div class="status-modal__row">
+          <dt data-i18n="app.statusModal.fields.status">Status</dt>
+          <dd id="status-modal-status"></dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
   <script type="module">
     import { setTheme } from './scripts/theme.js';
     import { i18n, loadBaseI18n, loadMiniSnippet } from './scripts/i18n-loader.js';
+    import { initVersionStatus, refreshVersionTranslations } from './scripts/version-status.js';
 
     const viewport = document.getElementById('viewport');
     const catalog = document.getElementById('catalog');
@@ -64,6 +93,7 @@
 
     // i18n base
     await loadBaseI18n('pt-br');
+    await initVersionStatus();
     renderCatalog();
     applyBaseTranslations();
 
@@ -112,6 +142,7 @@
           el.textContent = value;
         }
       });
+      refreshVersionTranslations(i18n);
     }
 
     // Troca de idioma

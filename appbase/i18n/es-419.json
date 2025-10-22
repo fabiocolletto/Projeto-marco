@@ -18,6 +18,22 @@
         "title": "Bienvenido",
         "subtitle": "Abre el MiniApp Gestor de Tareas para probarlo."
       }
+    },
+    "footer": {
+      "prefix": "Versión"
+    },
+    "statusModal": {
+      "title": "Estado del sistema",
+      "fields": {
+        "version": "Versión",
+        "date": "Fecha",
+        "description": "Descripción",
+        "status": "Estado"
+      },
+      "close": "Cerrar",
+      "states": {
+        "operational": "Operativo"
+      }
     }
   }
 }
