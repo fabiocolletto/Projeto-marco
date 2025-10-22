@@ -16,4 +16,4 @@ Tarefas do Codex:
 Contrato de MiniApps:
 - Entregar: `manifest.json`, `i18n-snippet.json`, `app.html` (HTML puro).
 - Namespace i18n: `miniapps.<id>.*` (PT/EN/ES).
-- CSS: usar utilitários/componentes do AppBase e tokens `--ac-*` (sem CSS próprio).
+- CSS do MiniApp: PROIBIDO. Usar somente utilitários/componentes do AppBase (.u-*, .c-*) e tokens var(--ac-*).
