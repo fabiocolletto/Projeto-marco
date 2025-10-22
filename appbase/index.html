@@ -74,20 +74,31 @@
     import { setTheme } from './scripts/theme.js';
     import { i18n, loadBaseI18n, loadMiniSnippet } from './scripts/i18n-loader.js';
     import { initVersionStatus, refreshVersionTranslations } from './scripts/version-status.js';
+    import { fetchMiniappsCatalog } from './scripts/data-sources.js';
 
     const viewport = document.getElementById('viewport');
     const catalog = document.getElementById('catalog');
     const baseTitle = document.title;
 
-    const ensureRelativePath = (path) => path.startsWith('../') ? path : `../${path}`;
+    const ensureRelativePath = (path) => {
+      if (typeof path !== 'string' || path.length === 0) return path ?? '';
+      return path.startsWith('../') ? path : `../${path}`;
+    };
 
     // Estado
-    const miniapps = (await (await fetch('../miniapps/catalog.json')).json()).map(miniapp => ({
-      ...miniapp,
-      entry: ensureRelativePath(miniapp.entry),
-      manifest: ensureRelativePath(miniapp.manifest),
-      snippet: ensureRelativePath(miniapp.snippet)
-    }));
+    const catalogResult = await fetchMiniappsCatalog();
+    const miniapps = catalogResult.items.map(miniapp => {
+      const normalizedSnippetPath = typeof miniapp.snippetPath === 'string'
+        ? miniapp.snippetPath
+        : (typeof miniapp.snippetSource === 'string' ? miniapp.snippetSource : null);
+      return {
+        ...miniapp,
+        entry: ensureRelativePath(miniapp.entry),
+        manifest: ensureRelativePath(miniapp.manifest),
+        snippetSource: typeof miniapp.snippetSource === 'string' ? ensureRelativePath(miniapp.snippetSource) : miniapp.snippetSource,
+        snippetPath: normalizedSnippetPath ? ensureRelativePath(normalizedSnippetPath) : null
+      };
+    });
     let activeMiniapp = null;
 
     // i18n base
@@ -99,6 +110,14 @@
     // UI catálogo
     function renderCatalog(){
       catalog.innerHTML = '';
+      if (!miniapps.length) {
+        const empty = document.createElement('p');
+        empty.className = 'u-text-muted';
+        empty.textContent = 'Catálogo indisponível no momento.';
+        catalog.appendChild(empty);
+        return;
+      }
+
       miniapps.forEach(m => {
         const btn = document.createElement('button');
         btn.className = 'c-btn c-btn--primary';
@@ -115,7 +134,11 @@
 
     async function openMiniapp(miniapp){
       activeMiniapp = miniapp;
-      await loadMiniSnippet(miniapp.snippet);
+      if (miniapp.snippetSource) {
+        await loadMiniSnippet(miniapp.snippetSource);
+      } else if (miniapp.snippetPath) {
+        await loadMiniSnippet(miniapp.snippetPath);
+      }
       const html = await (await fetch(miniapp.entry)).text();
       viewport.innerHTML = html;
       // i18n placeholders simples: {{ t('key') }}

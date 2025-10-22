@@ -1,39 +1,10 @@
+import { getLatestReleaseEntry } from './data-sources.js';
+
 let versionInfo = null;
 let overlayRef = null;
 let triggerRef = null;
 let closeButtonRef = null;
-
-function parseLatestEntry(markdown){
-  const rows = markdown
-    .split('\n')
-    .map(line => line.trim())
-    .filter(line => /^\|\s*\d+/.test(line));
-  if (!rows.length) return null;
-  const [version, date, description, status] = rows[0]
-    .split('|')
-    .map(cell => cell.trim())
-    .filter(Boolean);
-  return {
-    version,
-    date,
-    description,
-    status: status || ''
-  };
-}
-
-async function fetchLatestLogEntry(){
-  try {
-    const response = await fetch('../docs/registro-log.md');
-    if (!response.ok) {
-      return null;
-    }
-    const text = await response.text();
-    return parseLatestEntry(text);
-  } catch (error) {
-    console.error('Erro ao carregar registro de versão:', error);
-    return null;
-  }
-}
+let versionSource = 'fallback';
 
 function updateModalContent(info){
   versionInfo = info;
@@ -51,8 +22,10 @@ function updateModalContent(info){
   }
   if (triggerRef) {
     triggerRef.dataset.version = info?.version ?? '';
-    const versionLabel = info?.version ? `Versão ${info.version}` : 'Versão —';
-    triggerRef.textContent = versionLabel;
+    triggerRef.textContent = info?.version ? `Versão ${info.version}` : 'Versão —';
+    if (versionSource) {
+      triggerRef.dataset.source = versionSource;
+    }
   }
 }
 
@@ -90,10 +63,22 @@ export async function initVersionStatus(){
     return;
   }
 
-  const info = await fetchLatestLogEntry();
-  if (info) {
-    updateModalContent(info);
-  } else {
+  try {
+    const result = await getLatestReleaseEntry();
+    versionSource = result?.source ?? 'fallback';
+    if (result?.entry) {
+      updateModalContent(result.entry);
+    } else {
+      updateModalContent({
+        version: '—',
+        date: '—',
+        description: 'Não foi possível carregar o registro.',
+        status: ''
+      });
+    }
+  } catch (error) {
+    console.error('Erro ao carregar registro de versão:', error);
+    versionSource = 'fallback';
     updateModalContent({
       version: '—',
       date: '—',

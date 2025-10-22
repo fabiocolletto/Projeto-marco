@@ -2,8 +2,11 @@
 
 Este documento registra, em ordem cronológica decrescente, o histórico de mudanças relevantes no AppBase e em seus miniapps. Cada entrada deve incluir um número de versão sequencial, a data da alteração e um breve resumo.
 
+> A partir da versão 009 os lançamentos passam a ser persistidos na tabela `release_log` do Supabase. Este arquivo permanece disponível como fallback de leitura e referência rápida.
+
 | Versão | Data       | Descrição                                                                 | Status      |
 |--------|------------|----------------------------------------------------------------------------|-------------|
+| 009    | 2025-10-25 | Migrado catálogo e registro de alterações para Supabase com políticas RLS. | operational |
 | 008    | 2025-10-24 | Configurado Supabase CLI, migrações iniciais e deploy automatizado via GitHub Actions. | operational |
 | 007    | 2025-10-23 | Tornado carregamento de i18n resiliente para manter rodapé e textos padrão. | operational |
 | 006    | 2025-10-22 | Corrigido namespace i18n do MiniApp Gestor de Tarefas para carregar textos. | operational |

@@ -40,18 +40,30 @@ export async function loadBaseI18n(locale){
   }
 }
 
-export async function loadMiniSnippet(snippetPath){
+function mergeSnippet(snippet){
+  if (!snippet || typeof snippet !== 'object') return;
+  for (const loc of Object.keys(snippet)){
+    i18n.dict[loc] = deepMerge(i18n.dict[loc] || {}, snippet[loc]);
+  }
+}
+
+export async function loadMiniSnippet(snippetSource){
+  if (!snippetSource) return;
+
+  if (typeof snippetSource === 'object') {
+    mergeSnippet(snippetSource);
+    return;
+  }
+
   try {
-    const response = await fetch(snippetPath);
+    const response = await fetch(snippetSource);
     if (!response.ok) {
-      console.warn('[i18n] Snippet indisponível', snippetPath, response.status);
+      console.warn('[i18n] Snippet indisponível', snippetSource, response.status);
       return;
     }
     const sn = await response.json();
-    for(const loc of Object.keys(sn)){
-      i18n.dict[loc] = deepMerge(i18n.dict[loc] || {}, sn[loc]);
-    }
+    mergeSnippet(sn);
   } catch (error) {
-    console.error('[i18n] Erro ao carregar snippet', snippetPath, error);
+    console.error('[i18n] Erro ao carregar snippet', snippetSource, error);
   }
 }

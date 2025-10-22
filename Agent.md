@@ -8,7 +8,7 @@ Este documento fornece um rápido resumo para quem automatiza tarefas neste repo
 - Utilize módulos ES (ESM) em todos os arquivos JavaScript da pasta `shared`. Os imports e exports devem ser sempre nomeados.
 - Prefira funções puras e reutilizáveis; evite acoplamento com o DOM dentro de utilitários compartilhados.
 - Atualize os arquivos `shared/LOG.md` e `shared/README.md` sempre que criar novos utilitários que possam ser reutilizados por outros módulos.
-- Registre toda entrega no `docs/registro-log.md`, incluindo data, descrição e número de versão sequencial, e sincronize o valor em `VERSION` com a última entrada.
+- Registre toda entrega no `docs/registro-log.md`, incluindo data, descrição e número de versão sequencial, e sincronize o valor em `VERSION` com a última entrada. Garanta que a tabela `release_log` (Supabase) receba o mesmo conteúdo através de migrações/seed quando aplicável.
 - Antes de abrir um PR, execute testes ou validações manuais relevantes e documente-os na seção de testes.
 
 ## Convenções de Estilo
