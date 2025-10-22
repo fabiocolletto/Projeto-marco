@@ -3,7 +3,7 @@
     {
       "id": "base.shell",
       "labelKey": "app.title",
-      "route": "/miniapps/base_shell/index.html",
+      "route": "/apps/web/index.html",
       "order": 1,
       "active": true
     }

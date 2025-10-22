@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>MiniApp Painel do Usuário</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --panel-max-width: min(980px, 100%);
+        --panel-gap: clamp(1.5rem, 4vw, 2.25rem);
+        --panel-surface: rgba(255, 255, 255, 0.92);
+        --panel-surface-strong: rgba(255, 255, 255, 0.98);
+        --panel-border: rgba(15, 23, 42, 0.12);
+        --panel-border-strong: rgba(15, 23, 42, 0.28);
+        --panel-muted: rgba(71, 85, 105, 0.82);
+        --panel-strong: rgba(15, 23, 42, 0.9);
+        --panel-accent: #2563eb;
+        --panel-accent-strong: #1d4ed8;
+        --panel-accent-soft: rgba(37, 99, 235, 0.16);
+        --panel-radius: 28px;
+        --panel-radius-sm: 18px;
+        --panel-shadow: 0 32px 64px rgba(15, 23, 42, 0.14);
+        --panel-shadow-soft: 0 16px 32px rgba(15, 23, 42, 0.12);
+        --panel-font: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --switch-off: rgba(148, 163, 184, 0.35);
+        --switch-handle: #ffffff;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --panel-surface: rgba(30, 41, 59, 0.78);
+          --panel-surface-strong: rgba(30, 41, 59, 0.9);
+          --panel-border: rgba(148, 163, 184, 0.18);
+          --panel-border-strong: rgba(148, 163, 184, 0.36);
+          --panel-muted: rgba(203, 213, 225, 0.75);
+          --panel-strong: rgba(241, 245, 249, 0.95);
+          --panel-shadow: 0 32px 72px rgba(15, 23, 42, 0.5);
+          --panel-shadow-soft: 0 18px 42px rgba(15, 23, 42, 0.4);
+          --switch-off: rgba(148, 163, 184, 0.28);
+          --switch-handle: rgba(15, 23, 42, 0.92);
+        }
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--panel-font);
+        background: transparent;
+        color: var(--panel-strong);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin: 0;
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      button,
+      input,
+      select {
+        font: inherit;
+      }
+
+      .user-panel {
+        margin: 0 auto;
+        padding: clamp(2rem, 4vw, 3rem);
+        max-width: var(--panel-max-width);
+        display: flex;
+        flex-direction: column;
+        gap: var(--panel-gap);
+      }
+
+      .user-panel__header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: clamp(1rem, 3vw, 2rem);
+        align-items: flex-start;
+      }
+
+      .user-panel__intro {
+        flex: 1 1 320px;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .user-panel__eyebrow {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 600;
+        color: var(--panel-muted);
+      }
+
+      .user-panel__title {
+        font-size: clamp(2rem, 6vw, 2.75rem);
+      }
+
+      .user-panel__lead {
+        font-size: clamp(1rem, 2.5vw, 1.1rem);
+        color: var(--panel-muted);
+        max-width: 50ch;
+      }
+
+      .user-panel__meta {
+        flex: 0 0 auto;
+        min-width: min(320px, 100%);
+        padding: clamp(1rem, 3vw, 1.5rem);
+        background: var(--panel-surface);
+        border-radius: var(--panel-radius);
+        border: 1px solid var(--panel-border);
+        box-shadow: var(--panel-shadow-soft);
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .user-panel__meta div {
+        display: grid;
+        gap: 0.25rem;
+      }
+
+      .user-panel__meta dt {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--panel-muted);
+      }
+
+      .user-panel__meta dd {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .user-panel__empty {
+        padding: clamp(2rem, 4vw, 2.5rem);
+        border-radius: var(--panel-radius);
+        border: 1px dashed var(--panel-border);
+        background: color-mix(in srgb, var(--panel-surface) 85%, transparent);
+        display: grid;
+        gap: 1rem;
+        text-align: center;
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--panel-border) 60%, transparent);
+      }
+
+      .user-panel__empty h2 {
+        font-size: clamp(1.5rem, 4vw, 1.85rem);
+      }
+
+      .user-panel__content {
+        display: block;
+      }
+
+      .user-panel__layout {
+        display: grid;
+        gap: clamp(1.5rem, 4vw, 2.25rem);
+      }
+
+      @media (min-width: 960px) {
+        .user-panel__layout {
+          grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+        }
+
+        .card--summary {
+          grid-column: 2;
+          grid-row: span 2;
+        }
+
+        .card--devices {
+          grid-column: 1 / -1;
+        }
+      }
+
+      .card {
+        background: var(--panel-surface);
+        border-radius: var(--panel-radius);
+        border: 1px solid var(--panel-border);
+        box-shadow: var(--panel-shadow);
+        padding: clamp(1.5rem, 4vw, 2.25rem);
+        display: grid;
+        gap: clamp(1.25rem, 3vw, 1.75rem);
+      }
+
+      .card__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .card__subtitle {
+        margin-top: 0.5rem;
+        color: var(--panel-muted);
+        font-size: 0.95rem;
+        max-width: 52ch;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--panel-accent-soft);
+        color: var(--panel-accent-strong);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .form {
+        display: grid;
+        gap: clamp(1rem, 3vw, 1.5rem);
+      }
+
+      fieldset {
+        margin: 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .form__fieldset {
+        display: grid;
+        gap: 1rem;
+      }
+
+      legend {
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--panel-muted);
+        font-weight: 700;
+      }
+
+      .form__grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .form__grid--columns-3 {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      }
+
+      .form__field {
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      label {
+        font-weight: 600;
+        font-size: 0.9rem;
+      }
+
+      input,
+      select {
+        padding: 0.75rem 1rem;
+        border-radius: var(--panel-radius-sm);
+        border: 1px solid color-mix(in srgb, var(--panel-border-strong) 70%, transparent);
+        background: var(--panel-surface-strong);
+        color: inherit;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      input:focus,
+      select:focus {
+        outline: 3px solid color-mix(in srgb, var(--panel-accent) 45%, transparent);
+        outline-offset: 2px;
+        border-color: color-mix(in srgb, var(--panel-accent) 60%, transparent);
+        box-shadow: 0 0 0 6px color-mix(in srgb, var(--panel-accent) 12%, transparent);
+      }
+
+      .form__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: flex-end;
+      }
+
+      .button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        min-height: 3rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 18px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .button--primary {
+        background: linear-gradient(135deg, var(--panel-accent) 0%, var(--panel-accent-strong) 100%);
+        color: #ffffff;
+        box-shadow: 0 18px 36px rgba(37, 99, 235, 0.25);
+      }
+
+      .button--primary:hover,
+      .button--primary:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 24px 48px rgba(37, 99, 235, 0.3);
+      }
+
+      .button--ghost {
+        background: transparent;
+        border-color: color-mix(in srgb, var(--panel-border-strong) 65%, transparent);
+        color: inherit;
+      }
+
+      .button--ghost:hover,
+      .button--ghost:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
+        background: color-mix(in srgb, var(--panel-surface-strong) 92%, transparent);
+      }
+
+      .form__feedback {
+        min-height: 1.25rem;
+        font-size: 0.9rem;
+        color: var(--panel-muted);
+      }
+
+      .form__feedback[data-state="success"] {
+        color: #0f766e;
+      }
+
+      .form__feedback[data-state="error"] {
+        color: #dc2626;
+      }
+
+      .switch-list {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .switch {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.75rem;
+        align-items: center;
+        cursor: pointer;
+      }
+
+      .switch input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .switch__visual {
+        position: relative;
+        width: 48px;
+        height: 26px;
+        border-radius: 999px;
+        background: var(--switch-off);
+        border: 1px solid color-mix(in srgb, var(--panel-border-strong) 65%, transparent);
+        transition: background 0.2s ease, border-color 0.2s ease;
+      }
+
+      .switch__visual::after {
+        content: "";
+        position: absolute;
+        inset-block: 3px;
+        inset-inline-start: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: var(--switch-handle);
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.2);
+        transition: transform 0.2s ease;
+      }
+
+      .switch input:checked + .switch__visual {
+        background: var(--panel-accent);
+        border-color: var(--panel-accent-strong);
+      }
+
+      .switch input:checked + .switch__visual::after {
+        transform: translateX(22px);
+      }
+
+      .switch__label {
+        font-weight: 500;
+      }
+
+      .summary-identity {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      .summary-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+        font-size: 1.35rem;
+        background: color-mix(in srgb, var(--panel-accent) 12%, transparent);
+        color: var(--panel-accent-strong);
+      }
+
+      .summary-role {
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--panel-muted);
+        font-weight: 600;
+      }
+
+      .summary-name {
+        font-size: 1.3rem;
+      }
+
+      .summary-email {
+        color: var(--panel-muted);
+        font-size: 0.9rem;
+      }
+
+      .summary-details,
+      .summary-metrics {
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .summary-details div,
+      .summary-metrics div {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .summary-details dt,
+      .summary-metrics dt {
+        font-size: 0.85rem;
+        color: var(--panel-muted);
+      }
+
+      .summary-details dd,
+      .summary-metrics dd {
+        margin: 0;
+        font-weight: 600;
+        text-align: right;
+      }
+
+      .summary-list {
+        border-top: 1px solid color-mix(in srgb, var(--panel-border) 65%, transparent);
+        padding-top: 1rem;
+        display: grid;
+        gap: 0.5rem;
+      }
+
+      .summary-list-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .summary-empty {
+        color: var(--panel-muted);
+        font-size: 0.9rem;
+      }
+
+      .device-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 1rem;
+      }
+
+      .device {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 1rem 1.25rem;
+        border-radius: var(--panel-radius-sm);
+        border: 1px solid color-mix(in srgb, var(--panel-border) 70%, transparent);
+        background: color-mix(in srgb, var(--panel-surface-strong) 92%, transparent);
+      }
+
+      .device[data-status="revoked"] {
+        opacity: 0.8;
+      }
+
+      .device__info {
+        display: grid;
+        gap: 0.25rem;
+      }
+
+      .device__name {
+        font-weight: 600;
+      }
+
+      .device__meta {
+        font-size: 0.85rem;
+        color: var(--panel-muted);
+      }
+
+      .device__actions {
+        display: grid;
+        gap: 0.5rem;
+        justify-items: end;
+      }
+
+      .device__badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        padding: 0.25rem 0.6rem;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--panel-accent) 18%, transparent);
+        color: var(--panel-accent-strong);
+      }
+
+      .device[data-status="revoked"] .device__badge {
+        background: rgba(239, 68, 68, 0.18);
+        color: #b91c1c;
+      }
+
+      .user-panel__footnote {
+        font-size: 0.85rem;
+        color: var(--panel-muted);
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="user-panel" data-panel-root data-state="loading">
+      <header class="user-panel__header">
+        <div class="user-panel__intro">
+          <p class="user-panel__eyebrow">Centro de preferências</p>
+          <h1 class="user-panel__title">Painel do usuário</h1>
+          <p class="user-panel__lead">
+            Gerencie seus dados pessoais, controle notificações e mantenha a segurança das integrações conectadas ao
+            shell base.
+          </p>
+        </div>
+        <dl class="user-panel__meta" data-panel-meta>
+          <div>
+            <dt>Atualização de perfil</dt>
+            <dd data-profile-updated>—</dd>
+          </div>
+          <div>
+            <dt>Última sincronização</dt>
+            <dd data-preferences-updated>—</dd>
+          </div>
+          <div>
+            <dt>Dispositivos confiáveis</dt>
+            <dd data-meta-devices>—</dd>
+          </div>
+        </dl>
+      </header>
+      <section class="user-panel__empty" data-empty-state hidden>
+        <h2>Faça login para continuar</h2>
+        <p>
+          Conecte-se ao shell para atualizar suas informações, salvar preferências personalizadas e liberar o acesso a
+          integrações exclusivas.
+        </p>
+        <button type="button" class="button button--primary" data-action="open-login">Acessar autenticação</button>
+      </section>
+      <main class="user-panel__content" data-authenticated-content hidden>
+        <div class="user-panel__layout">
+          <section class="card card--profile" aria-labelledby="profile-settings-title">
+            <header class="card__header">
+              <div>
+                <h2 id="profile-settings-title" class="card__title">Dados pessoais</h2>
+                <p class="card__subtitle">
+                  Atualize as informações exibidas para a equipe e para aplicações que consomem o catálogo de miniapps.
+                </p>
+              </div>
+              <span class="badge" data-profile-badge>Perfil ativo</span>
+            </header>
+            <form class="form" data-profile-form novalidate>
+              <div class="form__grid">
+                <div class="form__field">
+                  <label for="profile-name">Nome completo</label>
+                  <input id="profile-name" name="name" type="text" autocomplete="name" required />
+                </div>
+                <div class="form__field">
+                  <label for="profile-email">E-mail</label>
+                  <input id="profile-email" name="email" type="email" autocomplete="email" required />
+                </div>
+                <div class="form__field">
+                  <label for="profile-phone">Celular</label>
+                  <input id="profile-phone" name="phone" type="tel" autocomplete="tel" />
+                </div>
+                <div class="form__field">
+                  <label for="profile-role">Papel no workspace</label>
+                  <select id="profile-role" name="role">
+                    <option value="owner">Proprietário</option>
+                    <option value="member">Colaborador</option>
+                  </select>
+                </div>
+                <div class="form__field">
+                  <label for="profile-job">Cargo</label>
+                  <input id="profile-job" name="jobTitle" type="text" placeholder="Ex.: Product Manager" />
+                </div>
+                <div class="form__field">
+                  <label for="profile-department">Equipe</label>
+                  <input id="profile-department" name="department" type="text" placeholder="Ex.: Operações" />
+                </div>
+                <div class="form__field">
+                  <label for="profile-workspace">Espaço de trabalho</label>
+                  <input id="profile-workspace" name="workspace" type="text" placeholder="Ex.: Portal 5Horas" />
+                </div>
+              </div>
+              <div class="form__actions">
+                <button type="submit" class="button button--primary">Salvar alterações</button>
+                <button type="reset" class="button button--ghost">Descartar</button>
+              </div>
+              <p class="form__feedback" role="status" aria-live="polite" data-profile-feedback></p>
+            </form>
+          </section>
+          <aside class="card card--summary" aria-labelledby="profile-summary-title">
+            <header class="card__header">
+              <div>
+                <h2 id="profile-summary-title" class="card__title">Resumo da conta</h2>
+                <p class="card__subtitle">Visualize o impacto das configurações em toda a experiência do shell.</p>
+              </div>
+            </header>
+            <div class="summary-identity">
+              <div class="summary-avatar" aria-hidden="true" data-summary-avatar>👤</div>
+              <div>
+                <p class="summary-role" data-summary-role>—</p>
+                <h3 class="summary-name" data-summary-name>—</h3>
+                <p class="summary-email" data-summary-email>—</p>
+              </div>
+            </div>
+            <dl class="summary-details">
+              <div>
+                <dt>Cargo</dt>
+                <dd data-summary-job>—</dd>
+              </div>
+              <div>
+                <dt>Equipe</dt>
+                <dd data-summary-department>—</dd>
+              </div>
+              <div>
+                <dt>Espaço de trabalho</dt>
+                <dd data-summary-workspace>—</dd>
+              </div>
+            </dl>
+            <dl class="summary-metrics">
+              <div>
+                <dt>Notificações</dt>
+                <dd data-summary-notifications>—</dd>
+              </div>
+              <div>
+                <dt>Automação</dt>
+                <dd data-summary-automation>—</dd>
+              </div>
+              <div>
+                <dt>Dispositivos</dt>
+                <dd data-summary-devices>—</dd>
+              </div>
+            </dl>
+            <div class="summary-list" data-summary-notifications-list>
+              <p class="summary-empty">Nenhum canal de notificação habilitado.</p>
+            </div>
+          </aside>
+          <section class="card card--preferences" aria-labelledby="preference-settings-title">
+            <header class="card__header">
+              <div>
+                <h2 id="preference-settings-title" class="card__title">Preferências de uso</h2>
+                <p class="card__subtitle">Defina idioma, tema e alertas entregues pelo shell em todos os dispositivos.</p>
+              </div>
+            </header>
+            <form class="form" data-preferences-form novalidate>
+              <fieldset class="form__fieldset">
+                <legend>Experiência</legend>
+                <div class="form__grid form__grid--columns-3">
+                  <div class="form__field">
+                    <label for="pref-theme">Tema</label>
+                    <select id="pref-theme" name="theme">
+                      <option value="system">Seguir sistema</option>
+                      <option value="light">Claro</option>
+                      <option value="dark">Escuro</option>
+                    </select>
+                  </div>
+                  <div class="form__field">
+                    <label for="pref-language">Idioma</label>
+                    <select id="pref-language" name="language">
+                      <option value="auto">Detectar automaticamente</option>
+                      <option value="pt-BR">Português (Brasil)</option>
+                      <option value="en-US">English (US)</option>
+                      <option value="es-419">Español (LatAm)</option>
+                    </select>
+                  </div>
+                  <div class="form__field">
+                    <label for="pref-timezone">Fuso horário</label>
+                    <select id="pref-timezone" name="timezone">
+                      <option value="America/Sao_Paulo">América/São Paulo (GMT-3)</option>
+                      <option value="America/New_York">América/Nova York (GMT-4)</option>
+                      <option value="Europe/Lisbon">Europa/Lisboa (GMT+1)</option>
+                      <option value="UTC">UTC</option>
+                    </select>
+                  </div>
+                </div>
+              </fieldset>
+              <fieldset class="form__fieldset">
+                <legend>Notificações</legend>
+                <div class="switch-list">
+                  <label class="switch" for="pref-notify-updates">
+                    <input id="pref-notify-updates" name="notifyUpdates" type="checkbox" />
+                    <span class="switch__visual" aria-hidden="true"></span>
+                    <span class="switch__label">Novidades de produto e roadmap</span>
+                  </label>
+                  <label class="switch" for="pref-notify-security">
+                    <input id="pref-notify-security" name="notifySecurity" type="checkbox" />
+                    <span class="switch__visual" aria-hidden="true"></span>
+                    <span class="switch__label">Alertas críticos de segurança</span>
+                  </label>
+                  <label class="switch" for="pref-notify-summary">
+                    <input id="pref-notify-summary" name="notifySummary" type="checkbox" />
+                    <span class="switch__visual" aria-hidden="true"></span>
+                    <span class="switch__label">Resumo semanal por e-mail</span>
+                  </label>
+                </div>
+              </fieldset>
+              <fieldset class="form__fieldset">
+                <legend>Automação e segurança</legend>
+                <div class="switch-list">
+                  <label class="switch" for="pref-auto-sync">
+                    <input id="pref-auto-sync" name="autoSync" type="checkbox" />
+                    <span class="switch__visual" aria-hidden="true"></span>
+                    <span class="switch__label">Sincronizar preferências automaticamente entre dispositivos</span>
+                  </label>
+                  <label class="switch" for="pref-auto-backup">
+                    <input id="pref-auto-backup" name="autoBackup" type="checkbox" />
+                    <span class="switch__visual" aria-hidden="true"></span>
+                    <span class="switch__label">Gerar backup criptografado a cada login</span>
+                  </label>
+                  <label class="switch" for="pref-beta-program">
+                    <input id="pref-beta-program" name="betaProgram" type="checkbox" />
+                    <span class="switch__visual" aria-hidden="true"></span>
+                    <span class="switch__label">Participar de recursos em versão beta</span>
+                  </label>
+                </div>
+              </fieldset>
+              <div class="form__actions">
+                <button type="submit" class="button button--primary">Salvar preferências</button>
+                <button type="reset" class="button button--ghost">Restaurar valores</button>
+              </div>
+              <p class="form__feedback" role="status" aria-live="polite" data-preferences-feedback></p>
+            </form>
+          </section>
+          <section class="card card--devices" aria-labelledby="devices-title">
+            <header class="card__header">
+              <div>
+                <h2 id="devices-title" class="card__title">Dispositivos conectados</h2>
+                <p class="card__subtitle">
+                  Revise quais dispositivos têm sessão ativa e desative aqueles que você não reconhece.
+                </p>
+              </div>
+            </header>
+            <ul class="device-list" data-device-list></ul>
+            <p class="form__feedback" role="status" aria-live="polite" data-devices-feedback></p>
+          </section>
+        </div>
+      </main>
+      <p class="user-panel__footnote">
+        Preferências armazenadas localmente. Alterações no perfil sincronizam com os demais fluxos do shell base.
+      </p>
+    </div>
+    <script type="module">
+      import {
+        currentUser,
+        onAuthChange,
+        updateUserProfile
+      } from '../../../packages/base.security/auth.js';
+
+      const STORAGE_KEY_PREFIX = 'miniapp.base.user-panel.state';
+      const FEEDBACK_TIMEOUT = 4500;
+      const loginUrl = new URL('../auth/login.html', import.meta.url);
+      const panelRoot = document.querySelector('[data-panel-root]');
+      const emptyState = document.querySelector('[data-empty-state]');
+      const content = document.querySelector('[data-authenticated-content]');
+      const profileForm = document.querySelector('[data-profile-form]');
+      const preferencesForm = document.querySelector('[data-preferences-form]');
+      const profileFeedback = document.querySelector('[data-profile-feedback]');
+      const preferencesFeedback = document.querySelector('[data-preferences-feedback]');
+      const devicesFeedback = document.querySelector('[data-devices-feedback]');
+      const summaryName = document.querySelector('[data-summary-name]');
+      const summaryEmail = document.querySelector('[data-summary-email]');
+      const summaryRole = document.querySelector('[data-summary-role]');
+      const summaryJob = document.querySelector('[data-summary-job]');
+      const summaryDepartment = document.querySelector('[data-summary-department]');
+      const summaryWorkspace = document.querySelector('[data-summary-workspace]');
+      const summaryNotifications = document.querySelector('[data-summary-notifications]');
+      const summaryAutomation = document.querySelector('[data-summary-automation]');
+      const summaryDevices = document.querySelector('[data-summary-devices]');
+      const summaryList = document.querySelector('[data-summary-notifications-list]');
+      const summaryAvatar = document.querySelector('[data-summary-avatar]');
+      const profileBadge = document.querySelector('[data-profile-badge]');
+      const profileUpdated = document.querySelector('[data-profile-updated]');
+      const preferencesUpdated = document.querySelector('[data-preferences-updated]');
+      const metaDevices = document.querySelector('[data-meta-devices]');
+      const devicesList = document.querySelector('[data-device-list]');
+      const loginButton = document.querySelector('[data-action="open-login"]');
+      const feedbackTimers = new WeakMap();
+
+      const DEFAULT_DEVICES = [
+        {
+          id: 'device-mac',
+          name: 'MacBook Pro 14”',
+          location: 'São Paulo, Brasil',
+          lastActive: '2024-04-28T13:22:00.000Z',
+          status: 'trusted'
+        },
+        {
+          id: 'device-iphone',
+          name: 'iPhone 15 Pro',
+          location: 'Campinas, Brasil',
+          lastActive: '2024-04-27T22:45:00.000Z',
+          status: 'trusted'
+        },
+        {
+          id: 'device-web',
+          name: 'Navegador Web',
+          location: 'Lisboa, Portugal',
+          lastActive: '2024-04-18T09:12:00.000Z',
+          status: 'revoked'
+        }
+      ];
+
+      function createDefaultState() {
+        return {
+          profileExtras: {
+            jobTitle: '',
+            department: '',
+            workspace: ''
+          },
+          preferences: {
+            theme: 'system',
+            language: 'auto',
+            timezone: 'America/Sao_Paulo',
+            notifications: {
+              productUpdates: true,
+              securityAlerts: true,
+              weeklySummary: false
+            },
+            automation: {
+              autoSync: true,
+              autoBackup: false,
+              betaProgram: false
+            }
+          },
+          devices: DEFAULT_DEVICES.map(device => ({ ...device })),
+          meta: {
+            profileUpdatedAt: null,
+            preferencesUpdatedAt: null,
+            devicesUpdatedAt: null
+          }
+        };
+      }
+
+      function mergeState(base, extra) {
+        const fallback = createDefaultState();
+        const target = { ...fallback, ...base };
+        if (!extra || typeof extra !== 'object') {
+          return target;
+        }
+        target.profileExtras = {
+          ...fallback.profileExtras,
+          ...base?.profileExtras,
+          ...(extra.profileExtras || {})
+        };
+        target.preferences = {
+          ...fallback.preferences,
+          ...base?.preferences,
+          ...(extra.preferences || {})
+        };
+        target.preferences.notifications = {
+          ...fallback.preferences.notifications,
+          ...base?.preferences?.notifications,
+          ...(extra.preferences?.notifications || {})
+        };
+        target.preferences.automation = {
+          ...fallback.preferences.automation,
+          ...base?.preferences?.automation,
+          ...(extra.preferences?.automation || {})
+        };
+        if (Array.isArray(extra.devices)) {
+          target.devices = extra.devices.map(device => ({ ...device }));
+        } else if (Array.isArray(base?.devices)) {
+          target.devices = base.devices.map(device => ({ ...device }));
+        }
+        target.meta = {
+          ...fallback.meta,
+          ...base?.meta,
+          ...(extra.meta || {})
+        };
+        return target;
+      }
+
+      function getStorageKey(userId) {
+        return `${STORAGE_KEY_PREFIX}::${userId}`;
+      }
+
+      function loadState(userId) {
+        const fallback = createDefaultState();
+        if (!userId || typeof window === 'undefined') {
+          return fallback;
+        }
+        try {
+          const raw = window.localStorage?.getItem(getStorageKey(userId));
+          if (!raw) {
+            return fallback;
+          }
+          const parsed = JSON.parse(raw);
+          return mergeState(fallback, parsed);
+        } catch (error) {
+          console.warn('user-panel: unable to load stored preferences', error);
+          return fallback;
+        }
+      }
+
+      function saveState(userId, state) {
+        if (!userId || typeof window === 'undefined') {
+          return;
+        }
+        try {
+          window.localStorage?.setItem(getStorageKey(userId), JSON.stringify(state));
+        } catch (error) {
+          console.warn('user-panel: unable to persist preferences', error);
+        }
+      }
+
+      function formatDateTime(value) {
+        if (!value) {
+          return 'Nunca sincronizado';
+        }
+        try {
+          const date = new Date(value);
+          if (Number.isNaN(date.getTime())) {
+            return 'Nunca sincronizado';
+          }
+          return new Intl.DateTimeFormat('pt-BR', {
+            dateStyle: 'short',
+            timeStyle: 'short'
+          }).format(date);
+        } catch (error) {
+          return 'Nunca sincronizado';
+        }
+      }
+
+      function showFeedback(target, message, tone = 'success') {
+        if (!target) {
+          return;
+        }
+        target.dataset.state = tone;
+        target.textContent = message;
+        const previousTimer = feedbackTimers.get(target);
+        if (previousTimer) {
+          clearTimeout(previousTimer);
+        }
+        const timer = window.setTimeout(() => {
+          target.textContent = '';
+          target.dataset.state = '';
+        }, FEEDBACK_TIMEOUT);
+        feedbackTimers.set(target, timer);
+      }
+
+      function clearFeedback(target) {
+        if (!target) {
+          return;
+        }
+        const previousTimer = feedbackTimers.get(target);
+        if (previousTimer) {
+          clearTimeout(previousTimer);
+        }
+        target.textContent = '';
+        target.dataset.state = '';
+      }
+
+      function setFormDisabled(form, disabled) {
+        if (!form) {
+          return;
+        }
+        const controls = form.querySelectorAll('input, select, button');
+        controls.forEach(control => {
+          control.disabled = disabled;
+        });
+      }
+
+      function updateSummary(user, state) {
+        if (summaryName) {
+          summaryName.textContent = user?.name || 'Usuário sem nome';
+        }
+        if (summaryEmail) {
+          summaryEmail.textContent = user?.email || 'E-mail não cadastrado';
+        }
+        if (summaryRole) {
+          const roleLabel = user?.role === 'owner' ? 'Proprietário' : 'Colaborador';
+          summaryRole.textContent = `${roleLabel}${state?.profileExtras?.department ? ' • ' + state.profileExtras.department : ''}`;
+        }
+        if (summaryAvatar) {
+          const initial = user?.name ? user.name.trim().charAt(0).toUpperCase() : '👤';
+          summaryAvatar.textContent = initial || '👤';
+        }
+        if (summaryJob) {
+          summaryJob.textContent = state?.profileExtras?.jobTitle || '—';
+        }
+        if (summaryDepartment) {
+          summaryDepartment.textContent = state?.profileExtras?.department || '—';
+        }
+        if (summaryWorkspace) {
+          summaryWorkspace.textContent = state?.profileExtras?.workspace || '—';
+        }
+        const notifications = state?.preferences?.notifications || {};
+        const enabledNotifications = Object.entries(notifications).filter(([, value]) => Boolean(value));
+        if (summaryNotifications) {
+          summaryNotifications.textContent = `${enabledNotifications.length} de ${Object.keys(notifications).length} ativas`;
+        }
+        if (summaryList) {
+          summaryList.innerHTML = '';
+          if (!enabledNotifications.length) {
+            const empty = document.createElement('p');
+            empty.className = 'summary-empty';
+            empty.textContent = 'Nenhum canal de notificação habilitado.';
+            summaryList.append(empty);
+          } else {
+            enabledNotifications.forEach(([key]) => {
+              const item = document.createElement('div');
+              item.className = 'summary-list-item';
+              const label = document.createElement('span');
+              const map = {
+                productUpdates: 'Novidades de produto',
+                securityAlerts: 'Alertas de segurança',
+                weeklySummary: 'Resumo semanal'
+              };
+              label.textContent = map[key] || key;
+              const status = document.createElement('span');
+              status.textContent = 'Ativo';
+              item.append(label, status);
+              summaryList.append(item);
+            });
+          }
+        }
+        const automation = state?.preferences?.automation || {};
+        const enabledAutomation = Object.entries(automation).filter(([, value]) => Boolean(value));
+        if (summaryAutomation) {
+          summaryAutomation.textContent = `${enabledAutomation.length} fluxos ativos`;
+        }
+        const trustedDevices = Array.isArray(state?.devices)
+          ? state.devices.filter(device => device.status !== 'revoked').length
+          : 0;
+        if (summaryDevices) {
+          summaryDevices.textContent = `${trustedDevices} confiáveis`;
+        }
+        if (profileBadge) {
+          profileBadge.textContent = user?.role === 'owner' ? 'Proprietário' : 'Colaborador';
+        }
+      }
+
+      function updateMeta(state) {
+        if (profileUpdated) {
+          profileUpdated.textContent = formatDateTime(state?.meta?.profileUpdatedAt);
+        }
+        if (preferencesUpdated) {
+          preferencesUpdated.textContent = formatDateTime(state?.meta?.preferencesUpdatedAt);
+        }
+        if (metaDevices) {
+          const trusted = state?.devices?.filter(device => device.status !== 'revoked').length || 0;
+          const revoked = state?.devices?.filter(device => device.status === 'revoked').length || 0;
+          metaDevices.textContent = `${trusted} ativos • ${revoked} revogados`;
+        }
+      }
+
+      function renderDevices(state) {
+        if (!devicesList) {
+          return;
+        }
+        devicesList.innerHTML = '';
+        const devices = Array.isArray(state?.devices) ? state.devices : [];
+        if (!devices.length) {
+          const empty = document.createElement('li');
+          empty.className = 'summary-empty';
+          empty.textContent = 'Nenhum dispositivo autorizado.';
+          devicesList.append(empty);
+          return;
+        }
+        devices.forEach(device => {
+          const item = document.createElement('li');
+          item.className = 'device';
+          item.dataset.status = device.status || 'trusted';
+
+          const info = document.createElement('div');
+          info.className = 'device__info';
+          const name = document.createElement('span');
+          name.className = 'device__name';
+          name.textContent = device.name || 'Dispositivo desconhecido';
+          const meta = document.createElement('span');
+          meta.className = 'device__meta';
+          const lastActiveLabel = formatDateTime(device.lastActive);
+          meta.textContent = `${device.location || 'Localização não informada'} • Último acesso ${lastActiveLabel}`;
+          info.append(name, meta);
+
+          const actions = document.createElement('div');
+          actions.className = 'device__actions';
+          const badge = document.createElement('span');
+          badge.className = 'device__badge';
+          badge.textContent = device.status === 'revoked' ? 'Revogado' : 'Confiável';
+          const toggle = document.createElement('button');
+          toggle.type = 'button';
+          toggle.className = 'button button--ghost';
+          toggle.dataset.deviceToggle = 'true';
+          toggle.dataset.deviceId = device.id || '';
+          toggle.textContent = device.status === 'revoked' ? 'Confiar novamente' : 'Revogar acesso';
+          actions.append(badge, toggle);
+
+          item.append(info, actions);
+          devicesList.append(item);
+        });
+      }
+
+      function renderForms(user, state) {
+        if (!profileForm || !preferencesForm) {
+          return;
+        }
+        const extras = state?.profileExtras || {};
+        const profileValues = {
+          name: user?.name || '',
+          email: user?.email || '',
+          phone: user?.phone || '',
+          role: user?.role || 'member',
+          jobTitle: extras.jobTitle || '',
+          department: extras.department || '',
+          workspace: extras.workspace || ''
+        };
+        Object.entries(profileValues).forEach(([name, value]) => {
+          const field = profileForm.querySelector(`[name="${name}"]`);
+          if (field) {
+            field.value = value;
+          }
+        });
+        const prefs = state?.preferences || {};
+        const notify = prefs.notifications || {};
+        const automation = prefs.automation || {};
+        const preferenceValues = {
+          theme: prefs.theme || 'system',
+          language: prefs.language || 'auto',
+          timezone: prefs.timezone || 'America/Sao_Paulo',
+          notifyUpdates: Boolean(notify.productUpdates),
+          notifySecurity: Boolean(notify.securityAlerts),
+          notifySummary: Boolean(notify.weeklySummary),
+          autoSync: Boolean(automation.autoSync),
+          autoBackup: Boolean(automation.autoBackup),
+          betaProgram: Boolean(automation.betaProgram)
+        };
+        Object.entries(preferenceValues).forEach(([name, value]) => {
+          const field = preferencesForm.querySelector(`[name="${name}"]`);
+          if (!field) {
+            return;
+          }
+          if (field instanceof HTMLInputElement && field.type === 'checkbox') {
+            field.checked = Boolean(value);
+          } else {
+            field.value = value;
+          }
+        });
+      }
+
+      let activeUser = currentUser();
+      let state = loadState(activeUser?.id);
+
+      function applyState() {
+        const signedIn = Boolean(activeUser);
+        panelRoot?.setAttribute('data-state', signedIn ? 'ready' : 'signed-out');
+        if (emptyState) {
+          emptyState.hidden = signedIn;
+        }
+        if (content) {
+          content.hidden = !signedIn;
+        }
+        setFormDisabled(profileForm, !signedIn);
+        setFormDisabled(preferencesForm, !signedIn);
+        if (!signedIn) {
+          return;
+        }
+        renderForms(activeUser, state);
+        updateSummary(activeUser, state);
+        updateMeta(state);
+        renderDevices(state);
+      }
+
+      function handleProfileSubmit(event) {
+        event.preventDefault();
+        if (!activeUser) {
+          showFeedback(profileFeedback, 'Faça login para editar o perfil.', 'error');
+          return;
+        }
+        const formData = new FormData(profileForm);
+        const nextState = {
+          name: String(formData.get('name') || '').trim(),
+          email: String(formData.get('email') || '').trim(),
+          phone: String(formData.get('phone') || '').trim(),
+          role: String(formData.get('role') || 'member')
+        };
+        try {
+          const updated = updateUserProfile(activeUser.id, nextState);
+          state.profileExtras = {
+            jobTitle: String(formData.get('jobTitle') || '').trim(),
+            department: String(formData.get('department') || '').trim(),
+            workspace: String(formData.get('workspace') || '').trim()
+          };
+          state.meta.profileUpdatedAt = new Date().toISOString();
+          activeUser = updated;
+          saveState(activeUser.id, state);
+          applyState();
+          showFeedback(profileFeedback, 'Perfil atualizado com sucesso.');
+        } catch (error) {
+          let message = 'Não foi possível atualizar os dados agora.';
+          if (error instanceof Error) {
+            if (error.message === 'auth:user-exists') {
+              message = 'Já existe um usuário com este e-mail.';
+            } else if (error.message === 'auth:owner-required') {
+              message = 'Mantenha ao menos um proprietário ativo no workspace.';
+            }
+          }
+          showFeedback(profileFeedback, message, 'error');
+        }
+      }
+
+      function handlePreferencesSubmit(event) {
+        event.preventDefault();
+        if (!activeUser) {
+          showFeedback(preferencesFeedback, 'Faça login para salvar preferências.', 'error');
+          return;
+        }
+        const formData = new FormData(preferencesForm);
+        state.preferences = {
+          theme: String(formData.get('theme') || 'system'),
+          language: String(formData.get('language') || 'auto'),
+          timezone: String(formData.get('timezone') || 'America/Sao_Paulo'),
+          notifications: {
+            productUpdates: formData.get('notifyUpdates') === 'on',
+            securityAlerts: formData.get('notifySecurity') === 'on',
+            weeklySummary: formData.get('notifySummary') === 'on'
+          },
+          automation: {
+            autoSync: formData.get('autoSync') === 'on',
+            autoBackup: formData.get('autoBackup') === 'on',
+            betaProgram: formData.get('betaProgram') === 'on'
+          }
+        };
+        state.meta.preferencesUpdatedAt = new Date().toISOString();
+        saveState(activeUser.id, state);
+        applyState();
+        showFeedback(preferencesFeedback, 'Preferências salvas com sucesso.');
+      }
+
+      function handleDeviceToggle(deviceId) {
+        if (!activeUser) {
+          showFeedback(devicesFeedback, 'Faça login para gerenciar dispositivos.', 'error');
+          return;
+        }
+        const devices = Array.isArray(state.devices) ? state.devices : [];
+        const index = devices.findIndex(device => device.id === deviceId);
+        if (index === -1) {
+          return;
+        }
+        const current = devices[index];
+        const nextStatus = current.status === 'revoked' ? 'trusted' : 'revoked';
+        devices[index] = {
+          ...current,
+          status: nextStatus,
+          lastActive: nextStatus === 'trusted' ? new Date().toISOString() : current.lastActive
+        };
+        state.devices = devices;
+        state.meta.devicesUpdatedAt = new Date().toISOString();
+        saveState(activeUser.id, state);
+        applyState();
+        const message =
+          nextStatus === 'trusted'
+            ? 'Dispositivo reativado com sucesso.'
+            : 'Sessão revogada. O dispositivo precisará fazer login novamente.';
+        showFeedback(devicesFeedback, message);
+      }
+
+      if (profileForm) {
+        profileForm.addEventListener('submit', handleProfileSubmit);
+        profileForm.addEventListener('reset', event => {
+          if (event.isTrusted) {
+            window.setTimeout(applyState, 0);
+            clearFeedback(profileFeedback);
+          }
+        });
+      }
+
+      if (preferencesForm) {
+        preferencesForm.addEventListener('submit', handlePreferencesSubmit);
+        preferencesForm.addEventListener('reset', event => {
+          if (event.isTrusted) {
+            window.setTimeout(applyState, 0);
+            clearFeedback(preferencesFeedback);
+          }
+        });
+      }
+
+      if (devicesList) {
+        devicesList.addEventListener('click', event => {
+          const toggle = event.target.closest('[data-device-toggle]');
+          if (!toggle) {
+            return;
+          }
+          event.preventDefault();
+          handleDeviceToggle(toggle.dataset.deviceId || '');
+        });
+      }
+
+      if (loginButton) {
+        loginButton.addEventListener('click', () => {
+          try {
+            if (window.top) {
+              window.top.location.href = loginUrl.href;
+              return;
+            }
+          } catch (error) {
+            console.warn('user-panel: unable to open login on top window', error);
+          }
+          window.location.href = loginUrl.href;
+        });
+      }
+
+      function syncUser(user) {
+        activeUser = user;
+        state = loadState(user?.id);
+        applyState();
+      }
+
+      onAuthChange(syncUser);
+      syncUser(activeUser);
+      console.info('user-panel: painel do usuário aberto', { timestamp: new Date().toISOString() });
+    </script>
+  </body>
+</html>

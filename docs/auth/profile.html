@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="auth.profile.title">Perfil</title>
+    <script>
+      (function () {
+        const root = document.documentElement;
+        let mode = 'panel';
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const embed = params.get('embed');
+          if (embed && embed.toLowerCase() === 'inline') {
+            mode = null;
+          } else if (embed && embed.toLowerCase() === 'panel') {
+            mode = 'panel';
+          } else if (window.self === window.top) {
+            mode = null;
+          }
+        } catch (error) {
+          if (window.self === window.top) {
+            mode = null;
+          }
+        }
+        if (mode === 'panel') {
+          root.dataset.embedMode = 'panel';
+        } else {
+          delete root.dataset.embedMode;
+        }
+      })();
+    </script>
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header" role="banner">
+        <button class="app-header__menu-button" type="button">menu</button>
+      </header>
+      <div class="layout">
+        <aside id="sidebar" class="sidebar" aria-label="Navegação principal">
+          <nav>
+            <ul>
+              <li>
+                <a href="../index.html" title="Dashboard">
+                  <span class="icon" aria-hidden="true">🏠</span>
+                  <span class="label" data-i18n="nav.dashboard">Início</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Atividades">
+                  <span class="icon" aria-hidden="true">🗂</span>
+                  <span class="label" data-i18n="nav.activity">Atividades</span>
+                </a>
+              </li>
+              <li>
+                <a href="#" title="Análises">
+                  <span class="icon" aria-hidden="true">📊</span>
+                  <span class="label" data-i18n="nav.analytics">Análises</span>
+                </a>
+              </li>
+              <li class="has-submenu">
+                <button
+                  id="miniapp-toggle"
+                  class="submenu-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="miniapp-submenu"
+                >
+                  <span class="icon" aria-hidden="true">🧩</span>
+                  <span class="label" data-i18n="nav.miniapps">Mini-apps</span>
+                  <span class="submenu-caret" aria-hidden="true">▾</span>
+                </button>
+                <ul id="miniapp-submenu" class="submenu" hidden data-miniapp-menu></ul>
+              </li>
+            </ul>
+          </nav>
+        </aside>
+        <main id="panel" class="panel" role="main" tabindex="-1">
+          <h1 class="sr-only" data-i18n="auth.profile.title">Perfil</h1>
+          <section class="panel-content">
+            <section class="card profile-empty" data-profile-empty hidden>
+              <header class="card-header">
+                <h2 data-i18n="auth.profile.panelTitle">Painel do usuário</h2>
+                <p class="card-description" data-i18n="auth.profile.userPanelLoginRequired">
+                  Faça login para acessar seu painel.
+                </p>
+              </header>
+              <div class="form-actions">
+                <a class="cta" href="./login.html" data-i18n="panel.actions.login">Acessar</a>
+              </div>
+            </section>
+            <div class="profile-layout" data-profile-content>
+              <div class="profile-main">
+                <article class="card profile-overview" aria-labelledby="profile-overview-title">
+                  <header class="profile-identity">
+                    <div class="profile-identity__avatar" aria-hidden="true">
+                      <span data-profile-avatar>—</span>
+                    </div>
+                    <div class="profile-identity__summary">
+                      <p class="profile-identity__kicker" data-i18n="auth.profile.overviewKicker">Perfil principal</p>
+                      <h2 id="profile-overview-title" data-profile-identity-name>—</h2>
+                      <p class="profile-identity__email">
+                        <span data-profile-identity-email>—</span>
+                      </p>
+                      <span class="badge badge-role" data-profile-identity-role data-role="none">—</span>
+                    </div>
+                  </header>
+                  <p class="profile-overview__description" data-i18n="auth.profile.overviewDescription">
+                    Mantenha os dados atualizados para garantir acesso rápido e seguro.
+                  </p>
+                  <dl class="profile-stats">
+                    <div>
+                      <dt data-i18n="auth.profile.stats.totalUsers">Usuários na conta</dt>
+                      <dd data-profile-total-users>0</dd>
+                    </div>
+                    <div>
+                      <dt data-i18n="auth.profile.stats.dependents">Usuários dependentes</dt>
+                      <dd data-profile-dependent-users>0</dd>
+                    </div>
+                    <div>
+                      <dt data-i18n="auth.profile.stats.ownerSince">Proprietário desde</dt>
+                      <dd data-profile-owner-since>—</dd>
+                    </div>
+                  </dl>
+                </article>
+                <article class="card profile-card" id="profile-card">
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.detailsTitle">Dados da conta</h2>
+                    <p class="card-description" data-i18n="auth.profile.detailsDescription">
+                      Edite as informações compartilhadas com toda a equipe.
+                    </p>
+                  </header>
+                  <form id="profile-form" class="form" novalidate>
+                    <fieldset>
+                      <legend data-i18n="auth.profile.form.profileLegend">Dados pessoais</legend>
+                      <div class="form-field">
+                        <label for="profile-name" data-i18n="auth.form.name">Nome</label>
+                        <input id="profile-name" name="name" type="text" autocomplete="name" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="profile-email" data-i18n="auth.form.email">E-mail</label>
+                        <input id="profile-email" name="email" type="email" autocomplete="email" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="profile-role" data-i18n="auth.form.role">Perfil de acesso</label>
+                        <select id="profile-role" name="role" required>
+                          <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
+                          <option value="member" data-i18n="auth.form.member">Membro</option>
+                        </select>
+                      </div>
+                    </fieldset>
+                    <div class="form-actions">
+                      <button type="submit" class="cta" data-i18n="actions.save">Salvar</button>
+                      <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
+                    </div>
+                    <p id="profile-form-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  </form>
+                </article>
+                <article class="card" id="user-management" hidden>
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.userManagementTitle">Gerenciar usuários</h2>
+                    <button id="user-management-create" class="cta" type="button" data-i18n="auth.profile.userAdd">
+                      Adicionar usuário
+                    </button>
+                  </header>
+                  <p class="card-description" data-i18n="auth.profile.userManagementDescription">
+                    Convide dependentes para a conta, atualize dados compartilhados e transfira a propriedade quando necessário.
+                  </p>
+                  <div class="table-wrapper">
+                    <table class="user-management-table">
+                      <thead>
+                        <tr>
+                          <th scope="col" data-i18n="auth.profile.userTable.name">Nome</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.email">E-mail</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.phone">Telefone</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.role">Perfil</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.createdAt">Criado em</th>
+                          <th scope="col" data-i18n="auth.profile.userTable.actions">Ações</th>
+                        </tr>
+                      </thead>
+                      <tbody id="user-management-list">
+                        <tr>
+                          <td colspan="6" data-i18n="auth.profile.userEmpty">Nenhum usuário cadastrado.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <p id="user-management-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  <form id="user-management-form" class="form" hidden novalidate>
+                    <fieldset>
+                      <legend id="user-management-form-title" data-i18n="auth.profile.userForm.title.create">Adicionar usuário</legend>
+                      <div class="form-field">
+                        <label for="manage-name" data-i18n="auth.form.name">Nome</label>
+                        <input id="manage-name" name="name" type="text" autocomplete="name" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-email" data-i18n="auth.form.email">E-mail</label>
+                        <input id="manage-email" name="email" type="email" autocomplete="email" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-phone" data-i18n="auth.form.phone">Celular</label>
+                        <input id="manage-phone" name="phone" type="tel" autocomplete="tel" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-password" data-i18n="auth.form.password">Senha</label>
+                        <input id="manage-password" name="password" type="password" autocomplete="new-password" required />
+                        <small class="form-hint" data-i18n="auth.profile.userForm.passwordHint">
+                          Defina uma senha temporária e compartilhe com o novo usuário.
+                        </small>
+                      </div>
+                      <div class="form-field">
+                        <label for="manage-role" data-i18n="auth.form.role">Perfil de acesso</label>
+                        <select id="manage-role" name="role">
+                          <option value="owner" data-i18n="auth.form.owner">Proprietário</option>
+                          <option value="member" data-i18n="auth.form.member">Membro</option>
+                        </select>
+                      </div>
+                    </fieldset>
+                    <div class="form-actions">
+                      <button id="user-management-submit" class="cta" type="submit" data-i18n="auth.profile.userForm.submit.create">
+                        Adicionar
+                      </button>
+                      <button id="user-management-cancel" class="ghost" type="button" data-i18n="actions.cancel">Cancelar</button>
+                    </div>
+                  </form>
+                </article>
+              </div>
+              <aside class="profile-sidebar">
+                <article class="card profile-security">
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.securityTitle">Segurança</h2>
+                    <p class="card-description" data-i18n="auth.profile.securityDescription">
+                      Atualize a senha periodicamente e mantenha a conta protegida.
+                    </p>
+                  </header>
+                  <form id="password-form" class="form" novalidate>
+                    <fieldset>
+                      <legend class="sr-only" data-i18n="auth.profile.form.passwordLegend">Segurança</legend>
+                      <div class="form-field">
+                        <label for="password-current" data-i18n="auth.form.currentPassword">Senha atual</label>
+                        <input id="password-current" name="currentPassword" type="password" autocomplete="current-password" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="password-new" data-i18n="auth.form.newPassword">Nova senha</label>
+                        <input id="password-new" name="newPassword" type="password" autocomplete="new-password" required />
+                      </div>
+                      <div class="form-field">
+                        <label for="password-confirm" data-i18n="auth.form.confirmPassword">Confirmar nova senha</label>
+                        <input id="password-confirm" name="confirmPassword" type="password" autocomplete="new-password" required />
+                      </div>
+                    </fieldset>
+                    <div class="form-actions">
+                      <button type="submit" class="cta" data-i18n="auth.profile.form.updatePassword">Atualizar senha</button>
+                      <button type="reset" class="ghost" data-i18n="actions.cancel">Cancelar</button>
+                    </div>
+                    <p id="password-form-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  </form>
+                </article>
+                <article class="card profile-quick-actions">
+                  <header class="card-header">
+                    <h2 data-i18n="auth.profile.quickActionsTitle">Ações rápidas</h2>
+                    <p class="card-description" data-i18n="auth.profile.quickActionsDescription">
+                      Finalize a sessão atual ou remova este acesso do dispositivo.
+                    </p>
+                  </header>
+                  <div class="profile-actions">
+                    <button id="profile-logout" class="cta secondary" type="button" data-i18n="auth.profile.logout">Encerrar sessão</button>
+                    <button id="delete-account" class="cta danger" type="button" data-i18n="auth.profile.delete">Excluir conta</button>
+                    <p id="profile-feedback" class="feedback" role="status" aria-live="polite"></p>
+                  </div>
+                </article>
+              </aside>
+            </div>
+          </section>
+        </main>
+      </div>
+      <footer id="app-footer" class="app-footer" role="contentinfo">
+      <div class="footer-content">
+        <img
+          class="app-footer__logo"
+          src="../../../shared/brand/logo-light.svg"
+          alt="5Horas"
+          data-brand-light="../../../shared/brand/logo-light.svg"
+          data-brand-dark="../../../shared/brand/logo-dark.svg"
+        />
+      </div>
+    </footer>
+    </div>
+    <div
+      id="user-menu"
+      class="menu-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="user-menu-title"
+      hidden
+    >
+      <div class="menu-overlay__panel" role="document" data-user-menu-panel>
+        <header class="menu-overlay__header">
+          <h2 id="user-menu-title" class="menu-overlay__title" data-i18n="settings.userMenuTitle">
+            Menu do usuário
+          </h2>
+          <button type="button" class="ghost icon-only menu-overlay__close" data-user-menu-close>
+            <span class="sr-only" data-i18n="actions.close">Fechar</span>
+            <span aria-hidden="true">✕</span>
+          </button>
+        </header>
+        <ul class="menu">
+          <li>
+            <button id="btnLang" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true" data-lang-icon>🇧🇷</span>
+              <span class="menu-text" data-i18n="settings.language">Idioma</span>
+              <span class="sr-only" data-i18n="actions.toggleLanguage">Alternar idioma</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnTheme" class="menu-item" type="button" aria-pressed="false">
+              <span class="menu-icon" aria-hidden="true" data-theme-icon>☀️</span>
+              <span class="menu-text" data-i18n="settings.theme">Tema</span>
+              <span class="sr-only" data-i18n="actions.toggleTheme">Alternar tema</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnUserPanel" class="menu-item" type="button">
+              <span class="menu-icon" aria-hidden="true">👤</span>
+              <span class="menu-text" data-i18n="settings.userPanel">Painel do usuário</span>
+              <span class="sr-only" data-i18n="actions.openUserPanel">Abrir painel do usuário</span>
+            </button>
+          </li>
+          <li class="menu-divider" role="separator" aria-hidden="true"></li>
+          <li>
+            <button class="menu-item" type="button" data-action="profile">
+              <span class="menu-icon" aria-hidden="true">🔐</span>
+              <span class="menu-text" data-i18n="actions.profile">Perfil</span>
+            </button>
+          </li>
+          <li>
+            <button class="menu-item" type="button" data-action="logout">
+              <span class="menu-icon" aria-hidden="true">🚪</span>
+              <span class="menu-text" data-i18n="actions.logout">Sair</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <script defer type="module" src="../sys/memory-status.js"></script>
+    <script type="module" src="../app.js"></script>
+  </body>
+</html>

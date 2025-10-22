@@ -23,7 +23,7 @@ let baseURL: string;
 test.beforeAll(async () => {
   server = http.createServer((req, res) => {
     const urlPath = decodeURIComponent((req.url || '/').split('?')[0]);
-    const relativePath = urlPath === '/' ? '/miniapps/base_shell/index.html' : urlPath;
+    const relativePath = urlPath === '/' ? '/apps/web/index.html' : urlPath;
     const resolvedPath = path.normalize(path.join(repoRoot, relativePath));
     if (!resolvedPath.startsWith(repoRoot)) {
       res.statusCode = 403;
@@ -56,7 +56,7 @@ test.afterAll(async () => {
 
 test.describe('MiniApp Base shell', () => {
   test('exibe header minimalista e mantém principais fluxos de autenticação', async ({ page }) => {
-    await page.goto(`${baseURL}/miniapps/base_shell/index.html`);
+    await page.goto(`${baseURL}/apps/web/index.html`);
 
     await expect(page).toHaveURL(/auth\/login\.html$/);
 
@@ -121,7 +121,7 @@ test.describe('MiniApp Base shell', () => {
     await page.click('#login-form .cta');
     await expect(page.locator('#login-feedback')).toHaveText('Sessão iniciada como Bruno Partner.');
 
-    await page.goto(`${baseURL}/miniapps/base_shell/index.html`);
+    await page.goto(`${baseURL}/apps/web/index.html`);
     await expect(page.locator('.app-header__menu-button')).toHaveText('menu');
     await expect(page.locator('#panel')).toBeVisible();
 

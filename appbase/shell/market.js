@@ -6,7 +6,7 @@ function buildMiniAppPath(id) {
   if (!id) {
     return location.pathname;
   }
-  const target = new URL(`../../miniapps/${id}/`, window.location.href);
+  const target = new URL(`../../apps/${id}/`, window.location.href);
   return `${target.pathname}${target.search}${target.hash}`;
 }
 

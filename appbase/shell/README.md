@@ -2,7 +2,7 @@
 
 Esta pasta oferece uma variante atual do shell base usada como referência
 no `appbase`. Em vez de manter uma cópia independente do código, a página
-carrega diretamente o miniapp ativo (`miniapps/base_shell`). Isso garante
+carrega diretamente o shell ativo (`apps/web`). Isso garante
 que os estilos, utilitários de internacionalização, tema e autenticação
 permaneçam alinhados com a experiência publicada.
 
@@ -13,5 +13,5 @@ permaneçam alinhados com a experiência publicada.
    oficial; utilize esta versão para validar integrações ou criar novas
    variações.
 
-Qualquer atualização aplicada ao miniapp base é refletida automaticamente
+Qualquer atualização aplicada ao shell base é refletida automaticamente
 no AppBase, dispensando sincronizações manuais.

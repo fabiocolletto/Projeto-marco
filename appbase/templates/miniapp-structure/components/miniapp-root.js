@@ -8,7 +8,7 @@ tpl.innerHTML = `
     <header class="card-hd">
       <h3>MiniApp: <span id="title"></span></h3>
       <div class="card-actions">
-        <a class="btn ghost" href="#/miniapps/<id-kebab>/settings">Settings</a>
+        <a class="btn ghost" href="#/apps/<id-kebab>/settings">Settings</a>
       </div>
     </header>
     <div class="card-bd">
