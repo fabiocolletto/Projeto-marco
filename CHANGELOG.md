@@ -1,6 +1,14 @@
 # CHANGELOG
 > Padrão: SemVer `v0.x.y` (Fase PWA). Cada PR **deve** atualizar esta seção.
 
+## [v0.1.6] - 2025-10-22
+### Added
+- Novo layout compartilhado (`apps/web/sys/panel.css`) para alinhar os painéis do sistema e do usuário, garantindo consistência visual em tablets na horizontal e vertical.
+- Indicadores operacionais no painel do sistema com verificação de APIs críticas, status de catálogo e métricas do ambiente.
+
+### Changed
+- Atualizado o painel do usuário para consumir a folha de estilos unificada e preservar o rodapé visível em resoluções móveis e tablet.
+
 ## [v0.1.5] - 2025-10-22
 ### Changed
 - Ajustado o layout do painel do usuário para reduzir os espaçamentos entre widgets e distribuir melhor os cartões em telas maiores.
