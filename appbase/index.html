@@ -75,15 +75,38 @@
     import { i18n, loadBaseI18n, loadMiniSnippet } from './scripts/i18n-loader.js';
     import { initVersionStatus, refreshVersionTranslations } from './scripts/version-status.js';
     import { fetchMiniappsCatalog } from './scripts/data-sources.js';
+    import { getSupabaseClient, ensureAnonymousSession } from './scripts/supabaseClient.js';
+    import { projectStore } from './scripts/projectStore.js';
 
     const viewport = document.getElementById('viewport');
     const catalog = document.getElementById('catalog');
     const baseTitle = document.title;
+    const TASK_CACHE_PREFIX = 'appbase.tasks.';
+    const TASK_STATUS_VALUES = ['pending', 'in_progress', 'done'];
 
     const ensureRelativePath = (path) => {
       if (typeof path !== 'string' || path.length === 0) return path ?? '';
       return path.startsWith('../') ? path : `../${path}`;
     };
+
+    function getTaskCacheKey(miniappId){
+      return `${TASK_CACHE_PREFIX}${miniappId}`;
+    }
+
+    function loadCachedTasks(miniappId){
+      const cached = projectStore.get(getTaskCacheKey(miniappId), []);
+      return Array.isArray(cached) ? cached : [];
+    }
+
+    function persistCachedTasks(miniappId, tasks){
+      projectStore.set(getTaskCacheKey(miniappId), tasks);
+    }
+
+    function normalizeStatus(value){
+      if (!value) return 'pending';
+      const normalized = value.toLowerCase().replace(/\s+/g, '_');
+      return TASK_STATUS_VALUES.includes(normalized) ? normalized : 'pending';
+    }
 
     // Estado
     const catalogResult = await fetchMiniappsCatalog();
@@ -124,7 +147,7 @@
         btn.textContent = m.name;
         const labelKey = `app.catalog.items.${m.id}`;
         btn.dataset.i18n = labelKey;
-        btn.dataset.i18nFallback = m.name;
+        btn.dataset.i18nFallback = m.displayNames?.['pt-br'] ?? m.name;
         btn.onclick = async () => {
           await openMiniapp(m);
         };
@@ -143,7 +166,7 @@
       viewport.innerHTML = html;
       // i18n placeholders simples: {{ t('key') }}
       viewport.innerHTML = viewport.innerHTML.replace(/\{\{\s*t\('([^']+)'\)\s*\}\}/g, (_, key) => i18n.t(key));
-      attachTaskTableHandlers();
+      await attachTaskTableHandlers(miniapp);
     }
 
     function translateKey(key, fallback){
@@ -190,17 +213,228 @@
     };
 
     // Funções do MiniApp Gestor de Tarefas (handlers simples)
-    function attachTaskTableHandlers(){
+    async function attachTaskTableHandlers(miniapp){
       const addBtn = viewport.querySelector('[data-action="add-row"]');
       const tbody = viewport.querySelector('#gt-rows');
-      if(addBtn && tbody){
-        addBtn.onclick = () => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td contenteditable></td><td contenteditable></td><td><button class="c-btn" data-action="delete">${i18n.t('miniapps.gestor-de-tarefas.tabela.excluir')}</button></td>`;
-          tbody.appendChild(tr);
-          tr.querySelector('[data-action="delete"]').onclick = () => tr.remove();
-        };
+      if (!addBtn || !tbody || !miniapp?.id) {
+        return;
       }
+
+      const miniappId = miniapp.id;
+      let tasks = [];
+      let session = null;
+      const supabase = getSupabaseClient();
+
+      addBtn.disabled = true;
+
+      function renderRows(list){
+        tbody.innerHTML = '';
+        list.forEach(task => {
+          const row = createRow(task);
+          tbody.appendChild(row);
+        });
+      }
+
+      function getCell(row, field){
+        return row.querySelector(`[data-field="${field}"]`);
+      }
+
+      async function ensureSession(){
+        if (!supabase) return null;
+        if (session) return session;
+        session = await ensureAnonymousSession();
+        if (!session) {
+          console.warn('[tasks] Sessão anônima indisponível');
+        }
+        return session;
+      }
+
+      async function hydrateTasks(){
+        if (!supabase) {
+          tasks = loadCachedTasks(miniappId);
+          renderRows(tasks);
+          return;
+        }
+        const activeSession = await ensureSession();
+        if (!activeSession) {
+          tasks = loadCachedTasks(miniappId);
+          renderRows(tasks);
+          return;
+        }
+        try {
+          const { data, error } = await supabase
+            .from('task_items')
+            .select('id,title,status,created_at')
+            .eq('miniapp_id', miniappId)
+            .order('created_at', { ascending: true });
+          if (error) {
+            throw error;
+          }
+          tasks = Array.isArray(data)
+            ? data.map(row => ({ id: row.id, title: row.title, status: row.status }))
+            : [];
+          persistCachedTasks(miniappId, tasks);
+          renderRows(tasks);
+        } catch (error) {
+          console.warn('[tasks] Falha ao carregar tarefas', error);
+          tasks = loadCachedTasks(miniappId);
+          renderRows(tasks);
+        }
+      }
+
+      async function persistRow(row){
+        if (row.dataset.syncing === 'true') return;
+        const titleCell = getCell(row, 'title');
+        const statusCell = getCell(row, 'status');
+        const titleValue = (titleCell?.textContent ?? '').trim();
+        const statusValue = normalizeStatus(statusCell?.textContent ?? '');
+
+        if (!titleValue) {
+          const existing = tasks.find(item => item.id === row.dataset.taskId);
+          if (existing) {
+            if (titleCell) titleCell.textContent = existing.title;
+            if (statusCell) statusCell.textContent = existing.status;
+          } else {
+            row.remove();
+          }
+          return;
+        }
+
+        if (!supabase) {
+          const id = row.dataset.taskId;
+          if (!id) {
+            row.dataset.taskId = `local-${Date.now()}`;
+          }
+          const existingIndex = tasks.findIndex(item => item.id === row.dataset.taskId);
+          const payload = { id: row.dataset.taskId, title: titleValue, status: statusValue };
+          if (existingIndex >= 0) {
+            tasks[existingIndex] = payload;
+          } else {
+            tasks.push(payload);
+          }
+          persistCachedTasks(miniappId, tasks);
+          return;
+        }
+
+        const activeSession = await ensureSession();
+        if (!activeSession) {
+          return;
+        }
+
+        row.dataset.syncing = 'true';
+        try {
+          if (row.dataset.taskId) {
+            const { error } = await supabase
+              .from('task_items')
+              .update({ title: titleValue, status: statusValue })
+              .eq('id', row.dataset.taskId);
+            if (error) {
+              throw error;
+            }
+            const index = tasks.findIndex(item => item.id === row.dataset.taskId);
+            if (index >= 0) {
+              tasks[index] = { ...tasks[index], title: titleValue, status: statusValue };
+            }
+          } else {
+            const { data, error } = await supabase
+              .from('task_items')
+              .insert({ miniapp_id: miniappId, title: titleValue, status: statusValue })
+              .select('id,title,status')
+              .single();
+            if (error) {
+              throw error;
+            }
+            row.dataset.taskId = data.id;
+            tasks.push({ id: data.id, title: data.title, status: data.status });
+          }
+          persistCachedTasks(miniappId, tasks);
+        } catch (error) {
+          console.warn('[tasks] Falha ao sincronizar linha', error);
+          row.classList.add('u-border-danger');
+        } finally {
+          row.dataset.syncing = 'false';
+        }
+      }
+
+      async function removeRow(row){
+        const id = row.dataset.taskId;
+        if (!id) {
+          row.remove();
+          return;
+        }
+
+        if (!supabase) {
+          row.remove();
+          tasks = tasks.filter(item => item.id !== id);
+          persistCachedTasks(miniappId, tasks);
+          return;
+        }
+
+        const activeSession = await ensureSession();
+        if (!activeSession) {
+          return;
+        }
+
+        try {
+          const { error } = await supabase
+            .from('task_items')
+            .delete()
+            .eq('id', id);
+          if (error) {
+            throw error;
+          }
+          row.remove();
+          tasks = tasks.filter(item => item.id !== id);
+          persistCachedTasks(miniappId, tasks);
+        } catch (error) {
+          console.warn('[tasks] Falha ao remover linha', error);
+        }
+      }
+
+      function createRow(task){
+        const tr = document.createElement('tr');
+        if (task?.id) {
+          tr.dataset.taskId = task.id;
+        }
+
+        const titleCell = document.createElement('td');
+        titleCell.contentEditable = 'true';
+        titleCell.dataset.field = 'title';
+        titleCell.textContent = task?.title ?? '';
+
+        const statusCell = document.createElement('td');
+        statusCell.contentEditable = 'true';
+        statusCell.dataset.field = 'status';
+        statusCell.textContent = task?.status ?? 'pending';
+
+        const actionsCell = document.createElement('td');
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'c-btn';
+        deleteBtn.dataset.action = 'delete';
+        deleteBtn.textContent = i18n.t('miniapps.gestor-de-tarefas.tabela.excluir');
+        actionsCell.appendChild(deleteBtn);
+
+        tr.appendChild(titleCell);
+        tr.appendChild(statusCell);
+        tr.appendChild(actionsCell);
+
+        const syncRow = () => { persistRow(tr); };
+        titleCell.addEventListener('blur', syncRow);
+        statusCell.addEventListener('blur', syncRow);
+        deleteBtn.addEventListener('click', () => removeRow(tr));
+
+        return tr;
+      }
+
+      addBtn.onclick = () => {
+        const row = createRow({ title: '', status: 'pending' });
+        tbody.prepend(row);
+        const titleCell = getCell(row, 'title');
+        titleCell?.focus();
+      };
+
+      await hydrateTasks();
+      addBtn.disabled = false;
     }
   </script>
 </body>

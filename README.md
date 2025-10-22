@@ -30,3 +30,38 @@ Este R1 inclui o MiniApp **Gestor de Tarefas** para validação.
 - O catálogo de MiniApps (`miniapps` e `miniapp_translations`) e o registro de lançamentos (`release_log`) agora residem no Supabase com RLS habilitado. As migrações em `supabase/migrations/` populam os dados iniciais.
 - Views utilitárias (`miniapps_catalog_v1`, `release_log_latest_v1`) ficam versionadas em `supabase/functions/` e são expostas via REST.
 - O AppBase tenta consumir essas views usando os metadados `supabase-url`, `supabase-anon-key` (ou o objeto global `window.__APPBASE_SUPABASE__`). Caso nenhuma credencial esteja configurada, os arquivos estáticos em `docs/` e `miniapps/` funcionam como fallback temporário.
+
+## Configuração de credenciais Supabase
+- O AppBase consome os metadados `supabase-url` e `supabase-anon-key` para inicializar o cliente web. Preencha-os usando as variáveis de ambiente:
+  - `SUPABASE_URL`: URL base do projeto (ex.: `https://xxxxx.supabase.co`).
+  - `SUPABASE_ANON_KEY`: chave pública (`anon`) gerada no painel do Supabase.
+- Em ambientes locais, exporte as variáveis e injete-as antes de publicar a página (por exemplo, criando um pequeno script que define `window.__APPBASE_SUPABASE__`).
+- No GitHub Pages, adicione as duas variáveis como **Secrets** da environment `production` (Settings → Pages → Secrets). Elas ficam acessíveis no workflow como `${{ secrets.SUPABASE_URL }}` e `${{ secrets.SUPABASE_ANON_KEY }}` — utilize-as para gerar as metatags abaixo antes de chamar `actions/upload-pages-artifact@v3`:
+
+```sh
+cat <<'EOF' > appbase/scripts/supabase-env.js
+window.__APPBASE_SUPABASE__ = {
+  url: "${SUPABASE_URL}",
+  anonKey: "${SUPABASE_ANON_KEY}"
+};
+EOF
+```
+
+```yaml
+      - name: Inject Supabase config
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -n "$SUPABASE_URL" ] && [ -n "$SUPABASE_ANON_KEY" ]; then
+            cat <<'EOF' > appbase/scripts/supabase-env.js
+window.__APPBASE_SUPABASE__ = {
+  url: "${SUPABASE_URL}",
+  anonKey: "${SUPABASE_ANON_KEY}"
+};
+EOF
+            sed -i "s#</body>#  <script src=\"./scripts/supabase-env.js\"></script>\n</body>#" appbase/index.html
+          fi
+```
+
+- Como alternativa, injete `<meta name="supabase-url">` e `<meta name="supabase-anon-key">` com os valores correspondentes caso prefira não criar o script.
