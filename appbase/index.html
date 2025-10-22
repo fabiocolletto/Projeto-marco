@@ -173,7 +173,7 @@
       if(addBtn && tbody){
         addBtn.onclick = () => {
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td contenteditable></td><td contenteditable></td><td><button class="c-btn" data-action="delete">${i18n.t('miniapps.gestor_tarefas.tabela.excluir')}</button></td>`;
+          tr.innerHTML = `<td contenteditable></td><td contenteditable></td><td><button class="c-btn" data-action="delete">${i18n.t('miniapps.gestor-de-tarefas.tabela.excluir')}</button></td>`;
           tbody.appendChild(tr);
           tr.querySelector('[data-action="delete"]').onclick = () => tr.remove();
         };

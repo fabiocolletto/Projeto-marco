@@ -1,7 +1,7 @@
 {
   "pt-br": {
     "miniapps": {
-      "gestor_tarefas": {
+      "gestor-de-tarefas": {
         "titulo": "Gestor de Tarefas",
         "tabela": {
           "tarefa": "Tarefa",
@@ -14,7 +14,7 @@
   },
   "en-us": {
     "miniapps": {
-      "gestor_tarefas": {
+      "gestor-de-tarefas": {
         "titulo": "Task Manager",
         "tabela": {
           "tarefa": "Task",
@@ -27,7 +27,7 @@
   },
   "es-419": {
     "miniapps": {
-      "gestor_tarefas": {
+      "gestor-de-tarefas": {
         "titulo": "Gestor de Tareas",
         "tabela": {
           "tarefa": "Tarea",
