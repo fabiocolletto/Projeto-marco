@@ -8,6 +8,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.53.6
+      - name: Push Supabase migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_REF" --password "$SUPABASE_DB_PASSWORD" --yes
+          supabase db push --linked --password "$SUPABASE_DB_PASSWORD"
+      - name: Deploy Supabase functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+        run: |
+          if [ -d supabase/functions ] && find supabase/functions -mindepth 1 -maxdepth 1 -type d | grep -q .; then
+            for fn_dir in supabase/functions/*; do
+              if [ -d "$fn_dir" ]; then
+                fn_name=$(basename "$fn_dir")
+                supabase functions deploy "$fn_name" --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt --yes
+              fi
+            done
+          else
+            echo "No Supabase functions to deploy"
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: '.'
